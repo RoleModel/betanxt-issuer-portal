@@ -27,7 +27,10 @@ interface CalendarViewProps {
   onFullscreenChange?: (isFullscreen: boolean) => void;
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ meeting, onFullscreenChange }) => {
+export const CalendarView: React.FC<CalendarViewProps> = ({
+  meeting,
+  onFullscreenChange,
+}) => {
   const { tasks, keyDates, tasksLoading, refreshMeetingData } = useMeeting();
   const [filters, setFilters] = useState({
     searchQuery: "",
@@ -53,7 +56,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ meeting, onFullscree
       // Refetch data after approval
       await refreshMeetingData();
     },
-    [refreshMeetingData],
+    [refreshMeetingData]
   );
 
   // View state

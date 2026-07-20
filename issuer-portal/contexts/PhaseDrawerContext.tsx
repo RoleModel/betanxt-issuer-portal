@@ -1,6 +1,11 @@
 "use client";
 
-import React, { type ReactNode, createContext, useContext, useState } from "react";
+import React, {
+  type ReactNode,
+  createContext,
+  useContext,
+  useState,
+} from "react";
 
 interface PhaseDrawerContextType {
   isOpen: boolean;
@@ -13,7 +18,9 @@ interface PhaseDrawerContextType {
   onTaskClick: (taskId: string) => void;
 }
 
-const PhaseDrawerContext = createContext<PhaseDrawerContextType | undefined>(undefined);
+const PhaseDrawerContext = createContext<PhaseDrawerContextType | undefined>(
+  undefined
+);
 
 export const usePhaseDrawer = (): PhaseDrawerContextType => {
   const context = useContext(PhaseDrawerContext);
@@ -27,7 +34,9 @@ interface PhaseDrawerProviderProps {
   children: ReactNode;
 }
 
-export const PhaseDrawerProvider: React.FC<PhaseDrawerProviderProps> = ({ children }) => {
+export const PhaseDrawerProvider: React.FC<PhaseDrawerProviderProps> = ({
+  children,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentPhase, setCurrentPhase] = useState<number | null>(null);
 
@@ -50,5 +59,9 @@ export const PhaseDrawerProvider: React.FC<PhaseDrawerProviderProps> = ({ childr
     onTaskClick,
   };
 
-  return <PhaseDrawerContext.Provider value={value}>{children}</PhaseDrawerContext.Provider>;
+  return (
+    <PhaseDrawerContext.Provider value={value}>
+      {children}
+    </PhaseDrawerContext.Provider>
+  );
 };

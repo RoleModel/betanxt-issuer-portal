@@ -64,16 +64,19 @@ const SendEmailSchema = z.discriminatedUnion("templateKey", [
 
 type SendEmailPayload = z.infer<typeof SendEmailSchema>;
 
-const TEMPLATE_REGISTRY: Record<string, (props: unknown) => React.ReactElement> = {
+const TEMPLATE_REGISTRY: Record<
+  string,
+  (props: unknown) => React.ReactElement
+> = {
   "document-update-notification": (props) =>
     React.createElement(
       DocumentUpdateNotification,
-      props as React.ComponentProps<typeof DocumentUpdateNotification>,
+      props as React.ComponentProps<typeof DocumentUpdateNotification>
     ),
   "tabulation-daily-report": (props) =>
     React.createElement(
       TabulationReportEmail,
-      props as React.ComponentProps<typeof TabulationReportEmail>,
+      props as React.ComponentProps<typeof TabulationReportEmail>
     ),
 };
 
@@ -82,10 +85,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return withCors(
       NextResponse.json(
         {
-          error: "Email sending is disabled. Set ENABLE_EMAILS=true in mock-api-server/.env.local",
+          error:
+            "Email sending is disabled. Set ENABLE_EMAILS=true in mock-api-server/.env.local",
         },
-        { status: 503 },
-      ),
+        { status: 503 }
+      )
     );
   }
 
@@ -97,8 +101,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return withCors(
         NextResponse.json(
           { error: "Invalid payload", details: parsed.error.flatten() },
-          { status: 400 },
-        ),
+          { status: 400 }
+        )
       );
     }
 
@@ -118,8 +122,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           error: "Internal server error",
           message: error instanceof Error ? error.message : "Unknown error",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

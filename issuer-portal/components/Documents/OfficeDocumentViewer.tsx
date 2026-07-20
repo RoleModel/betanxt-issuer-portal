@@ -38,11 +38,14 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
         const result = await mammoth.convertToHtml({ arrayBuffer });
         const sanitized = result.value.replace(
           /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-          "",
+          ""
         );
         setHtmlContent(sanitized);
 
-        if (result.messages.length > 0 && process.env.NODE_ENV === "development") {
+        if (
+          result.messages.length > 0 &&
+          process.env.NODE_ENV === "development"
+        ) {
           console.log("Mammoth conversion messages:", result.messages);
         }
 
@@ -51,12 +54,17 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
         if (process.env.NODE_ENV === "development") {
           console.error("Error loading DOCX:", err);
         }
-        setError(err instanceof Error ? err.message : "Failed to load document");
+        setError(
+          err instanceof Error ? err.message : "Failed to load document"
+        );
         setLoading(false);
       }
     };
 
-    if (fileType?.toLowerCase() === "docx" || fileType?.toLowerCase() === "doc") {
+    if (
+      fileType?.toLowerCase() === "docx" ||
+      fileType?.toLowerCase() === "doc"
+    ) {
       void loadDocument();
     } else {
       setError("Unsupported file type. Only DOCX files are supported.");

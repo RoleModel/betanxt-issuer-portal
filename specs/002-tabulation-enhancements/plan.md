@@ -1,7 +1,6 @@
 # Implementation Plan: Tabulation, Reporting & Data Visualization Enhancements
 
-**Branch**: `002-tabulation-enhancements` | **Date**: 2026-06-11 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/specs/002-tabulation-enhancements/spec.md`
+**Branch**: `002-tabulation-enhancements` | **Date**: 2026-06-11 | **Spec**: [spec.md](./spec.md) **Input**: Feature specification from `/specs/002-tabulation-enhancements/spec.md`
 
 ## Execution Flow (/plan command scope)
 
@@ -22,15 +21,7 @@ Five enhancement areas to the meeting analytics surfaces: (1) Tabulation — Reg
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.x (strict), React 19, Next.js 15 (app dir, client-rendered)
-**Primary Dependencies**: MUI 7.3+, `@mui/x-charts` 8.12 (+ `@mui/x-charts-pro` for Heatmap), SWR, `@react-pdf/renderer`, @rolemodel/betanxt-design-system
-**Storage**: Supabase PostgreSQL (local), schema generated from `mock-api-server/openapi-schema/openapi.yaml`
-**Testing**: Playwright (e2e + integration), type-check via `tsc --noEmit`
-**Target Platform**: Web (last-2 evergreen browsers)
-**Project Type**: web — `issuer-portal/` frontend + `mock-api-server/` backend (existing monorepo structure)
-**Performance Goals**: Charts interactive at ≤5k positions per meeting (current fetch limit); no new endpoints, aggregation client-side
-**Constraints**: Schema-first workflow mandatory (OpenAPI → migrations → seeds → types → manual transforms); no `any` types; MUI `sx` styling; feature gating via existing `enabledFeatures` pattern
-**Scale/Scope**: ~6 modified components, ~5 new components, 1 new route/tab, 2 hooks, 3 schema fields, seed updates
+**Language/Version**: TypeScript 5.x (strict), React 19, Next.js 15 (app dir, client-rendered) **Primary Dependencies**: MUI 7.3+, `@mui/x-charts` 8.12 (+ `@mui/x-charts-pro` for Heatmap), SWR, `@react-pdf/renderer`, @rolemodel/betanxt-design-system **Storage**: Supabase PostgreSQL (local), schema generated from `mock-api-server/openapi-schema/openapi.yaml` **Testing**: Playwright (e2e + integration), type-check via `tsc --noEmit` **Target Platform**: Web (last-2 evergreen browsers) **Project Type**: web — `issuer-portal/` frontend + `mock-api-server/` backend (existing monorepo structure) **Performance Goals**: Charts interactive at ≤5k positions per meeting (current fetch limit); no new endpoints, aggregation client-side **Constraints**: Schema-first workflow mandatory (OpenAPI → migrations → seeds → types → manual transforms); no `any` types; MUI `sx` styling; feature gating via existing `enabledFeatures` pattern **Scale/Scope**: ~6 modified components, ~5 new components, 1 new route/tab, 2 hooks, 3 schema fields, seed updates
 
 ## Constitution Check
 

@@ -69,13 +69,18 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
   // Calculate pagination
-  const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedRows = rows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
     <Card>
@@ -86,26 +91,43 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
             <TableHead>
               <TableRow>
                 <TableCell>Event</TableCell>
-                <TableCell sx={{ whiteSpace: "nowrap" }}>Meeting Type</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  Meeting Type
+                </TableCell>
                 {/* <TableCell>Inspector</TableCell> */}
-                <TableCell sx={{ whiteSpace: "nowrap" }}>Broker Search Date</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  Broker Search Date
+                </TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>Record Date</TableCell>
                 {/* <TableCell sx={{ whiteSpace: "nowrap" }}>Filing Date</TableCell> */}
-                <TableCell sx={{ whiteSpace: "nowrap" }}>Mailing Date</TableCell>
-                <TableCell sx={{ whiteSpace: "nowrap" }}>Mailing Method</TableCell>
-                <TableCell sx={{ whiteSpace: "nowrap" }}>Voting Cutoff</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  Mailing Date
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  Mailing Method
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  Voting Cutoff
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedRows.map((row, index) => (
                 <TableRow key={`${row.meetingId ?? "row"}-${index}`}>
-                  <TableCell size="small" component="th" scope="row" sx={{ whiteSpace: "nowrap" }}>
+                  <TableCell
+                    size="small"
+                    component="th"
+                    scope="row"
+                    sx={{ whiteSpace: "nowrap" }}
+                  >
                     {row.meetingId ? (
                       <Button
                         variant="text"
                         color="info"
                         onClick={() => {
-                          router.push(`/${clientTicker}/meeting/${row.meetingId}`);
+                          router.push(
+                            `/${clientTicker}/meeting/${row.meetingId}`
+                          );
                         }}
                       >
                         {row.event}
@@ -120,11 +142,14 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                   </TableCell> */}
                   <TableCell size="small" sx={{ whiteSpace: "nowrap" }}>
                     {row.brokerSearchDate
-                      ? new Date(row.brokerSearchDate).toLocaleDateString("en-US", {
-                          month: "2-digit",
-                          day: "2-digit",
-                          year: "numeric",
-                        })
+                      ? new Date(row.brokerSearchDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "2-digit",
+                            day: "2-digit",
+                            year: "numeric",
+                          }
+                        )
                       : "--"}
                   </TableCell>
                   <TableCell size="small" sx={{ whiteSpace: "nowrap" }}>
@@ -154,9 +179,13 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                         })
                       : "--"}
                   </TableCell>
-                  <TableCell size="small">{row.mailingMethod || "NAA"}</TableCell>
+                  <TableCell size="small">
+                    {row.mailingMethod || "NAA"}
+                  </TableCell>
                   <TableCell size="small" sx={{ whiteSpace: "nowrap" }}>
-                    {row.votingCutoff ? formatVotingCutoff(row.votingCutoff) : "--"}
+                    {row.votingCutoff
+                      ? formatVotingCutoff(row.votingCutoff)
+                      : "--"}
                   </TableCell>
                 </TableRow>
               ))}

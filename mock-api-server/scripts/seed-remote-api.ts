@@ -11,13 +11,14 @@ const SUPABASE_URL =
   (process.env.REMOTE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL) ??
   "https://vfgjzlcakdrpsbzuqklz.supabase.co";
 const SUPABASE_SERVICE_ROLE_KEY =
-  process.env.REMOTE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  process.env.REMOTE_SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
   console.error("❌ REMOTE_SUPABASE_SERVICE_ROLE_KEY is required");
   console.error("Set it in your environment or .env file");
   console.error(
-    "Get it from: https://supabase.com/dashboard/project/vfgjzlcakdrpsbzuqklz/settings/api",
+    "Get it from: https://supabase.com/dashboard/project/vfgjzlcakdrpsbzuqklz/settings/api"
   );
   process.exit(1);
 }
@@ -46,7 +47,7 @@ async function seedRemote() {
 
     const localSupabase = createClient(
       "http://127.0.0.1:54321",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"
     );
 
     // Tables in order respecting foreign key dependencies
@@ -92,16 +93,25 @@ async function seedRemote() {
           .limit(100); // Smaller batches for large tables
 
         if (selectError) {
-          console.error(`   ⚠️  Failed to query ${table}:`, selectError.message);
+          console.error(
+            `   ⚠️  Failed to query ${table}:`,
+            selectError.message
+          );
           break;
         }
 
         if (existingRecords && existingRecords.length > 0) {
           const ids = existingRecords.map((r) => r.id);
-          const { error: deleteError } = await supabase.from(table).delete().in("id", ids);
+          const { error: deleteError } = await supabase
+            .from(table)
+            .delete()
+            .in("id", ids);
 
           if (deleteError) {
-            console.error(`   ⚠️  Failed to delete from ${table}:`, deleteError.message);
+            console.error(
+              `   ⚠️  Failed to delete from ${table}:`,
+              deleteError.message
+            );
             // Try to continue despite errors
             hasMore = false;
           } else {
@@ -145,7 +155,7 @@ async function seedRemote() {
         if (fetchError) {
           console.error(
             `⚠️  Failed to fetch page ${page} from local ${table}:`,
-            fetchError.message,
+            fetchError.message
           );
           break;
         }
@@ -170,7 +180,8 @@ async function seedRemote() {
       console.log(`   📊 Found ${localData.length} total records`);
 
       // Use smaller batches for large tables to avoid Supabase limits
-      const batchSize = table === "position" || table === "position_vote" ? 100 : 500;
+      const batchSize =
+        table === "position" || table === "position_vote" ? 100 : 500;
       let inserted = 0;
       let failed = 0;
 
@@ -185,7 +196,7 @@ async function seedRemote() {
         if (insertError) {
           console.error(
             `   ❌ Failed to insert batch ${i}-${i + batch.length}:`,
-            insertError.message,
+            insertError.message
           );
           console.log(`   🔄 Retrying batch one by one...`);
 
@@ -202,7 +213,10 @@ async function seedRemote() {
               failed++;
               if (failed <= 5) {
                 console.error(`   ⚠️  Failed record ${i + j}:`, error.message);
-                console.error(`   Record data:`, JSON.stringify(row).substring(0, 200));
+                console.error(
+                  `   Record data:`,
+                  JSON.stringify(row).substring(0, 200)
+                );
               }
             }
           }
@@ -220,13 +234,15 @@ async function seedRemote() {
       }
 
       console.log(
-        `   ✅ Completed ${table}: ${inserted}/${localData.length} records inserted, ${failed} failed`,
+        `   ✅ Completed ${table}: ${inserted}/${localData.length} records inserted, ${failed} failed`
       );
 
       // For critical parent tables, abort if inserts failed
       const criticalTables = ["clients", "meeting", "position", "document"];
       if (criticalTables.includes(table) && inserted < localData.length) {
-        console.error(`   ❌ Critical table ${table} had ${failed} failed inserts - aborting`);
+        console.error(
+          `   ❌ Critical table ${table} had ${failed} failed inserts - aborting`
+        );
         console.error(`   This will cause FK violations in child tables`);
         process.exit(1);
       }
@@ -237,12 +253,20 @@ async function seedRemote() {
         const { count: remoteCount } = await supabase
           .from("position")
           .select("*", { count: "exact", head: true });
-        console.log(`   Local positions: ${localData.length}, Remote positions: ${remoteCount}`);
+        console.log(
+          `   Local positions: ${localData.length}, Remote positions: ${remoteCount}`
+        );
 
         if (remoteCount !== localData.length) {
-          console.error(`   ❌ Position count mismatch! Some positions failed to insert.`);
-          console.error(`   Missing: ${localData.length - (remoteCount || 0)} positions`);
-          console.error(`   This will cause FK violations in position_vote table`);
+          console.error(
+            `   ❌ Position count mismatch! Some positions failed to insert.`
+          );
+          console.error(
+            `   Missing: ${localData.length - (remoteCount || 0)} positions`
+          );
+          console.error(
+            `   This will cause FK violations in position_vote table`
+          );
           process.exit(1);
         }
       }
@@ -251,7 +275,9 @@ async function seedRemote() {
     console.log("\n✅ Database seeded successfully!");
 
     // Verify
-    const { count } = await supabase.from("clients").select("*", { count: "exact", head: true });
+    const { count } = await supabase
+      .from("clients")
+      .select("*", { count: "exact", head: true });
 
     console.log(`✅ Verified: ${count} clients in remote database`);
   } catch (error) {

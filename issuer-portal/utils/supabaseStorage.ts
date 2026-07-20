@@ -1,7 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Initialize Supabase client for storage operations
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
@@ -24,7 +25,7 @@ export interface StorageUploadResult {
  */
 export async function uploadFileToStorage(
   file: File,
-  folder?: string,
+  folder?: string
 ): Promise<StorageUploadResult> {
   try {
     // Generate unique filename
@@ -37,10 +38,12 @@ export async function uploadFileToStorage(
     const path = folder ? `${folder}/${filename}` : filename;
 
     // Upload file to storage
-    const { data, error } = await supabase.storage.from(BUCKET_NAME).upload(path, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
 
     if (error) {
       return {
@@ -57,7 +60,9 @@ export async function uploadFileToStorage(
     }
 
     // Get public URL for the uploaded file
-    const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(data.path);
+    const { data: urlData } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(data.path);
 
     return {
       data: {
@@ -78,7 +83,9 @@ export async function uploadFileToStorage(
 /**
  * Delete a file from Supabase storage
  */
-export async function deleteFileFromStorage(path: string): Promise<{ error: string | null }> {
+export async function deleteFileFromStorage(
+  path: string
+): Promise<{ error: string | null }> {
   try {
     const { error } = await supabase.storage.from(BUCKET_NAME).remove([path]);
 
@@ -108,10 +115,12 @@ export function getStorageFileUrl(path: string): string {
  */
 export async function listStorageFiles(folder?: string) {
   try {
-    const { data, error } = await supabase.storage.from(BUCKET_NAME).list(folder, {
-      limit: 100,
-      offset: 0,
-    });
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .list(folder, {
+        limit: 100,
+        offset: 0,
+      });
 
     if (error) {
       return { data: null, error: error.message };
@@ -131,7 +140,7 @@ export async function listStorageFiles(folder?: string) {
  */
 export function createStorageFolder(
   meetingId: string,
-  documentType: "dsm" | "regular" = "regular",
+  documentType: "dsm" | "regular" = "regular"
 ): string {
   return `${meetingId}/${documentType}`;
 }

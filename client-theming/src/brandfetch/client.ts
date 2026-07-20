@@ -33,14 +33,16 @@ export function getBrandfetchApiKey(explicitKey?: string): string {
   if (explicitKey) return explicitKey;
 
   const fromEnv =
-    typeof process !== "undefined" && process.env ? process.env.BRANDFETCH_API_KEY : undefined;
+    typeof process !== "undefined" && process.env
+      ? process.env.BRANDFETCH_API_KEY
+      : undefined;
 
   if (fromEnv) return fromEnv;
 
   throw new Error(
     "Brandfetch API key not found. Set the BRANDFETCH_API_KEY environment " +
       "variable or pass a key explicitly. See the client-theming README for how " +
-      "to obtain a key.",
+      "to obtain a key."
   );
 }
 
@@ -78,14 +80,17 @@ export interface BrandfetchRequestOptions {
  */
 export async function fetchBrand(
   domain: string,
-  options: BrandfetchRequestOptions = {},
+  options: BrandfetchRequestOptions = {}
 ): Promise<BrandResponse | null> {
   const apiKey = getBrandfetchApiKey(options.apiKey);
   try {
-    const response = await fetch(`${BRANDFETCH_BASE_URL}/brands/${encodeURIComponent(domain)}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-      signal: options.signal,
-    });
+    const response = await fetch(
+      `${BRANDFETCH_BASE_URL}/brands/${encodeURIComponent(domain)}`,
+      {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        signal: options.signal,
+      }
+    );
     if (!response.ok) return null;
     return (await response.json()) as BrandResponse;
   } catch {
@@ -110,14 +115,17 @@ export async function fetchBrand(
  */
 export async function searchBrands(
   query: string,
-  options: BrandfetchRequestOptions = {},
+  options: BrandfetchRequestOptions = {}
 ): Promise<BrandSearchResult[]> {
   const apiKey = getBrandfetchApiKey(options.apiKey);
   try {
-    const response = await fetch(`${BRANDFETCH_BASE_URL}/search/${encodeURIComponent(query)}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-      signal: options.signal,
-    });
+    const response = await fetch(
+      `${BRANDFETCH_BASE_URL}/search/${encodeURIComponent(query)}`,
+      {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        signal: options.signal,
+      }
+    );
     if (!response.ok) return [];
     return (await response.json()) as BrandSearchResult[];
   } catch {
@@ -136,7 +144,7 @@ export async function searchBrands(
  */
 export async function fetchBrandByName(
   companyName: string,
-  options: BrandfetchRequestOptions = {},
+  options: BrandfetchRequestOptions = {}
 ): Promise<BrandResponse | null> {
   const results = await searchBrands(companyName, options);
   const first = results[0];

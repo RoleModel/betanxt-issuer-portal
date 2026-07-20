@@ -24,7 +24,7 @@ export const CACHE_TAGS = {
 export function cacheFn<TArgs extends unknown[], TReturn>(
   fn: (...args: TArgs) => Promise<TReturn>,
   tagBuilder: (...args: TArgs) => string[],
-  options: { revalidate?: number } = {},
+  options: { revalidate?: number } = {}
 ): (...args: TArgs) => Promise<TReturn> {
   return async (...args: TArgs): Promise<TReturn> => {
     const builtTags = tagBuilder(...args);

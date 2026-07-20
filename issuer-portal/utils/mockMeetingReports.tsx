@@ -89,7 +89,20 @@ const PARTICIPANT_NAMES = [
 
 const VOTE_SOURCES = ["WEB", "IVR", "PRINT"];
 
-const US_STATES = ["NY", "CA", "TX", "FL", "IL", "PA", "OH", "GA", "NC", "MI", "NJ", "VA"];
+const US_STATES = [
+  "NY",
+  "CA",
+  "TX",
+  "FL",
+  "IL",
+  "PA",
+  "OH",
+  "GA",
+  "NC",
+  "MI",
+  "NJ",
+  "VA",
+];
 
 const BALLOT_COMMENTS = [
   "Please confirm receipt of my proxy card.",
@@ -134,7 +147,7 @@ function controlNumber(random: () => number): string {
 function dateBefore(
   random: () => number,
   anchorIso: string | undefined,
-  maxDaysBack: number,
+  maxDaysBack: number
 ): string {
   const anchor = anchorIso ? new Date(anchorIso) : new Date("2026-05-15");
   const base = Number.isNaN(anchor.getTime()) ? new Date("2026-05-15") : anchor;
@@ -176,7 +189,7 @@ function voteStatusForReport(reportName: string, random: () => number): string {
 export function buildMockReportTable(
   reportName: string,
   meetingId: string,
-  meetingDate?: string,
+  meetingDate?: string
 ): MockReportTable {
   const random = createSeededRandom(hashString(`${reportName}:${meetingId}`));
   const normalized = reportName.toLowerCase();
@@ -196,7 +209,13 @@ export function buildMockReportTable(
 
   if (normalized.includes("change of address")) {
     return {
-      columns: ["Account #", "Holder Name", "Previous State", "New State", "Effective Date"],
+      columns: [
+        "Account #",
+        "Holder Name",
+        "Previous State",
+        "New State",
+        "Effective Date",
+      ],
       rows: Array.from({ length: rowCount }, () => [
         accountNumber(random),
         holderName(random),
@@ -209,7 +228,13 @@ export function buildMockReportTable(
 
   if (normalized.includes("attendance")) {
     return {
-      columns: ["Holder Name", "Account #", "Shares", "Attendance Type", "Check-In Time"],
+      columns: [
+        "Holder Name",
+        "Account #",
+        "Shares",
+        "Attendance Type",
+        "Check-In Time",
+      ],
       rows: Array.from({ length: rowCount }, () => [
         holderName(random),
         accountNumber(random),
@@ -242,7 +267,13 @@ export function buildMockReportTable(
 
   if (normalized.includes("paper elections detailed")) {
     return {
-      columns: ["Control #", "Account #", "Holder Name", "Shares", "Date Received"],
+      columns: [
+        "Control #",
+        "Account #",
+        "Holder Name",
+        "Shares",
+        "Date Received",
+      ],
       rows: Array.from({ length: rowCount }, () => [
         controlNumber(random),
         accountNumber(random),
@@ -255,7 +286,13 @@ export function buildMockReportTable(
 
   if (normalized.includes("participant vote")) {
     return {
-      columns: ["Participant", "Shares For", "Shares Against", "Shares Abstain", "Total Voted"],
+      columns: [
+        "Participant",
+        "Shares For",
+        "Shares Against",
+        "Shares Abstain",
+        "Total Voted",
+      ],
       rows: PARTICIPANT_NAMES.map((participant) => {
         const sharesFor = randomInt(random, 50_000, 2_500_000);
         const sharesAgainst = randomInt(random, 1_000, 400_000);
@@ -272,7 +309,13 @@ export function buildMockReportTable(
   }
 
   return {
-    columns: ["Account #", "Holder Name", "Shares", "Vote Status", "Date Voted"],
+    columns: [
+      "Account #",
+      "Holder Name",
+      "Shares",
+      "Vote Status",
+      "Date Voted",
+    ],
     rows: Array.from({ length: rowCount }, () => {
       const status = voteStatusForReport(reportName, random);
       return [
@@ -304,12 +347,14 @@ const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
   clientLogoUrl,
   betanxtLogoUrl,
 }) => {
-  const { reportName, companyName, clientTicker, meetingType, meetingDate } = options;
+  const { reportName, companyName, clientTicker, meetingType, meetingDate } =
+    options;
   const columnWidth = { width: `${100 / table.columns.length}%` };
   // Right-align columns whose every value is numeric (counts, shares, etc.).
   const numericColumns = table.columns.map(
     (_, columnIndex) =>
-      table.rows.length > 0 && table.rows.every((row) => typeof row[columnIndex] === "number"),
+      table.rows.length > 0 &&
+      table.rows.every((row) => typeof row[columnIndex] === "number")
   );
 
   return (
@@ -327,9 +372,16 @@ const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
           items={[
             { label: "Company Name:", value: companyName },
             ...(meetingDate
-              ? [{ label: "Meeting Date:", value: formatReportDate(meetingDate) }]
+              ? [
+                  {
+                    label: "Meeting Date:",
+                    value: formatReportDate(meetingDate),
+                  },
+                ]
               : []),
-            ...(meetingType ? [{ label: "Meeting Type:", value: meetingType }] : []),
+            ...(meetingType
+              ? [{ label: "Meeting Type:", value: meetingType }]
+              : []),
           ]}
         />
 
@@ -341,7 +393,9 @@ const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
                 style={[
                   reportStyles.headerCell,
                   columnWidth,
-                  ...(numericColumns[columnIndex] ? [reportStyles.cellRight] : []),
+                  ...(numericColumns[columnIndex]
+                    ? [reportStyles.cellRight]
+                    : []),
                 ]}
               >
                 {column}
@@ -356,10 +410,14 @@ const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
                   style={[
                     reportStyles.cell,
                     columnWidth,
-                    ...(numericColumns[cellIndex] ? [reportStyles.cellRight] : []),
+                    ...(numericColumns[cellIndex]
+                      ? [reportStyles.cellRight]
+                      : []),
                   ]}
                 >
-                  {typeof value === "number" ? value.toLocaleString("en-US") : value}
+                  {typeof value === "number"
+                    ? value.toLocaleString("en-US")
+                    : value}
                 </Text>
               ))}
             </View>
@@ -367,7 +425,8 @@ const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
         </View>
 
         <Text style={reportStyles.footnote}>
-          System-generated report. Figures shown are representative for this meeting.
+          System-generated report. Figures shown are representative for this
+          meeting.
         </Text>
 
         <ReportPageNumber />
@@ -382,9 +441,17 @@ const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
  *
  * @param options - Report identity plus meeting/client display context
  */
-export async function exportMockReportPdf(options: MockReportOptions): Promise<void> {
-  const table = buildMockReportTable(options.reportName, options.meetingId, options.meetingDate);
-  const { clientLogoUrl, betanxtLogoUrl } = await resolveReportLogos(options.clientTicker);
+export async function exportMockReportPdf(
+  options: MockReportOptions
+): Promise<void> {
+  const table = buildMockReportTable(
+    options.reportName,
+    options.meetingId,
+    options.meetingDate
+  );
+  const { clientLogoUrl, betanxtLogoUrl } = await resolveReportLogos(
+    options.clientTicker
+  );
 
   const pdfBlob = await pdf(
     <MockReportPDFDocument
@@ -392,7 +459,7 @@ export async function exportMockReportPdf(options: MockReportOptions): Promise<v
       table={table}
       clientLogoUrl={clientLogoUrl}
       betanxtLogoUrl={betanxtLogoUrl}
-    />,
+    />
   ).toBlob();
 
   downloadBlob(pdfBlob, `${options.reportName}.pdf`);
@@ -408,19 +475,24 @@ export async function exportMockReportPdf(options: MockReportOptions): Promise<v
  * @param options - Report identity plus meeting context for data generation
  */
 export function exportMockReportXls(options: MockReportOptions): void {
-  const table = buildMockReportTable(options.reportName, options.meetingId, options.meetingDate);
+  const table = buildMockReportTable(
+    options.reportName,
+    options.meetingId,
+    options.meetingDate
+  );
 
   const worksheet = XLSX.utils.aoa_to_sheet([table.columns, ...table.rows]);
   worksheet["!cols"] = table.columns.map((column, index) => {
     const longestValue = table.rows.reduce(
       (max, row) => Math.max(max, String(row[index] ?? "").length),
-      column.length,
+      column.length
     );
     return { wch: Math.min(50, longestValue + 4) };
   });
 
   const workbook = XLSX.utils.book_new();
-  const sheetName = options.reportName.replace(/[\\/?*[\]:]/g, " ").slice(0, 31) || "Report";
+  const sheetName =
+    options.reportName.replace(/[\\/?*[\]:]/g, " ").slice(0, 31) || "Report";
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
   XLSX.writeFile(workbook, `${options.reportName}.xls`);
 }

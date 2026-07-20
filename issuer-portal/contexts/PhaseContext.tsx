@@ -49,7 +49,9 @@ function phaseReducer(state: PhaseState, action: PhaseAction): PhaseState {
     case "UPDATE_TASK":
       return {
         ...state,
-        tasks: state.tasks.map((task) => (task.id === action.payload.id ? action.payload : task)),
+        tasks: state.tasks.map((task) =>
+          task.id === action.payload.id ? action.payload : task
+        ),
       };
 
     case "START_TRANSITION":
@@ -107,7 +109,9 @@ export function PhaseProvider({
   const checkPhaseCompletion = (): boolean => {
     if (!state.currentPhase) return false;
 
-    const phaseTasks = state.tasks.filter((task) => task.phaseId === state.currentPhase?.id);
+    const phaseTasks = state.tasks.filter(
+      (task) => task.phaseId === state.currentPhase?.id
+    );
 
     if (phaseTasks.length === 0) return false;
 
@@ -124,7 +128,9 @@ export function PhaseProvider({
 
     try {
       // Find next phase
-      const currentIndex = state.phases.findIndex((p) => p.id === state.currentPhase?.id);
+      const currentIndex = state.phases.findIndex(
+        (p) => p.id === state.currentPhase?.id
+      );
       const nextPhase = state.phases[currentIndex + 1];
 
       if (!nextPhase) {
@@ -156,13 +162,17 @@ export function PhaseProvider({
       // Navigate to new phase
       if (typeof window !== "undefined") {
         const currentUrl = window.location.pathname;
-        const newUrl = currentUrl.replace(/Phase%20\d+/, `Phase%20${nextPhase.orderIndex}`);
+        const newUrl = currentUrl.replace(
+          /Phase%20\d+/,
+          `Phase%20${nextPhase.orderIndex}`
+        );
         window.location.href = newUrl;
       }
     } catch (error) {
       dispatch({
         type: "TRANSITION_ERROR",
-        payload: error instanceof Error ? error.message : "Failed to advance phase",
+        payload:
+          error instanceof Error ? error.message : "Failed to advance phase",
       });
     }
   };
@@ -189,7 +199,9 @@ export function PhaseProvider({
     canAdvance,
   };
 
-  return <PhaseContext.Provider value={value}>{children}</PhaseContext.Provider>;
+  return (
+    <PhaseContext.Provider value={value}>{children}</PhaseContext.Provider>
+  );
 }
 
 export function usePhaseContext() {

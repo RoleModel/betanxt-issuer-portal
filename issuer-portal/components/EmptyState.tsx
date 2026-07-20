@@ -39,7 +39,11 @@ export function EmptyState({
           minHeight: minHeight || 400,
         })}
       >
-        <Stack spacing={1} alignItems="center" sx={{ maxWidth: 600, textAlign: "center" }}>
+        <Stack
+          spacing={1}
+          alignItems="center"
+          sx={{ maxWidth: 600, textAlign: "center" }}
+        >
           <Box
             sx={{
               display: "flex",

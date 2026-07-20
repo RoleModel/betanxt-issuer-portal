@@ -5,7 +5,10 @@ import React from "react";
 
 import type { Task } from "@/types/api-exports";
 
-import { getPhaseColor, getStatusBorderColor } from "@/components/mui-styling/theme";
+import {
+  getPhaseColor,
+  getStatusBorderColor,
+} from "@/components/mui-styling/theme";
 import StatusChip from "@/components/ui/StatusChip";
 
 interface TaskItemProps {
@@ -13,26 +16,28 @@ interface TaskItemProps {
   onClick?: (task: Task) => void;
 }
 
-const StyledTaskButton = styled(Button)<{ bordercolor: string }>(({ theme, bordercolor }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: `${theme.spacing(1)} ${theme.spacing(2)}`,
-  gap: theme.spacing(1),
-  width: "100%",
-  minHeight: "unset",
-  height: "auto",
-  color: theme.vars.palette.text.primary,
-  backgroundColor: theme.vars.palette.tableCellRow.fill,
-  boxShadow: `0px 0px 0px 1px inset ${theme.vars?.palette.divider}`,
-  borderLeft: `5px solid ${bordercolor}`,
-  borderRadius: theme.spacing(0.5),
-  cursor: "pointer",
-  transition: theme.transitions.create(["box-shadow"]),
-  "&:hover": {
-    boxShadow: `0px 0px 0px 1px inset ${bordercolor}`,
-  },
-}));
+const StyledTaskButton = styled(Button)<{ bordercolor: string }>(
+  ({ theme, bordercolor }) => ({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: `${theme.spacing(1)} ${theme.spacing(2)}`,
+    gap: theme.spacing(1),
+    width: "100%",
+    minHeight: "unset",
+    height: "auto",
+    color: theme.vars.palette.text.primary,
+    backgroundColor: theme.vars.palette.tableCellRow.fill,
+    boxShadow: `0px 0px 0px 1px inset ${theme.vars?.palette.divider}`,
+    borderLeft: `5px solid ${bordercolor}`,
+    borderRadius: theme.spacing(0.5),
+    cursor: "pointer",
+    transition: theme.transitions.create(["box-shadow"]),
+    "&:hover": {
+      boxShadow: `0px 0px 0px 1px inset ${bordercolor}`,
+    },
+  })
+);
 
 const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
   const theme = useTheme();

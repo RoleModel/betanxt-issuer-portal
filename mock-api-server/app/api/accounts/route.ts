@@ -17,7 +17,10 @@ export async function GET(): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -30,8 +33,8 @@ export async function GET(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "listAccounts",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -39,14 +42,18 @@ export async function GET(): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["CreateAccountRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["CreateAccountRequest"];
 
     // Use existing domain model function
     const { data, error } = await createAccount(body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       );
     }
 
@@ -59,8 +66,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "createAccount",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

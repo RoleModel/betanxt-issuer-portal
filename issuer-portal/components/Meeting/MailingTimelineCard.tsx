@@ -104,33 +104,46 @@ export default function MailingTimelineCard({
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [pendingStatus, setPendingStatus] = useState<MailingStatus | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<MailingStatus | null>(
+    null
+  );
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [localAffidavitDoc, setLocalAffidavitDoc] = useState<Document | null | undefined>(
-    undefined,
-  );
-  const [localStatus, setLocalStatus] = useState<MailingStatus | null | undefined>(undefined);
+  const [localAffidavitDoc, setLocalAffidavitDoc] = useState<
+    Document | null | undefined
+  >(undefined);
+  const [localStatus, setLocalStatus] = useState<
+    MailingStatus | null | undefined
+  >(undefined);
 
-  const { data: affidavitDoc, isLoading: affidavitLoading } = useSWR<Document | null>(
-    meetingId ? `/meetings/${meetingId}/affidavit-of-mailing` : null,
-    async () => {
-      if (!meetingId) return null;
-      const apiClient = await buildApiClient();
-      const { data } = await apiClient.GET("/meetings/{meetingId}/documents", {
-        params: { path: { meetingId }, query: { type: "affidavit-of-mailing" } },
-      });
-      const docs = (data as unknown as Document[]) ?? [];
-      return docs.length > 0 ? docs[0] : null;
-    },
-    { revalidateOnFocus: false },
-  );
+  const { data: affidavitDoc, isLoading: affidavitLoading } =
+    useSWR<Document | null>(
+      meetingId ? `/meetings/${meetingId}/affidavit-of-mailing` : null,
+      async () => {
+        if (!meetingId) return null;
+        const apiClient = await buildApiClient();
+        const { data } = await apiClient.GET(
+          "/meetings/{meetingId}/documents",
+          {
+            params: {
+              path: { meetingId },
+              query: { type: "affidavit-of-mailing" },
+            },
+          }
+        );
+        const docs = (data as unknown as Document[]) ?? [];
+        return docs.length > 0 ? docs[0] : null;
+      },
+      { revalidateOnFocus: false }
+    );
 
-  const displayDoc = localAffidavitDoc === undefined ? affidavitDoc : localAffidavitDoc;
+  const displayDoc =
+    localAffidavitDoc === undefined ? affidavitDoc : localAffidavitDoc;
   const hasAffidavit = !!displayDoc;
-  const isAffidavitLoading = localAffidavitDoc === undefined && affidavitLoading;
+  const isAffidavitLoading =
+    localAffidavitDoc === undefined && affidavitLoading;
 
   const displayStatus = localStatus === undefined ? currentStatus : localStatus;
 
@@ -221,7 +234,7 @@ export default function MailingTimelineCard({
             type: "affidavit-of-mailing",
             file: base64Data,
           },
-        },
+        }
       );
 
       if (createError) {
@@ -265,7 +278,8 @@ export default function MailingTimelineCard({
   const handleDownload = () => {
     if (!displayDoc?.id || !meetingId) return;
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
     const downloadUrl = `${baseUrl}/documents/${displayDoc.id}/download`;
 
     const link = document.createElement("a");
@@ -299,7 +313,11 @@ export default function MailingTimelineCard({
           action={
             isCSM && meetingId ? (
               <Tooltip title="Click a step to update status">
-                <EditIcon fontSize="small" color="action" sx={{ mt: 1.5, mr: 0.5 }} />
+                <EditIcon
+                  fontSize="small"
+                  color="action"
+                  sx={{ mt: 1.5, mr: 0.5 }}
+                />
               </Tooltip>
             ) : undefined
           }
@@ -437,7 +455,10 @@ export default function MailingTimelineCard({
 
       {isCSM && !hasAffidavit && !isAffidavitLoading && (
         <Card variant="outlined" sx={{ mt: 2 }}>
-          <CardActionArea onClick={() => setUploadDialogOpen(true)} disabled={!isCSM}>
+          <CardActionArea
+            onClick={() => setUploadDialogOpen(true)}
+            disabled={!isCSM}
+          >
             <CardHeader
               avatar={<UploadFileIcon color="action" />}
               title="Upload Mailing Affidavit"
@@ -454,7 +475,11 @@ export default function MailingTimelineCard({
         <Card variant="outlined" sx={{ mt: 2 }}>
           <CardActions>
             <CheckCircleIcon color="success" />
-            <Typography variant="body3" color="text.secondary" sx={{ flexGrow: 1 }}>
+            <Typography
+              variant="body3"
+              color="text.secondary"
+              sx={{ flexGrow: 1 }}
+            >
               Mailing Affidavit Uploaded
             </Typography>
             <IconButton color="error" onClick={() => setDeleteDialogOpen(true)}>
@@ -487,7 +512,10 @@ export default function MailingTimelineCard({
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setUploadDialogOpen(false)} disabled={isUploading}>
+          <Button
+            onClick={() => setUploadDialogOpen(false)}
+            disabled={isUploading}
+          >
             Cancel
           </Button>
           <Button
@@ -500,19 +528,30 @@ export default function MailingTimelineCard({
         </DialogActions>
       </Dialog>
 
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete the Mailing Affidavit? You can upload a new version
-            after deletion.
+            Are you sure you want to delete the Mailing Affidavit? You can
+            upload a new version after deletion.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            disabled={isDeleting}
+          >
             Cancel
           </Button>
-          <Button variant="contained" color="error" disabled={isDeleting} onClick={handleDelete}>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={isDeleting}
+            onClick={handleDelete}
+          >
             {isDeleting ? "Deleting..." : "Delete"}
           </Button>
         </DialogActions>
@@ -556,7 +595,9 @@ export default function MailingTimelineCard({
             variant="contained"
             disabled={!pendingStatus || isUpdatingStatus}
             onClick={handleStatusUpdate}
-            startIcon={isUpdatingStatus ? <CircularProgress size={16} /> : undefined}
+            startIcon={
+              isUpdatingStatus ? <CircularProgress size={16} /> : undefined
+            }
           >
             {isUpdatingStatus ? "Saving..." : "Save"}
           </Button>

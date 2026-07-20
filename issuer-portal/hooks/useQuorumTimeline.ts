@@ -81,7 +81,11 @@ function parseDateOnly(value: string | null | undefined): Date | null {
 
   const fallback = new Date(value);
   if (Number.isNaN(fallback.getTime())) return null;
-  return new Date(fallback.getFullYear(), fallback.getMonth(), fallback.getDate());
+  return new Date(
+    fallback.getFullYear(),
+    fallback.getMonth(),
+    fallback.getDate()
+  );
 }
 
 function toFiniteNumber(value: number | string | null | undefined): number {
@@ -132,7 +136,9 @@ export function useQuorumTimeline({
     // exactly N days ahead of the meeting (e.g. N&A = 40). Fall back to the
     // cutoff date only when the meeting date is unavailable.
     const deadlineDate = meetingDate ?? parseDateOnly(meeting.cutoffDate);
-    const totalOutstanding = toFiniteNumber(String(meeting.totalSharesOutstanding ?? ""));
+    const totalOutstanding = toFiniteNumber(
+      String(meeting.totalSharesOutstanding ?? "")
+    );
 
     const milestones: QuorumTimelineMilestone[] = [];
     if (mailDate) {
@@ -177,8 +183,15 @@ export function useQuorumTimeline({
     const toPercent = (shares: number): number =>
       totalOutstanding > 0 ? roundToTwo((shares / totalOutstanding) * 100) : 0;
 
-    if (mailDate && (sortedDays.length === 0 || sortedDays[0][0] > mailDate.getTime())) {
-      points.push({ date: mailDate, cumulativeSharesVoted: 0, percentOfOutstanding: 0 });
+    if (
+      mailDate &&
+      (sortedDays.length === 0 || sortedDays[0][0] > mailDate.getTime())
+    ) {
+      points.push({
+        date: mailDate,
+        cumulativeSharesVoted: 0,
+        percentOfOutstanding: 0,
+      });
     }
 
     sortedDays.forEach(([time, shares]) => {
@@ -191,7 +204,10 @@ export function useQuorumTimeline({
     });
 
     const lastPoint = points[points.length - 1];
-    if (deadlineDate && (!lastPoint || lastPoint.date.getTime() < deadlineDate.getTime())) {
+    if (
+      deadlineDate &&
+      (!lastPoint || lastPoint.date.getTime() < deadlineDate.getTime())
+    ) {
       points.push({
         date: deadlineDate,
         cumulativeSharesVoted: cumulative,

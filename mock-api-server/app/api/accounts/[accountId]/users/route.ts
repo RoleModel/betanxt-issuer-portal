@@ -14,7 +14,7 @@ interface RouteParams {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -26,7 +26,10 @@ export async function GET(
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -39,8 +42,8 @@ export async function GET(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "listAccountUsers",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -69,8 +72,8 @@ export async function POST(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "createAccountUser",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

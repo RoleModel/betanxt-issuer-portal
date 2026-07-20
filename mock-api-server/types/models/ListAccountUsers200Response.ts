@@ -20,7 +20,12 @@ import {
   PaginationToJSON,
   PaginationToJSONTyped,
 } from "./Pagination";
-import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from "./User";
+import {
+  UserFromJSON,
+  UserFromJSONTyped,
+  UserToJSON,
+  UserToJSONTyped,
+} from "./User";
 
 /**
  *
@@ -46,42 +51,55 @@ export interface ListAccountUsers200Response {
  * Check if a given object implements the ListAccountUsers200Response interface.
  */
 export function instanceOfListAccountUsers200Response(
-  value: object,
+  value: object
 ): value is ListAccountUsers200Response {
   return true;
 }
 
-export function ListAccountUsers200ResponseFromJSON(json: any): ListAccountUsers200Response {
+export function ListAccountUsers200ResponseFromJSON(
+  json: any
+): ListAccountUsers200Response {
   return ListAccountUsers200ResponseFromJSONTyped(json, false);
 }
 
 export function ListAccountUsers200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): ListAccountUsers200Response {
   if (json == null) {
     return json;
   }
   return {
-    users: json["users"] == null ? undefined : (json["users"] as Array<any>).map(UserFromJSON),
-    pagination: json["pagination"] == null ? undefined : PaginationFromJSON(json["pagination"]),
+    users:
+      json["users"] == null
+        ? undefined
+        : (json["users"] as Array<any>).map(UserFromJSON),
+    pagination:
+      json["pagination"] == null
+        ? undefined
+        : PaginationFromJSON(json["pagination"]),
   };
 }
 
-export function ListAccountUsers200ResponseToJSON(json: any): ListAccountUsers200Response {
+export function ListAccountUsers200ResponseToJSON(
+  json: any
+): ListAccountUsers200Response {
   return ListAccountUsers200ResponseToJSONTyped(json, false);
 }
 
 export function ListAccountUsers200ResponseToJSONTyped(
   value?: ListAccountUsers200Response | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
   }
 
   return {
-    users: value["users"] == null ? undefined : (value["users"] as Array<any>).map(UserToJSON),
+    users:
+      value["users"] == null
+        ? undefined
+        : (value["users"] as Array<any>).map(UserToJSON),
     pagination: PaginationToJSON(value["pagination"]),
   };
 }

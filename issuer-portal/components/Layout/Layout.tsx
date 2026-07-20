@@ -29,7 +29,11 @@ interface LayoutProps {
   eventTabs?: boolean;
 }
 
-function Layout({ children, navBar = true, eventTabs = false }: PropsWithChildren<LayoutProps>) {
+function Layout({
+  children,
+  navBar = true,
+  eventTabs = false,
+}: PropsWithChildren<LayoutProps>) {
   const [open, setOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
@@ -51,30 +55,38 @@ function Layout({ children, navBar = true, eventTabs = false }: PropsWithChildre
 
     window.addEventListener(
       "phaseComplete" as keyof WindowEventMap,
-      handlePhaseComplete as EventListener,
+      handlePhaseComplete as EventListener
     );
 
     return () => {
       window.removeEventListener(
         "phaseComplete" as keyof WindowEventMap,
-        handlePhaseComplete as EventListener,
+        handlePhaseComplete as EventListener
       );
     };
   }, []);
 
   React.useEffect(() => {
     const handleOpenSupportContacts = () => {
-      const speedDialElement = document.querySelector('[aria-label="Support Contacts"]');
+      const speedDialElement = document.querySelector(
+        '[aria-label="Support Contacts"]'
+      );
       if (speedDialElement instanceof HTMLElement) {
         setAnchorEl(speedDialElement);
       }
       setOpen(true);
     };
 
-    window.addEventListener("chatbot:open-support-contacts", handleOpenSupportContacts);
+    window.addEventListener(
+      "chatbot:open-support-contacts",
+      handleOpenSupportContacts
+    );
 
     return () => {
-      window.removeEventListener("chatbot:open-support-contacts", handleOpenSupportContacts);
+      window.removeEventListener(
+        "chatbot:open-support-contacts",
+        handleOpenSupportContacts
+      );
     };
   }, []);
 
@@ -92,7 +104,9 @@ function Layout({ children, navBar = true, eventTabs = false }: PropsWithChildre
 
   const handleContactsClick = () => {
     // Find the SpeedDial element to use as anchor
-    const speedDialElement = document.querySelector('[aria-label="Support Contacts"]');
+    const speedDialElement = document.querySelector(
+      '[aria-label="Support Contacts"]'
+    );
     if (speedDialElement instanceof HTMLElement) {
       setAnchorEl(speedDialElement);
     }
@@ -199,8 +213,16 @@ function Layout({ children, navBar = true, eventTabs = false }: PropsWithChildre
             setAnchorEl(null);
           }}
         />
-        <InfoDialog open={infoDialogOpen} onClose={handleInfoDialogClose} term="" definition="" />
-        <ResetDemoDataDialog open={resetDialogOpen} onClose={handleResetDialogClose} />
+        <InfoDialog
+          open={infoDialogOpen}
+          onClose={handleInfoDialogClose}
+          term=""
+          definition=""
+        />
+        <ResetDemoDataDialog
+          open={resetDialogOpen}
+          onClose={handleResetDialogClose}
+        />
 
         {/* Global Phase Completion Snackbar */}
         <Snackbar
@@ -210,7 +232,9 @@ function Layout({ children, navBar = true, eventTabs = false }: PropsWithChildre
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
           <Alert
-            onClose={() => setPhaseCompleteSnackbar({ open: false, message: "" })}
+            onClose={() =>
+              setPhaseCompleteSnackbar({ open: false, message: "" })
+            }
             severity="success"
             sx={{
               width: "100%",
@@ -234,7 +258,8 @@ function Layout({ children, navBar = true, eventTabs = false }: PropsWithChildre
         >
           <BNAppFooter
             links={
-              bnUser?.type === "ADMIN" || bnUser?.type === "RELATIONSHIP_MANAGER"
+              bnUser?.type === "ADMIN" ||
+              bnUser?.type === "RELATIONSHIP_MANAGER"
                 ? [
                     {
                       label: "Reset",

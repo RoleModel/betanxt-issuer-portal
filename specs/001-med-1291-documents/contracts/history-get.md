@@ -1,7 +1,6 @@
 # GET /api/documents/{docType}/history
 
-Purpose: List versions for a document with status history.
-Auth: ADMIN or ISSUER_EDITOR or VIEWER
+Purpose: List versions for a document with status history. Auth: ADMIN or ISSUER_EDITOR or VIEWER
 
 Path Params:
 
@@ -19,8 +18,18 @@ Response 200:
   "parentId": "uuid",
   "type": "PROXY_STATEMENT",
   "versions": [
-    { "versionId": "uuid", "number": 1, "state": "APPROVED", "createdAt": "iso" },
-    { "versionId": "uuid", "number": 2, "state": "UPLOADED", "createdAt": "iso" }
+    {
+      "versionId": "uuid",
+      "number": 1,
+      "state": "APPROVED",
+      "createdAt": "iso"
+    },
+    {
+      "versionId": "uuid",
+      "number": 2,
+      "state": "UPLOADED",
+      "createdAt": "iso"
+    }
   ]
 }
 ```

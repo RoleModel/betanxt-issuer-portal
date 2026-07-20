@@ -16,7 +16,7 @@ interface RouteParams {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -39,13 +39,19 @@ export async function GET(
     });
 
     // Use existing domain model function
-    const { data, error } = await listDocuments(meetingId, { status, type: typeParam });
+    const { data, error } = await listDocuments(meetingId, {
+      status,
+      type: typeParam,
+    });
 
     console.log("listDocuments result:", { dataCount: data?.length, error });
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -58,15 +64,15 @@ export async function GET(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "listDocuments",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -74,14 +80,18 @@ export async function POST(
     const meetingId = resolvedParams.meetingId;
 
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["CreateDocumentRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["CreateDocumentRequest"];
 
     // Use existing domain model function
     const { data, error } = await createDocument(meetingId, body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       );
     }
 
@@ -94,8 +104,8 @@ export async function POST(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "createDocument",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

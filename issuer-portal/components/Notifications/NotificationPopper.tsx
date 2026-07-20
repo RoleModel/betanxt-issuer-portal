@@ -88,7 +88,7 @@ const formatNotificationDate = (dateString: string): string => {
 };
 
 const convertDbNotificationToNotificationData = (
-  dbNotification: DbNotification,
+  dbNotification: DbNotification
 ): NotificationData => {
   // Check if this is a comment notification (from a user, not system)
   const isCommentNotification = dbNotification.title?.includes("Comment");
@@ -100,7 +100,7 @@ const convertDbNotificationToNotificationData = (
 
   if (isCommentNotification && dbNotification.message) {
     const match = /^([^:]+(?:\s+[^:]+)*?)\s+(?:left a comment|commented)/.exec(
-      dbNotification.message,
+      dbNotification.message
     );
     if (match) {
       userName = match[1].trim();
@@ -113,7 +113,9 @@ const convertDbNotificationToNotificationData = (
     id: dbNotification.id ?? "",
     user: userName,
     title: dbNotification.title ?? "",
-    date: dbNotification.createdAt ? formatNotificationDate(dbNotification.createdAt) : "",
+    date: dbNotification.createdAt
+      ? formatNotificationDate(dbNotification.createdAt)
+      : "",
     message: dbNotification.message ?? "",
     link: dbNotification.actionUrl ?? "",
     variant: dbNotification.read === true ? "read" : "unread",
@@ -143,10 +145,12 @@ export function NotificationPopper({
   // Convert DB notifications to UI format
   const notifications = useMemo(
     () => dbNotifications.map(convertDbNotificationToNotificationData),
-    [dbNotifications],
+    [dbNotifications]
   );
 
-  const unreadNotifications = notifications.filter((n) => n.variant === "unread");
+  const unreadNotifications = notifications.filter(
+    (n) => n.variant === "unread"
+  );
   const unreadCount = unreadNotifications.length;
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -209,7 +213,10 @@ export function NotificationPopper({
       onClose={onClose}
       anchorReference="anchorPosition"
       anchorPosition={
-        pos ?? { top: 64, left: typeof window !== "undefined" ? window.innerWidth : 0 }
+        pos ?? {
+          top: 64,
+          left: typeof window !== "undefined" ? window.innerWidth : 0,
+        }
       }
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
       transformOrigin={{ vertical: "top", horizontal: "right" }}
@@ -259,7 +266,9 @@ export function NotificationPopper({
                       iconPosition="start"
                       icon={
                         unreadCount > 0 ? (
-                          <Box sx={{ px: unreadCount.toString().length / 2 + 0.5 }}>
+                          <Box
+                            sx={{ px: unreadCount.toString().length / 2 + 0.5 }}
+                          >
                             <Badge badgeContent={unreadCount} color="primary" />
                           </Box>
                         ) : undefined
@@ -281,7 +290,11 @@ export function NotificationPopper({
                       </Button>
                     )}
                     {notifications.length > 0 && (
-                      <Button variant="text" onClick={handleClearAll} color="error">
+                      <Button
+                        variant="text"
+                        onClick={handleClearAll}
+                        color="error"
+                      >
                         Clear all
                       </Button>
                     )}
@@ -308,7 +321,9 @@ export function NotificationPopper({
                           link={notification.link}
                           variant={notification.variant}
                           avatar={notification.avatar}
-                          isSystemNotification={notification.isSystemNotification}
+                          isSystemNotification={
+                            notification.isSystemNotification
+                          }
                           onClick={() => handleNotificationClick(notification)}
                         />
                       ))}
@@ -337,7 +352,9 @@ export function NotificationPopper({
                           link={notification.link}
                           variant={notification.variant}
                           avatar={notification.avatar}
-                          isSystemNotification={notification.isSystemNotification}
+                          isSystemNotification={
+                            notification.isSystemNotification
+                          }
                           onClick={() => handleNotificationClick(notification)}
                         />
                       ))}

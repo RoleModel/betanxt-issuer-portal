@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
 interface DocumentUploadEmailParams {
   meetingType: string;
@@ -17,7 +18,9 @@ interface DocumentUploadEmailParams {
  * Fires-and-forgets a document update notification email via the mock-api-server.
  * Prototype: wraps POST /api/emails/send. Does not throw — logs on failure.
  */
-export async function sendDocumentUploadEmail(params: DocumentUploadEmailParams): Promise<void> {
+export async function sendDocumentUploadEmail(
+  params: DocumentUploadEmailParams
+): Promise<void> {
   try {
     await fetch(`${API_BASE_URL}/emails/send`, {
       method: "POST",

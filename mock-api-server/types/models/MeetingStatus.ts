@@ -37,7 +37,10 @@ export function MeetingStatusFromJSON(json: any): MeetingStatus {
   return MeetingStatusFromJSONTyped(json, false);
 }
 
-export function MeetingStatusFromJSONTyped(json: any, ignoreDiscriminator: boolean): MeetingStatus {
+export function MeetingStatusFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): MeetingStatus {
   return json as MeetingStatus;
 }
 
@@ -45,6 +48,9 @@ export function MeetingStatusToJSON(value?: MeetingStatus | null): any {
   return value as any;
 }
 
-export function MeetingStatusToJSONTyped(value: any, ignoreDiscriminator: boolean): MeetingStatus {
+export function MeetingStatusToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean
+): MeetingStatus {
   return value as MeetingStatus;
 }

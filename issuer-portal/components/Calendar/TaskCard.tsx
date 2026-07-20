@@ -12,7 +12,15 @@ import {
   Assignment as TaskIcon,
   Upload as UploadIcon,
 } from "@mui/icons-material";
-import { Box, Card, CardContent, Chip, IconButton, Tooltip, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  IconButton,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import React from "react";
 
 import type { Task } from "@/types/api-exports";
@@ -38,9 +46,10 @@ const getTaskBackground = (
   theme: Theme,
   task: Task,
   isMeetingDate: boolean,
-  isKeyDate: boolean,
+  isKeyDate: boolean
 ) => {
-  const isCompleted = task.status === "COMPLETE" || task.status === "AUTHORIZED";
+  const isCompleted =
+    task.status === "COMPLETE" || task.status === "AUTHORIZED";
 
   if (isMeetingDate) {
     // Completed tasks on meeting dates get a more muted background
@@ -66,9 +75,10 @@ const getTaskBorderLeft = (
   isMeetingDate: boolean,
   isActualKeyDate: boolean,
   isKeyDate: boolean,
-  phase?: number,
+  phase?: number
 ) => {
-  const isCompleted = task.status === "COMPLETE" || task.status === "AUTHORIZED";
+  const isCompleted =
+    task.status === "COMPLETE" || task.status === "AUTHORIZED";
 
   if (isCompleted) {
     // Completed tasks get special border treatment based on context
@@ -101,9 +111,10 @@ const getTaskTextColor = (
   task: Task,
   isMeetingDate: boolean,
   isKeyDate: boolean,
-  isSecondary = false,
+  isSecondary = false
 ) => {
-  const isCompleted = task.status === "COMPLETE" || task.status === "AUTHORIZED";
+  const isCompleted =
+    task.status === "COMPLETE" || task.status === "AUTHORIZED";
 
   if (isMeetingDate) {
     // Completed tasks on meeting dates use a muted white
@@ -121,7 +132,9 @@ const getTaskTextColor = (
       : theme.vars?.palette.keydate.contrastText;
   }
 
-  return isSecondary ? theme.vars?.palette?.text?.secondary : theme.vars?.palette?.text?.primary;
+  return isSecondary
+    ? theme.vars?.palette?.text?.secondary
+    : theme.vars?.palette?.text?.primary;
 };
 
 const getTaskHoverBackground = (
@@ -129,9 +142,10 @@ const getTaskHoverBackground = (
   task: Task,
   isActualKeyDate: boolean,
   isKeyDate: boolean,
-  isMeetingDate: boolean,
+  isMeetingDate: boolean
 ) => {
-  const isCompleted = task.status === "COMPLETE" || task.status === "AUTHORIZED";
+  const isCompleted =
+    task.status === "COMPLETE" || task.status === "AUTHORIZED";
 
   if (isActualKeyDate) return "transparent";
 
@@ -206,18 +220,32 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         sx={{
           cursor: onClick ? "pointer" : "default",
           mb: 0.5,
-          background: (theme) => getTaskBackground(theme, task, isMeetingDate, isKeyDate),
+          background: (theme) =>
+            getTaskBackground(theme, task, isMeetingDate, isKeyDate),
           boxShadow: (theme) =>
             isKeyDate || isMeetingDate
               ? "none"
               : `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
           borderLeft: (theme) =>
-            getTaskBorderLeft(theme, task, isMeetingDate, isActualKeyDate, isKeyDate, phase),
+            getTaskBorderLeft(
+              theme,
+              task,
+              isMeetingDate,
+              isActualKeyDate,
+              isKeyDate,
+              phase
+            ),
           transition: (theme) => theme.transitions.create(["background-color"]),
           borderRadius: 1,
           "&:hover": {
             backgroundColor: (theme) =>
-              getTaskHoverBackground(theme, task, isActualKeyDate, isKeyDate, isMeetingDate),
+              getTaskHoverBackground(
+                theme,
+                task,
+                isActualKeyDate,
+                isKeyDate,
+                isMeetingDate
+              ),
           },
           ...sx, // Apply custom styles
         }}
@@ -232,7 +260,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               ...textTruncationStyles,
               mb: 0.25,
               ...getCompletionStyles(task.status),
-              color: (theme) => getTaskTextColor(theme, task, isMeetingDate, isKeyDate),
+              color: (theme) =>
+                getTaskTextColor(theme, task, isMeetingDate, isKeyDate),
             }}
           >
             {task.title}
@@ -245,7 +274,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 fontSize: "0.725rem",
                 ...textTruncationStyles,
                 ...getCompletionStyles(task.status),
-                color: (theme) => getTaskTextColor(theme, task, isMeetingDate, isKeyDate, true),
+                color: (theme) =>
+                  getTaskTextColor(theme, task, isMeetingDate, isKeyDate, true),
                 mb: 0.25,
               }}
             >
@@ -253,7 +283,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </Typography>
           )}
           {!isActualKeyDate && (
-            <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+            >
               <StatusChip
                 status={task.status || null}
                 size="small"
@@ -263,27 +297,34 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   ...(isKeyDate
                     ? {
                         backgroundColor:
-                          task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                          task.status === "COMPLETE" ||
+                          task.status === "AUTHORIZED"
                             ? (theme) => theme.vars?.palette.keydate.dark
                             : "transparent",
                         color:
-                          task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                          task.status === "COMPLETE" ||
+                          task.status === "AUTHORIZED"
                             ? "white"
-                            : (theme) => theme.vars?.palette.keydate.contrastText,
+                            : (theme) =>
+                                theme.vars?.palette.keydate.contrastText,
                         border:
-                          task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                          task.status === "COMPLETE" ||
+                          task.status === "AUTHORIZED"
                             ? "none"
-                            : (theme) => `1px solid ${theme.vars?.palette.keydate.contrastText}`,
+                            : (theme) =>
+                                `1px solid ${theme.vars?.palette.keydate.contrastText}`,
                       }
                     : isMeetingDate
                       ? {
                           backgroundColor:
-                            task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                            task.status === "COMPLETE" ||
+                            task.status === "AUTHORIZED"
                               ? (theme) => theme.vars?.palette.complete
                               : "rgba(255,255,255,0.2)",
                           color: "white",
                           border:
-                            task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                            task.status === "COMPLETE" ||
+                            task.status === "AUTHORIZED"
                               ? "none"
                               : "1px solid white",
                         }
@@ -304,7 +345,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         cursor: onClick ? "pointer" : "default",
         mb: 2,
         background: (theme) => theme.vars?.palette?.tableCellRow.fill,
-        boxShadow: (theme) => `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
+        boxShadow: (theme) =>
+          `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
         borderLeft: (theme) =>
           task.status === "COMPLETE" || task.status === "AUTHORIZED"
             ? `4px solid ${theme.vars?.palette.complete}`
@@ -324,7 +366,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     >
       <CardContent>
         {/* Header with title and status */}
-        <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={1}>
+        <Box
+          display="flex"
+          alignItems="flex-start"
+          justifyContent="space-between"
+          mb={1}
+        >
           <Box display="flex" alignItems="center" gap={1} flexGrow={1}>
             <TaskIcon
               className="task-icon"
@@ -344,7 +391,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   task.status === "COMPLETE" || task.status === "AUTHORIZED"
                     ? "line-through"
                     : "none",
-                opacity: task.status === "COMPLETE" || task.status === "AUTHORIZED" ? 0.6 : 1,
+                opacity:
+                  task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                    ? 0.6
+                    : 1,
               }}
             >
               {task.title}
@@ -366,7 +416,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           sx={{
             mb: 2,
             lineHeight: 1.5,
-            textDecoration: task.status === "COMPLETE" ? "line-through" : "none",
+            textDecoration:
+              task.status === "COMPLETE" ? "line-through" : "none",
           }}
         >
           {task.description}
@@ -398,7 +449,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
 
           {task.type && (
-            <Chip label={task.type} size="small" variant="outlined" sx={{ height: 24 }} />
+            <Chip
+              label={task.type}
+              size="small"
+              variant="outlined"
+              sx={{ height: 24 }}
+            />
           )}
         </Box>
 
@@ -435,7 +491,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Document links */}
         {task.documentId && (
           <Box mt={2}>
-            <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              mb={1}
+            >
               Document ID: {task.documentId}
             </Typography>
           </Box>

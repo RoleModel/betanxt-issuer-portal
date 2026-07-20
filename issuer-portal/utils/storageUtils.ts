@@ -41,7 +41,7 @@ export function getFileExtension(filename: string): string {
  * Get file type category based on mime type
  */
 export function getFileTypeCategory(
-  mimeType: string,
+  mimeType: string
 ): "document" | "image" | "video" | "audio" | "other" {
   if (
     mimeType.startsWith("application/pdf") ||
@@ -115,7 +115,10 @@ export function generateUniqueFilename(originalName: string): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 8);
   const extension = getFileExtension(originalName);
-  const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf("."));
+  const nameWithoutExt = originalName.substring(
+    0,
+    originalName.lastIndexOf(".")
+  );
 
   return `${nameWithoutExt}_${timestamp}_${random}.${extension}`;
 }
@@ -144,7 +147,8 @@ export function fileToBase64(file: File): Promise<string> {
       const base64 = result.split(",")[1];
       resolve(base64);
     };
-    reader.onerror = () => reject(new Error("Failed to convert file to base64"));
+    reader.onerror = () =>
+      reject(new Error("Failed to convert file to base64"));
     reader.readAsDataURL(file);
   });
 }
@@ -152,10 +156,15 @@ export function fileToBase64(file: File): Promise<string> {
 /**
  * Create file from base64 string
  */
-export function base64ToFile(base64: string, filename: string, mimeType: string): File {
+export function base64ToFile(
+  base64: string,
+  filename: string,
+  mimeType: string
+): File {
   const byteCharacters = atob(base64);
-  const byteNumbers = Array.from({ length: byteCharacters.length }, (_, index) =>
-    byteCharacters.charCodeAt(index),
+  const byteNumbers = Array.from(
+    { length: byteCharacters.length },
+    (_, index) => byteCharacters.charCodeAt(index)
   );
 
   const byteArray = new Uint8Array(byteNumbers);

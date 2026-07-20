@@ -61,15 +61,27 @@ class NoopEmailService implements EmailService {
     const tmpFile = path.join(os.tmpdir(), `betanxt-email-${id}.html`);
     fs.writeFileSync(tmpFile, html, "utf-8");
 
-    console.log("\n╔══════════════════════════════════════════════════════════════╗");
-    console.log("║  📧  EMAIL (noop provider — not actually sent)               ║");
-    console.log("╠══════════════════════════════════════════════════════════════╣");
+    console.log(
+      "\n╔══════════════════════════════════════════════════════════════╗"
+    );
+    console.log(
+      "║  📧  EMAIL (noop provider — not actually sent)               ║"
+    );
+    console.log(
+      "╠══════════════════════════════════════════════════════════════╣"
+    );
     console.log(`║  To:      ${input.to.join(", ").padEnd(52)}║`);
     console.log(`║  Subject: ${input.subject.substring(0, 52).padEnd(52)}║`);
     console.log(`║  Preview: file://${tmpFile.substring(0, 44).padEnd(44)}║`);
-    console.log("╠══════════════════════════════════════════════════════════════╣");
-    console.log("║  Configure EMAIL_PROVIDER and credentials to send real mail ║");
-    console.log("╚══════════════════════════════════════════════════════════════╝\n");
+    console.log(
+      "╠══════════════════════════════════════════════════════════════╣"
+    );
+    console.log(
+      "║  Configure EMAIL_PROVIDER and credentials to send real mail ║"
+    );
+    console.log(
+      "╚══════════════════════════════════════════════════════════════╝\n"
+    );
 
     return Promise.resolve({ id });
   }
@@ -95,7 +107,9 @@ class SmtpEmailService implements EmailService {
     this.transporter.verify((err) => {
       if (err) {
         console.error("[EmailService] SMTP connection failed:", err.message);
-        console.error("[EmailService] Check EMAIL_SMTP_HOST / USER / PASS in .env.local");
+        console.error(
+          "[EmailService] Check EMAIL_SMTP_HOST / USER / PASS in .env.local"
+        );
       } else {
         console.log(`[EmailService] SMTP ready — sending as ${from}`);
       }
@@ -118,7 +132,7 @@ class SmtpEmailService implements EmailService {
         bcc: input.bcc?.join(", "),
       });
       console.log(
-        `[EmailService] Sent to ${input.to.join(", ")} — messageId: ${String(info.messageId)}`,
+        `[EmailService] Sent to ${input.to.join(", ")} — messageId: ${String(info.messageId)}`
       );
       return { id: String(info.messageId) };
     } catch (err) {
@@ -134,20 +148,28 @@ let _instanceProvider: string | null = null;
 let _instanceFrom: string | null = null;
 
 function requiresConfiguredProvider(provider: string): boolean {
-  return process.env.VERCEL === "1" && process.env.ENABLE_EMAILS === "true" && provider !== "noop";
+  return (
+    process.env.VERCEL === "1" &&
+    process.env.ENABLE_EMAILS === "true" &&
+    provider !== "noop"
+  );
 }
 
-function createMissingProviderError(provider: string, missingKeys: string[]): Error {
+function createMissingProviderError(
+  provider: string,
+  missingKeys: string[]
+): Error {
   const missing = missingKeys.join(", ");
   return new Error(
     `Email provider "${provider}" is not configured for Vercel. Missing: ${missing}. ` +
-      "Set these environment variables in the Vercel project before enabling emails.",
+      "Set these environment variables in the Vercel project before enabling emails."
   );
 }
 
 export function getEmailService(): EmailService {
   const provider = (process.env.EMAIL_PROVIDER ?? "noop").toLowerCase();
-  const from = process.env.EMAIL_FROM ?? "BetaNXT Issuer Portal <noreply@example.com>";
+  const from =
+    process.env.EMAIL_FROM ?? "BetaNXT Issuer Portal <noreply@example.com>";
 
   // Re-create if provider or from address changed (e.g. after .env.local edit)
   if (_instance && _instanceProvider === provider && _instanceFrom === from) {
@@ -172,7 +194,10 @@ export function getEmailService(): EmailService {
       throw createMissingProviderError(provider, missingKeys);
     }
 
-    _instance = missingKeys.length === 0 ? new SmtpEmailService(from) : new NoopEmailService();
+    _instance =
+      missingKeys.length === 0
+        ? new SmtpEmailService(from)
+        : new NoopEmailService();
   } else {
     if (process.env.VERCEL === "1" && process.env.ENABLE_EMAILS === "true") {
       throw createMissingProviderError("unknown", ["EMAIL_PROVIDER"]);

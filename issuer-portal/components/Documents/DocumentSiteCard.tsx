@@ -1,7 +1,14 @@
 "use client";
 
 import { WebOutlined } from "@mui/icons-material";
-import { Box, Button, Card, CardActions, CardContent, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Typography,
+} from "@mui/material";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import React from "react";
@@ -16,9 +23,12 @@ import buildApiClient from "@/domain-models/apiClient";
 
 type Document = components["schemas"]["Document"];
 
-const DocumentViewer = dynamic(() => import("@/components/Documents/DocumentViewer"), {
-  ssr: false,
-});
+const DocumentViewer = dynamic(
+  () => import("@/components/Documents/DocumentViewer"),
+  {
+    ssr: false,
+  }
+);
 
 interface HostingSiteRevision {
   id: string;
@@ -57,11 +67,11 @@ export default function DocumentSiteCard() {
   const { currentClient } = useClient();
   const { data: session } = useSession();
 
-  const [hostingSiteStatus, setHostingSiteStatus] = React.useState<HostingSiteStatusData | null>(
-    null,
-  );
+  const [hostingSiteStatus, setHostingSiteStatus] =
+    React.useState<HostingSiteStatusData | null>(null);
   const [revisionDialogOpen, setRevisionDialogOpen] = React.useState(false);
-  const [hostingSiteViewerOpen, setHostingSiteViewerOpen] = React.useState(false);
+  const [hostingSiteViewerOpen, setHostingSiteViewerOpen] =
+    React.useState(false);
 
   // Fetch hosting site status on mount
   React.useEffect(() => {
@@ -71,22 +81,26 @@ export default function DocumentSiteCard() {
       try {
         // Query documents table for hosting site document
         const apiClient = await buildApiClient();
-        const response = (await apiClient.GET("/meetings/{meetingId}/documents", {
-          params: { path: { meetingId: currentMeeting.id } },
-        })) as { data?: Document[]; error?: unknown };
+        const response = (await apiClient.GET(
+          "/meetings/{meetingId}/documents",
+          {
+            params: { path: { meetingId: currentMeeting.id } },
+          }
+        )) as { data?: Document[]; error?: unknown };
 
         if (!response.error && response.data) {
           // Filter for HOSTING_SITE documents
           const documents = response.data;
           const hostingDocs = documents.filter(
-            (d) => d.type === "HOSTING_SITE" || d.type === "hosting_site",
+            (d) => d.type === "HOSTING_SITE" || d.type === "hosting_site"
           );
           if (hostingDocs && hostingDocs.length > 0) {
             const doc = hostingDocs[0];
             const mappedStatus: HostingSiteStatusData["status"] =
               doc.status === "APPROVED"
                 ? "Approved"
-                : doc.status === "IN_PROGRESS" || doc.status === "AWAITING_REVIEW"
+                : doc.status === "IN_PROGRESS" ||
+                    doc.status === "AWAITING_REVIEW"
                   ? "Pending Review"
                   : "Incomplete";
 
@@ -125,7 +139,7 @@ export default function DocumentSiteCard() {
 
   const updateHostingSiteStatus = async (
     status: HostingSiteStatusData["status"],
-    additionalData?: Partial<HostingSiteStatusData>,
+    additionalData?: Partial<HostingSiteStatusData>
   ) => {
     if (!currentMeeting?.id) return;
 
@@ -200,7 +214,7 @@ export default function DocumentSiteCard() {
     if (!viewerUrl) {
       // Show an alert or notification that the site is not available
       alert(
-        "Document hosting site is not available. Please ensure the client branding ID is configured.",
+        "Document hosting site is not available. Please ensure the client branding ID is configured."
       );
       return;
     }
@@ -215,7 +229,9 @@ export default function DocumentSiteCard() {
     setRevisionDialogOpen(true);
   };
 
-  const handleRevisionSubmit = async (revisionRequest: string): Promise<void> => {
+  const handleRevisionSubmit = async (
+    revisionRequest: string
+  ): Promise<void> => {
     if (!currentMeeting?.id || !hostingSiteStatus?.id) {
       // Create the document first if it doesn't exist
       if (!hostingSiteStatus?.id) {
@@ -235,7 +251,8 @@ export default function DocumentSiteCard() {
           document_id: hostingSiteStatus.id,
           comment: `REVISION REQUEST: ${revisionRequest}`,
           first_name: session?.user?.name?.split(" ")[0] || "Unknown",
-          last_name: session?.user?.name?.split(" ").slice(1).join(" ") || "User",
+          last_name:
+            session?.user?.name?.split(" ").slice(1).join(" ") || "User",
         }),
       });
 
@@ -255,7 +272,8 @@ export default function DocumentSiteCard() {
   const handleApproveSite = async (): Promise<void> => {
     try {
       await updateHostingSiteStatus("Approved", {
-        approved_by: session?.user?.email ?? session?.user?.name ?? "Unknown User",
+        approved_by:
+          session?.user?.email ?? session?.user?.name ?? "Unknown User",
         approved_at: new Date().toISOString(),
       });
       setHostingSiteViewerOpen(false);
@@ -297,15 +315,19 @@ export default function DocumentSiteCard() {
               Document Hosting Site
             </Typography>
             <Typography variant="body3" color="text.secondary">
-              Verify all shareholder facing sites, you will use the test control number (123456782)
-              to enter the voting site. Once approved, sites will be made active in conjunction with
-              the filing mailing date.
+              Verify all shareholder facing sites, you will use the test control
+              number (123456782) to enter the voting site. Once approved, sites
+              will be made active in conjunction with the filing mailing date.
             </Typography>
             <StatusChip status={hostingSiteStatus?.status ?? "Incomplete"} />
           </Box>
         </CardContent>
         <CardActions>
-          <Button variant="outlined" onClick={handleViewHostingSite} sx={{ textTransform: "none" }}>
+          <Button
+            variant="outlined"
+            onClick={handleViewHostingSite}
+            sx={{ textTransform: "none" }}
+          >
             View Site
           </Button>
           <Button variant="outlined" onClick={handleRevisionRequest}>

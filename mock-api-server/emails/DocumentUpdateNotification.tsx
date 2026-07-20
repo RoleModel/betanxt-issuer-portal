@@ -56,9 +56,10 @@ export function DocumentUpdateNotification({
               lineHeight: "1.6",
             }}
           >
-            A new document, <strong>{documentName}</strong>, has been added to your workflow and is
-            ready for your review. Please log in to the portal and approve (or request changes) at
-            your earliest convenience.
+            A new document, <strong>{documentName}</strong>, has been added to
+            your workflow and is ready for your review. Please log in to the
+            portal and approve (or request changes) at your earliest
+            convenience.
           </Text>
 
           <DocumentCard

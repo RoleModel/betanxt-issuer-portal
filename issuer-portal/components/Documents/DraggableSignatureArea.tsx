@@ -33,7 +33,8 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
   onClick,
   onPositionUpdate,
 }) => {
-  const { createSignatureArea, updateSignatureArea, checkDocumentExists } = useSignatureAreas();
+  const { createSignatureArea, updateSignatureArea, checkDocumentExists } =
+    useSignatureAreas();
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: area.x, y: area.y });
   const [, setShowTooltip] = useState(false);
@@ -65,8 +66,10 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
       const parent = elementRef.current?.parentElement;
       if (parent) {
         const rect = parent.getBoundingClientRect();
-        const newX = ((e.clientX - rect.left - dragStartRef.current.x) / rect.width) * 100;
-        const newY = ((e.clientY - rect.top - dragStartRef.current.y) / rect.height) * 100;
+        const newX =
+          ((e.clientX - rect.left - dragStartRef.current.x) / rect.width) * 100;
+        const newY =
+          ((e.clientY - rect.top - dragStartRef.current.y) / rect.height) * 100;
 
         // Constrain to parent bounds
         setPosition({
@@ -75,7 +78,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
         });
       }
     },
-    [isDragging, area.width, area.height],
+    [isDragging, area.width, area.height]
   );
 
   const handleMouseUp = useCallback(async () => {
@@ -267,7 +270,9 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
               ? "rgba(255, 209, 102, 0.2)"
               : "rgba(255, 209, 102, 0.0)",
             transform: isDragging ? "none" : "scale(1.02)",
-            boxShadow: isDragging ? "0 4px 8px rgba(0,0,0,0.2)" : "0 2px 4px rgba(0,0,0,0.1)",
+            boxShadow: isDragging
+              ? "0 4px 8px rgba(0,0,0,0.2)"
+              : "0 2px 4px rgba(0,0,0,0.1)",
           },
         }}
       >

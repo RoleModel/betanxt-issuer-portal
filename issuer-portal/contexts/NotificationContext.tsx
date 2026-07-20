@@ -2,7 +2,13 @@
 
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import type { components } from "@/types/api";
 
@@ -44,7 +50,9 @@ function extractTickerFromPathname(pathname: string): string | null {
   return match?.[1] ?? null;
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextType | undefined>(
+  undefined
+);
 
 interface NotificationProviderProps {
   children: React.ReactNode;
@@ -80,12 +88,14 @@ const buildFallbackNotifications = (ticker: string): DbNotification[] => {
 
 const withFallbackNotifications = (
   ticker: string,
-  dbNotifications: DbNotification[],
+  dbNotifications: DbNotification[]
 ): DbNotification[] => {
   const fallbackNotifications = buildFallbackNotifications(ticker);
-  const existingTitles = new Set(dbNotifications.map((notification) => notification.title));
+  const existingTitles = new Set(
+    dbNotifications.map((notification) => notification.title)
+  );
   const missingFallbacks = fallbackNotifications.filter(
-    (notification) => !existingTitles.has(notification.title),
+    (notification) => !existingTitles.has(notification.title)
   );
 
   return [...missingFallbacks, ...dbNotifications];
@@ -108,7 +118,10 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         setError(null);
 
         const ticker =
-          options?.ticker ?? currentClient?.ticker ?? extractTickerFromPathname(pathname) ?? null;
+          options?.ticker ??
+          currentClient?.ticker ??
+          extractTickerFromPathname(pathname) ??
+          null;
         const userId = session?.user?.id;
         const username = session?.user?.username;
 
@@ -136,16 +149,25 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
           return;
         }
 
-        const dbNotifications = Array.isArray(data) ? (data as DbNotification[]) : [];
+        const dbNotifications = Array.isArray(data)
+          ? (data as DbNotification[])
+          : [];
         setNotifications(withFallbackNotifications(ticker, dbNotifications));
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch notifications");
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch notifications"
+        );
         setNotifications([]);
       } finally {
         setLoading(false);
       }
     },
-    [currentClient?.ticker, pathname, session?.user?.id, session?.user?.username],
+    [
+      currentClient?.ticker,
+      pathname,
+      session?.user?.id,
+      session?.user?.username,
+    ]
   );
 
   const markAsRead = useCallback(
@@ -154,7 +176,9 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         if (notificationId.startsWith("fallback-")) {
           setFallbackReadState(notificationId);
           setNotifications((prev) =>
-            prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
+            prev.map((n) =>
+              n.id === notificationId ? { ...n, read: true } : n
+            )
           );
           return;
         }
@@ -166,7 +190,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
         // Update local state optimistically
         setNotifications((prev) =>
-          prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
+          prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
         );
       } catch (err) {
         console.error("Failed to mark notification as read:", err);
@@ -174,7 +198,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         await fetchNotifications();
       }
     },
-    [fetchNotifications],
+    [fetchNotifications]
   );
 
   const markAllAsRead = useCallback(async () => {
@@ -190,7 +214,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
           return apiClient.PATCH("/notifications/{notificationId}/mark-read", {
             params: { path: { notificationId } },
           });
-        }),
+        })
       );
 
       // Update local state
@@ -234,7 +258,9 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 export function useNotifications() {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error("useNotifications must be used within a NotificationProvider");
+    throw new Error(
+      "useNotifications must be used within a NotificationProvider"
+    );
   }
   return context;
 }

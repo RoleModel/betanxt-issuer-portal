@@ -28,7 +28,9 @@ function transformProposalRow(row: ProposalRow): Proposal {
     directorTermYears: nullToUndefined(row.director_term_years),
     directorClass: nullToUndefined(row.director_class),
     termExpirationYear: nullToUndefined(row.term_expiration_year),
-    frequencyOptions: nullToUndefined(row.frequency_options as Record<string, never>),
+    frequencyOptions: nullToUndefined(
+      row.frequency_options as Record<string, never>
+    ),
     recommendation: nullToUndefined(row.recommendation),
     meetingId: nullToUndefined(row.meeting_id),
     totalVotesFor: nullToUndefined(row.total_votes_for),
@@ -58,10 +60,13 @@ interface ApiResponse<T> {
 
 export async function listProposals(
   meetingId: string,
-  proposalType?: string,
+  proposalType?: string
 ): Promise<ApiResponse<Proposal[]>> {
   try {
-    let query = supabase.from("proposal").select("*").eq("meeting_id", meetingId);
+    let query = supabase
+      .from("proposal")
+      .select("*")
+      .eq("meeting_id", meetingId);
 
     if (proposalType) {
       query = query.eq("proposal_type", proposalType);
@@ -99,7 +104,7 @@ export async function listProposals(
 
 export async function createProposal(
   meetingId: string,
-  body: CreateProposalRequest,
+  body: CreateProposalRequest
 ): Promise<ApiResponse<Proposal>> {
   try {
     const request = body;
@@ -149,9 +154,15 @@ export async function createProposal(
   }
 }
 
-export async function getProposalById(id: string): Promise<ApiResponse<Proposal>> {
+export async function getProposalById(
+  id: string
+): Promise<ApiResponse<Proposal>> {
   try {
-    const { data, error } = await supabase.from("proposal").select("*").eq("id", id).single();
+    const { data, error } = await supabase
+      .from("proposal")
+      .select("*")
+      .eq("id", id)
+      .single();
 
     if (error) {
       return {
@@ -181,24 +192,29 @@ export async function getProposalById(id: string): Promise<ApiResponse<Proposal>
 
 export async function updateProposal(
   id: string,
-  body: UpdateProposalRequest,
+  body: UpdateProposalRequest
 ): Promise<ApiResponse<Proposal>> {
   try {
     const request = body;
     const updateData: Partial<ProposalUpdate> = {};
-    if (request.proposalTitle !== undefined) updateData.proposal_title = request.proposalTitle;
-    if (request.proposalType !== undefined) updateData.proposal_type = request.proposalType;
+    if (request.proposalTitle !== undefined)
+      updateData.proposal_title = request.proposalTitle;
+    if (request.proposalType !== undefined)
+      updateData.proposal_type = request.proposalType;
     if (request.proposalSubtype !== undefined)
       updateData.proposal_subtype = request.proposalSubtype;
-    if (request.directorName !== undefined) updateData.director_name = request.directorName;
+    if (request.directorName !== undefined)
+      updateData.director_name = request.directorName;
     if (request.directorTermYears !== undefined)
       updateData.director_term_years = request.directorTermYears;
-    if (request.directorClass !== undefined) updateData.director_class = request.directorClass;
+    if (request.directorClass !== undefined)
+      updateData.director_class = request.directorClass;
     if (request.termExpirationYear !== undefined)
       updateData.term_expiration_year = request.termExpirationYear;
     if (request.frequencyOptions !== undefined)
       updateData.frequency_options = request.frequencyOptions;
-    if (request.recommendation !== undefined) updateData.recommendation = request.recommendation;
+    if (request.recommendation !== undefined)
+      updateData.recommendation = request.recommendation;
 
     const { data, error } = await supabase
       .from("proposal")

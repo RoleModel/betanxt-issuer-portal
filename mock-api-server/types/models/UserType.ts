@@ -37,7 +37,10 @@ export function UserTypeFromJSON(json: any): UserType {
   return UserTypeFromJSONTyped(json, false);
 }
 
-export function UserTypeFromJSONTyped(json: any, ignoreDiscriminator: boolean): UserType {
+export function UserTypeFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): UserType {
   return json as UserType;
 }
 
@@ -45,6 +48,9 @@ export function UserTypeToJSON(value?: UserType | null): any {
   return value as any;
 }
 
-export function UserTypeToJSONTyped(value: any, ignoreDiscriminator: boolean): UserType {
+export function UserTypeToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean
+): UserType {
   return value as UserType;
 }

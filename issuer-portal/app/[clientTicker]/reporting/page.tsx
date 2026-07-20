@@ -34,7 +34,12 @@ import { useReporting } from "@/hooks/useReporting";
 import { useReports } from "@/hooks/useReports";
 
 const ChartSkeleton = () => (
-  <Skeleton variant="rectangular" width="100%" height={400} sx={{ borderRadius: 2 }} />
+  <Skeleton
+    variant="rectangular"
+    width="100%"
+    height={400}
+    sx={{ borderRadius: 2 }}
+  />
 );
 
 /** Voted/not-voted position counts split into registered vs beneficial holders, keyed per set. */
@@ -67,16 +72,29 @@ export default function ReportingPage() {
 
   const mappedEventSummary = reportingData?.mappedEventSummary ?? [];
   const mappedYearOverYear = reportingData?.mappedYearOverYear ?? [];
-  const mappedProposalPerformanceData = reportingData?.mappedProposalPerformanceData ?? [];
-  const mappedQuorumPerformanceData = reportingData?.mappedQuorumPerformanceData ?? [];
-  const availableMeetings = useMemo(() => reportingData?.availableMeetings ?? [], [reportingData]);
-  const positions = useMemo(() => reportingData?.positions ?? [], [reportingData]);
-  const proposals = useMemo(() => reportingData?.proposals ?? [], [reportingData]);
+  const mappedProposalPerformanceData =
+    reportingData?.mappedProposalPerformanceData ?? [];
+  const mappedQuorumPerformanceData =
+    reportingData?.mappedQuorumPerformanceData ?? [];
+  const availableMeetings = useMemo(
+    () => reportingData?.availableMeetings ?? [],
+    [reportingData]
+  );
+  const positions = useMemo(
+    () => reportingData?.positions ?? [],
+    [reportingData]
+  );
+  const proposals = useMemo(
+    () => reportingData?.proposals ?? [],
+    [reportingData]
+  );
 
-  const effectiveMeetingId = selectedMeetingId || availableMeetings[0]?.id || "";
+  const effectiveMeetingId =
+    selectedMeetingId || availableMeetings[0]?.id || "";
   const selectedMeeting = useMemo(
-    () => reportingData?.meetings.find((m) => m.id === effectiveMeetingId) ?? null,
-    [reportingData, effectiveMeetingId],
+    () =>
+      reportingData?.meetings.find((m) => m.id === effectiveMeetingId) ?? null,
+    [reportingData, effectiveMeetingId]
   );
 
   // Mirrors the event selector's option label so each analytics card can show
@@ -88,7 +106,7 @@ export default function ReportingPage() {
   }, [availableMeetings, effectiveMeetingId]);
 
   const { brokerVotingByProposal, loading: reportsLoading } = useReports(
-    effectiveMeetingId || undefined,
+    effectiveMeetingId || undefined
   );
 
   const brokerChartProposals = useMemo(
@@ -101,7 +119,7 @@ export default function ReportingPage() {
           proposalTitle: proposal.proposalTitle ?? "",
         }))
         .sort((a, b) => Number(a.proposalNumber) - Number(b.proposalNumber)),
-    [proposals, effectiveMeetingId],
+    [proposals, effectiveMeetingId]
   );
 
   const positionsVotedBySet = useMemo(() => {
@@ -119,7 +137,9 @@ export default function ReportingPage() {
         }
 
         const bucket =
-          position.accountType === "Non-DTC" ? record[key].registered : record[key].beneficial;
+          position.accountType === "Non-DTC"
+            ? record[key].registered
+            : record[key].beneficial;
 
         if (position.voteStatus === "Voted") {
           bucket.voted += 1;
@@ -133,7 +153,7 @@ export default function ReportingPage() {
 
   const positionsVotedSetKeys = useMemo(
     () => Object.keys(positionsVotedBySet),
-    [positionsVotedBySet],
+    [positionsVotedBySet]
   );
 
   const participationChartData = useMemo(() => {
@@ -143,7 +163,9 @@ export default function ReportingPage() {
     return {
       meetings: quorumData
         .map((quorum) => {
-          const summary = eventSummary.find((event) => event.meetingId === quorum.meetingId);
+          const summary = eventSummary.find(
+            (event) => event.meetingId === quorum.meetingId
+          );
           return {
             event: quorum.meetingTitle,
             participationRate: quorum.participationRate,
@@ -160,14 +182,15 @@ export default function ReportingPage() {
         label: job.alternateJobName.split(" — ")[0] || `Follow-Up ${index + 1}`,
         date: job.sentDate ?? null,
       })),
-    [clientTicker],
+    [clientTicker]
   );
 
-  const { points: quorumTimelinePoints, milestones: quorumTimelineMilestones } = useQuorumTimeline({
-    meeting: selectedMeeting,
-    positions,
-    followUpMailings,
-  });
+  const { points: quorumTimelinePoints, milestones: quorumTimelineMilestones } =
+    useQuorumTimeline({
+      meeting: selectedMeeting,
+      positions,
+      followUpMailings,
+    });
 
   if (error) {
     return (
@@ -189,7 +212,9 @@ export default function ReportingPage() {
       >
         {availableMeetings.map((meeting) => (
           <MenuItem key={meeting.id} value={meeting.id}>
-            {meeting.year ? `${meeting.title} - ${meeting.year}` : meeting.title}
+            {meeting.year
+              ? `${meeting.title} - ${meeting.year}`
+              : meeting.title}
           </MenuItem>
         ))}
       </TextField>
@@ -216,7 +241,10 @@ export default function ReportingPage() {
                 subheader="Participation broken down by registered vs beneficial YOY by shares"
               />
               <CardContent>
-                <YearOverYearChart data={mappedYearOverYear} loading={loading} />
+                <YearOverYearChart
+                  data={mappedYearOverYear}
+                  loading={loading}
+                />
               </CardContent>
             </Card>
           </Suspense>
@@ -226,7 +254,9 @@ export default function ReportingPage() {
           <QuorumTimelineChart
             points={quorumTimelinePoints}
             milestones={quorumTimelineMilestones}
-            quorumRequirementPercent={selectedMeeting?.quorumRequirement ?? null}
+            quorumRequirementPercent={
+              selectedMeeting?.quorumRequirement ?? null
+            }
             loading={loading}
             subheader={selectedMeetingLabel || undefined}
           />
@@ -295,14 +325,19 @@ export default function ReportingPage() {
                   subheader="Average participation rate across completed events"
                 />
                 <CardContent>
-                  <ParticipationChart data={participationChartData} loading={loading} />
+                  <ParticipationChart
+                    data={participationChartData}
+                    loading={loading}
+                  />
                 </CardContent>
               </Card>
             </Grid>
 
             <Grid size={12}>
               <Suspense fallback={<ChartSkeleton />}>
-                <ProposalPerformanceTable data={mappedProposalPerformanceData} />
+                <ProposalPerformanceTable
+                  data={mappedProposalPerformanceData}
+                />
               </Suspense>
             </Grid>
           </>

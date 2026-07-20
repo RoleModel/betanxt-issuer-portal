@@ -21,9 +21,12 @@ export interface UseSignatureAreasResult {
   error: string | null;
   createSignatureArea: (
     documentId: string,
-    area: Partial<SignatureArea>,
+    area: Partial<SignatureArea>
   ) => Promise<SignatureArea | null>;
-  updateSignatureArea: (areaId: string, updates: Partial<SignatureArea>) => SignatureArea | null;
+  updateSignatureArea: (
+    areaId: string,
+    updates: Partial<SignatureArea>
+  ) => SignatureArea | null;
   checkDocumentExists: (documentId: string) => Promise<boolean>;
 }
 
@@ -44,11 +47,14 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
         return false;
       }
     },
-    [],
+    []
   );
 
   const createSignatureArea = useCallback(
-    async (documentId: string, area: Partial<SignatureArea>): Promise<SignatureArea | null> => {
+    async (
+      documentId: string,
+      area: Partial<SignatureArea>
+    ): Promise<SignatureArea | null> => {
       try {
         setLoading(true);
         setError(null);
@@ -77,14 +83,17 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
 
         return newArea;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to create signature area";
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to create signature area";
         setError(errorMessage);
         return null;
       } finally {
         setLoading(false);
       }
     },
-    [checkDocumentExists],
+    [checkDocumentExists]
   );
 
   const updateSignatureArea = useCallback(
@@ -111,14 +120,17 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
 
         return updatedArea;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to update signature area";
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to update signature area";
         setError(errorMessage);
         return null;
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   return {

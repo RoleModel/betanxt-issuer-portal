@@ -99,10 +99,9 @@ export const buildMockFollowUpJobs = (ticker: string): FollowUpJob[] => {
 const formatNumber = (num: number | null | undefined): string =>
   num === null || num === undefined ? "0" : num.toLocaleString("en-US");
 
-const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> = ({
-  ticker,
-  jobs,
-}) => {
+const AdditionalMailingSummaryCard: React.FC<
+  AdditionalMailingSummaryCardProps
+> = ({ ticker, jobs }) => {
   const [activeJob, setActiveJob] = useState<FollowUpJob | null>(null);
   const resolvedJobs = jobs ?? buildMockFollowUpJobs(ticker || "WEN");
 
@@ -133,11 +132,16 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                   <TableCell colSpan={2} sx={{ fontWeight: 600 }}>
                     Job Name
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>Sent</TableCell>
+                  <TableCell sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+                    Sent
+                  </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600 }}>
                     Positions
                   </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
+                  >
                     Full Set / Electronic
                   </TableCell>
                 </TableRow>
@@ -159,9 +163,16 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                         </Typography>
                       )}
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 500 }}>{job.alternateJobName}</TableCell>
-                    <TableCell sx={{ whiteSpace: "nowrap" }}>{job.sentDate ?? "—"}</TableCell>
-                    <TableCell align="right" sx={{ fontVariantNumeric: "tabularNums" }}>
+                    <TableCell sx={{ fontWeight: 500 }}>
+                      {job.alternateJobName}
+                    </TableCell>
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>
+                      {job.sentDate ?? "—"}
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{ fontVariantNumeric: "tabularNums" }}
+                    >
                       {formatNumber(job.positions)}
                     </TableCell>
 
@@ -171,7 +182,9 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                           title={
                             job.fullSetFulfillmentRequests
                               ? `${job.fullSetFulfillmentRequests} full set fulfillment request${
-                                  job.fullSetFulfillmentRequests === 1 ? "" : "s"
+                                  job.fullSetFulfillmentRequests === 1
+                                    ? ""
+                                    : "s"
                                 }`
                               : "No full set fulfillment requests"
                           }
@@ -179,7 +192,11 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                           <Chip
                             size="small"
                             label={`Full Set: ${formatNumber(job.fullSetFulfillmentRequests)}`}
-                            color={job.fullSetFulfillmentRequests ? "primary" : "default"}
+                            color={
+                              job.fullSetFulfillmentRequests
+                                ? "primary"
+                                : "default"
+                            }
                             variant={"outlined"}
                             sx={{ px: 1 }}
                           />
@@ -188,7 +205,9 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                           title={
                             job.electronicFulfillmentRequests
                               ? `${job.electronicFulfillmentRequests} electronic fulfillment request${
-                                  job.electronicFulfillmentRequests === 1 ? "" : "s"
+                                  job.electronicFulfillmentRequests === 1
+                                    ? ""
+                                    : "s"
                                 }`
                               : "No electronic fulfillment requests"
                           }
@@ -196,7 +215,11 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
                           <Chip
                             size="small"
                             label={`Electronic: ${formatNumber(job.electronicFulfillmentRequests)}`}
-                            color={job.electronicFulfillmentRequests ? "default" : "default"}
+                            color={
+                              job.electronicFulfillmentRequests
+                                ? "default"
+                                : "default"
+                            }
                             variant={"outlined"}
                             sx={{ px: 1 }}
                           />
@@ -208,7 +231,14 @@ const AdditionalMailingSummaryCard: React.FC<AdditionalMailingSummaryCardProps> 
               </TableBody>
             </Table>
           </TableContainer>
-          <Box sx={{ px: 2, py: 1.5, borderTop: "1px solid", borderColor: "divider" }}>
+          <Box
+            sx={{
+              px: 2,
+              py: 1.5,
+              borderTop: "1px solid",
+              borderColor: "divider",
+            }}
+          >
             <Typography variant="caption" color="text.secondary">
               {resolvedJobs.length} follow-up mailing
               {resolvedJobs.length === 1 ? "" : "s"} for this event

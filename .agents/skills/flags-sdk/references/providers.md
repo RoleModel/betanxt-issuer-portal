@@ -57,12 +57,10 @@ type Entities = {
   user?: { id: string };
 };
 
-const identify = dedupe(
-  async (): Promise<Entities> => ({
-    team: { id: "team-123" },
-    user: { id: "user-456" },
-  }),
-);
+const identify = dedupe(async (): Promise<Entities> => ({
+  team: { id: "team-123" },
+  user: { id: "user-456" },
+}));
 
 export const exampleFlag = flag<boolean, Entities>({
   key: "example-flag",
@@ -448,7 +446,7 @@ export const GET = createFlagsDiscoveryEndpoint(() =>
   getPostHogProviderData({
     personalApiKey: process.env.POSTHOG_PERSONAL_API_KEY,
     projectId: process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID,
-  }),
+  })
 );
 ```
 
@@ -665,7 +663,10 @@ Create an adapter factory:
 import type { Adapter } from "flags";
 
 export function createMyAdapter(/* options */) {
-  return function myAdapter<ValueType, EntitiesType>(): Adapter<ValueType, EntitiesType> {
+  return function myAdapter<ValueType, EntitiesType>(): Adapter<
+    ValueType,
+    EntitiesType
+  > {
     return {
       origin(key) {
         return `https://my-provider.com/flags/${key}`;

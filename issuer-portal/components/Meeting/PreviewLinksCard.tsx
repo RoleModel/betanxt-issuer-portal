@@ -1,4 +1,10 @@
-import { Card, CardActionArea, CardContent, Paper, Typography } from "@mui/material";
+import {
+  Card,
+  CardActionArea,
+  CardContent,
+  Paper,
+  Typography,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 
 interface PreviewLinksCardProps {
@@ -6,7 +12,10 @@ interface PreviewLinksCardProps {
   url2?: string | null;
 }
 
-export default function PreviewLinksCard({ url1, url2 }: PreviewLinksCardProps) {
+export default function PreviewLinksCard({
+  url1,
+  url2,
+}: PreviewLinksCardProps) {
   url1 = "https://dsm.preview.url";
   url2 = "https://dsm.preview.url";
   const router = useRouter();
@@ -29,7 +38,9 @@ export default function PreviewLinksCard({ url1, url2 }: PreviewLinksCardProps) 
             }}
           >
             <CardContent>
-              <Typography variant="h5">Meeting Presenter Preview Link</Typography>
+              <Typography variant="h5">
+                Meeting Presenter Preview Link
+              </Typography>
               <Typography variant="body3" color="link" fontWeight={500}>
                 {url1}
               </Typography>
@@ -43,7 +54,9 @@ export default function PreviewLinksCard({ url1, url2 }: PreviewLinksCardProps) 
             }}
           >
             <CardContent>
-              <Typography variant="h5">Meeting Audience Preview Link</Typography>
+              <Typography variant="h5">
+                Meeting Audience Preview Link
+              </Typography>
               <Typography variant="body3" color="link" fontWeight={500}>
                 {url2}
               </Typography>

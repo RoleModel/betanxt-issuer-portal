@@ -41,11 +41,17 @@ export {
 export type { BrandColorPair } from "./brandfetch/pickLogo.js";
 export { pickBestLogo, pickBrandColors } from "./brandfetch/pickLogo.js";
 export type { ToBrandConfigOptions } from "./brandfetch/toBrandConfig.js";
-export { slugify, brandResponseToBrandConfig } from "./brandfetch/toBrandConfig.js";
+export {
+  slugify,
+  brandResponseToBrandConfig,
+} from "./brandfetch/toBrandConfig.js";
 
 // --- Theme generation ---------------------------------------------------------
 export { CONTRAST_THRESHOLD, contrastText } from "./theme/contrast.js";
-export type { BrandColors, ClientThemeInput } from "./theme/createClientTheme.js";
+export type {
+  BrandColors,
+  ClientThemeInput,
+} from "./theme/createClientTheme.js";
 export {
   resolveBrandColors,
   createClientThemeOptions,

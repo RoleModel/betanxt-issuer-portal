@@ -23,7 +23,10 @@ interface MeetingInformationCardProps {
   };
 }
 
-const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({ className, meeting }) => {
+const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({
+  className,
+  meeting,
+}) => {
   const meetingInfo = [
     { label: "Meeting Type", value: meeting?.meetingType },
     { label: "Company CUSIP(s)", value: meeting?.cusip },
@@ -45,7 +48,10 @@ const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({ classNa
           <SROnlyTableCaption>
             Meeting details including type, inspector, and company CUSIP.
           </SROnlyTableCaption>
-          <TableHead aria-hidden="false" sx={{ visibility: "hidden", display: "none" }}>
+          <TableHead
+            aria-hidden="false"
+            sx={{ visibility: "hidden", display: "none" }}
+          >
             <TableRow>
               <TableCell>Label</TableCell>
               <TableCell align="right">Value</TableCell>

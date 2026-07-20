@@ -14,7 +14,7 @@ interface Task {
  */
 export const findSignedDocumentForTask = (
   task: Task,
-  documents: Document[],
+  documents: Document[]
 ): Document | undefined => {
   return documents.find((doc) => {
     // Check for signed/completed document types

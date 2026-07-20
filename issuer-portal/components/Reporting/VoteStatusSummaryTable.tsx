@@ -63,8 +63,10 @@ export default function VoteStatusSummaryTable({
   const isNonDtcTable = title.includes("Non-DTC");
 
   // Calculate totals for percentage calculations
-  const totalShares = data.find((row) => row.category === "Grand Total")?.shares ?? 0;
-  const totalShareholders = data.find((row) => row.category === "Grand Total")?.shareholders ?? 0;
+  const totalShares =
+    data.find((row) => row.category === "Grand Total")?.shares ?? 0;
+  const totalShareholders =
+    data.find((row) => row.category === "Grand Total")?.shareholders ?? 0;
 
   return (
     <Card>
@@ -97,15 +99,19 @@ export default function VoteStatusSummaryTable({
                 const isSource = isSourceRow(row.category);
                 const isTotal = isTotalRow(row.category);
                 const shareholderPct =
-                  totalShareholders > 0 ? (row.shareholders / totalShareholders) * 100 : 0;
-                const sharesPct = totalShares > 0 ? (row.shares / totalShares) * 100 : 0;
+                  totalShareholders > 0
+                    ? (row.shareholders / totalShareholders) * 100
+                    : 0;
+                const sharesPct =
+                  totalShares > 0 ? (row.shares / totalShares) * 100 : 0;
 
                 return (
                   <TableRow
                     key={index}
                     sx={(theme) => ({
                       ...(isTotal && {
-                        bgcolor: theme.vars.palette.dataGridPagination.backgroundFill,
+                        bgcolor:
+                          theme.vars.palette.dataGridPagination.backgroundFill,
                         fontWeight: "bold",
                       }),
                     })}
@@ -118,21 +124,33 @@ export default function VoteStatusSummaryTable({
                     >
                       {row.category}
                     </TableCell>
-                    <TableCell align="right" sx={isTotal ? { fontWeight: "bold" } : {}}>
+                    <TableCell
+                      align="right"
+                      sx={isTotal ? { fontWeight: "bold" } : {}}
+                    >
                       {formatNumber(row.shareholders)}
                     </TableCell>
                     {isNonDtcTable && (
-                      <TableCell align="right" sx={isTotal ? { fontWeight: "bold" } : {}}>
+                      <TableCell
+                        align="right"
+                        sx={isTotal ? { fontWeight: "bold" } : {}}
+                      >
                         {isTotal && row.category === "Grand Total"
                           ? "-"
                           : `${shareholderPct.toFixed(2)}%`}
                       </TableCell>
                     )}
-                    <TableCell align="right" sx={isTotal ? { fontWeight: "bold" } : {}}>
+                    <TableCell
+                      align="right"
+                      sx={isTotal ? { fontWeight: "bold" } : {}}
+                    >
                       {formatNumber(row.shares)}
                     </TableCell>
                     {isNonDtcTable && (
-                      <TableCell align="right" sx={isTotal ? { fontWeight: "bold" } : {}}>
+                      <TableCell
+                        align="right"
+                        sx={isTotal ? { fontWeight: "bold" } : {}}
+                      >
                         {isTotal && row.category === "Grand Total"
                           ? "-"
                           : `${sharesPct.toFixed(2)}%`}

@@ -16,7 +16,7 @@ interface RouteParams {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -28,7 +28,10 @@ export async function GET(
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -41,15 +44,15 @@ export async function GET(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "getUserById",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -57,14 +60,18 @@ export async function PUT(
     const id = resolvedParams.id;
 
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["UpdateUserRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["UpdateUserRequest"];
 
     // Use existing domain model function
     const { data, error } = await updateUser(id, body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -77,15 +84,15 @@ export async function PUT(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "updateUser",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -97,7 +104,10 @@ export async function DELETE(
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -110,8 +120,8 @@ export async function DELETE(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "deleteUser",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

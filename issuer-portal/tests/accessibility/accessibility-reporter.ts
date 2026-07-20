@@ -1,4 +1,9 @@
-import type { FullResult, Reporter, TestCase, TestResult } from "@playwright/test/reporter";
+import type {
+  FullResult,
+  Reporter,
+  TestCase,
+  TestResult,
+} from "@playwright/test/reporter";
 
 import { mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
@@ -62,12 +67,14 @@ class AccessibilityReporter implements Reporter {
 
     // Extract accessibility data from test attachments
     const accessibilityAttachment = result.attachments.find(
-      (attachment) => attachment.name === "accessibility-data",
+      (attachment) => attachment.name === "accessibility-data"
     );
 
     if (accessibilityAttachment?.body) {
       try {
-        const accessibilityData = JSON.parse(accessibilityAttachment.body.toString());
+        const accessibilityData = JSON.parse(
+          accessibilityAttachment.body.toString()
+        );
 
         // Get passed elements from the test data
         const passedElements = accessibilityData.passedElements || [];
@@ -77,17 +84,21 @@ class AccessibilityReporter implements Reporter {
           passedElements,
           // Only set error if test failed for reasons other than accessibility violations
           error:
-            result.status === "failed" && accessibilityData.violations.length === 0
+            result.status === "failed" &&
+            accessibilityData.violations.length === 0
               ? result.error?.message
               : undefined,
         };
 
         this.accessibilityResults.push(testResult);
         console.log(
-          `📊 Captured accessibility data for ${accessibilityData.path} (${accessibilityData.violations.length} violations)`,
+          `📊 Captured accessibility data for ${accessibilityData.path} (${accessibilityData.violations.length} violations)`
         );
       } catch (error) {
-        console.warn(`Failed to parse accessibility data for ${test.title}:`, error);
+        console.warn(
+          `Failed to parse accessibility data for ${test.title}:`,
+          error
+        );
       }
     } else {
       console.warn(`No accessibility data attachment found for ${test.title}`);
@@ -107,7 +118,7 @@ class AccessibilityReporter implements Reporter {
     // Calculate enhanced statistics
     const totalPassedRules = this.accessibilityResults.reduce(
       (sum, t) => sum + (t.passedElements?.length ?? 0),
-      0,
+      0
     );
 
     const wcagCriteriaTested = new Set<string>();
@@ -137,9 +148,13 @@ class AccessibilityReporter implements Reporter {
 
     const aggregatedResults: AccessibilityResults = {
       totalTests: this.accessibilityResults.length,
-      passedTests: this.accessibilityResults.filter((t) => !t.error && t.violations.length === 0)
-        .length,
-      totalViolations: this.accessibilityResults.reduce((sum, t) => sum + t.violations.length, 0),
+      passedTests: this.accessibilityResults.filter(
+        (t) => !t.error && t.violations.length === 0
+      ).length,
+      totalViolations: this.accessibilityResults.reduce(
+        (sum, t) => sum + t.violations.length,
+        0
+      ),
       pages: this.accessibilityResults,
       generatedAt: new Date().toISOString(),
       // Enhanced summary data
@@ -162,13 +177,21 @@ class AccessibilityReporter implements Reporter {
     console.log("=".repeat(60));
     console.log(`📄 Total Pages Tested: ${aggregatedResults.totalTests}`);
     console.log(`✅ Pages Passed: ${aggregatedResults.passedTests}`);
-    console.log(`❌ Pages Failed: ${aggregatedResults.totalTests - aggregatedResults.passedTests}`);
+    console.log(
+      `❌ Pages Failed: ${aggregatedResults.totalTests - aggregatedResults.passedTests}`
+    );
     console.log(`🚨 Total Violations: ${aggregatedResults.totalViolations}`);
     console.log(`✅ Total Passed Rules: ${totalPassedRules}`);
     console.log(`\n📋 WCAG Criteria:`);
-    console.log(`   Tested: ${aggregatedResults.summary.wcagCriteriaTested.length}`);
-    console.log(`   Passed: ${aggregatedResults.summary.wcagCriteriaPassed.length}`);
-    console.log(`   Failed: ${aggregatedResults.summary.wcagCriteriaFailed.length}`);
+    console.log(
+      `   Tested: ${aggregatedResults.summary.wcagCriteriaTested.length}`
+    );
+    console.log(
+      `   Passed: ${aggregatedResults.summary.wcagCriteriaPassed.length}`
+    );
+    console.log(
+      `   Failed: ${aggregatedResults.summary.wcagCriteriaFailed.length}`
+    );
     console.log(`\n💾 Report saved to: ${resultsFilePath}`);
     console.log("=".repeat(60) + "\n");
   }

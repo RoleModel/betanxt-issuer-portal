@@ -7,7 +7,9 @@ type ApiTask = components["schemas"]["Task"];
  * Transform an API task response to our internal Task type
  * This ensures consistent task object structure across all components
  */
-export function transformApiTaskToTask(apiTask: ApiTask | null | undefined): Task | null {
+export function transformApiTaskToTask(
+  apiTask: ApiTask | null | undefined
+): Task | null {
   if (!apiTask) return null;
 
   return {
@@ -33,13 +35,17 @@ export function transformApiTaskToTask(apiTask: ApiTask | null | undefined): Tas
  * Transform multiple API tasks to our internal Task type
  */
 export function transformApiTasksToTasks(apiTasks: ApiTask[]): Task[] {
-  return apiTasks.map(transformApiTaskToTask).filter((task): task is Task => task !== null);
+  return apiTasks
+    .map(transformApiTaskToTask)
+    .filter((task): task is Task => task !== null);
 }
 
 /**
  * Transform our internal Task type back to API format
  */
-export function transformTaskToApiTask(task: Task | null | undefined): ApiTask | null {
+export function transformTaskToApiTask(
+  task: Task | null | undefined
+): ApiTask | null {
   if (!task) return null;
 
   return {
@@ -64,7 +70,9 @@ export function transformTaskToApiTask(task: Task | null | undefined): ApiTask |
 /**
  * Determine if a task is a DTCC Authorization task
  */
-export function isDTCCAuthorizationTask(task: Task | null | undefined): boolean {
+export function isDTCCAuthorizationTask(
+  task: Task | null | undefined
+): boolean {
   if (!task?.title) return false;
   return task.title.includes("DTCC") && task.title.includes("Authorization");
 }

@@ -26,8 +26,8 @@ export async function GET(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "getDSMConfig",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -56,8 +56,8 @@ export async function POST(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "createOrUpdateDSMConfig",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -87,8 +87,8 @@ export async function PUT(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "updateDSMConfig",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

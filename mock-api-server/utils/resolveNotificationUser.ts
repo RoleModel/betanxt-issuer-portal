@@ -6,7 +6,7 @@ import { supabase } from "@/utils/supabase/client";
  */
 export async function resolveNotificationUserId(
   userId?: string | null,
-  username?: string | null,
+  username?: string | null
 ): Promise<string | undefined> {
   const trimmedUsername = username?.trim();
   if (trimmedUsername) {
@@ -32,11 +32,18 @@ export async function resolveNotificationUserId(
   return undefined;
 }
 
-export async function getMeetingIdsForTicker(ticker: string): Promise<string[]> {
+export async function getMeetingIdsForTicker(
+  ticker: string
+): Promise<string[]> {
   const normalized = ticker.trim().toUpperCase();
   if (!normalized) return [];
 
-  const { data } = await supabase.from("meeting").select("id").eq("ticker", normalized);
+  const { data } = await supabase
+    .from("meeting")
+    .select("id")
+    .eq("ticker", normalized);
 
-  return (data ?? []).map((row) => row.id).filter((id): id is string => Boolean(id));
+  return (data ?? [])
+    .map((row) => row.id)
+    .filter((id): id is string => Boolean(id));
 }

@@ -10,10 +10,12 @@ const Document = dynamic(
       mod.pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${mod.pdfjs.version}/build/pdf.worker.min.mjs`;
       return mod.Document;
     }),
-  { ssr: false, loading: () => null },
+  { ssr: false, loading: () => null }
 );
 
-const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), { ssr: false });
+const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), {
+  ssr: false,
+});
 
 interface PDFViewerProps {
   file: string;
@@ -140,7 +142,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
           <CircularProgress />
         </Box>
       )}
-      <Box sx={{ opacity: isPdfLoaded ? 1 : 0, transition: "opacity 0.3s ease-in-out" }}>
+      <Box
+        sx={{
+          opacity: isPdfLoaded ? 1 : 0,
+          transition: "opacity 0.3s ease-in-out",
+        }}
+      >
         <Document
           file={file}
           className={className}
@@ -153,7 +160,10 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
               justifyContent="center"
               alignItems="center"
               minHeight={400}
-              sx={{ opacity: isPdfLoaded ? 1 : 0, transition: "opacity 3s ease-in-out" }}
+              sx={{
+                opacity: isPdfLoaded ? 1 : 0,
+                transition: "opacity 3s ease-in-out",
+              }}
             >
               <div>Failed to load PDF document</div>
             </Box>
@@ -165,7 +175,12 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
             renderTextLayer={false}
             renderAnnotationLayer={false}
             error={
-              <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                minHeight={400}
+              >
                 <div>Failed to render page {pageNumber}</div>
               </Box>
             }

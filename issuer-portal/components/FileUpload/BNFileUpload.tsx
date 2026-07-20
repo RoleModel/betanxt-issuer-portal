@@ -42,14 +42,18 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
         for (let progress = 0; progress <= 100; progress += 10) {
           await new Promise((resolve) => setTimeout(resolve, 100));
 
-          setFiles((prevFiles) => prevFiles.map((f) => (f.id === fileId ? { ...f, progress } : f)));
+          setFiles((prevFiles) =>
+            prevFiles.map((f) => (f.id === fileId ? { ...f, progress } : f))
+          );
         }
 
         // Mark as complete
         setFiles((prevFiles) =>
           prevFiles.map((f) =>
-            f.id === fileId ? { ...f, status: "complete" as const, progress: 100 } : f,
-          ),
+            f.id === fileId
+              ? { ...f, status: "complete" as const, progress: 100 }
+              : f
+          )
         );
 
         // Call custom upload function if provided
@@ -64,14 +68,15 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
               ? {
                   ...f,
                   status: "error" as const,
-                  error: error instanceof Error ? error.message : "Upload failed",
+                  error:
+                    error instanceof Error ? error.message : "Upload failed",
                 }
-              : f,
-          ),
+              : f
+          )
         );
       }
     },
-    [onUpload],
+    [onUpload]
   );
 
   const handleFilesSelected = useCallback(
@@ -104,19 +109,22 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
         });
       }
     },
-    [maxFiles, onFilesSelected, onUpload, simulateUpload],
+    [maxFiles, onFilesSelected, onUpload, simulateUpload]
   );
 
-  const handleFileRejections = useCallback((fileRejections: FileRejection[]) => {
-    // Check if any rejections are due to unsupported file types
-    const hasUnsupportedType = fileRejections.some((rejection) =>
-      rejection.errors.some((error) => error.code === "file-invalid-type"),
-    );
+  const handleFileRejections = useCallback(
+    (fileRejections: FileRejection[]) => {
+      // Check if any rejections are due to unsupported file types
+      const hasUnsupportedType = fileRejections.some((rejection) =>
+        rejection.errors.some((error) => error.code === "file-invalid-type")
+      );
 
-    if (hasUnsupportedType) {
-      setHasUnsupportedFiles(true);
-    }
-  }, []);
+      if (hasUnsupportedType) {
+        setHasUnsupportedFiles(true);
+      }
+    },
+    []
+  );
 
   const handleFileRemove = useCallback(
     (fileId: string) => {
@@ -129,20 +137,22 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
         onFileRemove(fileId);
       }
     },
-    [onFileRemove],
+    [onFileRemove]
   );
 
   const handleFileAssociationChange = useCallback(
     (fileId: string, documentId: string) => {
       setFiles((prevFiles) =>
-        prevFiles.map((f) => (f.id === fileId ? { ...f, associatedDocumentId: documentId } : f)),
+        prevFiles.map((f) =>
+          f.id === fileId ? { ...f, associatedDocumentId: documentId } : f
+        )
       );
 
       if (onFileAssociationChange) {
         onFileAssociationChange(fileId, documentId);
       }
     },
-    [onFileAssociationChange],
+    [onFileAssociationChange]
   );
 
   const hasFiles = files.length > 0;

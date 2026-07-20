@@ -1,7 +1,18 @@
-import { Button, Column, Container, Hr, Row, Section, Text } from "@react-email/components";
+import {
+  Button,
+  Column,
+  Container,
+  Hr,
+  Row,
+  Section,
+  Text,
+} from "@react-email/components";
 import React from "react";
 
-import type { TabulationReportEmailProps, TabulationReportProposal } from "./types";
+import type {
+  TabulationReportEmailProps,
+  TabulationReportProposal,
+} from "./types";
 
 import BNLogo from "./components/BNLogo";
 import { Footer } from "./components/Footer";
@@ -67,7 +78,10 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
   const againstPct = pct(proposal.votesAgainst, total);
   const abstainPct = pct(proposal.votesAbstain, total);
   const notCastPct = pct(proposal.votesNotCast, total);
-  const votedPct = pct(proposal.votesFor + proposal.votesAgainst + proposal.votesAbstain, total);
+  const votedPct = pct(
+    proposal.votesFor + proposal.votesAgainst + proposal.votesAbstain,
+    total
+  );
 
   const isEven = index % 2 === 0;
 
@@ -108,7 +122,10 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
             {proposal.title}
           </Text>
         </Column>
-        <Column align="right" style={{ verticalAlign: "top", paddingTop: "4px" }}>
+        <Column
+          align="right"
+          style={{ verticalAlign: "top", paddingTop: "4px" }}
+        >
           <Text
             style={{
               fontFamily: FONTS.sans,
@@ -301,7 +318,11 @@ export function TabulationReportEmail({
         <Section
           style={{
             backgroundColor:
-              daysUntilMeeting <= 3 ? "#FEF2F2" : daysUntilMeeting <= 7 ? "#FFFBEB" : "#EFF6FF",
+              daysUntilMeeting <= 3
+                ? "#FEF2F2"
+                : daysUntilMeeting <= 7
+                  ? "#FFFBEB"
+                  : "#EFF6FF",
             borderInline: "1px solid #CCCCCC",
             borderBottom: `1px solid ${daysUntilMeeting <= 3 ? "#FECACA" : daysUntilMeeting <= 7 ? "#FDE68A" : "#BFDBFE"}`,
             padding: "10px 32px",
@@ -312,7 +333,11 @@ export function TabulationReportEmail({
               fontFamily: FONTS.sans,
               fontSize: "12px",
               color:
-                daysUntilMeeting <= 3 ? "#991B1B" : daysUntilMeeting <= 7 ? "#92400E" : "#1E40AF",
+                daysUntilMeeting <= 3
+                  ? "#991B1B"
+                  : daysUntilMeeting <= 7
+                    ? "#92400E"
+                    : "#1E40AF",
               margin: 0,
               fontWeight: "500",
             }}
@@ -348,8 +373,8 @@ export function TabulationReportEmail({
               lineHeight: "1.6",
             }}
           >
-            Here is your automated daily vote tabulation summary for <strong>{companyName}</strong>,
-            as of {formatDate(reportDate)}.
+            Here is your automated daily vote tabulation summary for{" "}
+            <strong>{companyName}</strong>, as of {formatDate(reportDate)}.
           </Text>
         </Section>
 
@@ -414,8 +439,9 @@ export function TabulationReportEmail({
                     margin: "4px 0 0",
                   }}
                 >
-                  {formatNumber(totalSharesVoted)} of {formatNumber(totalSharesEligible)} shares
-                  &bull; {quorumRequired}% threshold required
+                  {formatNumber(totalSharesVoted)} of{" "}
+                  {formatNumber(totalSharesEligible)} shares &bull;{" "}
+                  {quorumRequired}% threshold required
                 </Text>
               </Column>
               <Column style={{ width: "40%" }} align="right">
@@ -452,7 +478,10 @@ export function TabulationReportEmail({
                   >
                     Need{" "}
                     {formatNumber(
-                      Math.ceil((quorumRequired / 100) * totalSharesEligible - totalSharesVoted),
+                      Math.ceil(
+                        (quorumRequired / 100) * totalSharesEligible -
+                          totalSharesVoted
+                      )
                     )}{" "}
                     more shares
                   </Text>
@@ -511,8 +540,8 @@ export function TabulationReportEmail({
               margin: "0 0 16px",
             }}
           >
-            View full tabulation details, position-level breakdowns, and manage distribution
-            settings in the portal.
+            View full tabulation details, position-level breakdowns, and manage
+            distribution settings in the portal.
           </Text>
           <Button
             href={viewTabulationUrl}
@@ -550,8 +579,9 @@ export function TabulationReportEmail({
               textAlign: "center",
             }}
           >
-            This is an automated daily report. Distribution begins 15 days before the meeting date.
-            To manage recipients or pause delivery, visit your{" "}
+            This is an automated daily report. Distribution begins 15 days
+            before the meeting date. To manage recipients or pause delivery,
+            visit your{" "}
             <a href={viewTabulationUrl} style={{ color: COLORS.link }}>
               tabulation settings
             </a>

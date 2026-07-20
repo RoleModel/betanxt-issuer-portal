@@ -23,10 +23,11 @@
 export function computeClientLogoBase(
   clientName?: string,
   ticker?: string,
-  fallbackBase = "/images/logo",
+  fallbackBase = "/images/logo"
 ): string {
   if (ticker) return `/logos/${ticker.toUpperCase()}_logo`;
-  if (clientName) return `/logos/${clientName.toLowerCase().replace(/[^a-z0-9]/g, "")}_logo`;
+  if (clientName)
+    return `/logos/${clientName.toLowerCase().replace(/[^a-z0-9]/g, "")}_logo`;
   return fallbackBase;
 }
 
@@ -43,10 +44,11 @@ export function computeClientLogoSrc(
   clientName?: string,
   ticker?: string,
   defaultSrc = "/images/logo.svg",
-  suffix?: string,
+  suffix?: string
 ): string {
   const base = computeClientLogoBase(clientName, ticker);
-  if (base.startsWith("/logos/")) return `${suffix ? `${base}${suffix}` : base}.svg`;
+  if (base.startsWith("/logos/"))
+    return `${suffix ? `${base}${suffix}` : base}.svg`;
   return defaultSrc;
 }
 
@@ -117,7 +119,9 @@ async function rasterizeImageToPng(blob: Blob): Promise<string> {
  * @returns The PNG data URL, or `undefined` if the image cannot be fetched or
  *   converted.
  */
-export async function loadImageAsPngDataUrl(url: string): Promise<string | undefined> {
+export async function loadImageAsPngDataUrl(
+  url: string
+): Promise<string | undefined> {
   try {
     const res = await fetch(url);
     if (!res.ok) return undefined;
@@ -148,8 +152,15 @@ export interface LoadClientLogoOptions {
  * @param options - Client identity and fallback overrides.
  * @returns A promise resolving to a PNG data URL.
  */
-export async function loadClientLogoAsPngBase64(options: LoadClientLogoOptions): Promise<string> {
-  const { clientName, ticker, overrideSrc, defaultSrc = "/images/logo.png" } = options;
+export async function loadClientLogoAsPngBase64(
+  options: LoadClientLogoOptions
+): Promise<string> {
+  const {
+    clientName,
+    ticker,
+    overrideSrc,
+    defaultSrc = "/images/logo.png",
+  } = options;
 
   const base = overrideSrc
     ? overrideSrc.replace(/\.(svg|png)$/i, "")
@@ -166,7 +177,8 @@ export async function loadClientLogoAsPngBase64(options: LoadClientLogoOptions):
       const res = await fetch(candidate.url);
       if (!res.ok) continue;
       const blob = await res.blob();
-      if (candidate.type === "png" && blob.type === "image/png") return await blobToDataUrl(blob);
+      if (candidate.type === "png" && blob.type === "image/png")
+        return await blobToDataUrl(blob);
       return await rasterizeImageToPng(blob);
     } catch {
       // Try the next candidate.

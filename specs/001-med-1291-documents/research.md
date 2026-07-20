@@ -5,8 +5,7 @@ Source Spec: `specs/001-med-1291-documents/spec.md`
 
 ## Format Legend
 
-Decision blocks capture: Decision | Rationale | Alternatives | Risks / Mitigations | Follow-up Trigger
-Deferrals capture: Deferred Item | Reason for Deferral | Containment Strategy | Revisit Criteria | Owner (TBD)
+Decision blocks capture: Decision | Rationale | Alternatives | Risks / Mitigations | Follow-up Trigger Deferrals capture: Deferred Item | Reason for Deferral | Containment Strategy | Revisit Criteria | Owner (TBD)
 
 ---
 
@@ -108,22 +107,22 @@ Risks: Slightly slower tests vs Vitest → Mitigation: Keep suites lean.
 
 ## 11. Open Questions (Deferred)
 
-| Deferred Item                      | Reason                   | Containment            | Revisit                   | Owner |
-| ---------------------------------- | ------------------------ | ---------------------- | ------------------------- | ----- |
-| Digital signature vendor selection | Procurement pending      | Stub boundary          | Before GA                 | TBD   |
-| Watermark server stamping          | Complexity vs value      | Client overlay         | After role expansion      | TBD   |
-| Automated archival policy          | Not urgent early volumes | Keep all, monitor size | After 12 months data      | TBD   |
-| Regional deadline offsets          | Need jurisdiction matrix | Config constant        | Post first 5 issuers      | TBD   |
-| Granular approval roles            | Not finalized by product | Restrict to ADMIN      | Before multi-tenant scale | TBD   |
+| Deferred Item | Reason | Containment | Revisit | Owner |
+| --- | --- | --- | --- | --- |
+| Digital signature vendor selection | Procurement pending | Stub boundary | Before GA | TBD |
+| Watermark server stamping | Complexity vs value | Client overlay | After role expansion | TBD |
+| Automated archival policy | Not urgent early volumes | Keep all, monitor size | After 12 months data | TBD |
+| Regional deadline offsets | Need jurisdiction matrix | Config constant | Post first 5 issuers | TBD |
+| Granular approval roles | Not finalized by product | Restrict to ADMIN | Before multi-tenant scale | TBD |
 
 ## 12. Risk Register
 
-| Risk                                              | Impact             | Likelihood | Mitigation                                  | Owner   |
-| ------------------------------------------------- | ------------------ | ---------- | ------------------------------------------- | ------- |
-| Signature provider integration diverges from stub | Rework interface   | Medium     | Clearly define interface + metadata now     | Eng     |
-| Large proxy PDF slows readiness                   | Latency > target   | Low        | Async hash + pre-signed direct upload later | Eng     |
-| Storage cost growth                               | Increased OpEx     | Low        | Lifecycle policy backlog                    | Eng/Ops |
-| Approval audit gaps                               | Compliance concern | Medium     | Detailed event logging Phase 2              | Eng     |
+| Risk | Impact | Likelihood | Mitigation | Owner |
+| --- | --- | --- | --- | --- |
+| Signature provider integration diverges from stub | Rework interface | Medium | Clearly define interface + metadata now | Eng |
+| Large proxy PDF slows readiness | Latency > target | Low | Async hash + pre-signed direct upload later | Eng |
+| Storage cost growth | Increased OpEx | Low | Lifecycle policy backlog | Eng/Ops |
+| Approval audit gaps | Compliance concern | Medium | Detailed event logging Phase 2 | Eng |
 
 ## 13. Summary of Resolved NEEDS CLARIFICATION
 

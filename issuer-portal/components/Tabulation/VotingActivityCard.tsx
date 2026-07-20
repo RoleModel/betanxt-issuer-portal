@@ -1,11 +1,21 @@
 "use client";
 
-import { Box, Card, CardContent, CardHeader, Skeleton, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import React, { useMemo } from "react";
 
 import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
-import { type RegisteredVotingMethods, useVotingTabulation } from "@/hooks/useVotingTabulation";
+import {
+  type RegisteredVotingMethods,
+  useVotingTabulation,
+} from "@/hooks/useVotingTabulation";
 
 interface VotingActivityCardProps {
   meetingId: string;
@@ -26,7 +36,8 @@ export default function VotingActivityCard({
   loadingOverride = false,
 }: VotingActivityCardProps) {
   const { registeredVotingMethods, loading } = useVotingTabulation(meetingId);
-  const resolvedMethods = registeredVotingMethodsOverride ?? registeredVotingMethods;
+  const resolvedMethods =
+    registeredVotingMethodsOverride ?? registeredVotingMethods;
 
   const votingMethodsData = useMemo(() => {
     if (!resolvedMethods) return [];

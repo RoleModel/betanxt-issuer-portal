@@ -88,7 +88,9 @@ const TotalsHeaderCell = styled(TableCell)(({ theme }) => ({
   paddingLeft: theme.spacing(2),
 }));
 
-export default function DetailedTabulationTable({ meetingId }: DetailedTabulationTableProps) {
+export default function DetailedTabulationTable({
+  meetingId,
+}: DetailedTabulationTableProps) {
   const { currentMeeting } = useMeeting();
   const { proposals, votingSummary, loading } = useVotingTabulation(meetingId);
 
@@ -139,7 +141,7 @@ export default function DetailedTabulationTable({ meetingId }: DetailedTabulatio
               proposal.proposalType,
               proposal.proposalNumber,
               currentMeeting?.ticker,
-              proposal.directorName,
+              proposal.directorName
             );
 
             // Calculate total votes for this proposal
@@ -173,8 +175,10 @@ export default function DetailedTabulationTable({ meetingId }: DetailedTabulatio
                   <TableCell align="right">
                     {formatPercentage(
                       totalOutstanding > 0
-                        ? (proposal.votingResults.for.shares / totalOutstanding) * 100
-                        : 0,
+                        ? (proposal.votingResults.for.shares /
+                            totalOutstanding) *
+                            100
+                        : 0
                     )}
                   </TableCell>
                   <TableCell align="right">
@@ -191,12 +195,16 @@ export default function DetailedTabulationTable({ meetingId }: DetailedTabulatio
                   <TableCell align="right">
                     {formatPercentage(
                       totalOutstanding > 0
-                        ? (proposal.votingResults.against.shares / totalOutstanding) * 100
-                        : 0,
+                        ? (proposal.votingResults.against.shares /
+                            totalOutstanding) *
+                            100
+                        : 0
                     )}
                   </TableCell>
                   <TableCell align="right">
-                    {formatPercentage(proposal.votingResults.against.percentage)}
+                    {formatPercentage(
+                      proposal.votingResults.against.percentage
+                    )}
                   </TableCell>
                 </TableRow>
 
@@ -209,12 +217,16 @@ export default function DetailedTabulationTable({ meetingId }: DetailedTabulatio
                   <TableCell align="right">
                     {formatPercentage(
                       totalOutstanding > 0
-                        ? (proposal.votingResults.abstain.shares / totalOutstanding) * 100
-                        : 0,
+                        ? (proposal.votingResults.abstain.shares /
+                            totalOutstanding) *
+                            100
+                        : 0
                     )}
                   </TableCell>
                   <TableCell align="right">
-                    {formatPercentage(proposal.votingResults.abstain.percentage)}
+                    {formatPercentage(
+                      proposal.votingResults.abstain.percentage
+                    )}
                   </TableCell>
                 </TableRow>
 
@@ -224,12 +236,16 @@ export default function DetailedTabulationTable({ meetingId }: DetailedTabulatio
                     <Typography variant="dataHeader">Total</Typography>
                   </TotalsHeaderCell>
                   <TableCell align="right">
-                    <Typography variant="dataHeader">{formatNumber(proposalTotal)}</Typography>
+                    <Typography variant="dataHeader">
+                      {formatNumber(proposalTotal)}
+                    </Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="dataHeader">
                       {formatPercentage(
-                        totalOutstanding > 0 ? (proposalTotal / totalOutstanding) * 100 : 0,
+                        totalOutstanding > 0
+                          ? (proposalTotal / totalOutstanding) * 100
+                          : 0
                       )}
                     </Typography>
                   </TableCell>

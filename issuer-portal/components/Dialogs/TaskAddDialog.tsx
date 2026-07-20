@@ -44,7 +44,13 @@ const statusOptions: TaskStatus[] = [
   "Request form to follow",
 ];
 
-const typeOptions: TaskType[] = ["upload", "signature", "external", "authorize", "approve"];
+const typeOptions: TaskType[] = [
+  "upload",
+  "signature",
+  "external",
+  "authorize",
+  "approve",
+];
 
 export const TaskAddModal: React.FC<TaskAddModalProps> = ({
   open,
@@ -90,7 +96,7 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
     (
       event:
         | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-        | { target: { value: unknown } },
+        | { target: { value: unknown } }
     ) => {
       setFormData((prev) => ({
         ...prev,
@@ -161,7 +167,11 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           Add New Task
-          <IconButton onClick={handleCancel} size="small" sx={{ color: "text.secondary" }}>
+          <IconButton
+            onClick={handleCancel}
+            size="small"
+            sx={{ color: "text.secondary" }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
@@ -194,29 +204,39 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
           <Box display="flex" gap={2} sx={{ mt: 2 }}>
             <FormControl fullWidth required>
               <InputLabel>Phase</InputLabel>
-              <Select value={formData.phase} label="Phase" onChange={handleChange("phase")}>
-                {Array.from({ length: 8 }, (_, i) => i + 1).map((phaseNumber) => (
-                  <MenuItem key={phaseNumber} value={phaseNumber}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Box
-                        sx={{
-                          width: 16,
-                          height: 16,
-                          borderRadius: "50%",
-                          backgroundColor: `var(--mui-palette-phase-${phaseNumber - 1}-main)`,
-                          flexShrink: 0,
-                        }}
-                      />
-                      Phase {phaseNumber}
-                    </Box>
-                  </MenuItem>
-                ))}
+              <Select
+                value={formData.phase}
+                label="Phase"
+                onChange={handleChange("phase")}
+              >
+                {Array.from({ length: 8 }, (_, i) => i + 1).map(
+                  (phaseNumber) => (
+                    <MenuItem key={phaseNumber} value={phaseNumber}>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Box
+                          sx={{
+                            width: 16,
+                            height: 16,
+                            borderRadius: "50%",
+                            backgroundColor: `var(--mui-palette-phase-${phaseNumber - 1}-main)`,
+                            flexShrink: 0,
+                          }}
+                        />
+                        Phase {phaseNumber}
+                      </Box>
+                    </MenuItem>
+                  )
+                )}
               </Select>
             </FormControl>
 
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
-              <Select value={formData.status} label="Status" onChange={handleChange("status")}>
+              <Select
+                value={formData.status}
+                label="Status"
+                onChange={handleChange("status")}
+              >
                 {statusOptions.map((status) => (
                   <MenuItem key={status} value={status}>
                     {status}
@@ -229,7 +249,11 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
           <Box display="flex" gap={2} sx={{ mt: 2 }}>
             <FormControl fullWidth>
               <InputLabel>Type</InputLabel>
-              <Select value={formData.type} label="Type" onChange={handleChange("type")}>
+              <Select
+                value={formData.type}
+                label="Type"
+                onChange={handleChange("type")}
+              >
                 <MenuItem value="">
                   <em>None</em>
                 </MenuItem>

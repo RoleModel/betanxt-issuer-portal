@@ -230,7 +230,10 @@ export function DocumentFromJSON(json: any): Document {
   return DocumentFromJSONTyped(json, false);
 }
 
-export function DocumentFromJSONTyped(json: any, ignoreDiscriminator: boolean): Document {
+export function DocumentFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Document {
   if (json == null) {
     return json;
   }
@@ -244,23 +247,45 @@ export function DocumentFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
     filePath: json["filePath"] == null ? undefined : json["filePath"],
     fileType: json["fileType"] == null ? undefined : json["fileType"],
     fileSize: json["fileSize"] == null ? undefined : json["fileSize"],
-    status: json["status"] == null ? undefined : DocumentStatusFromJSON(json["status"]),
-    uploadDate: json["uploadDate"] == null ? undefined : new Date(json["uploadDate"]),
-    uploadedDate: json["uploadedDate"] == null ? undefined : new Date(json["uploadedDate"]),
-    signedDate: json["signedDate"] == null ? undefined : new Date(json["signedDate"]),
-    authorizedDate: json["authorizedDate"] == null ? undefined : new Date(json["authorizedDate"]),
-    completedDate: json["completedDate"] == null ? undefined : new Date(json["completedDate"]),
-    inProgressDate: json["inProgressDate"] == null ? undefined : new Date(json["inProgressDate"]),
+    status:
+      json["status"] == null
+        ? undefined
+        : DocumentStatusFromJSON(json["status"]),
+    uploadDate:
+      json["uploadDate"] == null ? undefined : new Date(json["uploadDate"]),
+    uploadedDate:
+      json["uploadedDate"] == null ? undefined : new Date(json["uploadedDate"]),
+    signedDate:
+      json["signedDate"] == null ? undefined : new Date(json["signedDate"]),
+    authorizedDate:
+      json["authorizedDate"] == null
+        ? undefined
+        : new Date(json["authorizedDate"]),
+    completedDate:
+      json["completedDate"] == null
+        ? undefined
+        : new Date(json["completedDate"]),
+    inProgressDate:
+      json["inProgressDate"] == null
+        ? undefined
+        : new Date(json["inProgressDate"]),
     deadline: json["deadline"] == null ? undefined : new Date(json["deadline"]),
     history: json["history"] == null ? undefined : json["history"],
     approvedBy: json["approvedBy"] == null ? undefined : json["approvedBy"],
-    approvedAt: json["approvedAt"] == null ? undefined : new Date(json["approvedAt"]),
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
-    displayCategory: json["displayCategory"] == null ? undefined : json["displayCategory"],
-    meeting: json["meeting"] == null ? undefined : MeetingFromJSON(json["meeting"]),
+    approvedAt:
+      json["approvedAt"] == null ? undefined : new Date(json["approvedAt"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    displayCategory:
+      json["displayCategory"] == null ? undefined : json["displayCategory"],
+    meeting:
+      json["meeting"] == null ? undefined : MeetingFromJSON(json["meeting"]),
     comments:
-      json["comments"] == null ? undefined : (json["comments"] as Array<any>).map(CommentFromJSON),
+      json["comments"] == null
+        ? undefined
+        : (json["comments"] as Array<any>).map(CommentFromJSON),
     signatures:
       json["signatures"] == null
         ? undefined
@@ -274,7 +299,7 @@ export function DocumentToJSON(json: any): Document {
 
 export function DocumentToJSONTyped(
   value?: Document | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -291,26 +316,50 @@ export function DocumentToJSONTyped(
     fileType: value["fileType"],
     fileSize: value["fileSize"],
     status: DocumentStatusToJSON(value["status"]),
-    uploadDate: value["uploadDate"] === null ? null : (value["uploadDate"] as any)?.toISOString(),
+    uploadDate:
+      value["uploadDate"] === null
+        ? null
+        : (value["uploadDate"] as any)?.toISOString(),
     uploadedDate:
-      value["uploadedDate"] === null ? null : (value["uploadedDate"] as any)?.toISOString(),
-    signedDate: value["signedDate"] === null ? null : (value["signedDate"] as any)?.toISOString(),
+      value["uploadedDate"] === null
+        ? null
+        : (value["uploadedDate"] as any)?.toISOString(),
+    signedDate:
+      value["signedDate"] === null
+        ? null
+        : (value["signedDate"] as any)?.toISOString(),
     authorizedDate:
-      value["authorizedDate"] === null ? null : (value["authorizedDate"] as any)?.toISOString(),
+      value["authorizedDate"] === null
+        ? null
+        : (value["authorizedDate"] as any)?.toISOString(),
     completedDate:
-      value["completedDate"] === null ? null : (value["completedDate"] as any)?.toISOString(),
+      value["completedDate"] === null
+        ? null
+        : (value["completedDate"] as any)?.toISOString(),
     inProgressDate:
-      value["inProgressDate"] === null ? null : (value["inProgressDate"] as any)?.toISOString(),
-    deadline: value["deadline"] === null ? null : (value["deadline"] as any)?.toISOString(),
+      value["inProgressDate"] === null
+        ? null
+        : (value["inProgressDate"] as any)?.toISOString(),
+    deadline:
+      value["deadline"] === null
+        ? null
+        : (value["deadline"] as any)?.toISOString(),
     history: value["history"],
     approvedBy: value["approvedBy"],
-    approvedAt: value["approvedAt"] === null ? null : (value["approvedAt"] as any)?.toISOString(),
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    approvedAt:
+      value["approvedAt"] === null
+        ? null
+        : (value["approvedAt"] as any)?.toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
     displayCategory: value["displayCategory"],
     meeting: MeetingToJSON(value["meeting"]),
     comments:
-      value["comments"] == null ? undefined : (value["comments"] as Array<any>).map(CommentToJSON),
+      value["comments"] == null
+        ? undefined
+        : (value["comments"] as Array<any>).map(CommentToJSON),
     signatures:
       value["signatures"] == null
         ? undefined

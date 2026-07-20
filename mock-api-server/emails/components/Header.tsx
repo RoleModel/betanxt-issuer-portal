@@ -9,7 +9,10 @@ interface HeaderProps {
   subtitle?: string;
 }
 
-export function Header({ meetingType, subtitle = "Document Update Notification" }: HeaderProps) {
+export function Header({
+  meetingType,
+  subtitle = "Document Update Notification",
+}: HeaderProps) {
   return (
     <Section
       style={{

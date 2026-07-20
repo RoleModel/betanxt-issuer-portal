@@ -1,4 +1,11 @@
-import { Document, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  StyleSheet,
+  Text,
+  View,
+  pdf,
+} from "@react-pdf/renderer";
 import React from "react";
 
 import type { KeyDate, Task } from "@/types/api-exports";
@@ -259,7 +266,9 @@ const TimelinePDFDocument = ({
 
           return (
             <View key={phase} style={styles.phaseSection} wrap={false}>
-              <Text style={[styles.phaseHeader, { color: phaseColor }]}>Phase {phase}</Text>
+              <Text style={[styles.phaseHeader, { color: phaseColor }]}>
+                Phase {phase}
+              </Text>
               <View style={styles.table}>
                 {items.map((item, index) => {
                   if (item.type === "keyDate") {
@@ -272,12 +281,16 @@ const TimelinePDFDocument = ({
                         <Text style={[styles.taskCell, styles.boldText]}>
                           {keyDate.title ?? "Untitled Key Date"}
                         </Text>
-                        <Text style={[styles.dateCell, styles.boldText]}>{item.displayDate}</Text>
+                        <Text style={[styles.dateCell, styles.boldText]}>
+                          {item.displayDate}
+                        </Text>
                       </View>
                     );
                   } else {
                     const task = item.item as Task;
-                    const taskPhaseColor = hexToRgb(phaseColors[(task.phaseNumber || 1) - 1]);
+                    const taskPhaseColor = hexToRgb(
+                      phaseColors[(task.phaseNumber || 1) - 1]
+                    );
                     return (
                       <View
                         key={`t-${phase}-${index}`}
@@ -287,8 +300,12 @@ const TimelinePDFDocument = ({
                           { borderLeftColor: taskPhaseColor },
                         ]}
                       >
-                        <Text style={styles.taskCell}>{task.title ?? "Untitled Task"}</Text>
-                        <Text style={styles.dateCell}>{formatDateShort(task.dueDate || null)}</Text>
+                        <Text style={styles.taskCell}>
+                          {task.title ?? "Untitled Task"}
+                        </Text>
+                        <Text style={styles.dateCell}>
+                          {formatDateShort(task.dueDate || null)}
+                        </Text>
                       </View>
                     );
                   }
@@ -306,10 +323,17 @@ const TimelinePDFDocument = ({
 
 // Simple PDF export function
 export async function exportTimelineToPdf(options: ExportOptions) {
-  const { tasks, keyDates, meetingTitle, selectedPhase = "all", clientTicker } = options;
+  const {
+    tasks,
+    keyDates,
+    meetingTitle,
+    selectedPhase = "all",
+    clientTicker,
+  } = options;
 
   try {
-    const { clientLogoUrl, betanxtLogoUrl } = await resolveReportLogos(clientTicker);
+    const { clientLogoUrl, betanxtLogoUrl } =
+      await resolveReportLogos(clientTicker);
 
     const pdfBlob = await pdf(
       <TimelinePDFDocument
@@ -320,7 +344,7 @@ export async function exportTimelineToPdf(options: ExportOptions) {
         clientTicker={clientTicker}
         clientLogoUrl={clientLogoUrl}
         betanxtLogoUrl={betanxtLogoUrl}
-      />,
+      />
     ).toBlob();
 
     const fileName = `${meetingTitle.replace(/\s+/g, "_")}_Timeline_${

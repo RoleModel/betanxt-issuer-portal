@@ -44,20 +44,22 @@ export interface ListUserAccounts200Response {
  * Check if a given object implements the ListUserAccounts200Response interface.
  */
 export function instanceOfListUserAccounts200Response(
-  value: object,
+  value: object
 ): value is ListUserAccounts200Response {
   if (!("accounts" in value) || value["accounts"] === undefined) return false;
   if (!("total" in value) || value["total"] === undefined) return false;
   return true;
 }
 
-export function ListUserAccounts200ResponseFromJSON(json: any): ListUserAccounts200Response {
+export function ListUserAccounts200ResponseFromJSON(
+  json: any
+): ListUserAccounts200Response {
   return ListUserAccounts200ResponseFromJSONTyped(json, false);
 }
 
 export function ListUserAccounts200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): ListUserAccounts200Response {
   if (json == null) {
     return json;
@@ -68,13 +70,15 @@ export function ListUserAccounts200ResponseFromJSONTyped(
   };
 }
 
-export function ListUserAccounts200ResponseToJSON(json: any): ListUserAccounts200Response {
+export function ListUserAccounts200ResponseToJSON(
+  json: any
+): ListUserAccounts200Response {
   return ListUserAccounts200ResponseToJSONTyped(json, false);
 }
 
 export function ListUserAccounts200ResponseToJSONTyped(
   value?: ListUserAccounts200Response | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

@@ -33,18 +33,32 @@ function transformMailing(dbMailing: MailingRow): Mailing {
     totalRollups: nullToUndefined(dbMailing.total_rollups),
     fullsetMailPositions: nullToUndefined(dbMailing.fullset_mail_positions),
     naaMailPositions: nullToUndefined(dbMailing.naa_mail_positions),
-    courtesyOtherMailPositions: nullToUndefined(dbMailing.courtesy_other_mail_positions),
-    electronicSuppressedPositions: nullToUndefined(dbMailing.electronic_suppressed_positions),
-    householdSuppressedPositions: nullToUndefined(dbMailing.household_suppressed_positions),
-    managedSuppressedPositions: nullToUndefined(dbMailing.managed_suppressed_positions),
-    consolidatedSuppressedPositions: nullToUndefined(dbMailing.consolidated_suppressed_positions),
-    canceledSuppressedPositions: nullToUndefined(dbMailing.canceled_suppressed_positions),
+    courtesyOtherMailPositions: nullToUndefined(
+      dbMailing.courtesy_other_mail_positions
+    ),
+    electronicSuppressedPositions: nullToUndefined(
+      dbMailing.electronic_suppressed_positions
+    ),
+    householdSuppressedPositions: nullToUndefined(
+      dbMailing.household_suppressed_positions
+    ),
+    managedSuppressedPositions: nullToUndefined(
+      dbMailing.managed_suppressed_positions
+    ),
+    consolidatedSuppressedPositions: nullToUndefined(
+      dbMailing.consolidated_suppressed_positions
+    ),
+    canceledSuppressedPositions: nullToUndefined(
+      dbMailing.canceled_suppressed_positions
+    ),
     createdAt: nullToUndefined(dbMailing.created_at),
     updatedAt: nullToUndefined(dbMailing.updated_at),
   };
 }
 
-export async function getMailingByMeetingId(meetingId: string): Promise<ApiResponse<Mailing>> {
+export async function getMailingByMeetingId(
+  meetingId: string
+): Promise<ApiResponse<Mailing>> {
   try {
     const { data, error } = await supabase
       .from("mailing")
@@ -70,7 +84,10 @@ export async function getMailingByMeetingId(meetingId: string): Promise<ApiRespo
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch mailing data",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch mailing data",
       },
     };
   }

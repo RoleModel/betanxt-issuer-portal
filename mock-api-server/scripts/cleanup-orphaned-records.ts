@@ -34,7 +34,7 @@ async function cleanupOrphanedRecords() {
 
     if (orphanedHistoryResult.rows.length > 0) {
       console.log(
-        `⚠️  Found ${orphanedHistoryResult.rows.length} orphaned document_history records`,
+        `⚠️  Found ${orphanedHistoryResult.rows.length} orphaned document_history records`
       );
 
       // Delete orphaned document_history records
@@ -45,7 +45,9 @@ async function cleanupOrphanedRecords() {
         )
       `;
       const deleteHistoryResult = await client.query(deleteHistoryQuery);
-      console.log(`✅ Deleted ${deleteHistoryResult.rowCount} orphaned document_history records`);
+      console.log(
+        `✅ Deleted ${deleteHistoryResult.rowCount} orphaned document_history records`
+      );
     } else {
       console.log("✅ No orphaned document_history records found");
     }
@@ -62,12 +64,16 @@ async function cleanupOrphanedRecords() {
     const orphanedCommentsResult = await client.query(orphanedCommentsQuery);
 
     if (orphanedCommentsResult.rows.length > 0) {
-      console.log(`⚠️  Found ${orphanedCommentsResult.rows.length} orphaned comment records:`);
+      console.log(
+        `⚠️  Found ${orphanedCommentsResult.rows.length} orphaned comment records:`
+      );
       orphanedCommentsResult.rows.slice(0, 5).forEach((row) => {
         console.log(`   - ID: ${row.id}, Document ID: ${row.document_id}`);
       });
       if (orphanedCommentsResult.rows.length > 5) {
-        console.log(`   ... and ${orphanedCommentsResult.rows.length - 5} more`);
+        console.log(
+          `   ... and ${orphanedCommentsResult.rows.length - 5} more`
+        );
       }
 
       // Delete orphaned comment records
@@ -79,7 +85,9 @@ async function cleanupOrphanedRecords() {
         )
       `;
       const deleteCommentsResult = await client.query(deleteCommentsQuery);
-      console.log(`✅ Deleted ${deleteCommentsResult.rowCount} orphaned comment records`);
+      console.log(
+        `✅ Deleted ${deleteCommentsResult.rowCount} orphaned comment records`
+      );
     } else {
       console.log("✅ No orphaned comment records found");
     }
@@ -93,10 +101,14 @@ async function cleanupOrphanedRecords() {
       WHERE s.document_id IS NOT NULL AND d.id IS NULL
       ORDER BY s.created_at DESC
     `;
-    const orphanedSignaturesResult = await client.query(orphanedSignaturesQuery);
+    const orphanedSignaturesResult = await client.query(
+      orphanedSignaturesQuery
+    );
 
     if (orphanedSignaturesResult.rows.length > 0) {
-      console.log(`⚠️  Found ${orphanedSignaturesResult.rows.length} orphaned signature records`);
+      console.log(
+        `⚠️  Found ${orphanedSignaturesResult.rows.length} orphaned signature records`
+      );
 
       // Delete orphaned signature records
       const deleteSignaturesQuery = `
@@ -107,7 +119,9 @@ async function cleanupOrphanedRecords() {
         )
       `;
       const deleteSignaturesResult = await client.query(deleteSignaturesQuery);
-      console.log(`✅ Deleted ${deleteSignaturesResult.rowCount} orphaned signature records`);
+      console.log(
+        `✅ Deleted ${deleteSignaturesResult.rowCount} orphaned signature records`
+      );
     } else {
       console.log("✅ No orphaned signature records found");
     }
@@ -124,7 +138,9 @@ async function cleanupOrphanedRecords() {
     const orphanedVotesResult = await client.query(orphanedVotesQuery);
 
     if (orphanedVotesResult.rows.length > 0) {
-      console.log(`⚠️  Found ${orphanedVotesResult.rows.length} orphaned position_vote records`);
+      console.log(
+        `⚠️  Found ${orphanedVotesResult.rows.length} orphaned position_vote records`
+      );
 
       // Delete orphaned position_vote records
       const deleteVotesQuery = `
@@ -135,7 +151,9 @@ async function cleanupOrphanedRecords() {
         )
       `;
       const deleteVotesResult = await client.query(deleteVotesQuery);
-      console.log(`✅ Deleted ${deleteVotesResult.rowCount} orphaned position_vote records`);
+      console.log(
+        `✅ Deleted ${deleteVotesResult.rowCount} orphaned position_vote records`
+      );
     } else {
       console.log("✅ No orphaned position_vote records found");
     }

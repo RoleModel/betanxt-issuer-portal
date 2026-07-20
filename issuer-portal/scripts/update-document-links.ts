@@ -22,10 +22,12 @@ async function updateDocumentLinks() {
   // If RPC doesn't exist, use storage API directly
   if (storageError || !storageFiles) {
     console.log("Using storage API to list files...");
-    const { data: listData, error: listError } = await supabase.storage.from("documents").list("", {
-      limit: 1000,
-      offset: 0,
-    });
+    const { data: listData, error: listError } = await supabase.storage
+      .from("documents")
+      .list("", {
+        limit: 1000,
+        offset: 0,
+      });
 
     if (listError) {
       console.error("Failed to list storage files:", listError);
@@ -36,14 +38,16 @@ async function updateDocumentLinks() {
     const allFiles: { name: string; metadata: unknown }[] = [];
 
     // Get all meeting directories
-    const meetingDirs = listData?.filter((item) => !item.name.includes(".")) || [];
+    const meetingDirs =
+      listData?.filter((item) => !item.name.includes(".")) || [];
 
     for (const meetingDir of meetingDirs) {
       const { data: typeData } = await supabase.storage
         .from("documents")
         .list(meetingDir.name, { limit: 1000 });
 
-      const typeDirs = typeData?.filter((item) => !item.name.includes(".")) || [];
+      const typeDirs =
+        typeData?.filter((item) => !item.name.includes(".")) || [];
 
       for (const typeDir of typeDirs) {
         const { data: files } = await supabase.storage
@@ -84,7 +88,9 @@ async function updateDocumentLinks() {
     const filename = pathParts[2];
 
     // Get public URL for this file
-    const { data: urlData } = supabase.storage.from("documents").getPublicUrl(file.name);
+    const { data: urlData } = supabase.storage
+      .from("documents")
+      .getPublicUrl(file.name);
 
     // Map folder name to document type
     const typeMapping: Record<string, string> = {
@@ -128,7 +134,8 @@ async function updateDocumentLinks() {
     if (updateError) {
       // Try to insert if update didn't find a record
       const hasNoData =
-        !updateData || (Array.isArray(updateData) && (updateData as unknown[]).length === 0);
+        !updateData ||
+        (Array.isArray(updateData) && (updateData as unknown[]).length === 0);
       if (hasNoData) {
         const { error: insertError } = await supabase.from("document").insert({
           meeting_id: meetingId,
@@ -150,7 +157,7 @@ async function updateDocumentLinks() {
         }
       } else {
         console.error(
-          `❌ Failed to update: ${(updateError as { message?: string })?.message ?? "Unknown error"}`,
+          `❌ Failed to update: ${(updateError as { message?: string })?.message ?? "Unknown error"}`
         );
       }
     } else if (updateData && updateData.length > 0) {

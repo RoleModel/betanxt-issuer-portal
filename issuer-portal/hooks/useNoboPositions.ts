@@ -38,20 +38,25 @@ const normalizeNoboPosition = (value: unknown): NoboPosition | null => {
   const record = asRecord(value);
   if (!record) return null;
 
-  const holderCategory = normalizeHolderCategory(record.holder_category ?? record.holderCategory);
+  const holderCategory = normalizeHolderCategory(
+    record.holder_category ?? record.holderCategory
+  );
   if (holderCategory !== "NOBO") return null;
 
   return {
     id: asString(record.id) ?? "",
     holderName: asString(record.name) ?? "",
-    accountNumber: asString(record.account_number) ?? asString(record.accountNumber) ?? "",
+    accountNumber:
+      asString(record.account_number) ?? asString(record.accountNumber) ?? "",
     shares: toFiniteNumber(record.shares),
     state: asString(record.state),
   };
 };
 
 /** SWR fetcher: loads a meeting's positions and keeps only NOBO holders. */
-const fetchNoboPositions = async (meetingId: string): Promise<NoboPosition[]> => {
+const fetchNoboPositions = async (
+  meetingId: string
+): Promise<NoboPosition[]> => {
   const apiClient = await buildApiClient();
   const { data, error } = await apiClient.GET("/positions", {
     params: { query: { meetingId, limit: 5000 } },
@@ -61,7 +66,9 @@ const fetchNoboPositions = async (meetingId: string): Promise<NoboPosition[]> =>
     throw new Error("Failed to fetch positions");
   }
 
-  const positionsRaw = Array.isArray(data) ? data : asArray(asRecord(data)?.positions);
+  const positionsRaw = Array.isArray(data)
+    ? data
+    : asArray(asRecord(data)?.positions);
   return positionsRaw
     .map((position) => normalizeNoboPosition(position))
     .filter((position): position is NoboPosition => position !== null);
@@ -82,7 +89,9 @@ export interface UseNoboPositionsResult {
  * @param meetingId - Meeting whose NOBO positions to load; no fetch occurs while undefined
  * @returns NOBO positions plus loading/error state
  */
-export const useNoboPositions = (meetingId?: string): UseNoboPositionsResult => {
+export const useNoboPositions = (
+  meetingId?: string
+): UseNoboPositionsResult => {
   const { data, error, isLoading } = useSWR(
     meetingId ? (["/nobo-positions", meetingId] as const) : null,
     ([, id]) => fetchNoboPositions(id),
@@ -90,7 +99,7 @@ export const useNoboPositions = (meetingId?: string): UseNoboPositionsResult => 
       revalidateOnFocus: false,
       keepPreviousData: true,
       dedupingInterval: 2000,
-    },
+    }
   );
 
   return {

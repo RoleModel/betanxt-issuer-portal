@@ -91,7 +91,17 @@ export function getFileExtension(filename: string): string {
 
 // Check if file type is supported
 export function isSupportedFileType(filename: string): boolean {
-  const supportedTypes = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "csv", "txt"];
+  const supportedTypes = [
+    "pdf",
+    "doc",
+    "docx",
+    "xls",
+    "xlsx",
+    "ppt",
+    "pptx",
+    "csv",
+    "txt",
+  ];
   const extension = getFileExtension(filename).toLowerCase();
   return supportedTypes.includes(extension);
 }
@@ -105,7 +115,7 @@ export function generateDocumentId(): string {
 export function validateSignaturePosition(
   position: { x: number; y: number; width: number; height: number },
   pageWidth: number,
-  pageHeight: number,
+  pageHeight: number
 ): boolean {
   return (
     position.x >= 0 &&
@@ -129,7 +139,7 @@ export function calculateSignatureArea(position: {
 export async function uploadDocument(
   file: File,
   meetingId?: string,
-  documentType: "dsm" | "regular" = "regular",
+  documentType: "dsm" | "regular" = "regular"
 ): Promise<{ data: Document | null; error: string | null }> {
   try {
     if (!isSupportedFileType(file.name)) {
@@ -137,10 +147,13 @@ export async function uploadDocument(
     }
 
     // Import storage utility dynamically to avoid SSR issues
-    const { uploadFileToStorage, createStorageFolder } = await import("./supabaseStorage");
+    const { uploadFileToStorage, createStorageFolder } =
+      await import("./supabaseStorage");
 
     // Create folder path if meetingId is provided
-    const folder = meetingId ? createStorageFolder(meetingId, documentType) : undefined;
+    const folder = meetingId
+      ? createStorageFolder(meetingId, documentType)
+      : undefined;
 
     // Upload to Supabase storage
     const uploadResult = await uploadFileToStorage(file, folder);
@@ -163,7 +176,8 @@ export async function uploadDocument(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Failed to upload document",
+      error:
+        error instanceof Error ? error.message : "Failed to upload document",
     };
   }
 }
@@ -171,7 +185,7 @@ export async function uploadDocument(
 // Delete document from storage
 export async function deleteDocument(
   documentId: string,
-  storagePath?: string,
+  storagePath?: string
 ): Promise<{ success: boolean; error: string | null }> {
   try {
     if (storagePath) {
@@ -190,7 +204,8 @@ export async function deleteDocument(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to delete document",
+      error:
+        error instanceof Error ? error.message : "Failed to delete document",
     };
   }
 }
@@ -269,16 +284,19 @@ export function getStoragePublicUrl(filePath: string): string {
 
   // If this is a Next/Supabase storage relative path, prefix with base URL and return
   if (filePath.startsWith("/storage/v1/object/")) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
     return `${supabaseUrl}${filePath}`;
   }
   if (filePath.startsWith("storage/v1/object/")) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
     return `${supabaseUrl}/${filePath}`;
   }
 
   // Get the base Supabase URL from environment variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
   // Strip leading slashes and /documents/ prefix if present
   let normalized = filePath.replace(/^\/+/, "");
   if (normalized.startsWith("documents/")) {
@@ -294,29 +312,38 @@ export function getStoragePublicUrl(filePath: string): string {
 
 // Simple URL detector used by UI code
 export function isStorageUrl(pathOrUrl: string): boolean {
-  return /^https?:\/\//i.test(pathOrUrl) || pathOrUrl.startsWith("/storage/v1/object/public/");
+  return (
+    /^https?:\/\//i.test(pathOrUrl) ||
+    pathOrUrl.startsWith("/storage/v1/object/public/")
+  );
 }
 
 // Fetch DSM documents for a meeting (category = 'DSM')
 export async function fetchDSMDocuments(
-  meetingId: string,
+  meetingId: string
 ): Promise<{ data: DocumentWithHistory[] | null; error: string | null }> {
   // Helper to map raw rows to DocumentWithHistory
   const mapRows = (rows: unknown[]): DocumentWithHistory[] =>
     rows.map((rowRaw) => {
       const row = rowRaw as Record<string, unknown>;
       const rowId =
-        typeof row.id === "string" ? row.id : `doc_${Math.random().toString(36).slice(2)}`;
+        typeof row.id === "string"
+          ? row.id
+          : `doc_${Math.random().toString(36).slice(2)}`;
       const historyRaw = row.history;
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
-            .filter((h): h is Record<string, unknown> => typeof h === "object" && h !== null)
+            .filter(
+              (h): h is Record<string, unknown> =>
+                typeof h === "object" && h !== null
+            )
             .map((h) => ({
               id:
                 typeof h.id === "string"
                   ? h.id
                   : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
-              documentId: typeof h.documentId === "string" ? h.documentId : (rowId ?? ""),
+              documentId:
+                typeof h.documentId === "string" ? h.documentId : (rowId ?? ""),
               action: typeof h.action === "string" ? h.action : "UNKNOWN",
               userId:
                 typeof h.userId === "string"
@@ -347,8 +374,12 @@ export async function fetchDSMDocuments(
       return {
         id: rowId,
         name: typeof row.title === "string" ? row.title : "Untitled",
-        type: String((row.type as string) ?? (row.file_type as string) ?? "pdf"),
-        status: (typeof row.status === "string" ? row.status : "DRAFT") as DocumentStatus,
+        type: String(
+          (row.type as string) ?? (row.file_type as string) ?? "pdf"
+        ),
+        status: (typeof row.status === "string"
+          ? row.status
+          : "DRAFT") as DocumentStatus,
         size: Number(row.file_size ?? 0),
         uploadedAt:
           (row.uploaded_date as string) ??
@@ -364,7 +395,10 @@ export async function fetchDSMDocuments(
     const { apiClient } = await import("../domain-models/api/client");
     // Using defined path: GET /meetings/{meetingId}/documents with query params
     const resp = await apiClient.GET("/meetings/{meetingId}/documents", {
-      params: { path: { meetingId }, query: { type: "digital-shareholder-meeting" } },
+      params: {
+        path: { meetingId },
+        query: { type: "digital-shareholder-meeting" },
+      },
     });
     if (!resp.error && resp.data) {
       // Assume API already returns proper shape; minimally adapt
@@ -379,9 +413,15 @@ export async function fetchDSMDocuments(
                   : typeof r.name === "string"
                     ? r.name
                     : "Untitled",
-              type: String((r.type as string) ?? (r.fileType as string) ?? "pdf"),
-              status: (typeof r.status === "string" ? r.status : "DRAFT") as DocumentStatus,
-              size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
+              type: String(
+                (r.type as string) ?? (r.fileType as string) ?? "pdf"
+              ),
+              status: (typeof r.status === "string"
+                ? r.status
+                : "DRAFT") as DocumentStatus,
+              size: Number(
+                (r.fileSize as number) ?? (r.file_size as number) ?? 0
+              ),
               uploadedAt:
                 (r.uploadedDate as string) ??
                 (r.uploaded_date as string) ??
@@ -391,7 +431,9 @@ export async function fetchDSMDocuments(
                 (r.created_at as string) ??
                 new Date().toISOString(),
               url: (r.filePath as string) ?? (r.file_path as string),
-              history: Array.isArray(r.history) ? (r.history as DocumentHistoryEntry[]) : [],
+              history: Array.isArray(r.history)
+                ? (r.history as DocumentHistoryEntry[])
+                : [],
             };
           })
         : [];
@@ -406,7 +448,7 @@ export async function fetchDSMDocuments(
     const { data, error } = await supabase
       .from("document")
       .select(
-        "id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history",
+        "id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history"
       )
       .eq("meeting_id", meetingId)
       .like("type", "%DSM%")
@@ -424,23 +466,29 @@ export async function fetchDSMDocuments(
 
 // Fetch non-DSM (regular) documents for a meeting
 export async function fetchRegularDocuments(
-  meetingId: string,
+  meetingId: string
 ): Promise<{ data: DocumentWithHistory[] | null; error: string | null }> {
   const mapRows = (rows: unknown[]): DocumentWithHistory[] =>
     rows.map((rowRaw) => {
       const row = rowRaw as Record<string, unknown>;
       const rowId =
-        typeof row.id === "string" ? row.id : `doc_${Math.random().toString(36).slice(2)}`;
+        typeof row.id === "string"
+          ? row.id
+          : `doc_${Math.random().toString(36).slice(2)}`;
       const historyRaw = row.history;
       const historyArray: DocumentHistoryEntry[] = Array.isArray(historyRaw)
         ? (historyRaw as unknown[])
-            .filter((h): h is Record<string, unknown> => typeof h === "object" && h !== null)
+            .filter(
+              (h): h is Record<string, unknown> =>
+                typeof h === "object" && h !== null
+            )
             .map((h) => ({
               id:
                 typeof h.id === "string"
                   ? h.id
                   : `${rowId}_hist_${Math.random().toString(36).slice(2)}`,
-              documentId: typeof h.documentId === "string" ? h.documentId : (rowId ?? ""),
+              documentId:
+                typeof h.documentId === "string" ? h.documentId : (rowId ?? ""),
               action: typeof h.action === "string" ? h.action : "UNKNOWN",
               userId:
                 typeof h.userId === "string"
@@ -471,8 +519,12 @@ export async function fetchRegularDocuments(
       return {
         id: rowId,
         name: typeof row.title === "string" ? row.title : "Untitled",
-        type: String((row.type as string) ?? (row.file_type as string) ?? "pdf"),
-        status: (typeof row.status === "string" ? row.status : "DRAFT") as DocumentStatus,
+        type: String(
+          (row.type as string) ?? (row.file_type as string) ?? "pdf"
+        ),
+        status: (typeof row.status === "string"
+          ? row.status
+          : "DRAFT") as DocumentStatus,
         size: Number(row.file_size ?? 0),
         uploadedAt:
           (row.uploaded_date as string) ??
@@ -500,9 +552,15 @@ export async function fetchRegularDocuments(
                   : typeof r.name === "string"
                     ? r.name
                     : "Untitled",
-              type: String((r.type as string) ?? (r.fileType as string) ?? "pdf"),
-              status: (typeof r.status === "string" ? r.status : "DRAFT") as DocumentStatus,
-              size: Number((r.fileSize as number) ?? (r.file_size as number) ?? 0),
+              type: String(
+                (r.type as string) ?? (r.fileType as string) ?? "pdf"
+              ),
+              status: (typeof r.status === "string"
+                ? r.status
+                : "DRAFT") as DocumentStatus,
+              size: Number(
+                (r.fileSize as number) ?? (r.file_size as number) ?? 0
+              ),
               uploadedAt:
                 (r.uploadedDate as string) ??
                 (r.uploaded_date as string) ??
@@ -512,7 +570,9 @@ export async function fetchRegularDocuments(
                 (r.created_at as string) ??
                 new Date().toISOString(),
               url: (r.filePath as string) ?? (r.file_path as string),
-              history: Array.isArray(r.history) ? (r.history as DocumentHistoryEntry[]) : [],
+              history: Array.isArray(r.history)
+                ? (r.history as DocumentHistoryEntry[])
+                : [],
             };
           })
         : [];
@@ -526,7 +586,7 @@ export async function fetchRegularDocuments(
     const { data, error } = await supabase
       .from("document")
       .select(
-        "id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history",
+        "id,title,type,status,file_size,file_type,file_path,meeting_id,updated_at,created_at,uploaded_date,history"
       )
       .eq("meeting_id", meetingId)
       .order("updated_at", { ascending: false });
@@ -536,7 +596,8 @@ export async function fetchRegularDocuments(
   } catch (e) {
     return {
       data: null,
-      error: e instanceof Error ? e.message : "Failed to fetch regular documents",
+      error:
+        e instanceof Error ? e.message : "Failed to fetch regular documents",
     };
   }
 }
@@ -544,11 +605,12 @@ export async function fetchRegularDocuments(
 // Update document status in persistence layer
 export async function updateDocumentStatus(
   documentId: string,
-  status: Document["status"],
+  status: Document["status"]
 ): Promise<{ data: Document | null; error: string | null }> {
   try {
     // Never attempt to persist placeholder status
-    const persistStatus: DocumentStatus = status === "NOT_UPLOADED" ? "DRAFT" : status;
+    const persistStatus: DocumentStatus =
+      status === "NOT_UPLOADED" ? "DRAFT" : status;
     // Attempt OpenAPI call first
     try {
       const { apiClient } = await import("../domain-models/api/client");
@@ -569,8 +631,12 @@ export async function updateDocumentStatus(
                   ? d.name
                   : "Untitled",
             type: String((d.type as string) ?? (d.fileType as string) ?? "pdf"),
-            status: (typeof d.status === "string" ? d.status : persistStatus) as DocumentStatus,
-            size: Number((d.fileSize as number) ?? (d.file_size as number) ?? 0),
+            status: (typeof d.status === "string"
+              ? d.status
+              : persistStatus) as DocumentStatus,
+            size: Number(
+              (d.fileSize as number) ?? (d.file_size as number) ?? 0
+            ),
             uploadedAt:
               (d.uploadedDate as string) ??
               (d.uploaded_date as string) ??
@@ -593,7 +659,7 @@ export async function updateDocumentStatus(
       .update({ status: persistStatus })
       .eq("id", documentId)
       .select(
-        "id,title,type,status,file_size,file_type,file_path,updated_at,created_at,uploaded_date",
+        "id,title,type,status,file_size,file_type,file_path,updated_at,created_at,uploaded_date"
       )
       .single();
     if (error) {
@@ -609,9 +675,15 @@ export async function updateDocumentStatus(
       data: {
         id: typeof d.id === "string" ? d.id : documentId,
         name:
-          typeof d.title === "string" ? d.title : typeof d.name === "string" ? d.name : "Untitled",
+          typeof d.title === "string"
+            ? d.title
+            : typeof d.name === "string"
+              ? d.name
+              : "Untitled",
         type: String((d.type as string) ?? (d.file_type as string) ?? "pdf"),
-        status: (typeof d.status === "string" ? d.status : persistStatus) as DocumentStatus,
+        status: (typeof d.status === "string"
+          ? d.status
+          : persistStatus) as DocumentStatus,
         size: Number(d.file_size ?? 0),
         uploadedAt:
           (d.uploaded_date as string) ??
@@ -625,7 +697,10 @@ export async function updateDocumentStatus(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Failed to update document status",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update document status",
     };
   }
 }

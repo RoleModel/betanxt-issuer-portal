@@ -29,8 +29,8 @@ export async function POST(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "uploadUserAvatar",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -56,8 +56,8 @@ export async function DELETE(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "deleteUserAvatar",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

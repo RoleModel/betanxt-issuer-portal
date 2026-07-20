@@ -51,7 +51,11 @@ export function CTACard() {
     >
       <CardHeader
         title={
-          <Typography variant="h1" component="p" fontFamily={"var(--font-tungsten)"}>
+          <Typography
+            variant="h1"
+            component="p"
+            fontFamily={"var(--font-tungsten)"}
+          >
             Let&apos;s Talk
           </Typography>
         }
@@ -60,9 +64,10 @@ export function CTACard() {
         <Grid container spacing={{ xs: 2, md: 3 }}>
           <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="body1">
-              Connect with one of our specialists to learn more about our expertise for proxies,
-              shareholder processes, and the shareholder experience. Send us a message and
-              we&apos;ll respond to your proxy advisory inquiry right away.
+              Connect with one of our specialists to learn more about our
+              expertise for proxies, shareholder processes, and the shareholder
+              experience. Send us a message and we&apos;ll respond to your proxy
+              advisory inquiry right away.
             </Typography>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
@@ -79,7 +84,8 @@ export function CTACard() {
               <Box
                 sx={{
                   "& textarea:focusVisible": {
-                    outline: "2px solid var(--mui-palette-primary-main) !important",
+                    outline:
+                      "2px solid var(--mui-palette-primary-main) !important",
                   },
                 }}
               >
@@ -90,7 +96,9 @@ export function CTACard() {
                   placeholder="How can we help you this proxy season?"
                   minRows={5}
                   value={contactForm.message}
-                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, message: e.target.value })
+                  }
                   required
                 />
               </Box>

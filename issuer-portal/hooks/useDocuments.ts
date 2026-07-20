@@ -34,9 +34,11 @@ const VALID_EVENT_TYPES = [
 
 // Type guard function to check if a string is a valid DocumentHistory event type
 function isDocumentHistoryEventType(
-  value: string,
+  value: string
 ): value is NonNullable<DocumentHistory["eventType"]> {
-  return VALID_EVENT_TYPES.includes(value as (typeof VALID_EVENT_TYPES)[number]);
+  return VALID_EVENT_TYPES.includes(
+    value as (typeof VALID_EVENT_TYPES)[number]
+  );
 }
 
 export interface DocumentComment {
@@ -66,16 +68,19 @@ export interface UseDocumentsResult {
   error: string | null;
   createNewDocument: (
     meetingId: string,
-    documentData: CreateDocumentRequest,
+    documentData: CreateDocumentRequest
   ) => Promise<Document | null>;
   getDocument: (id: string) => Promise<Document | null>;
-  updateDocumentById: (id: string, updates: UpdateDocumentRequest) => Promise<Document | null>;
+  updateDocumentById: (
+    id: string,
+    updates: UpdateDocumentRequest
+  ) => Promise<Document | null>;
   downloadDocumentById: (id: string) => Promise<string | null>;
   getCommentsForDocument: (documentId: string) => Promise<DocumentComment[]>;
   addCommentToDocument: (
     documentId: string,
     comment: string,
-    userInfo?: { firstName?: string; lastName?: string; userId?: string },
+    userInfo?: { firstName?: string; lastName?: string; userId?: string }
   ) => Promise<void>;
   getTaskDocument: (taskId: string) => Promise<unknown>;
   getDocumentsByMeeting: (meetingId: string) => Promise<Document[]>;
@@ -84,20 +89,23 @@ export interface UseDocumentsResult {
     documentId: string,
     meetingId?: string,
     documentTitle?: string,
-    taskId?: string,
+    taskId?: string
   ) => Promise<string | null>;
   uploadDocumentVersion: (
     meetingId: string,
     documentType: string,
     file: File,
-    versionNotes?: string,
+    versionNotes?: string
   ) => Promise<Document | null>;
-  addDocumentHistory: (documentId: string, eventType: DocumentHistoryEventType) => Promise<boolean>;
+  addDocumentHistory: (
+    documentId: string,
+    eventType: DocumentHistoryEventType
+  ) => Promise<boolean>;
   getDocumentHistory: (documentId: string) => Promise<DocumentHistoryEvent[]>;
   uploadDSMDocument: (
     meetingId: string,
     placeholderTitle: string,
-    file: File,
+    file: File
   ) => Promise<Document | null>;
 }
 
@@ -106,7 +114,10 @@ export const useDocuments = (): UseDocumentsResult => {
   const [error, setError] = useState<string | null>(null);
 
   const createNewDocument = useCallback(
-    async (meetingId: string, documentData: CreateDocumentRequest): Promise<Document | null> => {
+    async (
+      meetingId: string,
+      documentData: CreateDocumentRequest
+    ): Promise<Document | null> => {
       try {
         setLoading(true);
         setError(null);
@@ -123,42 +134,50 @@ export const useDocuments = (): UseDocumentsResult => {
 
         return data || null;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to create document";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to create document";
         setError(errorMessage);
         return null;
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
-  const getDocument = useCallback(async (id: string): Promise<Document | null> => {
-    try {
-      setLoading(true);
-      setError(null);
+  const getDocument = useCallback(
+    async (id: string): Promise<Document | null> => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const apiClient = await buildApiClient();
-      const result = await apiClient.GET("/documents/{id}", {
-        params: { path: { id } },
-      });
-      const { data, error } = result;
-      if (error) {
-        throw new Error("Failed to get document");
+        const apiClient = await buildApiClient();
+        const result = await apiClient.GET("/documents/{id}", {
+          params: { path: { id } },
+        });
+        const { data, error } = result;
+        if (error) {
+          throw new Error("Failed to get document");
+        }
+
+        return data || null;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to get document";
+        setError(errorMessage);
+        return null;
+      } finally {
+        setLoading(false);
       }
-
-      return data || null;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to get document";
-      setError(errorMessage);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const updateDocumentById = useCallback(
-    async (id: string, updates: UpdateDocumentRequest): Promise<Document | null> => {
+    async (
+      id: string,
+      updates: UpdateDocumentRequest
+    ): Promise<Document | null> => {
       try {
         setLoading(true);
         setError(null);
@@ -175,14 +194,15 @@ export const useDocuments = (): UseDocumentsResult => {
 
         return data || null;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to update document";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to update document";
         setError(errorMessage);
         return null;
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   const downloadDocumentById = useCallback(async (id: string) => {
@@ -201,7 +221,8 @@ export const useDocuments = (): UseDocumentsResult => {
 
       return data || null;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to download document";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to download document";
       setError(errorMessage);
       return null;
     } finally {
@@ -227,21 +248,24 @@ export const useDocuments = (): UseDocumentsResult => {
         // Return comments as-is since backend now returns CommentWithUser format
         return data || [];
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to get document comments";
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to get document comments";
         setError(errorMessage);
         return [];
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   const addCommentToDocument = useCallback(
     async (
       documentId: string,
       comment: string,
-      userInfo?: { firstName?: string; lastName?: string; userId?: string },
+      userInfo?: { firstName?: string; lastName?: string; userId?: string }
     ): Promise<void> => {
       try {
         setLoading(true);
@@ -263,14 +287,15 @@ export const useDocuments = (): UseDocumentsResult => {
           throw new Error("Failed to add comment");
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to add comment";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to add comment";
         setError(errorMessage);
         throw err;
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   const getTaskDocument = useCallback((_taskId: string): Promise<unknown> => {
@@ -281,7 +306,8 @@ export const useDocuments = (): UseDocumentsResult => {
       // For now, return placeholder data - these operations will need proper API endpoints
       return Promise.resolve(null);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to get task document";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to get task document";
       setError(errorMessage);
       return Promise.resolve(null);
     } finally {
@@ -289,21 +315,26 @@ export const useDocuments = (): UseDocumentsResult => {
     }
   }, []);
 
-  const getDocumentsByMeeting = useCallback(async (meetingId: string): Promise<Document[]> => {
-    try {
-      setLoading(true);
-      setError(null);
-      const docs = await documentRepository.listByMeeting(meetingId);
-      return docs;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to get documents by meeting";
-      setError(errorMessage);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const getDocumentsByMeeting = useCallback(
+    async (meetingId: string): Promise<Document[]> => {
+      try {
+        setLoading(true);
+        setError(null);
+        const docs = await documentRepository.listByMeeting(meetingId);
+        return docs;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to get documents by meeting";
+        setError(errorMessage);
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const uploadDocument = useCallback(
     async (
@@ -311,7 +342,7 @@ export const useDocuments = (): UseDocumentsResult => {
       _documentId: string,
       _meetingId?: string,
       _documentTitle?: string,
-      _taskId?: string,
+      _taskId?: string
     ): Promise<string | null> => {
       try {
         setLoading(true);
@@ -353,7 +384,10 @@ export const useDocuments = (): UseDocumentsResult => {
 
         // For new documents from MeetingDocuments, use the new upload API route
         if (
-          (isFilename || isKnownDocumentType || isSignedFormId || isSignedDocument) &&
+          (isFilename ||
+            isKnownDocumentType ||
+            isSignedFormId ||
+            isSignedDocument) &&
           _meetingId
         ) {
           const formData = new FormData();
@@ -387,32 +421,47 @@ export const useDocuments = (): UseDocumentsResult => {
 
             if (fileName.includes("proxy") && fileName.includes("statement")) {
               documentType = "proxy-statement";
-            } else if (fileName.includes("proxy") && fileName.includes("card")) {
+            } else if (
+              fileName.includes("proxy") &&
+              fileName.includes("card")
+            ) {
               documentType = "proxy-card";
-            } else if (fileName.includes("notice") || fileName.includes("access")) {
+            } else if (
+              fileName.includes("notice") ||
+              fileName.includes("access")
+            ) {
               documentType = "notice-and-access";
             } else if (fileName.includes("broadridge")) {
               documentType = "broadridge-form";
             } else if (fileName.includes("plan") && fileName.includes("file")) {
               documentType = "plan-file-request";
-            } else if (fileName.includes("transfer") && fileName.includes("agent")) {
+            } else if (
+              fileName.includes("transfer") &&
+              fileName.includes("agent")
+            ) {
               documentType = "transfer-agent-request";
             }
           }
 
           // Upload via the mock-server API
-          const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-          const response = await fetch(`${API_BASE_URL}/documents/types/${documentType}/upload`, {
-            method: "POST",
-            body: formData,
-          });
+          const API_BASE_URL =
+            process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+          const response = await fetch(
+            `${API_BASE_URL}/documents/types/${documentType}/upload`,
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
 
           if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Upload failed: ${errorText}`);
           }
 
-          const result = (await response.json()) as Document & { storagePath?: string };
+          const result = (await response.json()) as Document & {
+            storagePath?: string;
+          };
           // Response is the Document object with id, not ApiResponse wrapper
           return result?.id || result?.storagePath || null;
         }
@@ -454,7 +503,9 @@ export const useDocuments = (): UseDocumentsResult => {
 
         if (!meetingId) {
           // Try to extract from the page URL (e.g., /TICKER/meeting/ID)
-          const tickerPathMatch = /\/[^/]+\/meeting\/([^/]+)/.exec(window.location.pathname);
+          const tickerPathMatch = /\/[^/]+\/meeting\/([^/]+)/.exec(
+            window.location.pathname
+          );
           if (tickerPathMatch) {
             meetingId = tickerPathMatch[1];
           }
@@ -502,19 +553,25 @@ export const useDocuments = (): UseDocumentsResult => {
 
         if (isTemporaryId) {
           // For temporary documents, create a new document record
-          const result = await apiClient.POST("/meetings/{meetingId}/documents", {
-            params: { path: { meetingId } },
-            body: {
-              title,
-              type: docType,
-              file: base64Data,
-              taskId: _taskId,
-            },
-          });
+          const result = await apiClient.POST(
+            "/meetings/{meetingId}/documents",
+            {
+              params: { path: { meetingId } },
+              body: {
+                title,
+                type: docType,
+                file: base64Data,
+                taskId: _taskId,
+              },
+            }
+          );
 
           const { data, error } = result;
           if (error || !data) {
-            console.error("Document creation error:", error ?? "No data returned");
+            console.error(
+              "Document creation error:",
+              error ?? "No data returned"
+            );
             throw new Error("Failed to create signed document");
           }
 
@@ -534,19 +591,25 @@ export const useDocuments = (): UseDocumentsResult => {
         } else {
           // For existing documents, create a new document (version history)
           // Documents are immutable - each upload creates a new document
-          const result = await apiClient.POST("/meetings/{meetingId}/documents", {
-            params: { path: { meetingId } },
-            body: {
-              title,
-              type: docType,
-              file: base64Data,
-              taskId: _taskId,
-            },
-          });
+          const result = await apiClient.POST(
+            "/meetings/{meetingId}/documents",
+            {
+              params: { path: { meetingId } },
+              body: {
+                title,
+                type: docType,
+                file: base64Data,
+                taskId: _taskId,
+              },
+            }
+          );
 
           const { data, error } = result;
           if (error || !data) {
-            console.error("Document creation error:", error ?? "No data returned");
+            console.error(
+              "Document creation error:",
+              error ?? "No data returned"
+            );
             throw new Error("Failed to create signed document");
           }
 
@@ -566,14 +629,15 @@ export const useDocuments = (): UseDocumentsResult => {
         }
       } catch (err) {
         console.error("uploadDocument error:", err);
-        const errorMessage = err instanceof Error ? err.message : "Failed to upload document";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to upload document";
         setError(errorMessage);
         return null;
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   const uploadDocumentVersion = useCallback(
@@ -588,7 +652,7 @@ export const useDocuments = (): UseDocumentsResult => {
         uploaderName?: string;
         recipients?: string[];
         meetingPath?: string;
-      },
+      }
     ): Promise<Document | null> => {
       try {
         setLoading(true);
@@ -603,7 +667,9 @@ export const useDocuments = (): UseDocumentsResult => {
         if (doc && emailMeta?.recipients && emailMeta.recipients.length > 0) {
           const portalBaseUrl =
             process.env.NEXT_PUBLIC_PORTAL_BASE_URL ??
-            (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+            (typeof window !== "undefined"
+              ? window.location.origin
+              : "http://localhost:3000");
           void sendDocumentUploadEmail({
             meetingType: emailMeta.meetingType ?? "Shareholder Meeting",
             issuerAccountName: emailMeta.issuerAccountName ?? "Issuer Account",
@@ -620,18 +686,24 @@ export const useDocuments = (): UseDocumentsResult => {
         return doc;
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : "Failed to upload document version";
+          err instanceof Error
+            ? err.message
+            : "Failed to upload document version";
         setError(errorMessage);
         return null;
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   const uploadDSMDocument = useCallback(
-    async (meetingId: string, placeholderTitle: string, file: File): Promise<Document | null> => {
+    async (
+      meetingId: string,
+      placeholderTitle: string,
+      file: File
+    ): Promise<Document | null> => {
       try {
         setLoading(true);
         setError(null);
@@ -663,18 +735,22 @@ export const useDocuments = (): UseDocumentsResult => {
 
         return data || null;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to upload document";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to upload document";
         setError(errorMessage);
         return null;
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   const addDocumentHistory = useCallback(
-    async (documentId: string, eventType: DocumentHistoryEventType): Promise<boolean> => {
+    async (
+      documentId: string,
+      eventType: DocumentHistoryEventType
+    ): Promise<boolean> => {
       try {
         setLoading(true);
         setError(null);
@@ -695,14 +771,15 @@ export const useDocuments = (): UseDocumentsResult => {
 
         return true;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to add document history";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to add document history";
         setError(errorMessage);
         return false;
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   const getDocumentHistory = useCallback(
@@ -725,21 +802,26 @@ export const useDocuments = (): UseDocumentsResult => {
         const raw = asArray(histData);
         return raw
           .map((value) => asRecord(value))
-          .filter((record): record is Record<string, unknown> => Boolean(record))
+          .filter((record): record is Record<string, unknown> =>
+            Boolean(record)
+          )
           .map((eventObj) => {
             const id = asString(eventObj.id) ?? crypto.randomUUID();
 
             const eventTypeCandidate =
               asString(eventObj.eventType) ?? asString(eventObj.event_type);
             const normalizedEventType =
-              eventTypeCandidate && isDocumentHistoryEventType(eventTypeCandidate)
+              eventTypeCandidate &&
+              isDocumentHistoryEventType(eventTypeCandidate)
                 ? eventTypeCandidate
                 : "UPDATED";
 
-            const userValue = asString(eventObj.userName) ?? asString(eventObj.user_name);
+            const userValue =
+              asString(eventObj.userName) ?? asString(eventObj.user_name);
             const user = userValue ?? "Unknown User";
 
-            const timestampValue = asString(eventObj.createdAt) ?? asString(eventObj.created_at);
+            const timestampValue =
+              asString(eventObj.createdAt) ?? asString(eventObj.created_at);
             const timestamp = timestampValue ?? new Date().toISOString();
 
             const metadataRecord = asRecord(eventObj.metadata);
@@ -753,14 +835,15 @@ export const useDocuments = (): UseDocumentsResult => {
             };
           });
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to get document history";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to get document history";
         setError(errorMessage);
         return [];
       } finally {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   return {

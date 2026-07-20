@@ -21,7 +21,7 @@ interface HistoryEvent {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     const resolvedParams = await params;
@@ -55,7 +55,7 @@ export async function GET(
         message: error instanceof Error ? error.message : "Unknown error",
         operationId: "getDocumentHistory",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -69,7 +69,7 @@ interface HistoryEventRequest {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     const resolvedParams = await params;
@@ -110,7 +110,7 @@ export async function POST(
         message: error instanceof Error ? error.message : "Unknown error",
         operationId: "addDocumentHistory",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

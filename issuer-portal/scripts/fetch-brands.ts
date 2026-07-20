@@ -133,10 +133,13 @@ async function searchBrandfetch(companyName: string): Promise<string | null> {
   try {
     const response = await fetch(
       `https://api.brandfetch.io/v2/search/${encodeURIComponent(companyName)}`,
-      { headers: { Authorization: `Bearer ${API_KEY}` } },
+      { headers: { Authorization: `Bearer ${API_KEY}` } }
     );
     if (!response.ok) return null;
-    const results = (await response.json()) as { domain: string; name: string }[];
+    const results = (await response.json()) as {
+      domain: string;
+      name: string;
+    }[];
     return results[0]?.domain ?? null;
   } catch {
     return null;
@@ -145,9 +148,12 @@ async function searchBrandfetch(companyName: string): Promise<string | null> {
 
 async function fetchBrand(domain: string): Promise<BrandResponse | null> {
   try {
-    const response = await fetch(`https://api.brandfetch.io/v2/brands/${domain}`, {
-      headers: { Authorization: `Bearer ${API_KEY}` },
-    });
+    const response = await fetch(
+      `https://api.brandfetch.io/v2/brands/${domain}`,
+      {
+        headers: { Authorization: `Bearer ${API_KEY}` },
+      }
+    );
     if (!response.ok) {
       console.warn(`  Brand API returned ${response.status} for ${domain}`);
       return null;
@@ -161,11 +167,14 @@ async function fetchBrand(domain: string): Promise<BrandResponse | null> {
 function pickBestLogo(
   logos: BrandLogo[],
   preferredType: string,
-  preferredTheme = "light",
+  preferredTheme = "light"
 ): BrandFormat | null {
   // Find logo matching type and theme
-  const themed = logos.filter((l) => l.type === preferredType && l.theme === preferredTheme);
-  const typed = themed.length > 0 ? themed : logos.filter((l) => l.type === preferredType);
+  const themed = logos.filter(
+    (l) => l.type === preferredType && l.theme === preferredTheme
+  );
+  const typed =
+    themed.length > 0 ? themed : logos.filter((l) => l.type === preferredType);
   const candidates = typed.length > 0 ? typed : logos;
 
   if (candidates.length === 0) return null;
@@ -244,7 +253,8 @@ async function main(): Promise<void> {
     }
 
     // 4. Download icon/symbol
-    const iconLogo = pickBestLogo(brand.logos, "icon") ?? pickBestLogo(brand.logos, "symbol");
+    const iconLogo =
+      pickBestLogo(brand.logos, "icon") ?? pickBestLogo(brand.logos, "symbol");
     let iconPath = "";
     if (iconLogo) {
       const ext = iconLogo.format === "svg" ? "svg" : "png";
@@ -265,7 +275,8 @@ async function main(): Promise<void> {
       "#333333";
     const secondaryColor =
       brand.colors.find((c) => c.type === "dark")?.hex ??
-      brand.colors.find((c) => c.type === "brand" && c.hex !== primaryColor)?.hex ??
+      brand.colors.find((c) => c.type === "brand" && c.hex !== primaryColor)
+        ?.hex ??
       brand.colors[1]?.hex ??
       primaryColor;
 

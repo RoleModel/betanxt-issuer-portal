@@ -1,5 +1,5 @@
 {
-  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
   "oxc.fmt.configPath": ".oxfmtrc.json",
@@ -25,5 +25,13 @@
   "files.trimTrailingWhitespace": true,
   "npm.packageManager": "pnpm",
   "terminal.integrated.defaultProfile.osx": "zsh",
-  "task.autoDetect": "on"
+  "task.autoDetect": "on",
+  "editor.formatOnPaste": true,
+  "emmet.showExpandedAbbreviation": "never",
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  }
 }

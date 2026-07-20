@@ -54,7 +54,9 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
             size={32}
             sx={(theme) => ({ color: theme.vars.palette.primary.main })}
             value={file.progress ?? 0}
-            variant={file.progress !== undefined ? "determinate" : "indeterminate"}
+            variant={
+              file.progress !== undefined ? "determinate" : "indeterminate"
+            }
           />
         );
       case "complete":
@@ -203,9 +205,12 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
           gap: 1,
         }}
       >
-        {file.status === "uploading" && <Box position="relative">{getStatusIcon()}</Box>}
+        {file.status === "uploading" && (
+          <Box position="relative">{getStatusIcon()}</Box>
+        )}
 
-        {(file.status === "complete" || file.status === "error") && getStatusIcon()}
+        {(file.status === "complete" || file.status === "error") &&
+          getStatusIcon()}
 
         {/* Delete Button */}
         <IconButton

@@ -31,7 +31,10 @@ interface MeetingContextType {
   error: string | null;
   setCurrentMeeting: (meeting: Meeting | null) => void;
   refreshMeetings: (ticker?: string) => Promise<void>;
-  refreshMeetingData: () => Promise<{ tasks: Task[]; positions: Position[] } | null>; // Refresh tasks and positions for current meeting
+  refreshMeetingData: () => Promise<{
+    tasks: Task[];
+    positions: Position[];
+  } | null>; // Refresh tasks and positions for current meeting
   getMeetingById: (id: string) => Meeting | undefined;
 }
 
@@ -42,10 +45,15 @@ interface MeetingProviderProps {
   initialMeeting?: Meeting | null;
 }
 
-export function MeetingProvider({ children, initialMeeting = null }: MeetingProviderProps) {
+export function MeetingProvider({
+  children,
+  initialMeeting = null,
+}: MeetingProviderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(initialMeeting);
+  const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(
+    initialMeeting
+  );
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [keyDates, setKeyDates] = useState<KeyDate[]>([]);
@@ -146,7 +154,7 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
       router.replace(pathname.replace(/^\/[^/]+/, `/${meetingTicker}`));
       return true;
     },
-    [getTickerFromURL, pathname, router],
+    [getTickerFromURL, pathname, router]
   );
 
   const refreshMeetings = useCallback(
@@ -186,14 +194,19 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
             ticker: asString(record.ticker) || "",
             cusip: asString(record.cusip) || undefined,
             meetingType: asString(record.meetingType) || undefined,
-            meetingYear: typeof record.meetingYear === "number" ? record.meetingYear : undefined,
+            meetingYear:
+              typeof record.meetingYear === "number"
+                ? record.meetingYear
+                : undefined,
             status: asString(record.status) as Meeting["status"],
             meetingDate: asString(record.meetingDate) || undefined,
             recordDate: asString(record.recordDate) || undefined,
             cutoffDate: asString(record.cutoffDate) || undefined,
             currentPhase: asString(record.currentPhase) || undefined,
             overallCompletion:
-              typeof record.overallCompletion === "number" ? record.overallCompletion : undefined,
+              typeof record.overallCompletion === "number"
+                ? record.overallCompletion
+                : undefined,
             preFilingDate: asString(record.preFilingDate) || undefined,
             filingDate: asString(record.filingDate) || undefined,
             brokerSearchDate: asString(record.brokerSearchDate) || undefined,
@@ -204,9 +217,11 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
               typeof record.transferAgentConfirmed === "boolean"
                 ? record.transferAgentConfirmed
                 : null,
-            employeeStockPlans: asString(record.employeeStockPlans) || undefined,
+            employeeStockPlans:
+              asString(record.employeeStockPlans) || undefined,
             planAdministrator: asString(record.planAdministrator) || undefined,
-            planAdministratorContact: asString(record.planAdministratorContact) || undefined,
+            planAdministratorContact:
+              asString(record.planAdministratorContact) || undefined,
             planAdministratorContactEmail:
               asString(record.planAdministratorContactEmail) || undefined,
             solicitor: asString(record.solicitor) || undefined,
@@ -231,8 +246,13 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
         // Set current meeting if we don't have one or if URL suggests a different one
         const meetingIdFromURL = getMeetingIdFromURL();
         if (meetingIdFromURL) {
-          const targetMeeting = normalizedMeetings.find((m) => m.id === meetingIdFromURL);
-          if (targetMeeting && (!currentMeeting || currentMeeting.id !== targetMeeting.id)) {
+          const targetMeeting = normalizedMeetings.find(
+            (m) => m.id === meetingIdFromURL
+          );
+          if (
+            targetMeeting &&
+            (!currentMeeting || currentMeeting.id !== targetMeeting.id)
+          ) {
             if (redirectToMeetingTicker(targetMeeting)) {
               return;
             }
@@ -243,19 +263,26 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
           setCurrentMeeting(normalizedMeetings[0]);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch meetings");
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch meetings"
+        );
       } finally {
         setIsLoading(false);
       }
     },
-    [getTickerFromURL, getMeetingIdFromURL, currentMeeting, redirectToMeetingTicker],
+    [
+      getTickerFromURL,
+      getMeetingIdFromURL,
+      currentMeeting,
+      redirectToMeetingTicker,
+    ]
   );
 
   const getMeetingById = useCallback(
     (id: string): Meeting | undefined => {
       return meetings.find((meeting) => meeting.id === id);
     },
-    [meetings],
+    [meetings]
   );
 
   // Fetch tasks and positions for the current meeting
@@ -281,14 +308,19 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
       ]);
 
       // Update the meeting object with fresh data from the server
-      const typedMeetingResult = meetingResult as { error?: unknown; data?: unknown };
+      const typedMeetingResult = meetingResult as {
+        error?: unknown;
+        data?: unknown;
+      };
       if (!typedMeetingResult.error && typedMeetingResult.data) {
         const updatedMeeting = typedMeetingResult.data as Meeting;
         setCurrentMeeting(updatedMeeting);
 
         // Also update the meeting in the meetings array to keep everything in sync
         setMeetings((prevMeetings) =>
-          prevMeetings.map((m) => (m.id === updatedMeeting.id ? updatedMeeting : m)),
+          prevMeetings.map((m) =>
+            m.id === updatedMeeting.id ? updatedMeeting : m
+          )
         );
       }
 
@@ -314,18 +346,28 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
 
           const position: Position = {
             id: asString(record.id) || "",
-            meetingId: asString(record.meetingId) || asString(record.meeting_id) || "",
+            meetingId:
+              asString(record.meetingId) || asString(record.meeting_id) || "",
             cusip: asString(record.cusip) || undefined,
-            accountType: asString(record.accountType) || asString(record.account_type) || undefined,
-            setKey: asString(record.setKey) || asString(record.set_key) || undefined,
+            accountType:
+              asString(record.accountType) ||
+              asString(record.account_type) ||
+              undefined,
+            setKey:
+              asString(record.setKey) || asString(record.set_key) || undefined,
             name: asString(record.name) || undefined,
             accountNumber:
-              asString(record.accountNumber) || asString(record.account_number) || undefined,
+              asString(record.accountNumber) ||
+              asString(record.account_number) ||
+              undefined,
             controlNumber:
-              asString(record.controlNumber) || asString(record.control_number) || undefined,
+              asString(record.controlNumber) ||
+              asString(record.control_number) ||
+              undefined,
             voteStatus: (asString(record.voteStatus) ||
               asString(record.vote_status)) as Position["voteStatus"],
-            shares: typeof record.shares === "number" ? record.shares : undefined,
+            shares:
+              typeof record.shares === "number" ? record.shares : undefined,
             sharesVoted:
               typeof record.sharesVoted === "number"
                 ? record.sharesVoted
@@ -333,8 +375,14 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
                   ? record.shares_voted
                   : undefined,
             source: record.source as Position["source"],
-            createdAt: asString(record.createdAt) || asString(record.created_at) || undefined,
-            updatedAt: asString(record.updatedAt) || asString(record.updated_at) || undefined,
+            createdAt:
+              asString(record.createdAt) ||
+              asString(record.created_at) ||
+              undefined,
+            updatedAt:
+              asString(record.updatedAt) ||
+              asString(record.updated_at) ||
+              undefined,
           };
 
           positionData.push(position);
@@ -347,7 +395,9 @@ export function MeetingProvider({ children, initialMeeting = null }: MeetingProv
         positions: positionData,
       };
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to refresh meeting data");
+      setError(
+        err instanceof Error ? err.message : "Failed to refresh meeting data"
+      );
       return null;
     } finally {
       setTasksLoading(false);
@@ -464,7 +514,7 @@ export const useMeetingSafe = () => {
   // Return the context if available, otherwise return a safe default
   return useMemo(
     () => context || { meetings: [] as { id?: string; status?: string }[] },
-    [context],
+    [context]
   );
 };
 

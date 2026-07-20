@@ -20,9 +20,16 @@ interface ReportSummaryProps {
   timestamp: string;
 }
 
-export default function ReportSummary({ pages, timestamp }: ReportSummaryProps) {
-  const totalViolations = pages.reduce((total, test) => total + test.violations.length, 0);
-  const passedPages = pages.length - pages.filter((test) => test.violations.length > 0).length;
+export default function ReportSummary({
+  pages,
+  timestamp,
+}: ReportSummaryProps) {
+  const totalViolations = pages.reduce(
+    (total, test) => total + test.violations.length,
+    0
+  );
+  const passedPages =
+    pages.length - pages.filter((test) => test.violations.length > 0).length;
 
   return (
     <>
@@ -46,7 +53,9 @@ export default function ReportSummary({ pages, timestamp }: ReportSummaryProps) 
           <Typography
             variant="h4"
             color={
-              pages.every((test) => test.violations.length === 0) ? "success.main" : "warning.dark"
+              pages.every((test) => test.violations.length === 0)
+                ? "success.main"
+                : "warning.dark"
             }
           >
             {passedPages}
@@ -59,7 +68,11 @@ export default function ReportSummary({ pages, timestamp }: ReportSummaryProps) 
         <Card variant="outlined" sx={{ p: 2, flex: 1 }}>
           <Typography
             variant="h4"
-            color={pages.some((test) => test.violations.length > 0) ? "error.dark" : "success.main"}
+            color={
+              pages.some((test) => test.violations.length > 0)
+                ? "error.dark"
+                : "success.main"
+            }
           >
             {totalViolations}
           </Typography>

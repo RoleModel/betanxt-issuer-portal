@@ -30,7 +30,9 @@ export default function PDFPreview() {
         });
 
         // Load BetaNXT logo
-        const betanxtLogoResponse = await fetch(`${baseUrl}/images/betanxt-logo.png`);
+        const betanxtLogoResponse = await fetch(
+          `${baseUrl}/images/betanxt-logo.png`
+        );
         if (!betanxtLogoResponse.ok) {
           throw new Error("Failed to load BetaNXT logo");
         }
@@ -135,7 +137,11 @@ export default function PDFPreview() {
   }
 
   return (
-    <PDFViewer width="100%" height="100%" style={{ minHeight: "100vh", border: "none" }}>
+    <PDFViewer
+      width="100%"
+      height="100%"
+      style={{ minHeight: "100vh", border: "none" }}
+    >
       <TabulationPDFDocument
         tabulationData={sampleData}
         clientTicker="WEN"

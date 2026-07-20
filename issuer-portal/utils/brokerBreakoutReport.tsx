@@ -80,7 +80,7 @@ export interface BrokerBreakoutExportOptions {
  * @returns One derived row per distinct broker
  */
 export function deriveBrokerBreakoutRows(
-  brokerVotingByProposal: Record<string, BrokerVoteEntry[]>,
+  brokerVotingByProposal: Record<string, BrokerVoteEntry[]>
 ): BrokerBreakoutRow[] {
   const sharesVotedByBroker = new Map<string, number>();
 
@@ -92,18 +92,30 @@ export function deriveBrokerBreakoutRows(
     });
   });
 
-  const rows = Array.from(sharesVotedByBroker.entries()).map(([brokerName, sharesVoted]) => {
-    const random = createSeededRandom(hashString(brokerName));
-    const participationRate = 0.62 + random() * 0.32;
-    const averagePositionSize = 1500 + Math.floor(random() * 3000);
+  const rows = Array.from(sharesVotedByBroker.entries()).map(
+    ([brokerName, sharesVoted]) => {
+      const random = createSeededRandom(hashString(brokerName));
+      const participationRate = 0.62 + random() * 0.32;
+      const averagePositionSize = 1500 + Math.floor(random() * 3000);
 
-    const sharesHeld = sharesVoted > 0 ? Math.round(sharesVoted / participationRate) : 0;
-    const positionsHeld =
-      sharesHeld > 0 ? Math.max(1, Math.round(sharesHeld / averagePositionSize)) : 0;
-    const percentVoted = sharesHeld > 0 ? (sharesVoted / sharesHeld) * 100 : 0;
+      const sharesHeld =
+        sharesVoted > 0 ? Math.round(sharesVoted / participationRate) : 0;
+      const positionsHeld =
+        sharesHeld > 0
+          ? Math.max(1, Math.round(sharesHeld / averagePositionSize))
+          : 0;
+      const percentVoted =
+        sharesHeld > 0 ? (sharesVoted / sharesHeld) * 100 : 0;
 
-    return { brokerName, positionsHeld, sharesHeld, sharesVoted, percentVoted };
-  });
+      return {
+        brokerName,
+        positionsHeld,
+        sharesHeld,
+        sharesVoted,
+        percentVoted,
+      };
+    }
+  );
 
   return rows.sort((a, b) => b.sharesHeld - a.sharesHeld);
 }
@@ -132,7 +144,9 @@ interface BrokerBreakoutDocumentProps {
  * an empty-state row when no broker voting data exists, and a footnote
  * disclosing that held/position figures are estimates.
  */
-export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = ({
+export const BrokerBreakoutPDFDocument: React.FC<
+  BrokerBreakoutDocumentProps
+> = ({
   companyName,
   clientTicker,
   meetingType,
@@ -147,7 +161,7 @@ export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = 
       sharesHeld: acc.sharesHeld + row.sharesHeld,
       sharesVoted: acc.sharesVoted + row.sharesVoted,
     }),
-    { positionsHeld: 0, sharesHeld: 0, sharesVoted: 0 },
+    { positionsHeld: 0, sharesHeld: 0, sharesVoted: 0 }
   );
   const totalPercentVoted =
     totals.sharesHeld > 0 ? (totals.sharesVoted / totals.sharesHeld) * 100 : 0;
@@ -167,31 +181,58 @@ export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = 
           items={[
             { label: "Company Name:", value: companyName },
             ...(meetingDate
-              ? [{ label: "Meeting Date:", value: formatReportDate(meetingDate) }]
+              ? [
+                  {
+                    label: "Meeting Date:",
+                    value: formatReportDate(meetingDate),
+                  },
+                ]
               : []),
-            ...(meetingType ? [{ label: "Meeting Type:", value: meetingType }] : []),
+            ...(meetingType
+              ? [{ label: "Meeting Type:", value: meetingType }]
+              : []),
             { label: "Brokers:", value: formatReportNumber(rows.length) },
           ]}
         />
 
         <View style={reportStyles.tableContainer}>
           <View style={reportStyles.tableHeaderRow}>
-            <Text style={[reportStyles.headerCell, columnWidths.broker]}>Broker Name</Text>
-            <Text style={[reportStyles.headerCell, columnWidths.positions, reportStyles.cellRight]}>
+            <Text style={[reportStyles.headerCell, columnWidths.broker]}>
+              Broker Name
+            </Text>
+            <Text
+              style={[
+                reportStyles.headerCell,
+                columnWidths.positions,
+                reportStyles.cellRight,
+              ]}
+            >
               Positions Held
             </Text>
             <Text
-              style={[reportStyles.headerCell, columnWidths.sharesHeld, reportStyles.cellRight]}
+              style={[
+                reportStyles.headerCell,
+                columnWidths.sharesHeld,
+                reportStyles.cellRight,
+              ]}
             >
               Shares Held
             </Text>
             <Text
-              style={[reportStyles.headerCell, columnWidths.sharesVoted, reportStyles.cellRight]}
+              style={[
+                reportStyles.headerCell,
+                columnWidths.sharesVoted,
+                reportStyles.cellRight,
+              ]}
             >
               Shares Voted
             </Text>
             <Text
-              style={[reportStyles.headerCell, columnWidths.percentVoted, reportStyles.cellRight]}
+              style={[
+                reportStyles.headerCell,
+                columnWidths.percentVoted,
+                reportStyles.cellRight,
+              ]}
             >
               % Voted
             </Text>
@@ -206,18 +247,42 @@ export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = 
           ) : (
             rows.map((row) => (
               <View key={row.brokerName} style={reportStyles.tableRow}>
-                <Text style={[reportStyles.cell, columnWidths.broker]}>{row.brokerName}</Text>
-                <Text style={[reportStyles.cell, columnWidths.positions, reportStyles.cellRight]}>
+                <Text style={[reportStyles.cell, columnWidths.broker]}>
+                  {row.brokerName}
+                </Text>
+                <Text
+                  style={[
+                    reportStyles.cell,
+                    columnWidths.positions,
+                    reportStyles.cellRight,
+                  ]}
+                >
                   {formatReportNumber(row.positionsHeld)}
                 </Text>
-                <Text style={[reportStyles.cell, columnWidths.sharesHeld, reportStyles.cellRight]}>
+                <Text
+                  style={[
+                    reportStyles.cell,
+                    columnWidths.sharesHeld,
+                    reportStyles.cellRight,
+                  ]}
+                >
                   {formatReportNumber(row.sharesHeld)}
                 </Text>
-                <Text style={[reportStyles.cell, columnWidths.sharesVoted, reportStyles.cellRight]}>
+                <Text
+                  style={[
+                    reportStyles.cell,
+                    columnWidths.sharesVoted,
+                    reportStyles.cellRight,
+                  ]}
+                >
                   {formatReportNumber(row.sharesVoted)}
                 </Text>
                 <Text
-                  style={[reportStyles.cell, columnWidths.percentVoted, reportStyles.cellRight]}
+                  style={[
+                    reportStyles.cell,
+                    columnWidths.percentVoted,
+                    reportStyles.cellRight,
+                  ]}
                 >
                   {formatReportPercent(row.percentVoted)}
                 </Text>
@@ -227,24 +292,42 @@ export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = 
 
           {rows.length > 0 && (
             <View style={reportStyles.totalRow}>
-              <Text style={[reportStyles.totalCell, columnWidths.broker]}>Total</Text>
+              <Text style={[reportStyles.totalCell, columnWidths.broker]}>
+                Total
+              </Text>
               <Text
-                style={[reportStyles.totalCell, columnWidths.positions, reportStyles.cellRight]}
+                style={[
+                  reportStyles.totalCell,
+                  columnWidths.positions,
+                  reportStyles.cellRight,
+                ]}
               >
                 {formatReportNumber(totals.positionsHeld)}
               </Text>
               <Text
-                style={[reportStyles.totalCell, columnWidths.sharesHeld, reportStyles.cellRight]}
+                style={[
+                  reportStyles.totalCell,
+                  columnWidths.sharesHeld,
+                  reportStyles.cellRight,
+                ]}
               >
                 {formatReportNumber(totals.sharesHeld)}
               </Text>
               <Text
-                style={[reportStyles.totalCell, columnWidths.sharesVoted, reportStyles.cellRight]}
+                style={[
+                  reportStyles.totalCell,
+                  columnWidths.sharesVoted,
+                  reportStyles.cellRight,
+                ]}
               >
                 {formatReportNumber(totals.sharesVoted)}
               </Text>
               <Text
-                style={[reportStyles.totalCell, columnWidths.percentVoted, reportStyles.cellRight]}
+                style={[
+                  reportStyles.totalCell,
+                  columnWidths.percentVoted,
+                  reportStyles.cellRight,
+                ]}
               >
                 {formatReportPercent(totalPercentVoted)}
               </Text>
@@ -253,8 +336,8 @@ export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = 
         </View>
 
         <Text style={reportStyles.footnote}>
-          Positions Held and Shares Held are estimated from broker-level voted shares reported on
-          the meeting tabulation.
+          Positions Held and Shares Held are estimated from broker-level voted
+          shares reported on the meeting tabulation.
         </Text>
 
         <ReportPageNumber />
@@ -272,11 +355,20 @@ export const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = 
  *
  * @param options - Meeting/client context and the broker voting source data
  */
-export async function exportBrokerBreakoutPdf(options: BrokerBreakoutExportOptions): Promise<void> {
-  const { companyName, clientTicker, meetingType, meetingDate, brokerVotingByProposal } = options;
+export async function exportBrokerBreakoutPdf(
+  options: BrokerBreakoutExportOptions
+): Promise<void> {
+  const {
+    companyName,
+    clientTicker,
+    meetingType,
+    meetingDate,
+    brokerVotingByProposal,
+  } = options;
 
   const rows = deriveBrokerBreakoutRows(brokerVotingByProposal);
-  const { clientLogoUrl, betanxtLogoUrl } = await resolveReportLogos(clientTicker);
+  const { clientLogoUrl, betanxtLogoUrl } =
+    await resolveReportLogos(clientTicker);
 
   const pdfBlob = await pdf(
     <BrokerBreakoutPDFDocument
@@ -287,7 +379,7 @@ export async function exportBrokerBreakoutPdf(options: BrokerBreakoutExportOptio
       rows={rows}
       clientLogoUrl={clientLogoUrl}
       betanxtLogoUrl={betanxtLogoUrl}
-    />,
+    />
   ).toBlob();
 
   const fileName = `${companyName.replace(/\s+/g, "_")}_Broker_Breakout_Report_${

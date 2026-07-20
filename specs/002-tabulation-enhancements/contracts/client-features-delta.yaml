@@ -16,8 +16,7 @@ Client:
           - agenda
           - nobo # NEW — present when Engage functionality is active for the client
       description: >
-        Feature keys controlling portal surface visibility. "nobo" gates the
-        NOBO meeting tab and optional NOBO inclusion in the geographic heat map.
+        Feature keys controlling portal surface visibility. "nobo" gates the NOBO meeting tab and optional NOBO inclusion in the geographic heat map.
 
 # Frontend mirror:
 #   issuer-portal/hooks/useClients.ts → ClientFeatureKey union adds "nobo"

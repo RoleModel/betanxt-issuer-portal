@@ -1,6 +1,7 @@
 import type { components } from "@/domain-models/generated-schema";
 
-type DigitalShareholderMeeting = components["schemas"]["DigitalShareholderMeeting"];
+type DigitalShareholderMeeting =
+  components["schemas"]["DigitalShareholderMeeting"];
 
 export interface ExportOptions {
   format: "csv" | "excel" | "pdf";
@@ -11,15 +12,26 @@ export interface ExportOptions {
 /**
  * Export attendees to CSV format
  */
-function exportToCSV(attendees: DigitalShareholderMeeting[], filename: string): void {
-  const headers = ["Type", "First Name", "Last Name", "Email", "Minutes Attended", "Created At"];
+function exportToCSV(
+  attendees: DigitalShareholderMeeting[],
+  filename: string
+): void {
+  const headers = [
+    "Type",
+    "First Name",
+    "Last Name",
+    "Email",
+    "Minutes Attended",
+    "Created At",
+  ];
 
   const csvRows = [
     headers.join(","),
     ...attendees.map((attendee) => {
       // Determine the display type
       const displayType =
-        attendee.registrantType === "Other" && attendee.registrationQuestions?.includes("Presenter")
+        attendee.registrantType === "Other" &&
+        attendee.registrationQuestions?.includes("Presenter")
           ? "Presenter"
           : (attendee.registrantType ?? "");
 
@@ -43,15 +55,26 @@ function exportToCSV(attendees: DigitalShareholderMeeting[], filename: string): 
  * Note: This creates a simple TSV which Excel can open
  * For full XLSX support, would need a library like xlsx/exceljs
  */
-function exportToExcel(attendees: DigitalShareholderMeeting[], filename: string): void {
-  const headers = ["Type", "First Name", "Last Name", "Email", "Minutes Attended", "Created At"];
+function exportToExcel(
+  attendees: DigitalShareholderMeeting[],
+  filename: string
+): void {
+  const headers = [
+    "Type",
+    "First Name",
+    "Last Name",
+    "Email",
+    "Minutes Attended",
+    "Created At",
+  ];
 
   const rows = [
     headers.join("\t"),
     ...attendees.map((attendee) => {
       // Determine the display type
       const displayType =
-        attendee.registrantType === "Other" && attendee.registrationQuestions?.includes("Presenter")
+        attendee.registrantType === "Other" &&
+        attendee.registrationQuestions?.includes("Presenter")
           ? "Presenter"
           : (attendee.registrantType ?? "");
 
@@ -77,7 +100,10 @@ function exportToExcel(attendees: DigitalShareholderMeeting[], filename: string)
  * Note: This creates a simple HTML that can be printed to PDF
  * For full PDF generation, would need a library like jsPDF or pdfmake
  */
-function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): void {
+function exportToPDF(
+  attendees: DigitalShareholderMeeting[],
+  filename: string
+): void {
   const html = `
 <!DOCTYPE html>
 <html>
@@ -185,7 +211,11 @@ function exportToPDF(attendees: DigitalShareholderMeeting[], filename: string): 
 /**
  * Helper function to trigger file download
  */
-function downloadFile(content: string, filename: string, mimeType: string): void {
+function downloadFile(
+  content: string,
+  filename: string,
+  mimeType: string
+): void {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -202,7 +232,7 @@ function downloadFile(content: string, filename: string, mimeType: string): void
  */
 export function exportAttendees(
   attendees: DigitalShareholderMeeting[],
-  options: ExportOptions,
+  options: ExportOptions
 ): void {
   const timestamp = new Date().toISOString().split("T")[0];
   const defaultFilename = `attendees-${timestamp}`;
@@ -228,7 +258,7 @@ export function exportAttendees(
  */
 export function filterAttendeesByType(
   attendees: DigitalShareholderMeeting[],
-  type: "Shareholder" | "Guest" | "Proxy" | "Other",
+  type: "Shareholder" | "Guest" | "Proxy" | "Other"
 ): DigitalShareholderMeeting[] {
   return attendees.filter((attendee) => attendee.registrantType === type);
 }
@@ -237,9 +267,11 @@ export function filterAttendeesByType(
  * Filter attendees who actually attended (have minutes > 0)
  */
 export function filterActualAttendees(
-  attendees: DigitalShareholderMeeting[],
+  attendees: DigitalShareholderMeeting[]
 ): DigitalShareholderMeeting[] {
-  return attendees.filter((attendee) => (attendee.minutesAttendedMeeting ?? 0) > 0);
+  return attendees.filter(
+    (attendee) => (attendee.minutesAttendedMeeting ?? 0) > 0
+  );
 }
 
 /**
@@ -256,8 +288,10 @@ export function getAttendeeStats(attendees: DigitalShareholderMeeting[]) {
   const actualAttendees = filterActualAttendees(attendees);
   const avgMinutesAttended =
     actualAttendees.length > 0
-      ? actualAttendees.reduce((sum, a) => sum + (a.minutesAttendedMeeting ?? 0), 0) /
-        actualAttendees.length
+      ? actualAttendees.reduce(
+          (sum, a) => sum + (a.minutesAttendedMeeting ?? 0),
+          0
+        ) / actualAttendees.length
       : 0;
 
   return {

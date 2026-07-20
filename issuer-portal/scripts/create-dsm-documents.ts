@@ -27,12 +27,16 @@ async function createDSMDocuments() {
       .list(meetingId, { limit: 1000 });
 
     if (typeDirError) {
-      console.error(`❌ Error listing directories for ${meetingId}:`, typeDirError);
+      console.error(
+        `❌ Error listing directories for ${meetingId}:`,
+        typeDirError
+      );
       continue;
     }
 
     // Filter to only directories (no file extension)
-    const directories = typeDirs?.filter((item) => !item.name.includes(".")) || [];
+    const directories =
+      typeDirs?.filter((item) => !item.name.includes(".")) || [];
 
     for (const dir of directories) {
       const dirPath = `${meetingId}/${dir.name}`;
@@ -48,13 +52,16 @@ async function createDSMDocuments() {
       }
 
       // Process each file
-      const actualFiles = files?.filter((item) => item.name.includes(".")) || [];
+      const actualFiles =
+        files?.filter((item) => item.name.includes(".")) || [];
 
       for (const file of actualFiles) {
         const fullPath = `${dirPath}/${file.name}`;
 
         // Get public URL
-        const { data: urlData } = supabase.storage.from("documents").getPublicUrl(fullPath);
+        const { data: urlData } = supabase.storage
+          .from("documents")
+          .getPublicUrl(fullPath);
 
         // Determine document type and category based on directory name
         const docType = getDocumentType(dir.name, file.name);
@@ -95,7 +102,9 @@ async function createDSMDocuments() {
           updated_at: new Date().toISOString(),
         };
 
-        const { error: insertError } = await supabase.from("document").insert(newDoc);
+        const { error: insertError } = await supabase
+          .from("document")
+          .insert(newDoc);
 
         if (insertError) {
           console.error(`❌ Failed to create ${title}: ${insertError.message}`);
@@ -162,9 +171,11 @@ function getDocumentType(dirName: string, fileName: string): string {
   if (lowerFile.includes("script")) return "Meeting Script";
   if (lowerFile.includes("procedure")) return "Meeting Procedures";
   if (lowerFile.includes("minutes")) return "Meeting Minutes";
-  if (lowerFile.includes("recording") || lowerFile.includes("archive")) return "Meeting Recording";
+  if (lowerFile.includes("recording") || lowerFile.includes("archive"))
+    return "Meeting Recording";
   if (lowerFile.includes("attendance")) return "Attendance Report";
-  if (lowerFile.includes("q&a") || lowerFile.includes("qa")) return "Q&A Document";
+  if (lowerFile.includes("q&a") || lowerFile.includes("qa"))
+    return "Q&A Document";
   if (lowerFile.includes("oath")) return "Inspector Oath";
   if (lowerFile.includes("guest")) return "Guest List";
 
@@ -230,7 +241,11 @@ function getDisplayCategory(dirName: string, fileName: string): string {
   }
 
   // Internal documents
-  if (lowerDir.includes("data") || lowerDir.includes("registry") || lowerDir.includes("account")) {
+  if (
+    lowerDir.includes("data") ||
+    lowerDir.includes("registry") ||
+    lowerDir.includes("account")
+  ) {
     return "internal";
   }
 

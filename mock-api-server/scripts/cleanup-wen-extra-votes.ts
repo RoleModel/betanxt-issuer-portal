@@ -45,7 +45,7 @@ async function run() {
           AND name = ANY($1::text[])
       )
     `,
-      [VOTED_NAMES],
+      [VOTED_NAMES]
     );
     console.log(`🗑️  Deleted ${del.rowCount} spurious position_vote records`);
 
@@ -62,7 +62,7 @@ async function run() {
     console.log("\nPost-cleanup counts:");
     for (const row of counts.rows) {
       console.log(
-        `  ${Number(row.proposal_number).toFixed(2).padEnd(6)} | rows=${row.row_count} | total=${Number(row.total_shares).toLocaleString()}`,
+        `  ${Number(row.proposal_number).toFixed(2).padEnd(6)} | rows=${row.row_count} | total=${Number(row.total_shares).toLocaleString()}`
       );
     }
 

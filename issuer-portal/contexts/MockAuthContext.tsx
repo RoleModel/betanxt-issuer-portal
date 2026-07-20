@@ -27,7 +27,9 @@ interface MockAuthContextType {
   switchClient: (clientId: number, clientName: string) => Promise<void>;
 }
 
-const MockAuthContext = createContext<MockAuthContextType | undefined>(undefined);
+const MockAuthContext = createContext<MockAuthContextType | undefined>(
+  undefined
+);
 
 interface MockAuthProviderProps {
   children: React.ReactNode;
@@ -46,7 +48,9 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
         username: (session.user as { username?: string }).username ?? "",
         type: (session.user as { type?: string }).type ?? "user",
         accountId: (session.user as { accountId?: string }).accountId ?? "",
-        client: (session.user as { client?: { id: number; name: string } | null }).client || null,
+        client:
+          (session.user as { client?: { id: number; name: string } | null })
+            .client || null,
         roles: (session.user as { roles?: string[] }).roles || [],
       });
     } else {
@@ -56,7 +60,10 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
 
   // Must be async to match interface contract (returns Promise)
   // eslint-disable-next-line @typescript-eslint/require-await
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (
+    username: string,
+    password: string
+  ): Promise<boolean> => {
     try {
       // This would typically call the NextAuth signIn function
       // For now, return true if we have mock credentials
@@ -78,7 +85,10 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
     }
   };
 
-  const switchClient = async (clientId: number, clientName: string): Promise<void> => {
+  const switchClient = async (
+    clientId: number,
+    clientName: string
+  ): Promise<void> => {
     try {
       // Update the user's current client
       if (user) {
@@ -114,7 +124,11 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
     switchClient,
   };
 
-  return <MockAuthContext.Provider value={value}>{children}</MockAuthContext.Provider>;
+  return (
+    <MockAuthContext.Provider value={value}>
+      {children}
+    </MockAuthContext.Provider>
+  );
 }
 
 export function useMockAuth() {

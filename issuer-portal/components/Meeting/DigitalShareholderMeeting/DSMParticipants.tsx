@@ -34,7 +34,8 @@ import { useDocuments } from "@/contexts/DocumentContext";
 import { AddDocumentDialog } from "./AddDocumentDialog";
 import { ExportButton } from "./ExportButton";
 
-type DigitalShareholderMeeting = components["schemas"]["DigitalShareholderMeeting"];
+type DigitalShareholderMeeting =
+  components["schemas"]["DigitalShareholderMeeting"];
 
 interface DSMParticipantsProps {
   meetingId: string;
@@ -52,7 +53,8 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
   const [participants, setParticipants] = useState<ParticipantWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedParticipant, setSelectedParticipant] = useState<ParticipantWithRole | null>(null);
+  const [selectedParticipant, setSelectedParticipant] =
+    useState<ParticipantWithRole | null>(null);
   const [addDocumentDialogOpen, setAddDocumentDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
@@ -61,8 +63,11 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       setError(null);
       setIsLoading(true);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`);
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch participants");
       }
@@ -73,39 +78,43 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       console.log(
         "[DSMParticipants] DSM documents from context:",
         dsmDocuments.length,
-        dsmDocuments,
+        dsmDocuments
       );
 
       // Transform data to include role information
-      const participantsWithRoles: ParticipantWithRole[] = data.map((participant) => {
-        const role = participant.registrantType ?? "Shareholder";
+      const participantsWithRoles: ParticipantWithRole[] = data.map(
+        (participant) => {
+          const role = participant.registrantType ?? "Shareholder";
 
-        // Find participant-specific documents (documents should be linked to participant ID)
-        const participantDocuments = dsmDocuments.filter((doc) => {
-          console.log(
-            `[DSMParticipants] Checking doc.participantId: "${doc.participantId}" === participant.id: "${participant.id}"`,
-          );
-          // Only match documents that have a participantId and it matches this participant
-          return doc.participantId && doc.participantId === participant.id;
-        });
+          // Find participant-specific documents (documents should be linked to participant ID)
+          const participantDocuments = dsmDocuments.filter((doc) => {
+            console.log(
+              `[DSMParticipants] Checking doc.participantId: "${doc.participantId}" === participant.id: "${participant.id}"`
+            );
+            // Only match documents that have a participantId and it matches this participant
+            return doc.participantId && doc.participantId === participant.id;
+          });
 
-        const hasDocuments = participantDocuments.length > 0;
-        const firstDocument = participantDocuments[0];
+          const hasDocuments = participantDocuments.length > 0;
+          const firstDocument = participantDocuments[0];
 
-        return {
-          ...participant,
-          role,
-          documentName: hasDocuments
-            ? firstDocument?.title?.replace(/\.[^/.]+$/, "") // Clean title without extension
-            : undefined,
-          documentStatus: firstDocument?.status || undefined, // Use actual document status from API
-          documentUrl: firstDocument?.filePath || undefined,
-        };
-      });
+          return {
+            ...participant,
+            role,
+            documentName: hasDocuments
+              ? firstDocument?.title?.replace(/\.[^/.]+$/, "") // Clean title without extension
+              : undefined,
+            documentStatus: firstDocument?.status || undefined, // Use actual document status from API
+            documentUrl: firstDocument?.filePath || undefined,
+          };
+        }
+      );
 
       setParticipants(participantsWithRoles);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load participants");
+      setError(
+        err instanceof Error ? err.message : "Failed to load participants"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -118,14 +127,19 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
   // Listen for attendees upload event
   useEffect(() => {
     const handleAttendeesUploaded = () => {
-      console.log("[DSMParticipants] Attendees uploaded event received, refreshing...");
+      console.log(
+        "[DSMParticipants] Attendees uploaded event received, refreshing..."
+      );
       void fetchParticipants();
     };
 
     window.addEventListener("dsmAttendeesUploaded", handleAttendeesUploaded);
 
     return () => {
-      window.removeEventListener("dsmAttendeesUploaded", handleAttendeesUploaded);
+      window.removeEventListener(
+        "dsmAttendeesUploaded",
+        handleAttendeesUploaded
+      );
     };
   }, [fetchParticipants]);
 
@@ -134,7 +148,7 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       "[DSMParticipants] Adding document for participant:",
       participant.id,
       participant.firstName,
-      participant.lastName,
+      participant.lastName
     );
     setSelectedParticipant(participant);
     setAddDocumentDialogOpen(true);
@@ -142,7 +156,10 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
 
   const handleDocumentAdded = async () => {
     if (selectedParticipant) {
-      console.log("[DSMParticipants] Document added for participant:", selectedParticipant);
+      console.log(
+        "[DSMParticipants] Document added for participant:",
+        selectedParticipant
+      );
 
       // Refresh documents from DocumentContext to get latest status
       await refreshDocuments(meetingId);
@@ -173,13 +190,14 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
         formData.append("documentType", "digital-shareholder-meeting");
         formData.append("title", file.name.replace(/\.[^/.]+$/, "")); // Use original filename as title
 
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api";
+        const apiBaseUrl =
+          process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api";
         const response = await fetch(
           `${apiBaseUrl}/documents/types/digital-shareholder-meeting/upload`,
           {
             method: "POST",
             body: formData,
-          },
+          }
         );
 
         if (!response.ok) {
@@ -196,13 +214,15 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       window.dispatchEvent(
         new CustomEvent("documentsUploaded", {
           detail: { meetingId },
-        }),
+        })
       );
 
       // fetchParticipants will automatically run due to dsmDocuments dependency
     } catch (error) {
       console.error("Upload failed:", error);
-      alert(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      alert(
+        `Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   };
 
@@ -214,7 +234,9 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
     return { label: "Registered", color: "default" as const };
   };
 
-  const actualAttendees = participants.filter((p) => (p.minutesAttendedMeeting ?? 0) > 0).length;
+  const actualAttendees = participants.filter(
+    (p) => (p.minutesAttendedMeeting ?? 0) > 0
+  ).length;
 
   if (isLoading) {
     return <SkeletonTable rows={5} columns={5} />;
@@ -272,7 +294,10 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
 
                 return (
                   <TableRow
-                    key={participant.id || `participant-${participant.emailAddress}-${index}`}
+                    key={
+                      participant.id ||
+                      `participant-${participant.emailAddress}-${index}`
+                    }
                     hover
                   >
                     <TableCell>
@@ -293,16 +318,25 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
                       />
                     </TableCell>
                     <TableCell>
-                      <StatusChip status={participant.documentStatus || null} size="small" />
+                      <StatusChip
+                        status={participant.documentStatus || null}
+                        size="small"
+                      />
                     </TableCell>
                     <TableCell align="right">
                       {participant.documentName ? (
-                        <Typography variant="dataCell">{participant.documentName}</Typography>
+                        <Typography variant="dataCell">
+                          {participant.documentName}
+                        </Typography>
                       ) : (
                         <Button
                           variant="text"
                           onClick={() => handleAddDocument(participant)}
-                          sx={{ textTransform: "none", minWidth: "auto", px: 1 }}
+                          sx={{
+                            textTransform: "none",
+                            minWidth: "auto",
+                            px: 1,
+                          }}
                         >
                           Add Document
                         </Button>
@@ -317,7 +351,9 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
 
         {participants.length === 0 && (
           <Box sx={{ textAlign: "center", py: 4 }}>
-            <Typography color="text.secondary">No participants registered yet</Typography>
+            <Typography color="text.secondary">
+              No participants registered yet
+            </Typography>
           </Box>
         )}
       </CardContent>
@@ -337,13 +373,25 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       />
 
       {/* Upload Dialog */}
-      <Dialog open={uploadDialogOpen} onClose={handleUploadClose} maxWidth="md" fullWidth>
+      <Dialog
+        open={uploadDialogOpen}
+        onClose={handleUploadClose}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Upload Participant Documents</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <BNFileUpload
               maxFiles={10}
-              acceptedFileTypes={[".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv"]}
+              acceptedFileTypes={[
+                ".pdf",
+                ".doc",
+                ".docx",
+                ".xls",
+                ".xlsx",
+                ".csv",
+              ]}
               onUpload={handleFileUpload}
               multiple={true}
             />

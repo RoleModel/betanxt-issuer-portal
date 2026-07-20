@@ -36,7 +36,10 @@ export function PhaseStatusFromJSON(json: any): PhaseStatus {
   return PhaseStatusFromJSONTyped(json, false);
 }
 
-export function PhaseStatusFromJSONTyped(json: any, ignoreDiscriminator: boolean): PhaseStatus {
+export function PhaseStatusFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): PhaseStatus {
   return json as PhaseStatus;
 }
 
@@ -44,6 +47,9 @@ export function PhaseStatusToJSON(value?: PhaseStatus | null): any {
   return value as any;
 }
 
-export function PhaseStatusToJSONTyped(value: any, ignoreDiscriminator: boolean): PhaseStatus {
+export function PhaseStatusToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean
+): PhaseStatus {
   return value as PhaseStatus;
 }

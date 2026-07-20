@@ -219,47 +219,60 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
             <Text style={styles.logoFallback}>Broadridge</Text>
           )}
           <View style={styles.headerTitleBox}>
-            <Text style={styles.headerTitle}>CORPORATE ISSUER PROFILE FORM</Text>
+            <Text style={styles.headerTitle}>
+              CORPORATE ISSUER PROFILE FORM
+            </Text>
           </View>
         </View>
 
         {/* Section Title */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeaderText}>Corporate Issuer Profile Form:</Text>
+          <Text style={styles.sectionHeaderText}>
+            Corporate Issuer Profile Form:
+          </Text>
         </View>
 
         {/* Description */}
         <Text style={styles.descriptionText}>
-          Broadridge Financial Solutions, Inc. provides proxy processing and corporate communication
-          services for its Bank and Brokerage firm clients and we are committed to delivering
-          excellent service. According to our records, your company or CUSIP are not listed or have
-          changed due to corporate action. Please take this opportunity to provide your
-          company&#39;s information for our Master File prior to your annual or special shareholders
-          meeting, or any quarterly or other non-proxy mailings. If you are requesting a NOBO list
-          or non-mailing data reporting, please submit the Issuer Profile along with the NOBO
+          Broadridge Financial Solutions, Inc. provides proxy processing and
+          corporate communication services for its Bank and Brokerage firm
+          clients and we are committed to delivering excellent service.
+          According to our records, your company or CUSIP are not listed or have
+          changed due to corporate action. Please take this opportunity to
+          provide your company&#39;s information for our Master File prior to
+          your annual or special shareholders meeting, or any quarterly or other
+          non-proxy mailings. If you are requesting a NOBO list or non-mailing
+          data reporting, please submit the Issuer Profile along with the NOBO
           Request Form or Data report request form together in the same email.
         </Text>
 
         {/* Issuer Profile Information */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeaderText}>Issuer Profile Information:</Text>
+          <Text style={styles.sectionHeaderText}>
+            Issuer Profile Information:
+          </Text>
         </View>
 
         <Text style={styles.subtitle}>
-          (You are authorizing the below email address accounts, access to proxy data, and process
-          setup on behalf of your company via myservice.broadridge.com)
+          (You are authorizing the below email address accounts, access to proxy
+          data, and process setup on behalf of your company via
+          myservice.broadridge.com)
         </Text>
 
         {/* Two column headers */}
         <View style={styles.formRow}>
           <View style={styles.formColumn}>
             <View style={styles.greyHeader}>
-              <Text style={styles.greyHeaderText}>Corporate Issuer Billing Address</Text>
+              <Text style={styles.greyHeaderText}>
+                Corporate Issuer Billing Address
+              </Text>
             </View>
           </View>
           <View style={styles.formColumn}>
             <View style={styles.greyHeader}>
-              <Text style={styles.greyHeaderText}>Corporate Issuer Contact Information</Text>
+              <Text style={styles.greyHeaderText}>
+                Corporate Issuer Contact Information
+              </Text>
             </View>
           </View>
         </View>
@@ -267,74 +280,105 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
         {/* Form fields in two columns */}
         <View style={styles.formRow}>
           <View style={styles.formColumn}>
-            <Text style={styles.formField}>Corporate Issuer Name: {formData.issuerName ?? ""}</Text>
+            <Text style={styles.formField}>
+              Corporate Issuer Name: {formData.issuerName ?? ""}
+            </Text>
             <Text style={styles.formField}>
               Full 9-digit CUSIP Number: {formData.cusipNumber ?? ""}
             </Text>
-            <Text style={styles.formField}>Address: {formData.address ?? ""}</Text>
+            <Text style={styles.formField}>
+              Address: {formData.address ?? ""}
+            </Text>
             <Text style={styles.formField}>City: {formData.city ?? ""}</Text>
             <Text style={styles.formField}>State: {formData.state ?? ""}</Text>
-            <Text style={styles.formField}>Zip Code: {formData.zipCode ?? ""}</Text>
-            <Text style={styles.formField}>Exchange: {formData.exchange ?? ""}</Text>
+            <Text style={styles.formField}>
+              Zip Code: {formData.zipCode ?? ""}
+            </Text>
+            <Text style={styles.formField}>
+              Exchange: {formData.exchange ?? ""}
+            </Text>
             <Text style={styles.formField}>Fiscal Year End:</Text>
           </View>
           <View style={styles.formColumn}>
-            <Text style={styles.formField}>Contact Name: {formData.contactName ?? ""}</Text>
-            <Text style={styles.formField}>Telephone: {formData.telephone ?? ""}</Text>
-            <Text style={styles.formField}>Email Address 1: {formData.email ?? ""}</Text>
-            <Text style={styles.formField}>Contact Name 2: {formData.contactName2 ?? ""}</Text>
-            <Text style={styles.formField}>Email Address 2: {formData.emailAddress2 ?? ""}</Text>
-            <Text style={styles.formField}>Fax Number: {formData.faxNumber ?? ""}</Text>
-            <Text style={styles.formField}>Mailer Identification (MID) Number:</Text>
+            <Text style={styles.formField}>
+              Contact Name: {formData.contactName ?? ""}
+            </Text>
+            <Text style={styles.formField}>
+              Telephone: {formData.telephone ?? ""}
+            </Text>
+            <Text style={styles.formField}>
+              Email Address 1: {formData.email ?? ""}
+            </Text>
+            <Text style={styles.formField}>
+              Contact Name 2: {formData.contactName2 ?? ""}
+            </Text>
+            <Text style={styles.formField}>
+              Email Address 2: {formData.emailAddress2 ?? ""}
+            </Text>
+            <Text style={styles.formField}>
+              Fax Number: {formData.faxNumber ?? ""}
+            </Text>
+            <Text style={styles.formField}>
+              Mailer Identification (MID) Number:
+            </Text>
           </View>
         </View>
 
         {/* Note */}
         <Text style={styles.noteText}>
-          <Text style={styles.redText}>Note:</Text> An officer of the Issuer company must sign and
-          date the form in order to grant the myservice.broadridge.com access to above contact. If
-          you have multiple agents that need to be added element control ne fee indenetieaire an
-          addime muieiode users need to be added, please contact us for instructions on adding
-          multiple users.
+          <Text style={styles.redText}>Note:</Text> An officer of the Issuer
+          company must sign and date the form in order to grant the
+          myservice.broadridge.com access to above contact. If you have multiple
+          agents that need to be added element control ne fee indenetieaire an
+          addime muieiode users need to be added, please contact us for
+          instructions on adding multiple users.
         </Text>
 
         {/* Solicitor section */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeaderText}>Solicitor and Tabulating Agent Entitlement</Text>
+          <Text style={styles.sectionHeaderText}>
+            Solicitor and Tabulating Agent Entitlement
+          </Text>
         </View>
 
         <View style={styles.formRow}>
           <View style={styles.formColumn}>
-            <Text style={styles.formField}>Voting To Agent Name: Mediant Communications</Text>
+            <Text style={styles.formField}>
+              Voting To Agent Name: Mediant Communications
+            </Text>
             <Text style={styles.formField}>Solicitor ID Number: S00454</Text>
           </View>
           <View style={styles.formColumn}>
-            <Text style={styles.formField}>Tabulating Agent Name: Mediant Communications</Text>
+            <Text style={styles.formField}>
+              Tabulating Agent Name: Mediant Communications
+            </Text>
             <Text style={styles.formField}>Solicitor ID Number: S00454</Text>
           </View>
         </View>
 
         {/* Red Note */}
         <Text style={styles.noteText}>
-          <Text style={styles.redText}>Note:</Text> An officer of the Issuer company must sign and
-          date the form in order to grant the entitlement. Coordinate with your agent to provide
-          their Solicitor number. If you have multiple agents that need to be added, please contact
-          us for instructions on adding multiple users.
+          <Text style={styles.redText}>Note:</Text> An officer of the Issuer
+          company must sign and date the form in order to grant the entitlement.
+          Coordinate with your agent to provide their Solicitor number. If you
+          have multiple agents that need to be added, please contact us for
+          instructions on adding multiple users.
         </Text>
 
         {/* Additional Information */}
         <Text style={styles.additionalInfo}>
-          The most efficient way to provide Broadridge notification of your mailing is at:
-          https://MyService.Broadridge.com. You will need your e-mail address and password to access
-          our website. If you need your password reset, please click on &quot;Forgot Password&quot;
-          and follow the instructions in the e-mail that will automatically be sent to you. You will
-          have 15 minutes to reset your password before it expires.
+          The most efficient way to provide Broadridge notification of your
+          mailing is at: https://MyService.Broadridge.com. You will need your
+          e-mail address and password to access our website. If you need your
+          password reset, please click on &quot;Forgot Password&quot; and follow
+          the instructions in the e-mail that will automatically be sent to you.
+          You will have 15 minutes to reset your password before it expires.
         </Text>
 
         <Text style={styles.additionalInfo}>
-          Our online Corporate Issuer Guidebook contains a wealth of information regarding job setup
-          and management. Please use the link provided to view or print the document:
-          https://broadridge.com/corporateguide.
+          Our online Corporate Issuer Guidebook contains a wealth of information
+          regarding job setup and management. Please use the link provided to
+          view or print the document: https://broadridge.com/corporateguide.
         </Text>
 
         <Text style={styles.additionalInfo}>
@@ -343,12 +387,14 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
         </Text>
 
         <Text style={styles.additionalInfo}>
-          The United States Postal Service is requiring Broadridge to have a Mailer ID (MID) for
-          each Issuer. Please provide your MID number, or we can assist in requesting it on your
-          behalf, by requesting a MID Authorization Letter from us. We encourage and appreciate your
-          prompt completion and return of this Issuer Profile to Corporate Client Service Department
-          at: BSGIssuerServices@Broadridge.com indicating your CUSIP and company name in the subject
-          line for update. If you have any questions, please do not hesitate in contacting us by
+          The United States Postal Service is requiring Broadridge to have a
+          Mailer ID (MID) for each Issuer. Please provide your MID number, or we
+          can assist in requesting it on your behalf, by requesting a MID
+          Authorization Letter from us. We encourage and appreciate your prompt
+          completion and return of this Issuer Profile to Corporate Client
+          Service Department at: BSGIssuerServices@Broadridge.com indicating
+          your CUSIP and company name in the subject line for update. If you
+          have any questions, please do not hesitate in contacting us by
           telephone at (631) 254-7067, option 2.
         </Text>
 
@@ -371,8 +417,8 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            © 2021 Broadridge Financial Solutions, Inc 51 Menades Way, Edgewood, NY 11717, Phone:
-            481.254.7057 www.broadridge.com
+            © 2021 Broadridge Financial Solutions, Inc 51 Menades Way, Edgewood,
+            NY 11717, Phone: 481.254.7057 www.broadridge.com
           </Text>
         </View>
       </Page>
@@ -380,7 +426,9 @@ const BroadridgePDFDocument: React.FC<BroadridgePDFDocumentProps> = ({
   );
 };
 
-export const generatePDFForm = async (formData: FormData = {}): Promise<string> => {
+export const generatePDFForm = async (
+  formData: FormData = {}
+): Promise<string> => {
   // Try to load Broadridge logo
   let logoBase64: string | undefined;
 
@@ -402,7 +450,7 @@ export const generatePDFForm = async (formData: FormData = {}): Promise<string> 
 
   // Generate the PDF
   const pdfBlob = await pdf(
-    <BroadridgePDFDocument formData={formData} logoBase64={logoBase64} />,
+    <BroadridgePDFDocument formData={formData} logoBase64={logoBase64} />
   ).toBlob();
 
   // Convert blob to data URI

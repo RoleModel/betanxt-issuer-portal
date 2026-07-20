@@ -5,7 +5,10 @@ import { NextResponse } from "next/server";
 import type { components } from "@/types/api";
 
 import { handleCors, withCors } from "@/utils/cors";
-import { getMeetingIdsForTicker, resolveNotificationUserId } from "@/utils/resolveNotificationUser";
+import {
+  getMeetingIdsForTicker,
+  resolveNotificationUserId,
+} from "@/utils/resolveNotificationUser";
 import { supabase } from "@/utils/supabase/client";
 
 type CreateNotificationInput = components["schemas"]["CreateNotificationInput"];
@@ -28,7 +31,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .limit(50);
 
     type NotificationType = "info" | "warning" | "error" | "success";
-    const validQueryTypes: NotificationType[] = ["info", "warning", "error", "success"];
+    const validQueryTypes: NotificationType[] = [
+      "info",
+      "warning",
+      "error",
+      "success",
+    ];
 
     if (resolvedUserId) query = query.eq("user_id", resolvedUserId);
     if (meetingId) query = query.eq("meeting_id", meetingId);
@@ -51,8 +59,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return withCors(
         NextResponse.json(
           { error: "Failed to fetch notifications", message: error.message },
-          { status: 500 },
-        ),
+          { status: 500 }
+        )
       );
     }
 
@@ -81,8 +89,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "listNotifications",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -93,16 +101,33 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!body.userId || !body.title || !body.message) {
       return withCors(
-        NextResponse.json({ error: "userId, title, and message are required" }, { status: 400 }),
+        NextResponse.json(
+          { error: "userId, title, and message are required" },
+          { status: 400 }
+        )
       );
     }
 
     type NotificationType = "info" | "success" | "warning" | "error";
     type NotificationPriority = "low" | "medium" | "high" | "critical";
-    const validTypes: NotificationType[] = ["info", "success", "warning", "error"];
-    const validPriorities: NotificationPriority[] = ["low", "medium", "high", "critical"];
-    const type: NotificationType = validTypes.includes(body.type) ? body.type : "info";
-    const priority: NotificationPriority = validPriorities.includes(body.priority)
+    const validTypes: NotificationType[] = [
+      "info",
+      "success",
+      "warning",
+      "error",
+    ];
+    const validPriorities: NotificationPriority[] = [
+      "low",
+      "medium",
+      "high",
+      "critical",
+    ];
+    const type: NotificationType = validTypes.includes(body.type)
+      ? body.type
+      : "info";
+    const priority: NotificationPriority = validPriorities.includes(
+      body.priority
+    )
       ? body.priority
       : "medium";
 
@@ -125,8 +150,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return withCors(
         NextResponse.json(
           { error: "Failed to create notification", message: error.message },
-          { status: 500 },
-        ),
+          { status: 500 }
+        )
       );
     }
 
@@ -144,8 +169,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           actionUrl: data.action_url,
           createdAt: data.created_at,
         },
-        { status: 201 },
-      ),
+        { status: 201 }
+      )
     );
   } catch (error) {
     return withCors(
@@ -154,8 +179,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           error: "Internal server error",
           message: error instanceof Error ? error.message : "Unknown error",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

@@ -136,7 +136,10 @@ export function ClientsFromJSON(json: any): Clients {
   return ClientsFromJSONTyped(json, false);
 }
 
-export function ClientsFromJSONTyped(json: any, ignoreDiscriminator: boolean): Clients {
+export function ClientsFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Clients {
   if (json == null) {
     return json;
   }
@@ -148,17 +151,26 @@ export function ClientsFromJSONTyped(json: any, ignoreDiscriminator: boolean): C
     industry: json["industry"] == null ? undefined : json["industry"],
     description: json["description"] == null ? undefined : json["description"],
     website: json["website"] == null ? undefined : json["website"],
-    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
+    primaryContact:
+      json["primaryContact"] == null ? undefined : json["primaryContact"],
     primaryContactEmail:
-      json["primaryContactEmail"] == null ? undefined : json["primaryContactEmail"],
+      json["primaryContactEmail"] == null
+        ? undefined
+        : json["primaryContactEmail"],
     isActive: json["isActive"] == null ? undefined : json["isActive"],
     brandingId: json["brandingId"] == null ? undefined : json["brandingId"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
     accounts:
-      json["accounts"] == null ? undefined : (json["accounts"] as Array<any>).map(AccountFromJSON),
+      json["accounts"] == null
+        ? undefined
+        : (json["accounts"] as Array<any>).map(AccountFromJSON),
     meetings:
-      json["meetings"] == null ? undefined : (json["meetings"] as Array<any>).map(MeetingFromJSON),
+      json["meetings"] == null
+        ? undefined
+        : (json["meetings"] as Array<any>).map(MeetingFromJSON),
   };
 }
 
@@ -168,7 +180,7 @@ export function ClientsToJSON(json: any): Clients {
 
 export function ClientsToJSONTyped(
   value?: Clients | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -186,11 +198,17 @@ export function ClientsToJSONTyped(
     primaryContactEmail: value["primaryContactEmail"],
     isActive: value["isActive"],
     brandingId: value["brandingId"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
     accounts:
-      value["accounts"] == null ? undefined : (value["accounts"] as Array<any>).map(AccountToJSON),
+      value["accounts"] == null
+        ? undefined
+        : (value["accounts"] as Array<any>).map(AccountToJSON),
     meetings:
-      value["meetings"] == null ? undefined : (value["meetings"] as Array<any>).map(MeetingToJSON),
+      value["meetings"] == null
+        ? undefined
+        : (value["meetings"] as Array<any>).map(MeetingToJSON),
   };
 }

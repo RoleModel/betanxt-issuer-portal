@@ -13,14 +13,20 @@ import FeatureTile from "@/components/FeatureTile";
 import { useClient } from "@/contexts/ClientContext";
 import { useVotingTabulation } from "@/hooks/useVotingTabulation";
 import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
-import { formatQuorumRequirementPercentLabel, quorumRequiredShares } from "@/utils/quorum";
+import {
+  formatQuorumRequirementPercentLabel,
+  quorumRequiredShares,
+} from "@/utils/quorum";
 
 interface Phase8LayoutProps {
   meetingId?: string;
   meeting?: Meeting;
 }
 
-export default React.memo(function Phase8Layout({ meeting, meetingId }: Phase8LayoutProps) {
+export default React.memo(function Phase8Layout({
+  meeting,
+  meetingId,
+}: Phase8LayoutProps) {
   const { currentClient } = useClient();
   const { proposals, votingSummary } = useVotingTabulation(meetingId);
 
@@ -30,19 +36,24 @@ export default React.memo(function Phase8Layout({ meeting, meetingId }: Phase8La
     try {
       await exportTabulationPdf({
         tabulationData: {
-          companyName: currentClient?.company_name ?? currentClient?.short_name ?? "Company",
+          companyName:
+            currentClient?.company_name ??
+            currentClient?.short_name ??
+            "Company",
           meetingType: meeting.meetingType ?? "Annual Meeting",
           meetingDate: meeting.meetingDate ?? "",
           recordDate: meeting.recordDate ?? "",
           totalOutstanding: votingSummary?.totalSharesOutstanding ?? 0,
           votesRepresentedForQuorum: votingSummary?.totalSharesVoted ?? 0,
           quorumPercentage: votingSummary?.percentageVoted ?? 0,
-          quorumRequirement: formatQuorumRequirementPercentLabel(meeting.quorumRequirement),
+          quorumRequirement: formatQuorumRequirementPercentLabel(
+            meeting.quorumRequirement
+          ),
           votesOverUnderQuorum:
             (votingSummary?.totalSharesVoted ?? 0) -
             quorumRequiredShares(
               votingSummary?.totalSharesOutstanding ?? 0,
-              meeting.quorumRequirement,
+              meeting.quorumRequirement
             ),
           cusipList: meeting.cusip ?? "",
           brokerNonVote: meeting.brokerNonVote ?? 0,
@@ -57,9 +68,13 @@ export default React.memo(function Phase8Layout({ meeting, meetingId }: Phase8La
             percentAgainst: p.votingResults.against.percentage,
             percentAbstain: p.votingResults.abstain.percentage,
             percentOfOutstanding:
-              (p.votingResults.for.shares / (votingSummary?.totalSharesOutstanding || 1)) * 100,
+              (p.votingResults.for.shares /
+                (votingSummary?.totalSharesOutstanding || 1)) *
+              100,
             percentOfTotalVoted:
-              (p.votingResults.for.shares / (votingSummary?.totalSharesVoted || 1)) * 100,
+              (p.votingResults.for.shares /
+                (votingSummary?.totalSharesVoted || 1)) *
+              100,
             percentOfProposalVotes: p.votingResults.for.percentage,
           })),
         },
@@ -95,7 +110,12 @@ export default React.memo(function Phase8Layout({ meeting, meetingId }: Phase8La
             />
           </CardContent>
         </Card>
-        <Grid container spacing={{ xs: 2, md: 3 }} direction="row" justifyContent="stretch">
+        <Grid
+          container
+          spacing={{ xs: 2, md: 3 }}
+          direction="row"
+          justifyContent="stretch"
+        >
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
             <FeatureTile
               title="Final Tabulation Report"

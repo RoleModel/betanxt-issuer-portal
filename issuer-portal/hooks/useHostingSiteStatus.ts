@@ -34,7 +34,8 @@ export interface Comment {
 export function useHostingSiteStatus() {
   const { currentMeeting } = useMeeting();
   const { currentClient } = useClient();
-  const [hostingSiteStatus, setHostingSiteStatus] = useState<HostingSiteStatus | null>(null);
+  const [hostingSiteStatus, setHostingSiteStatus] =
+    useState<HostingSiteStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,7 +69,10 @@ export function useHostingSiteStatus() {
 
   // Update hosting site status
   const updateHostingSiteStatus = useCallback(
-    async (status: HostingSiteStatus["status"], additionalData?: Partial<HostingSiteStatus>) => {
+    async (
+      status: HostingSiteStatus["status"],
+      additionalData?: Partial<HostingSiteStatus>
+    ) => {
       if (!currentMeeting?.id) return;
 
       setLoading(true);
@@ -106,7 +110,7 @@ export function useHostingSiteStatus() {
         setLoading(false);
       }
     },
-    [currentMeeting?.id, currentClient?.id],
+    [currentMeeting?.id, currentClient?.id]
   );
 
   // Submit revision request
@@ -118,16 +122,19 @@ export function useHostingSiteStatus() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/hosting-site/${currentMeeting.id}/revisions`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            revision_request: revisionRequest,
-            client_id: currentClient?.id,
-          }),
-        });
+        const response = await fetch(
+          `/api/hosting-site/${currentMeeting.id}/revisions`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              revision_request: revisionRequest,
+              client_id: currentClient?.id,
+            }),
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to submit revision request");
@@ -146,7 +153,12 @@ export function useHostingSiteStatus() {
         setLoading(false);
       }
     },
-    [currentMeeting?.id, currentClient?.id, updateHostingSiteStatus, fetchHostingSiteStatus],
+    [
+      currentMeeting?.id,
+      currentClient?.id,
+      updateHostingSiteStatus,
+      fetchHostingSiteStatus,
+    ]
   );
 
   // Add comment
@@ -158,16 +170,19 @@ export function useHostingSiteStatus() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/hosting-site/${currentMeeting.id}/comments`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            comment,
-            client_id: currentClient?.id,
-          }),
-        });
+        const response = await fetch(
+          `/api/hosting-site/${currentMeeting.id}/comments`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              comment,
+              client_id: currentClient?.id,
+            }),
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to add comment");
@@ -183,7 +198,7 @@ export function useHostingSiteStatus() {
         setLoading(false);
       }
     },
-    [currentMeeting?.id, currentClient?.id, fetchHostingSiteStatus],
+    [currentMeeting?.id, currentClient?.id, fetchHostingSiteStatus]
   );
 
   // Approve hosting site
@@ -194,7 +209,7 @@ export function useHostingSiteStatus() {
         approved_at: new Date().toISOString(),
       });
     },
-    [updateHostingSiteStatus],
+    [updateHostingSiteStatus]
   );
 
   // Load hosting site status on mount and when meeting changes

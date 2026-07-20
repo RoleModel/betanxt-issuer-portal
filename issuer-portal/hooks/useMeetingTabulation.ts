@@ -23,7 +23,8 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
 
   return {
     id: asString(record.id) || "",
-    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || "unvoted",
+    voteStatus:
+      asString(record.voteStatus) || asString(record.vote_status) || "unvoted",
     shares: Number(record.shares) || 0,
     sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
     votingSource:
@@ -58,7 +59,9 @@ export interface UseMeetingTabulationResult {
   refetch: () => void;
 }
 
-export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationResult => {
+export const useMeetingTabulation = (
+  meetingId?: string
+): UseMeetingTabulationResult => {
   const [data, setData] = useState<TabulationData | null>(null);
   const [nextPhaseDate, setNextPhaseDate] = useState<string | null>(null);
   const [voteCutoffDate, setVoteCutoffDate] = useState<string | null>(null);
@@ -88,8 +91,13 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
       }
 
       const meetingTitle =
-        asString(meetingRecord.title) ?? asString(meetingRecord.meetingTitle) ?? "Meeting";
-      const meetingDate = asString(meetingRecord.date) ?? asString(meetingRecord.meetingDate) ?? "";
+        asString(meetingRecord.title) ??
+        asString(meetingRecord.meetingTitle) ??
+        "Meeting";
+      const meetingDate =
+        asString(meetingRecord.date) ??
+        asString(meetingRecord.meetingDate) ??
+        "";
       const meetingStatus = asString(meetingRecord.status) ?? "active";
 
       // Fetch positions to calculate tabulation
@@ -101,23 +109,33 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
         : asArray(asRecord(positionsResult.data)?.positions);
       const positions = positionsRaw
         .map((position) => normalizePosition(position))
-        .filter((position): position is NormalizedPosition => position !== null);
+        .filter(
+          (position): position is NormalizedPosition => position !== null
+        );
 
       // Calculate tabulation summary from positions
       const totalPositions = positions.length;
-      const positionsVoted = positions.filter((p) => p.voteStatus === "VOTED").length;
+      const positionsVoted = positions.filter(
+        (p) => p.voteStatus === "VOTED"
+      ).length;
       const totalShares = positions.reduce((sum, p) => sum + p.shares, 0);
       const sharesVoted = positions
         .filter((p) => p.voteStatus === "VOTED")
         .reduce((sum, p) => sum + p.sharesVoted, 0);
 
       const votePercentage =
-        totalShares > 0 ? ((sharesVoted / totalShares) * 100).toFixed(2) : "0.00";
+        totalShares > 0
+          ? ((sharesVoted / totalShares) * 100).toFixed(2)
+          : "0.00";
 
       // Count voting methods
       const webVotes = positions.filter((p) => p.votingSource === "WEB").length;
-      const paperVotes = positions.filter((p) => p.votingSource === "PRINT").length;
-      const phoneVotes = positions.filter((p) => p.votingSource === "IVR").length;
+      const paperVotes = positions.filter(
+        (p) => p.votingSource === "PRINT"
+      ).length;
+      const phoneVotes = positions.filter(
+        (p) => p.votingSource === "IVR"
+      ).length;
 
       const tabulationData: TabulationData = {
         meeting_id: meetingId,
@@ -139,22 +157,28 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
       // For active meetings, try to get phase dates
       if (meetingStatus.toLowerCase() !== "completed") {
         // Fetch phases to find upcoming dates
-        const phasesResult = await apiClient.GET("/meetings/{meetingId}/phases", {
-          params: { path: { meetingId } },
-        });
-        const phases = asArray(asRecord(phasesResult.data)?.phases ?? phasesResult.data).map(
-          (phase) => asRecord(phase),
+        const phasesResult = await apiClient.GET(
+          "/meetings/{meetingId}/phases",
+          {
+            params: { path: { meetingId } },
+          }
         );
+        const phases = asArray(
+          asRecord(phasesResult.data)?.phases ?? phasesResult.data
+        ).map((phase) => asRecord(phase));
 
         // Find the next phase date
         const today = new Date().toISOString().split("T")[0];
         const upcomingPhases = phases
           .filter((phase): phase is Record<string, unknown> => Boolean(phase))
           .map((phase) => ({
-            targetDate: asString(phase.targetDate) ?? asString(phase.target_date) ?? null,
+            targetDate:
+              asString(phase.targetDate) ?? asString(phase.target_date) ?? null,
           }))
           .filter((phase) => phase.targetDate && phase.targetDate > today)
-          .sort((a, b) => (a.targetDate ?? "").localeCompare(b.targetDate ?? ""));
+          .sort((a, b) =>
+            (a.targetDate ?? "").localeCompare(b.targetDate ?? "")
+          );
 
         if (upcomingPhases.length > 0) {
           setNextPhaseDate(upcomingPhases[0].targetDate || null);
@@ -166,7 +190,9 @@ export const useMeetingTabulation = (meetingId?: string): UseMeetingTabulationRe
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch tabulation data");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch tabulation data"
+      );
     } finally {
       setLoading(false);
     }

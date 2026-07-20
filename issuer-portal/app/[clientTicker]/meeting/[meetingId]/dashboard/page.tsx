@@ -15,7 +15,9 @@ export default function MeetingDashboardPage() {
   const clientTicker = params.clientTicker as string;
   const { error, currentMeeting: meeting, isLoading } = useMeeting();
 
-  const parsePhaseNumber = (phase: string | number | null | undefined): number => {
+  const parsePhaseNumber = (
+    phase: string | number | null | undefined
+  ): number => {
     if (typeof phase === "number" && Number.isFinite(phase)) {
       return Math.max(1, phase);
     }

@@ -92,25 +92,31 @@ export type UpdatePositionRequestSourceEnum =
 /**
  * Check if a given object implements the UpdatePositionRequest interface.
  */
-export function instanceOfUpdatePositionRequest(value: object): value is UpdatePositionRequest {
+export function instanceOfUpdatePositionRequest(
+  value: object
+): value is UpdatePositionRequest {
   return true;
 }
 
-export function UpdatePositionRequestFromJSON(json: any): UpdatePositionRequest {
+export function UpdatePositionRequestFromJSON(
+  json: any
+): UpdatePositionRequest {
   return UpdatePositionRequestFromJSONTyped(json, false);
 }
 
 export function UpdatePositionRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): UpdatePositionRequest {
   if (json == null) {
     return json;
   }
   return {
     name: json["name"] == null ? undefined : json["name"],
-    accountNumber: json["accountNumber"] == null ? undefined : json["accountNumber"],
-    controlNumber: json["controlNumber"] == null ? undefined : json["controlNumber"],
+    accountNumber:
+      json["accountNumber"] == null ? undefined : json["accountNumber"],
+    controlNumber:
+      json["controlNumber"] == null ? undefined : json["controlNumber"],
     voteStatus: json["voteStatus"] == null ? undefined : json["voteStatus"],
     shares: json["shares"] == null ? undefined : json["shares"],
     sharesVoted: json["sharesVoted"] == null ? undefined : json["sharesVoted"],
@@ -125,7 +131,7 @@ export function UpdatePositionRequestToJSON(json: any): UpdatePositionRequest {
 
 export function UpdatePositionRequestToJSONTyped(
   value?: UpdatePositionRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

@@ -22,7 +22,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         : undefined;
     const accountType = searchParams.get("accountType") || undefined;
     const order = searchParams.get("order") || undefined;
-    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : undefined;
+    const limit = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit")!, 10)
+      : undefined;
     const offset = searchParams.get("offset")
       ? parseInt(searchParams.get("offset")!, 10)
       : undefined;
@@ -39,7 +41,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -52,8 +57,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "listPositions",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -61,14 +66,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["CreatePositionRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["CreatePositionRequest"];
 
     // Use existing domain model function
     const { data, error } = await createPosition(body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       );
     }
 
@@ -81,8 +90,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "createPosition",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

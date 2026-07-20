@@ -10,7 +10,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type { CreateTaskRequest, Task, TaskStatus, UpdateTaskRequest } from "../models/index";
+import type {
+  CreateTaskRequest,
+  Task,
+  TaskStatus,
+  UpdateTaskRequest,
+} from "../models/index";
 
 import {
   CreateTaskRequestFromJSON,
@@ -54,19 +59,19 @@ export class TasksApi extends runtime.BaseAPI {
    */
   async createTaskRaw(
     requestParameters: CreateTaskOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Task>> {
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling createTask().',
+        'Required parameter "meetingId" was null or undefined when calling createTask().'
       );
     }
 
     if (requestParameters["createTaskRequest"] == null) {
       throw new runtime.RequiredError(
         "createTaskRequest",
-        'Required parameter "createTaskRequest" was null or undefined when calling createTask().',
+        'Required parameter "createTaskRequest" was null or undefined when calling createTask().'
       );
     }
 
@@ -88,7 +93,7 @@ export class TasksApi extends runtime.BaseAPI {
     let urlPath = `/meetings/{meetingId}/tasks`;
     urlPath = urlPath.replace(
       `{${"meetingId"}}`,
-      encodeURIComponent(String(requestParameters["meetingId"])),
+      encodeURIComponent(String(requestParameters["meetingId"]))
     );
 
     const response = await this.request(
@@ -99,10 +104,12 @@ export class TasksApi extends runtime.BaseAPI {
         query: queryParameters,
         body: CreateTaskRequestToJSON(requestParameters["createTaskRequest"]),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => TaskFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      TaskFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -110,7 +117,7 @@ export class TasksApi extends runtime.BaseAPI {
    */
   async createTask(
     requestParameters: CreateTaskOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Task> {
     const response = await this.createTaskRaw(requestParameters, initOverrides);
     return await response.value();
@@ -121,12 +128,12 @@ export class TasksApi extends runtime.BaseAPI {
    */
   async getTaskByIdRaw(
     requestParameters: GetTaskByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Task>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling getTaskById().',
+        'Required parameter "id" was null or undefined when calling getTaskById().'
       );
     }
 
@@ -144,7 +151,10 @@ export class TasksApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/tasks/{id}`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -153,10 +163,12 @@ export class TasksApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => TaskFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      TaskFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -164,9 +176,12 @@ export class TasksApi extends runtime.BaseAPI {
    */
   async getTaskById(
     requestParameters: GetTaskByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Task> {
-    const response = await this.getTaskByIdRaw(requestParameters, initOverrides);
+    const response = await this.getTaskByIdRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -175,12 +190,12 @@ export class TasksApi extends runtime.BaseAPI {
    */
   async listTasksRaw(
     requestParameters: ListTasksRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Array<Task>>> {
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling listTasks().',
+        'Required parameter "meetingId" was null or undefined when calling listTasks().'
       );
     }
 
@@ -212,7 +227,7 @@ export class TasksApi extends runtime.BaseAPI {
     let urlPath = `/meetings/{meetingId}/tasks`;
     urlPath = urlPath.replace(
       `{${"meetingId"}}`,
-      encodeURIComponent(String(requestParameters["meetingId"])),
+      encodeURIComponent(String(requestParameters["meetingId"]))
     );
 
     const response = await this.request(
@@ -222,10 +237,12 @@ export class TasksApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(TaskFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      jsonValue.map(TaskFromJSON)
+    );
   }
 
   /**
@@ -233,7 +250,7 @@ export class TasksApi extends runtime.BaseAPI {
    */
   async listTasks(
     requestParameters: ListTasksRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Array<Task>> {
     const response = await this.listTasksRaw(requestParameters, initOverrides);
     return await response.value();
@@ -244,19 +261,19 @@ export class TasksApi extends runtime.BaseAPI {
    */
   async updateTaskRaw(
     requestParameters: UpdateTaskOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Task>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling updateTask().',
+        'Required parameter "id" was null or undefined when calling updateTask().'
       );
     }
 
     if (requestParameters["updateTaskRequest"] == null) {
       throw new runtime.RequiredError(
         "updateTaskRequest",
-        'Required parameter "updateTaskRequest" was null or undefined when calling updateTask().',
+        'Required parameter "updateTaskRequest" was null or undefined when calling updateTask().'
       );
     }
 
@@ -276,7 +293,10 @@ export class TasksApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/tasks/{id}`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -286,10 +306,12 @@ export class TasksApi extends runtime.BaseAPI {
         query: queryParameters,
         body: UpdateTaskRequestToJSON(requestParameters["updateTaskRequest"]),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => TaskFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      TaskFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -297,7 +319,7 @@ export class TasksApi extends runtime.BaseAPI {
    */
   async updateTask(
     requestParameters: UpdateTaskOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Task> {
     const response = await this.updateTaskRaw(requestParameters, initOverrides);
     return await response.value();

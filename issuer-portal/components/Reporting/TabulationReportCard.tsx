@@ -10,15 +10,22 @@ import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
 import { useVotingTabulation } from "@/hooks/useVotingTabulation";
 import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
-import { formatQuorumRequirementPercentLabel, quorumRequiredShares } from "@/utils/quorum";
+import {
+  formatQuorumRequirementPercentLabel,
+  quorumRequiredShares,
+} from "@/utils/quorum";
 
 import FeatureTile from "../FeatureTile";
 
 export default function TabulationReportCard() {
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
-  const { proposals: votingProposals } = useVotingTabulation(currentMeeting?.id);
-  const [rawProposals, setRawProposals] = useState<components["schemas"]["Proposal"][]>([]);
+  const { proposals: votingProposals } = useVotingTabulation(
+    currentMeeting?.id
+  );
+  const [rawProposals, setRawProposals] = useState<
+    components["schemas"]["Proposal"][]
+  >([]);
 
   useEffect(() => {
     const fetchProposals = async () => {
@@ -42,7 +49,7 @@ export default function TabulationReportCard() {
     if (!currentMeeting) return;
 
     const sortedRawProposals = [...rawProposals].sort(
-      (a, b) => (a.proposalNumber ?? 0) - (b.proposalNumber ?? 0),
+      (a, b) => (a.proposalNumber ?? 0) - (b.proposalNumber ?? 0)
     );
     const proposalsForExport = sortedRawProposals.map((rp) => {
       const totalVotesFor = rp.totalVotesFor ?? 0;
@@ -58,15 +65,20 @@ export default function TabulationReportCard() {
         totalVotesAgainst,
         totalVotesAbstain,
         forPercentage: totalVotes > 0 ? (totalVotesFor / totalVotes) * 100 : 0,
-        againstPercentage: totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0,
-        abstainPercentage: totalVotes > 0 ? (totalVotesAbstain / totalVotes) * 100 : 0,
+        againstPercentage:
+          totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0,
+        abstainPercentage:
+          totalVotes > 0 ? (totalVotesAbstain / totalVotes) * 100 : 0,
       };
     });
 
     const firstProposal =
       sortedRawProposals.find(
         (rp) =>
-          (rp.totalVotesFor ?? 0) + (rp.totalVotesAgainst ?? 0) + (rp.totalVotesAbstain ?? 0) > 0,
+          (rp.totalVotesFor ?? 0) +
+            (rp.totalVotesAgainst ?? 0) +
+            (rp.totalVotesAbstain ?? 0) >
+          0
       ) ?? sortedRawProposals[0];
     const votesRepresented = firstProposal
       ? (firstProposal.totalVotesFor ?? 0) +
@@ -74,16 +86,22 @@ export default function TabulationReportCard() {
         (firstProposal.totalVotesAbstain ?? 0)
       : 0;
 
-    const proposalSharesEligible = Number(firstProposal?.totalSharesEligible ?? 0);
+    const proposalSharesEligible = Number(
+      firstProposal?.totalSharesEligible ?? 0
+    );
     const totalOutstanding =
       proposalSharesEligible > 0
         ? proposalSharesEligible
         : Number(currentMeeting.totalSharesOutstanding ?? 0);
 
-    const quorumPercentage = totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0;
-    const quorumRequirement = formatQuorumRequirementPercentLabel(currentMeeting.quorumRequirement);
+    const quorumPercentage =
+      totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0;
+    const quorumRequirement = formatQuorumRequirementPercentLabel(
+      currentMeeting.quorumRequirement
+    );
     const votesOverUnderQuorum =
-      votesRepresented - quorumRequiredShares(totalOutstanding, currentMeeting.quorumRequirement);
+      votesRepresented -
+      quorumRequiredShares(totalOutstanding, currentMeeting.quorumRequirement);
 
     const isMeetingConcluded = currentMeeting.meetingDate
       ? new Date(currentMeeting.meetingDate) < new Date()
@@ -95,7 +113,8 @@ export default function TabulationReportCard() {
 
     await exportTabulationPdf({
       tabulationData: {
-        companyName: currentClient?.company_name ?? currentClient?.short_name ?? "Company",
+        companyName:
+          currentClient?.company_name ?? currentClient?.short_name ?? "Company",
         meetingType: currentMeeting.meetingType ?? "Annual Meeting",
         meetingDate: currentMeeting.meetingDate ?? "",
         recordDate: currentMeeting.recordDate ?? "",
@@ -108,7 +127,8 @@ export default function TabulationReportCard() {
         reportTitle,
         brokerNonVote: currentMeeting.brokerNonVote ?? 0,
         proposals: proposalsForExport.map((p) => {
-          const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain;
+          const totalVotes =
+            p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain;
           return {
             proposalNumber: p.proposalNumber.toString(),
             title: p.proposalTitle,
@@ -119,8 +139,10 @@ export default function TabulationReportCard() {
             percentFor: p.forPercentage,
             percentAgainst: p.againstPercentage,
             percentAbstain: p.abstainPercentage,
-            percentOfOutstanding: totalOutstanding > 0 ? (totalVotes / totalOutstanding) * 100 : 0,
-            percentOfTotalVoted: votesRepresented > 0 ? (totalVotes / votesRepresented) * 100 : 0,
+            percentOfOutstanding:
+              totalOutstanding > 0 ? (totalVotes / totalOutstanding) * 100 : 0,
+            percentOfTotalVoted:
+              votesRepresented > 0 ? (totalVotes / votesRepresented) * 100 : 0,
             percentOfProposalVotes: 100,
           };
         }),

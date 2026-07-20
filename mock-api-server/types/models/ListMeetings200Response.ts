@@ -50,35 +50,46 @@ export interface ListMeetings200Response {
 /**
  * Check if a given object implements the ListMeetings200Response interface.
  */
-export function instanceOfListMeetings200Response(value: object): value is ListMeetings200Response {
+export function instanceOfListMeetings200Response(
+  value: object
+): value is ListMeetings200Response {
   return true;
 }
 
-export function ListMeetings200ResponseFromJSON(json: any): ListMeetings200Response {
+export function ListMeetings200ResponseFromJSON(
+  json: any
+): ListMeetings200Response {
   return ListMeetings200ResponseFromJSONTyped(json, false);
 }
 
 export function ListMeetings200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): ListMeetings200Response {
   if (json == null) {
     return json;
   }
   return {
     meetings:
-      json["meetings"] == null ? undefined : (json["meetings"] as Array<any>).map(MeetingFromJSON),
-    pagination: json["pagination"] == null ? undefined : PaginationFromJSON(json["pagination"]),
+      json["meetings"] == null
+        ? undefined
+        : (json["meetings"] as Array<any>).map(MeetingFromJSON),
+    pagination:
+      json["pagination"] == null
+        ? undefined
+        : PaginationFromJSON(json["pagination"]),
   };
 }
 
-export function ListMeetings200ResponseToJSON(json: any): ListMeetings200Response {
+export function ListMeetings200ResponseToJSON(
+  json: any
+): ListMeetings200Response {
   return ListMeetings200ResponseToJSONTyped(json, false);
 }
 
 export function ListMeetings200ResponseToJSONTyped(
   value?: ListMeetings200Response | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -86,7 +97,9 @@ export function ListMeetings200ResponseToJSONTyped(
 
   return {
     meetings:
-      value["meetings"] == null ? undefined : (value["meetings"] as Array<any>).map(MeetingToJSON),
+      value["meetings"] == null
+        ? undefined
+        : (value["meetings"] as Array<any>).map(MeetingToJSON),
     pagination: PaginationToJSON(value["pagination"]),
   };
 }

@@ -70,17 +70,20 @@ export async function listPositionVotes(opts?: {
     let query = supabase.from("position_vote").select("*");
 
     if (opts?.meetingId) {
-      const { data: meetingPositions, error: meetingPositionsError } = await supabase
-        .from("position")
-        .select("id")
-        .eq("meeting_id", opts.meetingId)
-        .limit(5000);
+      const { data: meetingPositions, error: meetingPositionsError } =
+        await supabase
+          .from("position")
+          .select("id")
+          .eq("meeting_id", opts.meetingId)
+          .limit(5000);
 
       if (meetingPositionsError) {
         return {
           data: undefined,
           error: {
-            message: meetingPositionsError.message ?? "Failed to fetch meeting positions",
+            message:
+              meetingPositionsError.message ??
+              "Failed to fetch meeting positions",
             statusCode: 500,
           },
           response: new Response(null, { status: 500 }),
@@ -111,7 +114,10 @@ export async function listPositionVotes(opts?: {
       if (positionIds) {
         query = query.in("position_id", positionIds);
       } else {
-        query = query.eq("position_id", parseEqFilter(positionId) || positionId);
+        query = query.eq(
+          "position_id",
+          parseEqFilter(positionId) || positionId
+        );
       }
     }
 
@@ -120,7 +126,10 @@ export async function listPositionVotes(opts?: {
       if (proposalIds) {
         query = query.in("proposal_id", proposalIds);
       } else {
-        query = query.eq("proposal_id", parseEqFilter(proposalId) || proposalId);
+        query = query.eq(
+          "proposal_id",
+          parseEqFilter(proposalId) || proposalId
+        );
       }
     }
 
@@ -146,7 +155,9 @@ export async function listPositionVotes(opts?: {
                 ? "shares_voting"
                 : column;
 
-      query = query.order(normalizedColumn, { ascending: direction !== "desc" });
+      query = query.order(normalizedColumn, {
+        ascending: direction !== "desc",
+      });
     } else {
       query = query.order("created_at", { ascending: false });
     }
@@ -184,7 +195,10 @@ export async function listPositionVotes(opts?: {
     return {
       data: undefined,
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch position votes",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch position votes",
         statusCode: 500,
       },
       response: new Response(null, { status: 500 }),
@@ -192,7 +206,9 @@ export async function listPositionVotes(opts?: {
   }
 }
 
-export async function createPositionVote(body: unknown): Promise<ApiResponse<PositionVote>> {
+export async function createPositionVote(
+  body: unknown
+): Promise<ApiResponse<PositionVote>> {
   const { data, error, response } = await apiClient.POST("/position_votes", {
     body: body as CastVoteRequest,
   });

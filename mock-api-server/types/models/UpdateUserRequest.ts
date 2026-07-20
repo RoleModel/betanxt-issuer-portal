@@ -61,7 +61,9 @@ export interface UpdateUserRequest {
 /**
  * Check if a given object implements the UpdateUserRequest interface.
  */
-export function instanceOfUpdateUserRequest(value: object): value is UpdateUserRequest {
+export function instanceOfUpdateUserRequest(
+  value: object
+): value is UpdateUserRequest {
   return true;
 }
 
@@ -71,7 +73,7 @@ export function UpdateUserRequestFromJSON(json: any): UpdateUserRequest {
 
 export function UpdateUserRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): UpdateUserRequest {
   if (json == null) {
     return json;
@@ -91,7 +93,7 @@ export function UpdateUserRequestToJSON(json: any): UpdateUserRequest {
 
 export function UpdateUserRequestToJSONTyped(
   value?: UpdateUserRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

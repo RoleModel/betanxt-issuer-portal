@@ -9,14 +9,18 @@ function formatConfigKey(key: string): string {
 }
 
 function serializeEntry(val: BrandConfig): string {
-  const lines: string[] = [`    companyName: '${val.companyName.replace(/'/g, "\\'")}',`];
+  const lines: string[] = [
+    `    companyName: '${val.companyName.replace(/'/g, "\\'")}',`,
+  ];
 
   if (val.ticker) lines.push(`    ticker: "${val.ticker}",`);
   lines.push(`    domain: '${val.domain}',`);
   lines.push(`    logoPath: '${val.logoPath}',`);
   lines.push(`    iconPath: '${val.iconPath}',`);
-  if (val.headerLogoPath) lines.push(`    headerLogoPath: '${val.headerLogoPath}',`);
-  if (val.headerIconPath) lines.push(`    headerIconPath: '${val.headerIconPath}',`);
+  if (val.headerLogoPath)
+    lines.push(`    headerLogoPath: '${val.headerLogoPath}',`);
+  if (val.headerIconPath)
+    lines.push(`    headerIconPath: '${val.headerIconPath}',`);
   lines.push(`    primaryColor: '${val.primaryColor}',`);
   lines.push(`    secondaryColor: '${val.secondaryColor}',`);
 
@@ -25,10 +29,13 @@ function serializeEntry(val: BrandConfig): string {
 
 export function writeBrandConfigFile(
   configs: Record<string, BrandConfig>,
-  configPath: string,
+  configPath: string
 ): void {
   const entries = Object.entries(configs)
-    .map(([key, val]) => `  ${formatConfigKey(key)}: {\n${serializeEntry(val)}\n  }`)
+    .map(
+      ([key, val]) =>
+        `  ${formatConfigKey(key)}: {\n${serializeEntry(val)}\n  }`
+    )
     .join(",\n");
 
   const content = `/**

@@ -61,38 +61,75 @@ export default function EngagePage() {
   ];
 
   const features = [
-    { name: "Email campaigns", essential: true, enhanced: true, ultimate: true },
-    { name: "Multi-language SMS", essential: true, enhanced: true, ultimate: true },
-    { name: "Postcard mailings", essential: true, enhanced: true, ultimate: true },
-    { name: "Voicemail messages", essential: true, enhanced: true, ultimate: true },
+    {
+      name: "Email campaigns",
+      essential: true,
+      enhanced: true,
+      ultimate: true,
+    },
+    {
+      name: "Multi-language SMS",
+      essential: true,
+      enhanced: true,
+      ultimate: true,
+    },
+    {
+      name: "Postcard mailings",
+      essential: true,
+      enhanced: true,
+      ultimate: true,
+    },
+    {
+      name: "Voicemail messages",
+      essential: true,
+      enhanced: true,
+      ultimate: true,
+    },
     {
       name: "Inbound information agent",
       essential: true,
       enhanced: true,
       ultimate: true,
     },
-    { name: "Data extraction", essential: false, enhanced: true, ultimate: true },
+    {
+      name: "Data extraction",
+      essential: false,
+      enhanced: true,
+      ultimate: true,
+    },
     { name: "Text reminder", essential: false, enhanced: true, ultimate: true },
     { name: "Verbal calls", essential: false, enhanced: false, ultimate: true },
-    { name: "Outbound calling", essential: false, enhanced: false, ultimate: true },
-    { name: "Engagement follow", essential: false, enhanced: false, ultimate: true },
+    {
+      name: "Outbound calling",
+      essential: false,
+      enhanced: false,
+      ultimate: true,
+    },
+    {
+      name: "Engagement follow",
+      essential: false,
+      enhanced: false,
+      ultimate: true,
+    },
   ];
 
   const leftColumnContent = (
     <Stack gap={2}>
       <ContentTitle title="Achieve quorum and proposal passage by generating greater participation" />
       <Typography variant="body1">
-        <strong>Retail shareholder</strong> votes are critical to achieving quorum and passing
-        proposals. Large retail brokerage firms continue to adjust their discretionary voting
-        policies, impacting how votes are cast at shareholder meetings. This can produce a voting
-        shortfall for issuers that have not effectively enhanced their engagement activities with
+        <strong>Retail shareholder</strong> votes are critical to achieving
+        quorum and passing proposals. Large retail brokerage firms continue to
+        adjust their discretionary voting policies, impacting how votes are cast
+        at shareholder meetings. This can produce a voting shortfall for issuers
+        that have not effectively enhanced their engagement activities with
         retail shareholders.
       </Typography>
       <Typography variant="body1">
-        <strong>BetaNXT Engage</strong> is a suite of omni-channel tools that helps issuers achieve
-        quorum and proposal passage by generating greater participation from retail shareholders.
-        Our shareholder meeting experts will analyze your position distribution, event strategy, and
-        history to help you choose the Engage package that&apos;s right for you.
+        <strong>BetaNXT Engage</strong> is a suite of omni-channel tools that
+        helps issuers achieve quorum and proposal passage by generating greater
+        participation from retail shareholders. Our shareholder meeting experts
+        will analyze your position distribution, event strategy, and history to
+        help you choose the Engage package that&apos;s right for you.
       </Typography>
       <Card>
         <CardHeader title="Benefits" />
@@ -177,10 +214,14 @@ export default function EngagePage() {
     <>
       <SidebarCard title="BetaNXT Engage">
         <Typography variant="body3" component="p" gutterBottom>
-          gives you the tools and touchpoints you need to execute a winning strategy to reach and
-          engage retail shareholders.
+          gives you the tools and touchpoints you need to execute a winning
+          strategy to reach and engage retail shareholders.
         </Typography>
-        <Button variant="outlined" color="primary" onClick={() => setOpen(true)}>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => setOpen(true)}
+        >
           View PDF Overview
         </Button>
       </SidebarCard>
@@ -197,6 +238,9 @@ export default function EngagePage() {
   );
 
   return (
-    <ProductsLayout leftColumnContent={leftColumnContent} rightColumnContent={rightColumnContent} />
+    <ProductsLayout
+      leftColumnContent={leftColumnContent}
+      rightColumnContent={rightColumnContent}
+    />
   );
 }

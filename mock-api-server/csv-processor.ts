@@ -10,7 +10,14 @@ const isObject = (val: unknown): val is Record<string, unknown> =>
 const isPositionRow = (row: unknown): row is CsvRow => {
   if (!isObject(row)) return false;
   // minimally ensure expected keys exist as strings (or can be coerced)
-  const keys = ["Cusip", "Account Type", "Set Key", "Name", "Shares", "Shares Voted"];
+  const keys = [
+    "Cusip",
+    "Account Type",
+    "Set Key",
+    "Name",
+    "Shares",
+    "Shares Voted",
+  ];
   return keys.every((k) => k in row);
 };
 
@@ -99,7 +106,9 @@ export class CSVProcessor {
   /**
    * Process Wendy's shareholder votes CSV data
    */
-  static async processWendysVotes(filePath: string): Promise<WendysPositionData[]> {
+  static async processWendysVotes(
+    filePath: string
+  ): Promise<WendysPositionData[]> {
     const positions: WendysPositionData[] = [];
 
     return new Promise((resolve, reject) => {
@@ -136,7 +145,9 @@ export class CSVProcessor {
   /**
    * Process Wendy's tabulation data CSV
    */
-  static async processWendysTabulation(filePath: string): Promise<WendysTabulationData[]> {
+  static async processWendysTabulation(
+    filePath: string
+  ): Promise<WendysTabulationData[]> {
     const tabulation: WendysTabulationData[] = [];
 
     return new Promise((resolve, reject) => {
@@ -172,7 +183,7 @@ export class CSVProcessor {
   static generateCompanyPositions(
     company: { ticker: string; cusip: string; totalSharesOutstanding: number },
     wendysPattern: WendysPositionData[],
-    targetCount = 2500,
+    targetCount = 2500
   ): Omit<WendysPositionData, "cusip" | "setKey">[] {
     const positions: Omit<WendysPositionData, "cusip" | "setKey">[] = [];
 
@@ -194,7 +205,10 @@ export class CSVProcessor {
         accountNumber: copycat
           .int(`${company.ticker}-account-${i}`, { min: 100000, max: 999999 })
           .toString(),
-        voteStatus: copycat.oneOf(`${company.ticker}-vote-status-${i}`, ["Voted", "Unvoted"]),
+        voteStatus: copycat.oneOf(`${company.ticker}-vote-status-${i}`, [
+          "Voted",
+          "Unvoted",
+        ]),
         shares: scaledShares,
         sharesVoted: scaledVoted,
         source: sample.source,
@@ -217,7 +231,7 @@ export class CSVProcessor {
 
   private static inferProposalType(
     title: string,
-    proposalNumber: string,
+    proposalNumber: string
   ): { type: string; subtype: string | null } {
     const normalized = title.toLowerCase();
     const number = proposalNumber.trim();
@@ -230,11 +244,17 @@ export class CSVProcessor {
       return { type: "Auditor Ratification", subtype: null };
     }
 
-    if (normalized.includes("frequency") && /compensation|say on pay/.test(normalized)) {
+    if (
+      normalized.includes("frequency") &&
+      /compensation|say on pay/.test(normalized)
+    ) {
       return { type: "Say on Pay Frequency", subtype: null };
     }
 
-    if (normalized.includes("executive compensation") || normalized.includes("say on pay")) {
+    if (
+      normalized.includes("executive compensation") ||
+      normalized.includes("say on pay")
+    ) {
       return { type: "Say on Pay", subtype: null };
     }
 
@@ -264,7 +284,9 @@ export class CSVProcessor {
   /**
    * Process company meeting info CSV
    */
-  static async processCompanyMeetingInfo(filePath: string): Promise<CompanyMeetingInfo | null> {
+  static async processCompanyMeetingInfo(
+    filePath: string
+  ): Promise<CompanyMeetingInfo | null> {
     return new Promise((resolve, reject) => {
       let meetingInfo: CompanyMeetingInfo | null = null;
       let isFirstRow = true;
@@ -279,7 +301,8 @@ export class CSVProcessor {
               meetingType: row["Meeting Type"] || "Annual Meeting",
               recordDate: row["Record Date"] ?? "",
               meetingDate: row["Meeting Date"] ?? "",
-              cutoffDate: row["Cutoff Date"] || row["Cut Off Date"] || undefined,
+              cutoffDate:
+                row["Cutoff Date"] || row["Cut Off Date"] || undefined,
             };
             isFirstRow = false;
           }
@@ -294,7 +317,9 @@ export class CSVProcessor {
   /**
    * Process company proposal CSV
    */
-  static async processCompanyProposals(filePath: string): Promise<CompanyProposalData[]> {
+  static async processCompanyProposals(
+    filePath: string
+  ): Promise<CompanyProposalData[]> {
     const proposals: CompanyProposalData[] = [];
 
     return new Promise((resolve, reject) => {
@@ -303,7 +328,11 @@ export class CSVProcessor {
         .on("data", (row: Record<string, string>) => {
           try {
             const proposalColumn =
-              (row["Proposal Number"] || row.Proposal || row.Prop || row["Proposal Item"]) ?? "";
+              (row["Proposal Number"] ||
+                row.Proposal ||
+                row.Prop ||
+                row["Proposal Item"]) ??
+              "";
             const rawProposal = proposalColumn.trim();
             const match = /^(\d+(?:\.\d+)?)\s*(.*)$/.exec(rawProposal);
             const number = match ? match[1] : `${proposals.length + 1}`;
@@ -314,22 +343,25 @@ export class CSVProcessor {
             ).trim();
 
             const recommendation = (
-              (row.MRV || row["Management Recommendation"] || row.Recommendation) ??
+              (row.MRV ||
+                row["Management Recommendation"] ||
+                row.Recommendation) ??
               "FOR"
             )
               .toString()
               .trim();
 
             const votesFor = this.parseNumber(
-              row.For || row["Votes For"] || row["For Votes"] || "0",
+              row.For || row["Votes For"] || row["For Votes"] || "0"
             );
             const votesAgainst = this.parseNumber(
-              row.Against || row["Votes Against"] || row["Against Votes"] || "0",
+              row.Against || row["Votes Against"] || row["Against Votes"] || "0"
             );
             const votesAbstain = this.parseNumber(
-              row.Abstain || row.Abstentions || row["Votes Abstain"] || "0",
+              row.Abstain || row.Abstentions || row["Votes Abstain"] || "0"
             );
-            const totalRaw = (row.Total || row["Votes Total"] || row["Total Votes"]) ?? "";
+            const totalRaw =
+              (row.Total || row["Votes Total"] || row["Total Votes"]) ?? "";
             const votesTotal = totalRaw
               ? this.parseNumber(totalRaw)
               : votesFor + votesAgainst + votesAbstain;
@@ -362,7 +394,7 @@ export class CSVProcessor {
   static async processCompanyPositions(
     filePath: string,
     cusip: string,
-    limit?: number,
+    limit?: number
   ): Promise<CompanyPositionData[]> {
     const positions: CompanyPositionData[] = [];
     let rowCount = 0;
@@ -403,36 +435,54 @@ export class CSVProcessor {
 
           // Skip if no shares
           const shares = this.parseNumber(
-            (rowObj.Shares || rowObj["Share Count"] || rowObj.Holdings) ?? "0",
+            (rowObj.Shares || rowObj["Share Count"] || rowObj.Holdings) ?? "0"
           );
           if (shares === 0) return;
 
-          const rawStatus = ((rowObj.Status || rowObj["Vote Status"]) ?? "").toString().trim();
-          const normalisedStatus = rawStatus.toLowerCase() === "voted" ? "Voted" : "Unvoted";
+          const rawStatus = ((rowObj.Status || rowObj["Vote Status"]) ?? "")
+            .toString()
+            .trim();
+          const normalisedStatus =
+            rawStatus.toLowerCase() === "voted" ? "Voted" : "Unvoted";
 
           const sharesVoted = this.parseNumber(
-            rowObj["Shares Voted"] || rowObj["Voted Shares"] || "0",
+            rowObj["Shares Voted"] || rowObj["Voted Shares"] || "0"
           );
 
           positions.push({
             cusip: cusip,
             setKey: rowObj["Set Key"] || rowObj.SetKey || null,
             accountType: this.normalizeAccountType(
-              (rowObj["Account Type"] || rowObj.Type) ?? "Registered Account",
+              (rowObj["Account Type"] || rowObj.Type) ?? "Registered Account"
             ),
             name:
-              (rowObj.Account || rowObj["Account Name"] || rowObj.Name || rowObj.Shareholder) ??
+              (rowObj.Account ||
+                rowObj["Account Name"] ||
+                rowObj.Name ||
+                rowObj.Shareholder) ??
               "Unknown",
-            accountNumber: rowObj["Account#"] || rowObj["Account Number"] || rowObj.Account || null,
+            accountNumber:
+              rowObj["Account#"] ||
+              rowObj["Account Number"] ||
+              rowObj.Account ||
+              null,
             voteStatus: normalisedStatus,
             shares: shares,
             sharesVoted: sharesVoted,
             source: rowObj.Source || rowObj["Vote Method"] || null,
             dateVoted: this.parseDate(
-              (rowObj["Time Stamp"] || rowObj["Vote Date"] || rowObj["Voted Date"]) ?? "",
+              (rowObj["Time Stamp"] ||
+                rowObj["Vote Date"] ||
+                rowObj["Voted Date"]) ??
+                ""
             ),
-            voteMethod: rowObj["Vote Method"] || rowObj.Method || rowObj.Source || undefined,
-            controlNumber: rowObj["Control Number"] || rowObj.Control || undefined,
+            voteMethod:
+              rowObj["Vote Method"] ||
+              rowObj.Method ||
+              rowObj.Source ||
+              undefined,
+            controlNumber:
+              rowObj["Control Number"] || rowObj.Control || undefined,
           });
           rowCount++;
         })
@@ -448,7 +498,7 @@ export class CSVProcessor {
    */
   static async processVoteStatusSummary(
     dtcFilePath: string,
-    nonDtcFilePath: string,
+    nonDtcFilePath: string
   ): Promise<{
     dtcSummary: {
       unvotedParticipants: number;
@@ -522,52 +572,54 @@ export class CSVProcessor {
     }
 
     // Process Non-DTC summary file
-    const nonDtcSummary = await new Promise<NonDtcSummaryData>((resolve, reject) => {
-      const results: NonDtcSummaryData = {
-        unvotedShareholders: 0,
-        unvotedShares: 0,
-        printShareholders: 0,
-        printShares: 0,
-        ivrShareholders: 0,
-        ivrShares: 0,
-        webShareholders: 0,
-        webShares: 0,
-        votedSubtotalShareholders: 0,
-        votedSubtotalShares: 0,
-        grandTotalShareholders: 0,
-        grandTotalShares: 0,
-      };
+    const nonDtcSummary = await new Promise<NonDtcSummaryData>(
+      (resolve, reject) => {
+        const results: NonDtcSummaryData = {
+          unvotedShareholders: 0,
+          unvotedShares: 0,
+          printShareholders: 0,
+          printShares: 0,
+          ivrShareholders: 0,
+          ivrShares: 0,
+          webShareholders: 0,
+          webShares: 0,
+          votedSubtotalShareholders: 0,
+          votedSubtotalShares: 0,
+          grandTotalShareholders: 0,
+          grandTotalShares: 0,
+        };
 
-      createReadStream(nonDtcFilePath)
-        .pipe(csvParser())
-        .on("data", (row) => {
-          const category = (row.Category ?? "").toLowerCase();
-          const shareholders = this.parseNumber(row.Shareholders ?? "0");
-          const shares = this.parseNumber(row.Shares ?? "0");
+        createReadStream(nonDtcFilePath)
+          .pipe(csvParser())
+          .on("data", (row) => {
+            const category = (row.Category ?? "").toLowerCase();
+            const shareholders = this.parseNumber(row.Shareholders ?? "0");
+            const shares = this.parseNumber(row.Shares ?? "0");
 
-          if (category.includes("unvoted")) {
-            results.unvotedShareholders = shareholders;
-            results.unvotedShares = shares;
-          } else if (category === "print") {
-            results.printShareholders = shareholders;
-            results.printShares = shares;
-          } else if (category === "ivr") {
-            results.ivrShareholders = shareholders;
-            results.ivrShares = shares;
-          } else if (category === "web") {
-            results.webShareholders = shareholders;
-            results.webShares = shares;
-          } else if (category.includes("voted sub-total")) {
-            results.votedSubtotalShareholders = shareholders;
-            results.votedSubtotalShares = shares;
-          } else if (category.includes("grand total")) {
-            results.grandTotalShareholders = shareholders;
-            results.grandTotalShares = shares;
-          }
-        })
-        .on("end", () => resolve(results))
-        .on("error", reject);
-    });
+            if (category.includes("unvoted")) {
+              results.unvotedShareholders = shareholders;
+              results.unvotedShares = shares;
+            } else if (category === "print") {
+              results.printShareholders = shareholders;
+              results.printShares = shares;
+            } else if (category === "ivr") {
+              results.ivrShareholders = shareholders;
+              results.ivrShares = shares;
+            } else if (category === "web") {
+              results.webShareholders = shareholders;
+              results.webShares = shares;
+            } else if (category.includes("voted sub-total")) {
+              results.votedSubtotalShareholders = shareholders;
+              results.votedSubtotalShares = shares;
+            } else if (category.includes("grand total")) {
+              results.grandTotalShareholders = shareholders;
+              results.grandTotalShares = shares;
+            }
+          })
+          .on("end", () => resolve(results))
+          .on("error", reject);
+      }
+    );
 
     return { dtcSummary, nonDtcSummary };
   }

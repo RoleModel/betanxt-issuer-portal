@@ -1,7 +1,6 @@
 # Data Model: Tabulation, Reporting & Data Visualization Enhancements
 
-**Branch**: `002-tabulation-enhancements` | **Date**: 2026-06-11
-**Prerequisite**: `research.md` (decisions R1–R10)
+**Branch**: `002-tabulation-enhancements` | **Date**: 2026-06-11 **Prerequisite**: `research.md` (decisions R1–R10)
 
 Schema changes follow the repo's schema-first workflow: OpenAPI spec → generated migrations → seeds → generated types → **manual** domain-model transform updates.
 
@@ -11,13 +10,13 @@ Schema changes follow the repo's schema-first workflow: OpenAPI spec → generat
 
 ### Position (`mock-api-server/openapi-schema/openapi.yaml`)
 
-| Field                                                          | Type                                                          | New?     | Notes                                                                                                                                                            |
-| -------------------------------------------------------------- | ------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `holderCategory`                                               | string enum: `REGISTERED` \| `PLAN` \| `BENEFICIAL` \| `NOBO` | **NEW**  | Replaces inference via `accountType === "DTC/CDS"` (R8). Backfilled in seeds: `DTC/CDS` → `REGISTERED`, `Non-DTC` → `BENEFICIAL`; new seeded `PLAN`/`NOBO` rows. |
-| `state`                                                        | string (nullable)                                             | **NEW**  | US state code (e.g. `NC`) or null. Drives heat map (R6).                                                                                                         |
-| `country`                                                      | string (nullable)                                             | **NEW**  | ISO country code; `US` default in seeds. Non-US → "International" bucket.                                                                                        |
-| `dateVoted`                                                    | string                                                        | existing | Source of quorum-timeline accumulation (R5).                                                                                                                     |
-| `voteStatus`, `shares`, `sharesVoted`, `source`, `accountType` | —                                                             | existing | Unchanged.                                                                                                                                                       |
+| Field | Type | New? | Notes |
+| --- | --- | --- | --- |
+| `holderCategory` | string enum: `REGISTERED` \| `PLAN` \| `BENEFICIAL` \| `NOBO` | **NEW** | Replaces inference via `accountType === "DTC/CDS"` (R8). Backfilled in seeds: `DTC/CDS` → `REGISTERED`, `Non-DTC` → `BENEFICIAL`; new seeded `PLAN`/`NOBO` rows. |
+| `state` | string (nullable) | **NEW** | US state code (e.g. `NC`) or null. Drives heat map (R6). |
+| `country` | string (nullable) | **NEW** | ISO country code; `US` default in seeds. Non-US → "International" bucket. |
+| `dateVoted` | string | existing | Source of quorum-timeline accumulation (R5). |
+| `voteStatus`, `shares`, `sharesVoted`, `source`, `accountType` | — | existing | Unchanged. |
 
 **Validation**: `holderCategory` required on new rows; `state` nullable (missing → "Unknown" bucket, FR-019); `country` nullable.
 
@@ -25,10 +24,10 @@ Schema changes follow the repo's schema-first workflow: OpenAPI spec → generat
 
 ### Client (`enabledFeatures`)
 
-| Change                                    | Where                                                                                                |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Add `"nobo"` to allowed feature keys      | `Client.enabledFeatures` in OpenAPI; `ClientFeatureKey` union in `issuer-portal/hooks/useClients.ts` |
-| Seed Engage-enabled clients with `"nobo"` | `supabase/seed.ts` (e.g. WEN, FOC)                                                                   |
+| Change | Where |
+| --- | --- |
+| Add `"nobo"` to allowed feature keys | `Client.enabledFeatures` in OpenAPI; `ClientFeatureKey` union in `issuer-portal/hooks/useClients.ts` |
+| Seed Engage-enabled clients with `"nobo"` | `supabase/seed.ts` (e.g. WEN, FOC) |
 
 ### Proposal — no schema change
 
@@ -40,28 +39,28 @@ Schema changes follow the repo's schema-first workflow: OpenAPI spec → generat
 
 ### QuorumTimelinePoint (`issuer-portal/hooks/useQuorumTimeline.ts`)
 
-| Field                   | Type   | Description                                           |
-| ----------------------- | ------ | ----------------------------------------------------- |
-| `date`                  | Date   | Calendar day bucket                                   |
+| Field | Type | Description |
+| --- | --- | --- |
+| `date` | Date | Calendar day bucket |
 | `cumulativeSharesVoted` | number | Running total of `sharesVoted` ordered by `dateVoted` |
-| `percentOfOutstanding`  | number | `cumulativeSharesVoted / totalSharesOutstanding`      |
+| `percentOfOutstanding` | number | `cumulativeSharesVoted / totalSharesOutstanding` |
 
 ### MailingMilestone
 
-| Field   | Type                                 | Description                                                   |
-| ------- | ------------------------------------ | ------------------------------------------------------------- |
-| `label` | string                               | "Mail Date", "Follow-Up Mailing n", "Meeting / Vote Deadline" |
-| `date`  | Date                                 | From `Meeting` + additional-mailing data                      |
-| `kind`  | `"mail" \| "followUp" \| "deadline"` | Marker styling                                                |
+| Field | Type | Description |
+| --- | --- | --- |
+| `label` | string | "Mail Date", "Follow-Up Mailing n", "Meeting / Vote Deadline" |
+| `date` | Date | From `Meeting` + additional-mailing data |
+| `kind` | `"mail" \| "followUp" \| "deadline"` | Marker styling |
 
 ### GeoHeatmapCell (`issuer-portal/hooks/useGeoDistribution.ts`)
 
-| Field              | Type               | Description                                      |
-| ------------------ | ------------------ | ------------------------------------------------ |
-| `location`         | string             | US state code, `"International"`, or `"Unknown"` |
-| `shareholderCount` | number             | Distinct positions at location                   |
-| `sharesHeld`       | number             | Sum of `shares` at location                      |
-| `populations`      | `HolderCategory[]` | Which populations are included (filter state)    |
+| Field | Type | Description |
+| --- | --- | --- |
+| `location` | string | US state code, `"International"`, or `"Unknown"` |
+| `shareholderCount` | number | Distinct positions at location |
+| `sharesHeld` | number | Sum of `shares` at location |
+| `populations` | `HolderCategory[]` | Which populations are included (filter state) |
 
 ### Report registry entry (`issuer-portal/components/Reporting/`)
 

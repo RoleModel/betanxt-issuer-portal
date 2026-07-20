@@ -22,7 +22,7 @@ export const usesMajorityVotingOptions = (ticker?: string): boolean => {
 export const isDirectorElection = (
   proposalType?: string,
   _proposalNumber?: string | number,
-  directorName?: string,
+  directorName?: string
 ): boolean => {
   if (directorName) return true;
   if (!proposalType) return false;
@@ -40,9 +40,13 @@ export const getVotingOptions = (
   proposalType?: string,
   proposalNumber?: string | number,
   ticker?: string,
-  directorName?: string,
+  directorName?: string
 ): VotingOptions => {
-  const isDirectorProposal = isDirectorElection(proposalType, proposalNumber, directorName);
+  const isDirectorProposal = isDirectorElection(
+    proposalType,
+    proposalNumber,
+    directorName
+  );
 
   if (isDirectorProposal && !usesMajorityVotingOptions(ticker)) {
     return {
@@ -66,9 +70,13 @@ export const getVotingOptionsDisplay = (
   proposalType?: string,
   proposalNumber?: string | number,
   ticker?: string,
-  directorName?: string,
+  directorName?: string
 ): string[] => {
-  const isDirectorProposal = isDirectorElection(proposalType, proposalNumber, directorName);
+  const isDirectorProposal = isDirectorElection(
+    proposalType,
+    proposalNumber,
+    directorName
+  );
 
   if (isDirectorProposal && !usesMajorityVotingOptions(ticker)) {
     return ["FOR", "WITHHOLD/ABSTAIN"];
@@ -87,7 +95,7 @@ export const getTabulationHeaders = (
     proposalNumber?: string | number;
     directorName?: string;
   }[],
-  ticker?: string,
+  ticker?: string
 ): VotingOptions => {
   if (usesMajorityVotingOptions(ticker)) {
     return {
@@ -98,10 +106,10 @@ export const getTabulationHeaders = (
   }
 
   const hasDirectorElections = proposals.some((p) =>
-    isDirectorElection(p.proposalType, p.proposalNumber, p.directorName),
+    isDirectorElection(p.proposalType, p.proposalNumber, p.directorName)
   );
   const hasNonDirectorProposals = proposals.some(
-    (p) => !isDirectorElection(p.proposalType, p.proposalNumber, p.directorName),
+    (p) => !isDirectorElection(p.proposalType, p.proposalNumber, p.directorName)
   );
 
   // Mixed tables still use the standard three-column header set.

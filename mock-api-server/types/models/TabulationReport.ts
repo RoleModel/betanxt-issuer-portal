@@ -117,7 +117,9 @@ export interface TabulationReport {
 /**
  * Check if a given object implements the TabulationReport interface.
  */
-export function instanceOfTabulationReport(value: object): value is TabulationReport {
+export function instanceOfTabulationReport(
+  value: object
+): value is TabulationReport {
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("meetingId" in value) || value["meetingId"] === undefined) return false;
   return true;
@@ -129,7 +131,7 @@ export function TabulationReportFromJSON(json: any): TabulationReport {
 
 export function TabulationReportFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): TabulationReport {
   if (json == null) {
     return json;
@@ -141,24 +143,33 @@ export function TabulationReportFromJSONTyped(
     brokerVoting:
       json["brokerVoting"] == null
         ? undefined
-        : (json["brokerVoting"] as Array<any>).map(TabulationReportBrokerVotingInnerFromJSON),
+        : (json["brokerVoting"] as Array<any>).map(
+            TabulationReportBrokerVotingInnerFromJSON
+          ),
     shareRangePerformance:
       json["shareRangePerformance"] == null
         ? undefined
         : (json["shareRangePerformance"] as Array<any>).map(
-            TabulationReportShareRangePerformanceInnerFromJSON,
+            TabulationReportShareRangePerformanceInnerFromJSON
           ),
     nonDtcVoteStatus:
       json["nonDtcVoteStatus"] == null
         ? undefined
         : TabulationReportNonDtcVoteStatusFromJSON(json["nonDtcVoteStatus"]),
-    dtcVoteStatus: json["dtcVoteStatus"] == null ? undefined : json["dtcVoteStatus"],
-    voteDistribution: json["voteDistribution"] == null ? undefined : json["voteDistribution"],
-    positionsVoted: json["positionsVoted"] == null ? undefined : json["positionsVoted"],
+    dtcVoteStatus:
+      json["dtcVoteStatus"] == null ? undefined : json["dtcVoteStatus"],
+    voteDistribution:
+      json["voteDistribution"] == null ? undefined : json["voteDistribution"],
+    positionsVoted:
+      json["positionsVoted"] == null ? undefined : json["positionsVoted"],
     lastCalculatedAt:
-      json["lastCalculatedAt"] == null ? undefined : new Date(json["lastCalculatedAt"]),
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+      json["lastCalculatedAt"] == null
+        ? undefined
+        : new Date(json["lastCalculatedAt"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
   };
 }
 
@@ -168,7 +179,7 @@ export function TabulationReportToJSON(json: any): TabulationReport {
 
 export function TabulationReportToJSONTyped(
   value?: TabulationReport | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -181,20 +192,28 @@ export function TabulationReportToJSONTyped(
     brokerVoting:
       value["brokerVoting"] == null
         ? undefined
-        : (value["brokerVoting"] as Array<any>).map(TabulationReportBrokerVotingInnerToJSON),
+        : (value["brokerVoting"] as Array<any>).map(
+            TabulationReportBrokerVotingInnerToJSON
+          ),
     shareRangePerformance:
       value["shareRangePerformance"] == null
         ? undefined
         : (value["shareRangePerformance"] as Array<any>).map(
-            TabulationReportShareRangePerformanceInnerToJSON,
+            TabulationReportShareRangePerformanceInnerToJSON
           ),
-    nonDtcVoteStatus: TabulationReportNonDtcVoteStatusToJSON(value["nonDtcVoteStatus"]),
+    nonDtcVoteStatus: TabulationReportNonDtcVoteStatusToJSON(
+      value["nonDtcVoteStatus"]
+    ),
     dtcVoteStatus: value["dtcVoteStatus"],
     voteDistribution: value["voteDistribution"],
     positionsVoted: value["positionsVoted"],
     lastCalculatedAt:
-      value["lastCalculatedAt"] == null ? undefined : value["lastCalculatedAt"].toISOString(),
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+      value["lastCalculatedAt"] == null
+        ? undefined
+        : value["lastCalculatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
   };
 }

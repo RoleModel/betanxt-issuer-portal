@@ -26,7 +26,8 @@ export const DocumentStatus = {
   Authorized: "AUTHORIZED",
   Completed: "COMPLETED",
 } as const;
-export type DocumentStatus = (typeof DocumentStatus)[keyof typeof DocumentStatus];
+export type DocumentStatus =
+  (typeof DocumentStatus)[keyof typeof DocumentStatus];
 
 export function instanceOfDocumentStatus(value: any): boolean {
   for (const key in DocumentStatus) {
@@ -45,7 +46,7 @@ export function DocumentStatusFromJSON(json: any): DocumentStatus {
 
 export function DocumentStatusFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): DocumentStatus {
   return json as DocumentStatus;
 }
@@ -56,7 +57,7 @@ export function DocumentStatusToJSON(value?: DocumentStatus | null): any {
 
 export function DocumentStatusToJSONTyped(
   value: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): DocumentStatus {
   return value as DocumentStatus;
 }

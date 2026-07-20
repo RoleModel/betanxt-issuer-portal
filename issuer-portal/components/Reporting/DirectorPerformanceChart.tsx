@@ -49,17 +49,22 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
   }
 
   const chartData = data.map((item) => {
-    const total = item.totalVotes || item.forVotes + item.againstVotes + item.abstainVotes;
+    const total =
+      item.totalVotes || item.forVotes + item.againstVotes + item.abstainVotes;
     return {
       directorName: item.directorName,
       forPercentage: total > 0 ? Math.round((item.forVotes / total) * 100) : 0,
-      againstPercentage: total > 0 ? Math.round((item.againstVotes / total) * 100) : 0,
-      abstainPercentage: total > 0 ? Math.round((item.abstainVotes / total) * 100) : 0,
+      againstPercentage:
+        total > 0 ? Math.round((item.againstVotes / total) * 100) : 0,
+      abstainPercentage:
+        total > 0 ? Math.round((item.abstainVotes / total) * 100) : 0,
     };
   });
 
   // Ensure all director names are strings to prevent chart rendering errors
-  const directorNames = chartData.map((item) => String(item.directorName || "Unknown"));
+  const directorNames = chartData.map((item) =>
+    String(item.directorName || "Unknown")
+  );
   const forPercentageData = chartData.map((item) => item.forPercentage);
   const againstPercentageData = chartData.map((item) => item.againstPercentage);
   const abstainPercentageData = chartData.map((item) => item.abstainPercentage);

@@ -26,10 +26,15 @@ async function run() {
   console.log("Proposal totals:");
   for (const r of proposals.rows) {
     const total =
-      Number(r.total_votes_for) + Number(r.total_votes_against) + Number(r.total_votes_abstain);
-    const pct = total > 0 ? ((Number(r.total_votes_for) / total) * 100).toFixed(1) : "0.0";
+      Number(r.total_votes_for) +
+      Number(r.total_votes_against) +
+      Number(r.total_votes_abstain);
+    const pct =
+      total > 0
+        ? ((Number(r.total_votes_for) / total) * 100).toFixed(1)
+        : "0.0";
     console.log(
-      `  ${String(r.num).padEnd(6)} ${r.proposal_type.padEnd(22)} FOR=${Number(r.total_votes_for).toLocaleString().padStart(10)}  AGN=${Number(r.total_votes_against).toLocaleString().padStart(9)}  ABS=${Number(r.total_votes_abstain).toLocaleString().padStart(8)}  %FOR=${pct}%  eligible=${Number(r.total_shares_eligible).toLocaleString()}`,
+      `  ${String(r.num).padEnd(6)} ${r.proposal_type.padEnd(22)} FOR=${Number(r.total_votes_for).toLocaleString().padStart(10)}  AGN=${Number(r.total_votes_against).toLocaleString().padStart(9)}  ABS=${Number(r.total_votes_abstain).toLocaleString().padStart(8)}  %FOR=${pct}%  eligible=${Number(r.total_shares_eligible).toLocaleString()}`
     );
   }
 
@@ -43,7 +48,9 @@ async function run() {
   const tab = await client.query(`
     SELECT positions_voted FROM tabulation_report WHERE meeting_id = 'wen-annual-meeting-2026'
   `);
-  console.log(`Tabulation report: ${JSON.stringify(tab.rows[0].positions_voted)}`);
+  console.log(
+    `Tabulation report: ${JSON.stringify(tab.rows[0].positions_voted)}`
+  );
 
   await client.end();
 }

@@ -238,7 +238,10 @@ export function MeetingFromJSON(json: any): Meeting {
   return MeetingFromJSONTyped(json, false);
 }
 
-export function MeetingFromJSONTyped(json: any, ignoreDiscriminator: boolean): Meeting {
+export function MeetingFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Meeting {
   if (json == null) {
     return json;
   }
@@ -247,40 +250,71 @@ export function MeetingFromJSONTyped(json: any, ignoreDiscriminator: boolean): M
     title: json["title"] == null ? undefined : json["title"],
     cusip: json["cusip"] == null ? undefined : json["cusip"],
     ticker: json["ticker"] == null ? undefined : json["ticker"],
-    preFilingDate: json["preFilingDate"] == null ? undefined : new Date(json["preFilingDate"]),
-    filingDate: json["filingDate"] == null ? undefined : new Date(json["filingDate"]),
+    preFilingDate:
+      json["preFilingDate"] == null
+        ? undefined
+        : new Date(json["preFilingDate"]),
+    filingDate:
+      json["filingDate"] == null ? undefined : new Date(json["filingDate"]),
     brokerSearchDate:
-      json["brokerSearchDate"] == null ? undefined : new Date(json["brokerSearchDate"]),
-    recordDate: json["recordDate"] == null ? undefined : new Date(json["recordDate"]),
-    mailingDate: json["mailingDate"] == null ? undefined : new Date(json["mailingDate"]),
-    meetingDate: json["meetingDate"] == null ? undefined : new Date(json["meetingDate"]),
-    cutoffDate: json["cutoffDate"] == null ? undefined : new Date(json["cutoffDate"]),
+      json["brokerSearchDate"] == null
+        ? undefined
+        : new Date(json["brokerSearchDate"]),
+    recordDate:
+      json["recordDate"] == null ? undefined : new Date(json["recordDate"]),
+    mailingDate:
+      json["mailingDate"] == null ? undefined : new Date(json["mailingDate"]),
+    meetingDate:
+      json["meetingDate"] == null ? undefined : new Date(json["meetingDate"]),
+    cutoffDate:
+      json["cutoffDate"] == null ? undefined : new Date(json["cutoffDate"]),
     meetingType: json["meetingType"] == null ? undefined : json["meetingType"],
     meetingYear: json["meetingYear"] == null ? undefined : json["meetingYear"],
-    status: json["status"] == null ? undefined : MeetingStatusFromJSON(json["status"]),
-    currentPhase: json["currentPhase"] == null ? undefined : json["currentPhase"],
-    overallCompletion: json["overallCompletion"] == null ? undefined : json["overallCompletion"],
-    distributionType: json["distributionType"] == null ? undefined : json["distributionType"],
-    transferAgent: json["transferAgent"] == null ? undefined : json["transferAgent"],
-    employeeStockPlans: json["employeeStockPlans"] == null ? undefined : json["employeeStockPlans"],
-    planAdministrator: json["planAdministrator"] == null ? undefined : json["planAdministrator"],
+    status:
+      json["status"] == null
+        ? undefined
+        : MeetingStatusFromJSON(json["status"]),
+    currentPhase:
+      json["currentPhase"] == null ? undefined : json["currentPhase"],
+    overallCompletion:
+      json["overallCompletion"] == null ? undefined : json["overallCompletion"],
+    distributionType:
+      json["distributionType"] == null ? undefined : json["distributionType"],
+    transferAgent:
+      json["transferAgent"] == null ? undefined : json["transferAgent"],
+    employeeStockPlans:
+      json["employeeStockPlans"] == null
+        ? undefined
+        : json["employeeStockPlans"],
+    planAdministrator:
+      json["planAdministrator"] == null ? undefined : json["planAdministrator"],
     planAdministratorContact:
-      json["planAdministratorContact"] == null ? undefined : json["planAdministratorContact"],
+      json["planAdministratorContact"] == null
+        ? undefined
+        : json["planAdministratorContact"],
     planAdministratorContactEmail:
       json["planAdministratorContactEmail"] == null
         ? undefined
         : json["planAdministratorContactEmail"],
     solicitor: json["solicitor"] == null ? undefined : json["solicitor"],
-    solicitorEmail: json["solicitorEmail"] == null ? undefined : json["solicitorEmail"],
+    solicitorEmail:
+      json["solicitorEmail"] == null ? undefined : json["solicitorEmail"],
     inspector: json["inspector"] == null ? undefined : json["inspector"],
-    ivrDialInNumber: json["ivrDialInNumber"] == null ? undefined : json["ivrDialInNumber"],
+    ivrDialInNumber:
+      json["ivrDialInNumber"] == null ? undefined : json["ivrDialInNumber"],
     totalSharesOutstanding:
-      json["totalSharesOutstanding"] == null ? undefined : json["totalSharesOutstanding"],
-    quorumRequirement: json["quorumRequirement"] == null ? undefined : json["quorumRequirement"],
+      json["totalSharesOutstanding"] == null
+        ? undefined
+        : json["totalSharesOutstanding"],
+    quorumRequirement:
+      json["quorumRequirement"] == null ? undefined : json["quorumRequirement"],
     clientId: json["clientId"] == null ? undefined : json["clientId"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
-    client: json["client"] == null ? undefined : ClientsFromJSON(json["client"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    client:
+      json["client"] == null ? undefined : ClientsFromJSON(json["client"]),
   };
 }
 
@@ -290,7 +324,7 @@ export function MeetingToJSON(json: any): Meeting {
 
 export function MeetingToJSONTyped(
   value?: Meeting | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -314,7 +348,9 @@ export function MeetingToJSONTyped(
         ? null
         : (value["brokerSearchDate"] as any)?.toISOString().substring(0, 10),
     recordDate:
-      value["recordDate"] == null ? undefined : value["recordDate"].toISOString().substring(0, 10),
+      value["recordDate"] == null
+        ? undefined
+        : value["recordDate"].toISOString().substring(0, 10),
     mailingDate:
       value["mailingDate"] == null
         ? undefined
@@ -345,8 +381,10 @@ export function MeetingToJSONTyped(
     totalSharesOutstanding: value["totalSharesOutstanding"],
     quorumRequirement: value["quorumRequirement"],
     clientId: value["clientId"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
     client: ClientsToJSON(value["client"]),
   };
 }

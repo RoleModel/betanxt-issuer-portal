@@ -9,10 +9,18 @@ test.describe("Past Meetings Page", () => {
     await page.waitForSelector("text=Past Meetings", { timeout: 15000 });
 
     // Check for table headers
-    await expect(page.locator('.MuiTableCell-root span:text("Meeting")')).toBeVisible();
-    await expect(page.locator('.MuiTableCell-root span:text("CUSIP")')).toBeVisible();
-    await expect(page.locator('.MuiTableCell-root span:text("Date")')).toBeVisible();
-    await expect(page.locator('.MuiTableCell-root span:text("Participation")')).toBeVisible();
+    await expect(
+      page.locator('.MuiTableCell-root span:text("Meeting")')
+    ).toBeVisible();
+    await expect(
+      page.locator('.MuiTableCell-root span:text("CUSIP")')
+    ).toBeVisible();
+    await expect(
+      page.locator('.MuiTableCell-root span:text("Date")')
+    ).toBeVisible();
+    await expect(
+      page.locator('.MuiTableCell-root span:text("Participation")')
+    ).toBeVisible();
 
     // Check for meeting data
     const tableRows = page.locator("tbody tr");
@@ -20,7 +28,9 @@ test.describe("Past Meetings Page", () => {
     expect(rowCount).toBeGreaterThan(0);
   });
 
-  test("should show 2025 annual meeting with real participation data", async ({ page }) => {
+  test("should show 2025 annual meeting with real participation data", async ({
+    page,
+  }) => {
     await page.goto("http://localhost:3000/WEN/past-meetings");
 
     // Wait for table to load
@@ -62,7 +72,9 @@ test.describe("Past Meetings Page", () => {
     await page.waitForSelector("tbody tr", { timeout: 15000 });
 
     // Look for special meetings
-    const specialMeetingRows = page.locator("tr", { hasText: "Special Meeting" });
+    const specialMeetingRows = page.locator("tr", {
+      hasText: "Special Meeting",
+    });
     const specialCount = await specialMeetingRows.count();
     expect(specialCount).toBeGreaterThan(0);
 
@@ -96,7 +108,9 @@ test.describe("Past Meetings Page", () => {
       const row = rows.nth(i);
       const participationCell = row.locator("td").nth(3);
       // Look for the secondary text that shows vote count
-      const voteCountText = await participationCell.locator("p:nth-of-type(2)").textContent();
+      const voteCountText = await participationCell
+        .locator("p:nth-of-type(2)")
+        .textContent();
 
       if (voteCountText && voteCountText.trim() !== "") {
         // Should show vote count in format like "2.5M" or "133.3M" or "34.4K" or "0"
@@ -190,7 +204,9 @@ test.describe("Past Meetings Page", () => {
     expect(paycCusip).not.toBe("95058W100"); // Should not be Wendy's CUSIP
   });
 
-  test("should show proper vote count formatting with M/K suffixes", async ({ page }) => {
+  test("should show proper vote count formatting with M/K suffixes", async ({
+    page,
+  }) => {
     await page.goto("http://localhost:3000/WEN/past-meetings");
     await page.waitForSelector("tbody tr", { timeout: 15000 });
 
@@ -209,7 +225,9 @@ test.describe("Past Meetings Page", () => {
         const percentMatch = participationText.match(/(\d+\.?\d*)%/);
         if (percentMatch && parseFloat(percentMatch[1]) > 1) {
           // Vote counts are shown as secondary text in the participation cell
-          const voteCountText = await participationCell.locator("p:nth-of-type(2)").textContent();
+          const voteCountText = await participationCell
+            .locator("p:nth-of-type(2)")
+            .textContent();
 
           if (voteCountText && voteCountText.match(/\d+\.?\d*[MK]/)) {
             foundFormattedCount = true;

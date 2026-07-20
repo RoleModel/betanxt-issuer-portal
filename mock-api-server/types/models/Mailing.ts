@@ -133,7 +133,10 @@ export function MailingFromJSON(json: any): Mailing {
   return MailingFromJSONTyped(json, false);
 }
 
-export function MailingFromJSONTyped(json: any, ignoreDiscriminator: boolean): Mailing {
+export function MailingFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Mailing {
   if (json == null) {
     return json;
   }
@@ -141,16 +144,26 @@ export function MailingFromJSONTyped(json: any, ignoreDiscriminator: boolean): M
     id: json["id"] == null ? undefined : json["id"],
     meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
     ticker: json["ticker"] == null ? undefined : json["ticker"],
-    totalAccounts: json["totalAccounts"] == null ? undefined : json["totalAccounts"],
-    totalPositions: json["totalPositions"] == null ? undefined : json["totalPositions"],
+    totalAccounts:
+      json["totalAccounts"] == null ? undefined : json["totalAccounts"],
+    totalPositions:
+      json["totalPositions"] == null ? undefined : json["totalPositions"],
     totalRetransmissions:
-      json["totalRetransmissions"] == null ? undefined : json["totalRetransmissions"],
-    totalRollups: json["totalRollups"] == null ? undefined : json["totalRollups"],
+      json["totalRetransmissions"] == null
+        ? undefined
+        : json["totalRetransmissions"],
+    totalRollups:
+      json["totalRollups"] == null ? undefined : json["totalRollups"],
     fullsetMailPositions:
-      json["fullsetMailPositions"] == null ? undefined : json["fullsetMailPositions"],
-    naaMailPositions: json["naaMailPositions"] == null ? undefined : json["naaMailPositions"],
+      json["fullsetMailPositions"] == null
+        ? undefined
+        : json["fullsetMailPositions"],
+    naaMailPositions:
+      json["naaMailPositions"] == null ? undefined : json["naaMailPositions"],
     courtesyOtherMailPositions:
-      json["courtesyOtherMailPositions"] == null ? undefined : json["courtesyOtherMailPositions"],
+      json["courtesyOtherMailPositions"] == null
+        ? undefined
+        : json["courtesyOtherMailPositions"],
     electronicSuppressedPositions:
       json["electronicSuppressedPositions"] == null
         ? undefined
@@ -160,15 +173,21 @@ export function MailingFromJSONTyped(json: any, ignoreDiscriminator: boolean): M
         ? undefined
         : json["householdSuppressedPositions"],
     managedSuppressedPositions:
-      json["managedSuppressedPositions"] == null ? undefined : json["managedSuppressedPositions"],
+      json["managedSuppressedPositions"] == null
+        ? undefined
+        : json["managedSuppressedPositions"],
     consolidatedSuppressedPositions:
       json["consolidatedSuppressedPositions"] == null
         ? undefined
         : json["consolidatedSuppressedPositions"],
     canceledSuppressedPositions:
-      json["canceledSuppressedPositions"] == null ? undefined : json["canceledSuppressedPositions"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+      json["canceledSuppressedPositions"] == null
+        ? undefined
+        : json["canceledSuppressedPositions"],
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
   };
 }
 
@@ -178,7 +197,7 @@ export function MailingToJSON(json: any): Mailing {
 
 export function MailingToJSONTyped(
   value?: Mailing | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -200,7 +219,9 @@ export function MailingToJSONTyped(
     managedSuppressedPositions: value["managedSuppressedPositions"],
     consolidatedSuppressedPositions: value["consolidatedSuppressedPositions"],
     canceledSuppressedPositions: value["canceledSuppressedPositions"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
   };
 }

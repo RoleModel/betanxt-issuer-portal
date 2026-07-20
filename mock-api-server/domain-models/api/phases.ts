@@ -33,7 +33,8 @@ function transformPhase(dbPhase: PhaseRow): Phase {
     meetingId: nullToUndefined(dbPhase.meeting_id),
     name: nullToUndefined(dbPhase.name),
     orderIndex: nullToUndefined(dbPhase.order_index),
-    status: nullToUndefined(dbPhase.status) as "IN_PROGRESS" | "COMPLETE" | undefined,
+    status: nullToUndefined(dbPhase.status) as
+      "IN_PROGRESS" | "COMPLETE" | undefined,
     keyDates: dbPhase.key_dates ? JSON.parse(dbPhase.key_dates) : undefined,
     createdAt: nullToUndefined(dbPhase.created_at),
     updatedAt: nullToUndefined(dbPhase.updated_at),
@@ -42,7 +43,7 @@ function transformPhase(dbPhase: PhaseRow): Phase {
 
 export async function listPhases(
   meetingId: string,
-  opts?: { status?: string },
+  opts?: { status?: string }
 ): Promise<ApiResponse<Phase[]>> {
   try {
     let query = supabase.from("phase").select("*").eq("meeting_id", meetingId);
@@ -69,7 +70,8 @@ export async function listPhases(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch phases",
+        message:
+          error instanceof Error ? error.message : "Failed to fetch phases",
       },
     };
   }
@@ -77,7 +79,7 @@ export async function listPhases(
 
 export async function createPhase(
   meetingId: string,
-  body: CreatePhaseRequest,
+  body: CreatePhaseRequest
 ): Promise<ApiResponse<Phase>> {
   try {
     const request = body;
@@ -106,7 +108,8 @@ export async function createPhase(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to create phase",
+        message:
+          error instanceof Error ? error.message : "Failed to create phase",
       },
     };
   }
@@ -114,7 +117,11 @@ export async function createPhase(
 
 export async function getPhaseById(id: string): Promise<ApiResponse<Phase>> {
   try {
-    const { data, error } = await supabase.from("phase").select("*").eq("id", id).single();
+    const { data, error } = await supabase
+      .from("phase")
+      .select("*")
+      .eq("id", id)
+      .single();
 
     if (error) {
       return {
@@ -128,7 +135,8 @@ export async function getPhaseById(id: string): Promise<ApiResponse<Phase>> {
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch phase",
+        message:
+          error instanceof Error ? error.message : "Failed to fetch phase",
       },
     };
   }
@@ -136,15 +144,17 @@ export async function getPhaseById(id: string): Promise<ApiResponse<Phase>> {
 
 export async function updatePhase(
   id: string,
-  body: UpdatePhaseRequest,
+  body: UpdatePhaseRequest
 ): Promise<ApiResponse<Phase>> {
   try {
     const request = body;
     const updateData: Partial<PhaseUpdate> = {};
     if (request.name !== undefined) updateData.name = request.name;
-    if (request.orderIndex !== undefined) updateData.order_index = request.orderIndex;
+    if (request.orderIndex !== undefined)
+      updateData.order_index = request.orderIndex;
     if (request.status !== undefined) updateData.status = request.status;
-    if (request.keyDates !== undefined) updateData.key_dates = JSON.stringify(request.keyDates);
+    if (request.keyDates !== undefined)
+      updateData.key_dates = JSON.stringify(request.keyDates);
 
     const { data, error } = await supabase
       .from("phase")
@@ -165,13 +175,16 @@ export async function updatePhase(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to update phase",
+        message:
+          error instanceof Error ? error.message : "Failed to update phase",
       },
     };
   }
 }
 
 // Helper function for backward compatibility
-export async function listPhasesByMeetingId(meetingId: string): Promise<ApiResponse<Phase[]>> {
+export async function listPhasesByMeetingId(
+  meetingId: string
+): Promise<ApiResponse<Phase[]>> {
   return listPhases(meetingId);
 }

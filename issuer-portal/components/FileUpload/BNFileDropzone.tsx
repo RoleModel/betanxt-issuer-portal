@@ -24,7 +24,7 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
     (acceptedFiles: File[]) => {
       onFilesSelected(acceptedFiles);
     },
-    [onFilesSelected],
+    [onFilesSelected]
   );
 
   const handleDropRejected = useCallback(
@@ -34,7 +34,7 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
         onFileRejections(fileRejections);
       }
     },
-    [onFileRejections],
+    [onFileRejections]
   );
 
   const acceptObject = acceptedFileTypes.reduce(
@@ -45,9 +45,9 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
           acc["application/msword"] = [".doc"];
           break;
         case ".docx":
-          acc["application/vnd.openxmlformats-officedocument.wordprocessingml.document"] = [
-            ".docx",
-          ];
+          acc[
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          ] = [".docx"];
           break;
         case ".pdf":
           acc["application/pdf"] = [".pdf"];
@@ -56,12 +56,14 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
           acc["application/vnd.ms-powerpoint"] = [".ppt"];
           break;
         case ".pptx":
-          acc["application/vnd.openxmlformats-officedocument.presentationml.presentation"] = [
-            ".pptx",
-          ];
+          acc[
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+          ] = [".pptx"];
           break;
         case ".xlsx":
-          acc["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"] = [".xlsx"];
+          acc[
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          ] = [".xlsx"];
           break;
         case ".xls":
           acc["application/vnd.ms-excel"] = [".xls"];
@@ -96,7 +98,7 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
       }
       return acc;
     },
-    {} as Record<string, string[]>,
+    {} as Record<string, string[]>
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -126,8 +128,10 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
   };
 
   const getBackgroundColor = () => {
-    if (hasUnsupportedFiles) return "rgba(var(--mui-palette-error-mainChannel) / 0.04)"; // Error red background
-    if (isDragActive) return "rgba(var(--mui-palette-primary-mainChannel) / 0.04)";
+    if (hasUnsupportedFiles)
+      return "rgba(var(--mui-palette-error-mainChannel) / 0.04)"; // Error red background
+    if (isDragActive)
+      return "rgba(var(--mui-palette-primary-mainChannel) / 0.04)";
     return "transparent";
   };
 
@@ -145,7 +149,9 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
       };
     }
     return {
-      border: isDragActive ? `2px dashed primary.main` : `1px dashed primary.main`,
+      border: isDragActive
+        ? `2px dashed primary.main`
+        : `1px dashed primary.main`,
       background: `rgba(var(--mui-palette-primary-mainChannel) / 0.07)`,
     };
   };
@@ -203,7 +209,11 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
       </Typography>
 
       {hasUnsupportedFiles ? (
-        <Typography color="var(--mui-palette-error-main)" variant="body3" align="center">
+        <Typography
+          color="var(--mui-palette-error-main)"
+          variant="body3"
+          align="center"
+        >
           Unsupported file.
         </Typography>
       ) : (

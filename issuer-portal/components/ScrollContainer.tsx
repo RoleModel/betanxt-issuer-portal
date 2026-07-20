@@ -14,15 +14,19 @@ interface ScrollContainerProps {
 
 const StyledScrollContainer = styled(Box, {
   shouldForwardProp: (prop) =>
-    !["scrollDirection", "showStartShadow", "showEndShadow"].includes(prop as string),
+    !["scrollDirection", "showStartShadow", "showEndShadow"].includes(
+      prop as string
+    ),
 })<{
   scrollDirection: "horizontal" | "vertical" | "both";
   showStartShadow: boolean;
   onClick?: () => void;
   showEndShadow: boolean;
 }>(({ theme, scrollDirection, showStartShadow, showEndShadow }) => {
-  const isVertical = scrollDirection === "vertical" || scrollDirection === "both";
-  const isHorizontal = scrollDirection === "horizontal" || scrollDirection === "both";
+  const isVertical =
+    scrollDirection === "vertical" || scrollDirection === "both";
+  const isHorizontal =
+    scrollDirection === "horizontal" || scrollDirection === "both";
 
   return {
     position: "relative",
@@ -128,7 +132,8 @@ const ScrollContainer: React.FC<ScrollContainerProps> = ({
     if (isHorizontal) {
       const canScrollLeft = element.scrollLeft > threshold;
       const canScrollRight =
-        element.scrollLeft < element.scrollWidth - element.clientWidth - threshold;
+        element.scrollLeft <
+        element.scrollWidth - element.clientWidth - threshold;
 
       setShowStartShadow(canScrollLeft);
       setShowEndShadow(canScrollRight);
@@ -137,7 +142,8 @@ const ScrollContainer: React.FC<ScrollContainerProps> = ({
     if (isVertical) {
       const canScrollUp = element.scrollTop > threshold;
       const canScrollDown =
-        element.scrollTop < element.scrollHeight - element.clientHeight - threshold;
+        element.scrollTop <
+        element.scrollHeight - element.clientHeight - threshold;
       setShowStartShadow(canScrollUp);
       setShowEndShadow(canScrollDown);
     }

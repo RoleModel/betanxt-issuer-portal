@@ -13,14 +13,22 @@ interface ChartToggleProps {
 }
 
 const ChartToggle: React.FC<ChartToggleProps> = ({ value, onChange }) => {
-  const handleChange = (_event: React.MouseEvent<HTMLElement>, newValue: ChartView | null) => {
+  const handleChange = (
+    _event: React.MouseEvent<HTMLElement>,
+    newValue: ChartView | null
+  ) => {
     if (newValue !== null) {
       onChange(newValue);
     }
   };
 
   return (
-    <ToggleButtonGroup value={value} exclusive onChange={handleChange} size="small">
+    <ToggleButtonGroup
+      value={value}
+      exclusive
+      onChange={handleChange}
+      size="small"
+    >
       <ToggleButton value="aggregate" aria-label="aggregate view">
         <GroupsIcon />
       </ToggleButton>

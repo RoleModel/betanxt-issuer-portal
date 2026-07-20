@@ -7,7 +7,11 @@ import { NextResponse } from "next/server";
 
 import type { components } from "@/types/api";
 
-import { deleteDocument, getDocumentById, updateDocument } from "@/domain-models/api/documents";
+import {
+  deleteDocument,
+  getDocumentById,
+  updateDocument,
+} from "@/domain-models/api/documents";
 import { handleCors, withCors } from "@/utils/cors";
 
 interface RouteParams {
@@ -16,7 +20,7 @@ interface RouteParams {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -28,7 +32,10 @@ export async function GET(
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -41,15 +48,15 @@ export async function GET(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "getDocumentById",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -57,14 +64,18 @@ export async function PUT(
     const id = resolvedParams.id;
 
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["UpdateDocumentRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["UpdateDocumentRequest"];
 
     // Use existing domain model function
     const { data, error } = await updateDocument(id, body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -77,8 +88,8 @@ export async function PUT(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "updateDocument",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -90,7 +101,7 @@ export function OPTIONS() {
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     const resolvedParams = await params;
@@ -100,7 +111,10 @@ export async function DELETE(
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -113,8 +127,8 @@ export async function DELETE(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "deleteDocument",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

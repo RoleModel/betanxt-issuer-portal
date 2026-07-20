@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Git clients do not necessarily start an interactive shell, so load the
+# GitHub Packages token from the authenticated GitHub CLI session when needed.
+if [ -z "$GITHUB_TOKEN" ]; then
+  GH_EXECUTABLE="$(command -v gh 2>/dev/null || true)"
+  if [ -z "$GH_EXECUTABLE" ] && [ -x /opt/homebrew/bin/gh ]; then
+    GH_EXECUTABLE=/opt/homebrew/bin/gh
+  fi
+
+  if [ -n "$GH_EXECUTABLE" ]; then
+    GITHUB_TOKEN="$($GH_EXECUTABLE auth token 2>/dev/null || true)"
+    export GITHUB_TOKEN
+  fi
+  unset GH_EXECUTABLE
+fi
+
+# Keep commits gated by deterministic checks. The full cross-browser Playwright
+# suite remains a CI check and is too broad and environment-dependent for a
+# local pre-commit hook.
+pnpm run lint
+pnpm --filter issuer-portal run type-check
+pnpm --filter mock-api-server run test:unit
+pnpm run check

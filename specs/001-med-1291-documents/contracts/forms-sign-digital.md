@@ -1,7 +1,6 @@
 # POST /api/documents/forms/{formType}/sign-digital
 
-Purpose: Produce executed version for a generated form through digital signature stub.
-Auth: ADMIN or ISSUER_EDITOR
+Purpose: Produce executed version for a generated form through digital signature stub. Auth: ADMIN or ISSUER_EDITOR
 
 Path Params:
 

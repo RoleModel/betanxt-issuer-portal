@@ -53,10 +53,14 @@ export type CastVoteRequestVoteEnum =
 /**
  * Check if a given object implements the CastVoteRequest interface.
  */
-export function instanceOfCastVoteRequest(value: object): value is CastVoteRequest {
-  if (!("proposalId" in value) || value["proposalId"] === undefined) return false;
+export function instanceOfCastVoteRequest(
+  value: object
+): value is CastVoteRequest {
+  if (!("proposalId" in value) || value["proposalId"] === undefined)
+    return false;
   if (!("vote" in value) || value["vote"] === undefined) return false;
-  if (!("sharesVoting" in value) || value["sharesVoting"] === undefined) return false;
+  if (!("sharesVoting" in value) || value["sharesVoting"] === undefined)
+    return false;
   return true;
 }
 
@@ -66,7 +70,7 @@ export function CastVoteRequestFromJSON(json: any): CastVoteRequest {
 
 export function CastVoteRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CastVoteRequest {
   if (json == null) {
     return json;
@@ -84,7 +88,7 @@ export function CastVoteRequestToJSON(json: any): CastVoteRequest {
 
 export function CastVoteRequestToJSONTyped(
   value?: CastVoteRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

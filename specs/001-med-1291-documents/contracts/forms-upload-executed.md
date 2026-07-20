@@ -1,7 +1,6 @@
 # POST /api/documents/forms/{formType}/upload-executed
 
-Purpose: Upload externally executed PDF.
-Auth: ADMIN or ISSUER_EDITOR
+Purpose: Upload externally executed PDF. Auth: ADMIN or ISSUER_EDITOR
 
 Path Params:
 

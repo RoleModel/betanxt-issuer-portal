@@ -128,7 +128,8 @@ export const PositionSourceEnum = {
   Print: "PRINT",
   Ivr: "IVR",
 } as const;
-export type PositionSourceEnum = (typeof PositionSourceEnum)[keyof typeof PositionSourceEnum];
+export type PositionSourceEnum =
+  (typeof PositionSourceEnum)[keyof typeof PositionSourceEnum];
 
 /**
  * Check if a given object implements the Position interface.
@@ -141,7 +142,10 @@ export function PositionFromJSON(json: any): Position {
   return PositionFromJSONTyped(json, false);
 }
 
-export function PositionFromJSONTyped(json: any, ignoreDiscriminator: boolean): Position {
+export function PositionFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Position {
   if (json == null) {
     return json;
   }
@@ -152,15 +156,19 @@ export function PositionFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
     accountType: json["accountType"] == null ? undefined : json["accountType"],
     setKey: json["setKey"] == null ? undefined : json["setKey"],
     name: json["name"] == null ? undefined : json["name"],
-    accountNumber: json["accountNumber"] == null ? undefined : json["accountNumber"],
-    controlNumber: json["controlNumber"] == null ? undefined : json["controlNumber"],
+    accountNumber:
+      json["accountNumber"] == null ? undefined : json["accountNumber"],
+    controlNumber:
+      json["controlNumber"] == null ? undefined : json["controlNumber"],
     voteStatus: json["voteStatus"] == null ? undefined : json["voteStatus"],
     shares: json["shares"] == null ? undefined : json["shares"],
     sharesVoted: json["sharesVoted"] == null ? undefined : json["sharesVoted"],
     source: json["source"] == null ? undefined : json["source"],
     dateVoted: json["dateVoted"] == null ? undefined : json["dateVoted"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
   };
 }
 
@@ -170,7 +178,7 @@ export function PositionToJSON(json: any): Position {
 
 export function PositionToJSONTyped(
   value?: Position | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -190,7 +198,9 @@ export function PositionToJSONTyped(
     sharesVoted: value["sharesVoted"],
     source: value["source"],
     dateVoted: value["dateVoted"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
   };
 }

@@ -40,19 +40,26 @@ async function run() {
       `SELECT id, proposal_number FROM proposal
        WHERE meeting_id = $1 AND proposal_type = 'Director Election'
        ORDER BY proposal_number`,
-      [MEETING_ID],
+      [MEETING_ID]
     );
 
     const positionsRes = await client.query(
       `SELECT id, name, shares_voted FROM position
        WHERE meeting_id = $1 AND vote_status = 'Voted'`,
-      [MEETING_ID],
+      [MEETING_ID]
     );
-    const positionsByName = new Map<string, { id: string; shares_voted: string }>(
-      positionsRes.rows.map((r: { id: string; name: string; shares_voted: string }) => [r.name, r]),
+    const positionsByName = new Map<
+      string,
+      { id: string; shares_voted: string }
+    >(
+      positionsRes.rows.map(
+        (r: { id: string; name: string; shares_voted: string }) => [r.name, r]
+      )
     );
 
-    console.log(`\n📋 Processing ${proposalsRes.rows.length} director proposals...`);
+    console.log(
+      `\n📋 Processing ${proposalsRes.rows.length} director proposals...`
+    );
 
     for (const proposal of proposalsRes.rows) {
       const propNum = Number(proposal.proposal_number).toFixed(2);
@@ -60,7 +67,9 @@ async function run() {
 
       if (opposers.length === 0) continue;
 
-      console.log(`\n  Proposal ${propNum} — ${opposers.join(", ")} voting AGAINST:`);
+      console.log(
+        `\n  Proposal ${propNum} — ${opposers.join(", ")} voting AGAINST:`
+      );
 
       for (const posName of opposers) {
         const pos = positionsByName.get(posName);
@@ -73,10 +82,10 @@ async function run() {
           `UPDATE position_vote
            SET vote = 'AGAINST'
            WHERE position_id = $1 AND proposal_id = $2`,
-          [pos.id, proposal.id],
+          [pos.id, proposal.id]
         );
         console.log(
-          `    ✓ ${posName}: ${Number(pos.shares_voted).toLocaleString()} shares → AGAINST (${updated.rowCount} row)`,
+          `    ✓ ${posName}: ${Number(pos.shares_voted).toLocaleString()} shares → AGAINST (${updated.rowCount} row)`
         );
       }
 
@@ -88,7 +97,7 @@ async function run() {
            SUM(CASE WHEN vote = 'ABSTAIN' THEN shares_voting::numeric ELSE 0 END) AS total_abstain
          FROM position_vote
          WHERE proposal_id = $1`,
-        [proposal.id],
+        [proposal.id]
       );
       const t = totalsRes.rows[0];
       const totalFor = Number(t.total_for);
@@ -117,10 +126,10 @@ async function run() {
           ((totalAbstain / totalShares) * 100).toFixed(4),
           ((totalVotes / totalShares) * 100).toFixed(4),
           proposal.id,
-        ],
+        ]
       );
       console.log(
-        `    → FOR=${totalFor.toLocaleString()} AGAINST=${totalAgainst.toLocaleString()} ABSTAIN=${totalAbstain.toLocaleString()}`,
+        `    → FOR=${totalFor.toLocaleString()} AGAINST=${totalAgainst.toLocaleString()} ABSTAIN=${totalAbstain.toLocaleString()}`
       );
     }
 

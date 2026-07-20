@@ -20,7 +20,12 @@ import {
   DocumentToJSON,
   DocumentToJSONTyped,
 } from "./Document";
-import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from "./User";
+import {
+  UserFromJSON,
+  UserFromJSONTyped,
+  UserToJSON,
+  UserToJSONTyped,
+} from "./User";
 
 /**
  *
@@ -95,7 +100,10 @@ export function CommentFromJSON(json: any): Comment {
   return CommentFromJSONTyped(json, false);
 }
 
-export function CommentFromJSONTyped(json: any, ignoreDiscriminator: boolean): Comment {
+export function CommentFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Comment {
   if (json == null) {
     return json;
   }
@@ -106,8 +114,10 @@ export function CommentFromJSONTyped(json: any, ignoreDiscriminator: boolean): C
     comment: json["comment"] == null ? undefined : json["comment"],
     firstName: json["firstName"] == null ? undefined : json["firstName"],
     lastName: json["lastName"] == null ? undefined : json["lastName"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    document: json["document"] == null ? undefined : DocumentFromJSON(json["document"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    document:
+      json["document"] == null ? undefined : DocumentFromJSON(json["document"]),
     user: json["user"] == null ? undefined : UserFromJSON(json["user"]),
   };
 }
@@ -118,7 +128,7 @@ export function CommentToJSON(json: any): Comment {
 
 export function CommentToJSONTyped(
   value?: Comment | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -131,7 +141,8 @@ export function CommentToJSONTyped(
     comment: value["comment"],
     firstName: value["firstName"],
     lastName: value["lastName"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
     document: DocumentToJSON(value["document"]),
     user: UserToJSON(value["user"]),
   };

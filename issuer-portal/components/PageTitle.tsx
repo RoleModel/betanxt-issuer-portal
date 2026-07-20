@@ -14,7 +14,8 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
   const isProducts = segments[0] === "products";
 
   // Check if we're under a client ticker path (for meeting pages)
-  const hasClientTicker = segments.length > 0 && /^[A-Z]{2,5}$/.test(segments[0]);
+  const hasClientTicker =
+    segments.length > 0 && /^[A-Z]{2,5}$/.test(segments[0]);
   const baseIndex = hasClientTicker ? 1 : 0;
   const tickerPrefix = hasClientTicker ? `/${segments[0]}` : "";
 
@@ -23,7 +24,8 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
 
   const childSegments = isEducation || isProducts ? segments.slice(1) : [];
 
-  const toTitle = (s: string) => s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const toTitle = (s: string) =>
+    s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   // Get the parent page title from the base segment
   const getParentTitle = () => {
@@ -98,7 +100,13 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
                 {label}
               </Typography>
             ) : (
-              <MuiLink key={href} variant="body3" underline="hover" color="inherit" href={href}>
+              <MuiLink
+                key={href}
+                variant="body3"
+                underline="hover"
+                color="inherit"
+                href={href}
+              >
                 {label}
               </MuiLink>
             );

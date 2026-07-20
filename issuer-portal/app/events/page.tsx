@@ -77,7 +77,8 @@ export default function EventsPage() {
 
   // When the search is non-empty the filter is automatically expanded to all clients
   const isSearching = searchQuery.trim().length > 0;
-  const isFiltered = isCSM && !!assignedTickers && !showAllClients && !isSearching;
+  const isFiltered =
+    isCSM && !!assignedTickers && !showAllClients && !isSearching;
 
   const handleRequestSort = (property: OrderBy) => {
     const isAsc = orderBy === property && order === "asc";
@@ -90,7 +91,9 @@ export default function EventsPage() {
 
     // CSM: restrict to assigned clients unless searching or expanded
     if (isFiltered && assignedTickers) {
-      filtered = filtered.filter((row) => assignedTickers.has(row.clientTicker.toUpperCase()));
+      filtered = filtered.filter((row) =>
+        assignedTickers.has(row.clientTicker.toUpperCase())
+      );
     }
 
     // Events page only lists upcoming/active meetings. Completed meetings live in Past Events.
@@ -104,7 +107,7 @@ export default function EventsPage() {
           row.cusip.toLowerCase().includes(query) ||
           row.eventType.toLowerCase().includes(query) ||
           row.eventDate.includes(query) ||
-          row.clientTicker.toLowerCase().includes(query),
+          row.clientTicker.toLowerCase().includes(query)
       );
     }
 
@@ -132,18 +135,24 @@ export default function EventsPage() {
   }, [events, searchQuery, order, orderBy, isFiltered, assignedTickers]);
 
   const paginatedEvents = useMemo(
-    () => filteredAndSortedEvents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [filteredAndSortedEvents, page, rowsPerPage],
+    () =>
+      filteredAndSortedEvents.slice(
+        page * rowsPerPage,
+        page * rowsPerPage + rowsPerPage
+      ),
+    [filteredAndSortedEvents, page, rowsPerPage]
   );
 
   const handleChangePage = (
     _event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number,
+    newPage: number
   ) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
@@ -151,7 +160,11 @@ export default function EventsPage() {
   const totalPages = Math.ceil(filteredAndSortedEvents.length / rowsPerPage);
 
   return (
-    <Container maxWidth="lg" data-testid="events-page" sx={{ p: { xs: 2, sm: 3 } }}>
+    <Container
+      maxWidth="lg"
+      data-testid="events-page"
+      sx={{ p: { xs: 2, sm: 3 } }}
+    >
       <Card>
         <CardHeader
           title={"Events"}
@@ -168,7 +181,11 @@ export default function EventsPage() {
                   }
                 >
                   <Chip
-                    label={isFiltered ? `My clients (${assignedTickers.size})` : "All clients"}
+                    label={
+                      isFiltered
+                        ? `My clients (${assignedTickers.size})`
+                        : "All clients"
+                    }
                     size="small"
                     color={isFiltered ? "primary" : "default"}
                     variant={isFiltered ? "filled" : "outlined"}
@@ -190,7 +207,9 @@ export default function EventsPage() {
               )}
               <TextField
                 size="small"
-                placeholder={isCSM && assignedTickers ? "Search all clients…" : "Search"}
+                placeholder={
+                  isCSM && assignedTickers ? "Search all clients…" : "Search"
+                }
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -262,7 +281,11 @@ export default function EventsPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={isCSM ? 5 : 4} align="center" sx={{ py: 4 }}>
+                    <TableCell
+                      colSpan={isCSM ? 5 : 4}
+                      align="center"
+                      sx={{ py: 4 }}
+                    >
                       <CircularProgress size={24} />
                     </TableCell>
                   </TableRow>
@@ -289,7 +312,9 @@ export default function EventsPage() {
                         </TableCell>
                         <TableCell>{row.cusip}</TableCell>
                         <TableCell>{formatDate(row.eventDate)}</TableCell>
-                        <TableCell sx={{ whiteSpace: "nowrap" }}>{row.eventType}</TableCell>
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                          {row.eventType}
+                        </TableCell>
                         {isCSM && (
                           <TableCell align="right">
                             <IconButton
@@ -307,7 +332,11 @@ export default function EventsPage() {
                     ))}
                     {paginatedEvents.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={isCSM ? 5 : 4} align="center" sx={{ py: 4 }}>
+                        <TableCell
+                          colSpan={isCSM ? 5 : 4}
+                          align="center"
+                          sx={{ py: 4 }}
+                        >
                           <Typography color="text.secondary">
                             {searchQuery
                               ? "No events match your search."

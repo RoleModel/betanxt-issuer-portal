@@ -82,7 +82,8 @@ export const formatDaysUntil = (days: number): string => {
 };
 
 /** Proxy material distribution method, used to derive the required/recommended mail-by date. */
-export type MailingDistributionType = "noticeAndAccess" | "fullSet" | "combination";
+export type MailingDistributionType =
+  "noticeAndAccess" | "fullSet" | "combination";
 
 /** Notice & Access materials must be distributed at least 40 calendar days before the meeting. */
 export const NOTICE_AND_ACCESS_LEAD_DAYS = 40;
@@ -101,7 +102,7 @@ export const FULL_SET_LEAD_DAYS = 15;
  * @returns The matched mailing method, or null when the value is empty or unrecognized
  */
 export function classifyMailingDistribution(
-  distributionType: string | null | undefined,
+  distributionType: string | null | undefined
 ): MailingDistributionType | null {
   const normalized = (distributionType ?? "").trim().toLowerCase();
   if (!normalized) return null;
@@ -113,9 +114,12 @@ export function classifyMailingDistribution(
     normalized.includes("n&a") ||
     normalized.includes("n/a");
   const hasFullSet =
-    normalized.includes("full") || normalized.includes("fs") || normalized.includes("fullset");
+    normalized.includes("full") ||
+    normalized.includes("fs") ||
+    normalized.includes("fullset");
 
-  if (normalized.includes("combination") || normalized.includes("both")) return "combination";
+  if (normalized.includes("combination") || normalized.includes("both"))
+    return "combination";
   if (hasNoticeAndAccess && hasFullSet) return "combination";
   if (hasNoticeAndAccess) return "noticeAndAccess";
   if (hasFullSet) return "fullSet";
@@ -123,7 +127,9 @@ export function classifyMailingDistribution(
 }
 
 /** Short marker label for a mailing distribution, including its mail-by lead time. */
-export function mailingDistributionShortLabel(distribution: MailingDistributionType): string {
+export function mailingDistributionShortLabel(
+  distribution: MailingDistributionType
+): string {
   switch (distribution) {
     case "fullSet":
       return `FS (+${FULL_SET_LEAD_DAYS} days)`;
@@ -168,16 +174,18 @@ export interface RecommendedMailByResult {
  */
 export function computeRecommendedMailByDate(
   meetingDate: Date,
-  distribution: MailingDistributionType,
+  distribution: MailingDistributionType
 ): RecommendedMailByResult {
   const governedByNoticeAndAccess =
     distribution === "noticeAndAccess" || distribution === "combination";
-  const leadDays = governedByNoticeAndAccess ? NOTICE_AND_ACCESS_LEAD_DAYS : FULL_SET_LEAD_DAYS;
+  const leadDays = governedByNoticeAndAccess
+    ? NOTICE_AND_ACCESS_LEAD_DAYS
+    : FULL_SET_LEAD_DAYS;
 
   const date = new Date(
     meetingDate.getFullYear(),
     meetingDate.getMonth(),
-    meetingDate.getDate() - leadDays,
+    meetingDate.getDate() - leadDays
   );
 
   let effectiveLeadDays = leadDays;

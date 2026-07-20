@@ -23,8 +23,10 @@ export const brandConfigs: Record<string, BrandConfig> = {
     domain: "jpmorgan.com",
     logoPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo.svg",
     iconPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_icon.png",
-    headerLogoPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo-dark.svg",
-    headerIconPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_icon-dark.png",
+    headerLogoPath:
+      "/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo-dark.svg",
+    headerIconPath:
+      "/logos/brands/j-p-morgan-real-estate-income-trust-inc_icon-dark.png",
     primaryColor: "#936845",
     secondaryColor: "#31373D",
   },
@@ -56,8 +58,10 @@ export const brandConfigs: Record<string, BrandConfig> = {
     domain: "baincapital.com",
     logoPath: "/logos/brands/bain-capital-specialty-finance-inc_logo.svg",
     iconPath: "/logos/brands/bain-capital-specialty-finance-inc_icon.png",
-    headerLogoPath: "/logos/brands/bain-capital-specialty-finance-inc_logo-dark.svg",
-    headerIconPath: "/logos/brands/bain-capital-specialty-finance-inc_icon-dark.png",
+    headerLogoPath:
+      "/logos/brands/bain-capital-specialty-finance-inc_logo-dark.svg",
+    headerIconPath:
+      "/logos/brands/bain-capital-specialty-finance-inc_icon-dark.png",
     primaryColor: "#e52823",
     secondaryColor: "#1b215a",
   },
@@ -89,8 +93,10 @@ export const brandConfigs: Record<string, BrandConfig> = {
     domain: "questrmg.com",
     logoPath: "/logos/brands/quest-resource-holding-corporation_logo.png",
     iconPath: "/logos/brands/quest-resource-holding-corporation_icon.png",
-    headerLogoPath: "/logos/brands/quest-resource-holding-corporation_logo-dark.png",
-    headerIconPath: "/logos/brands/quest-resource-holding-corporation_icon-dark.png",
+    headerLogoPath:
+      "/logos/brands/quest-resource-holding-corporation_logo-dark.png",
+    headerIconPath:
+      "/logos/brands/quest-resource-holding-corporation_icon-dark.png",
     primaryColor: "#0067b1",
     secondaryColor: "#0d3966",
   },
@@ -100,8 +106,10 @@ export const brandConfigs: Record<string, BrandConfig> = {
     domain: "seastarmedical.com",
     logoPath: "/logos/brands/seastar-medical-holding-corporation_logo.png",
     iconPath: "/logos/brands/seastar-medical-holding-corporation_icon.png",
-    headerLogoPath: "/logos/brands/seastar-medical-holding-corporation_logo-dark.png",
-    headerIconPath: "/logos/brands/seastar-medical-holding-corporation_icon-dark.png",
+    headerLogoPath:
+      "/logos/brands/seastar-medical-holding-corporation_logo-dark.png",
+    headerIconPath:
+      "/logos/brands/seastar-medical-holding-corporation_icon-dark.png",
     primaryColor: "#316b7f",
     secondaryColor: "#035c67",
   },
@@ -296,8 +304,10 @@ export const brandConfigs: Record<string, BrandConfig> = {
     domain: "westernalliancebank.com",
     logoPath: "/logos/brands/western-alliance-bancorporation_logo.svg",
     iconPath: "/logos/brands/western-alliance-bancorporation_icon.png",
-    headerLogoPath: "/logos/brands/western-alliance-bancorporation_logo-dark.svg",
-    headerIconPath: "/logos/brands/western-alliance-bancorporation_icon-dark.png",
+    headerLogoPath:
+      "/logos/brands/western-alliance-bancorporation_logo-dark.svg",
+    headerIconPath:
+      "/logos/brands/western-alliance-bancorporation_icon-dark.png",
     primaryColor: "#003256",
     secondaryColor: "#05233d",
   },
@@ -406,8 +416,10 @@ export const brandConfigs: Record<string, BrandConfig> = {
     domain: "dfinsolutions.com",
     logoPath: "/logos/brands/donnelley-financial-solutions-inc_logo.svg",
     iconPath: "/logos/brands/donnelley-financial-solutions-inc_icon.png",
-    headerLogoPath: "/logos/brands/donnelley-financial-solutions-inc_logo-dark.svg",
-    headerIconPath: "/logos/brands/donnelley-financial-solutions-inc_icon-dark.png",
+    headerLogoPath:
+      "/logos/brands/donnelley-financial-solutions-inc_logo-dark.svg",
+    headerIconPath:
+      "/logos/brands/donnelley-financial-solutions-inc_icon-dark.png",
     primaryColor: "#00FFBC",
     secondaryColor: "#2d235a",
   },
@@ -650,12 +662,14 @@ export const brandConfigs: Record<string, BrandConfig> = {
  * Use this when you have a ticker but not a company name — avoids
  * brittle exact-string key matching on company names.
  */
-export const brandConfigsByTicker: Record<string, BrandConfig> = Object.values(brandConfigs).reduce(
+export const brandConfigsByTicker: Record<string, BrandConfig> = Object.values(
+  brandConfigs
+).reduce(
   (acc, config) => {
     if (config.ticker) acc[config.ticker] = config;
     return acc;
   },
-  {} as Record<string, BrandConfig>,
+  {} as Record<string, BrandConfig>
 );
 
 /** Look up brand config by event/company name */
@@ -669,11 +683,17 @@ export function getBrandConfigByTicker(ticker: string): BrandConfig | null {
 }
 
 /** Get the logo path for a company, with fallback */
-export function getBrandLogoPath(companyName: string, fallback = "/images/logo.svg"): string {
+export function getBrandLogoPath(
+  companyName: string,
+  fallback = "/images/logo.svg"
+): string {
   return brandConfigs[companyName]?.logoPath || fallback;
 }
 
 /** Get the icon path for a company, with fallback */
-export function getBrandIconPath(companyName: string, fallback = "/images/logo.svg"): string {
+export function getBrandIconPath(
+  companyName: string,
+  fallback = "/images/logo.svg"
+): string {
   return brandConfigs[companyName]?.iconPath || fallback;
 }

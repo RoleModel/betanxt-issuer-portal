@@ -55,7 +55,9 @@ export default function SecureFileTransferTable({
   const [documents, setDocuments] = React.useState<Document[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [uploadOpen, setUploadOpen] = React.useState(false);
-  const [measuredSizes, setMeasuredSizes] = React.useState<Record<string, number>>({});
+  const [measuredSizes, setMeasuredSizes] = React.useState<
+    Record<string, number>
+  >({});
   const [deleteDoc, setDeleteDoc] = React.useState<Document | null>(null);
   const [searchQuery, setSearchQuery] = React.useState<string>("");
 
@@ -76,7 +78,7 @@ export default function SecureFileTransferTable({
       const meetingIds = meetings.map((m) => m.id).filter(Boolean) as string[];
       if (meetingIds.length > 0) {
         const allDocsArrays = await Promise.all(
-          meetingIds.map((id) => documentRepository.listByMeeting(id)),
+          meetingIds.map((id) => documentRepository.listByMeeting(id))
         );
         const combined = allDocsArrays.flat().filter((d) => {
           const title = (d.title ?? "").trim().toLowerCase();
@@ -85,8 +87,12 @@ export default function SecureFileTransferTable({
           return !isHostingTitle && !isHostingType;
         });
         combined.sort((a, b) => {
-          const ad = new Date(a.updatedAt || a.uploadedDate || a.createdAt || "").getTime();
-          const bd = new Date(b.updatedAt || b.uploadedDate || b.createdAt || "").getTime();
+          const ad = new Date(
+            a.updatedAt || a.uploadedDate || a.createdAt || ""
+          ).getTime();
+          const bd = new Date(
+            b.updatedAt || b.uploadedDate || b.createdAt || ""
+          ).getTime();
           return bd - ad;
         });
         setDocuments(combined);
@@ -104,7 +110,9 @@ export default function SecureFileTransferTable({
 
   React.useEffect(() => {
     const measure = async () => {
-      const targets = documents.filter((d) => (!d.fileSize || d.fileSize === 0) && !!d.filePath);
+      const targets = documents.filter(
+        (d) => (!d.fileSize || d.fileSize === 0) && !!d.filePath
+      );
       if (targets.length === 0) return;
       const results = await Promise.all(
         targets.map(async (d) => {
@@ -118,7 +126,7 @@ export default function SecureFileTransferTable({
           } catch {
             return { key, size: 0 };
           }
-        }),
+        })
       );
       setMeasuredSizes((prev) => {
         const next = { ...prev };
@@ -140,7 +148,7 @@ export default function SecureFileTransferTable({
   const handleUpload = async (
     files: File[],
     _associations?: Record<string, string>,
-    description?: string,
+    description?: string
   ) => {
     if (!meetingId) return;
     for (const file of files) {
@@ -159,7 +167,11 @@ export default function SecureFileTransferTable({
     const raw = doc.updatedAt || doc.uploadedDate || doc.createdAt;
     if (!raw) return "";
     const d = new Date(raw);
-    return d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return d.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   // Filter documents based on search query
@@ -170,9 +182,15 @@ export default function SecureFileTransferTable({
     return documents.filter((doc) => {
       const title = (doc.title || "").toLowerCase();
       const type = (doc.type || "").toLowerCase();
-      const fileName = doc.filePath ? (doc.filePath.split("/").pop() || "").toLowerCase() : "";
+      const fileName = doc.filePath
+        ? (doc.filePath.split("/").pop() || "").toLowerCase()
+        : "";
 
-      return title.includes(query) || type.includes(query) || fileName.includes(query);
+      return (
+        title.includes(query) ||
+        type.includes(query) ||
+        fileName.includes(query)
+      );
     });
   }, [documents, searchQuery]);
 
@@ -204,7 +222,9 @@ export default function SecureFileTransferTable({
           onChange={(e) => setSearchQuery(e.target.value)}
           slotProps={{
             input: {
-              startAdornment: <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />,
+              startAdornment: (
+                <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
+              ),
             },
           }}
         />
@@ -214,24 +234,36 @@ export default function SecureFileTransferTable({
       </Stack>
       <CardContent sx={{ p: 0 }}>
         {filteredDocuments.length === 0 ? (
-          <EmptyState title="No files have been uploaded." icon={<FileSearchIcon />} />
+          <EmptyState
+            title="No files have been uploaded."
+            icon={<FileSearchIcon />}
+          />
         ) : (
           <TableContainer sx={{ maxHeight }}>
             <Table stickyHeader>
               <SROnlyTableCaption>Secure file transfer</SROnlyTableCaption>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>File Downloads</TableCell>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>File Size</TableCell>
-                  <TableCell sx={{ fontWeight: 600, py: 2 }}>Modified Date</TableCell>
+                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                    File Downloads
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                    File Size
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, py: 2 }}>
+                    Modified Date
+                  </TableCell>
                   <TableCell sx={{ fontWeight: 600, py: 2 }}>Delete</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredDocuments.map((doc) => {
-                  const href = doc.filePath ? getStoragePublicUrl(doc.filePath) : "";
+                  const href = doc.filePath
+                    ? getStoragePublicUrl(doc.filePath)
+                    : "";
                   const name =
-                    doc.title || (doc.filePath ? (doc.filePath.split("/").pop() ?? "") : "");
+                    doc.title ||
+                    (doc.filePath ? (doc.filePath.split("/").pop() ?? "") : "");
                   return (
                     <TableRow key={doc.id} hover>
                       <TableCell size="small">
@@ -249,12 +281,16 @@ export default function SecureFileTransferTable({
                       <TableCell size="small">
                         <Typography variant="body3" color="text.secondary">
                           {bytesToSize(
-                            doc.fileSize ?? measuredSizes[doc.id || doc.filePath || ""] ?? 0,
+                            doc.fileSize ??
+                              measuredSizes[doc.id || doc.filePath || ""] ??
+                              0
                           )}
                         </Typography>
                       </TableCell>
                       <TableCell size="small">
-                        <Typography variant="body3">{formatModified(doc)}</Typography>
+                        <Typography variant="body3">
+                          {formatModified(doc)}
+                        </Typography>
                       </TableCell>
                       <TableCell size="small">
                         <IconButton
@@ -283,7 +319,12 @@ export default function SecureFileTransferTable({
         documentType="general-document"
       />
 
-      <Dialog open={Boolean(deleteDoc)} onClose={() => setDeleteDoc(null)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={Boolean(deleteDoc)}
+        onClose={() => setDeleteDoc(null)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>
           {`Delete ${deleteDoc?.title || (deleteDoc?.filePath ? (deleteDoc?.filePath.split("/").pop() ?? "") : "") || ""}?`}
         </DialogTitle>
@@ -291,7 +332,11 @@ export default function SecureFileTransferTable({
           <Typography>You will not be able to undo this action</Typography>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" color="primary" onClick={() => setDeleteDoc(null)}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => setDeleteDoc(null)}
+          >
             Cancel
           </Button>
           <Button

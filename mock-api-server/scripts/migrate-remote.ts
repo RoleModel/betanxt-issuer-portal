@@ -36,7 +36,9 @@ async function migrateRemote() {
 
     if (tables.length > 0) {
       console.log(`ℹ️  Schema already exists (${tables.length} tables found)`);
-      console.log("   Skipping migrations - use truncate-remote.ts first to reset schema");
+      console.log(
+        "   Skipping migrations - use truncate-remote.ts first to reset schema"
+      );
       return;
     }
 
@@ -45,7 +47,9 @@ async function migrateRemote() {
     // Read migrations from data directory (bundled with deployment)
     const migrationsDir = path.join(process.cwd(), "data", "migrations");
     const migrationFiles = await readdir(migrationsDir);
-    const sqlMigrations = migrationFiles.filter((f) => f.endsWith(".sql")).sort();
+    const sqlMigrations = migrationFiles
+      .filter((f) => f.endsWith(".sql"))
+      .sort();
 
     for (const migrationFile of sqlMigrations) {
       console.log(`   Applying: ${migrationFile}`);
@@ -122,7 +126,9 @@ migrateRemote().catch((error) => {
     errorStr.includes("ECONNRESET") ||
     errorStr.includes("57P01")
   ) {
-    console.log("ℹ️  Database connection terminated (expected after migrations)");
+    console.log(
+      "ℹ️  Database connection terminated (expected after migrations)"
+    );
     process.exit(0);
   }
   console.error("Migration failed:", error);

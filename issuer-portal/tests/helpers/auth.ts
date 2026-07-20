@@ -5,7 +5,10 @@ import type { Page } from "@playwright/test";
  * @param page - Playwright page object
  * @param user - User to log in as ('mike' | 'lisa' | 'david' | 'jenny')
  */
-export async function loginAs(page: Page, user: "mike" | "lisa" | "david" | "jenny" = "mike") {
+export async function loginAs(
+  page: Page,
+  user: "mike" | "lisa" | "david" | "jenny" = "mike"
+) {
   await page.goto("/login");
 
   const userButtons = {
@@ -31,7 +34,9 @@ export async function loginAs(page: Page, user: "mike" | "lisa" | "david" | "jen
  */
 export async function logout(page: Page) {
   // Click on the user menu (avatar button)
-  const avatarButton = page.locator("button").filter({ has: page.locator(".MuiAvatar-root") });
+  const avatarButton = page
+    .locator("button")
+    .filter({ has: page.locator(".MuiAvatar-root") });
   await avatarButton.click();
 
   // Click logout in the menu

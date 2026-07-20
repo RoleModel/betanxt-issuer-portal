@@ -25,7 +25,7 @@ interface FileUploadDialogProps {
   onUploadWithNotes?: (
     files: File[],
     associations?: Record<string, string>,
-    description?: string,
+    description?: string
   ) => void;
   meetingId?: string;
   documentType?: string;
@@ -49,7 +49,9 @@ const FileUploadDialog = ({
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [fileAssociations, setFileAssociations] = useState<Record<string, string>>({});
+  const [fileAssociations, setFileAssociations] = useState<
+    Record<string, string>
+  >({});
   const [description, setDescription] = useState("");
 
   const handleClose = () => {
@@ -136,7 +138,12 @@ const FileUploadDialog = ({
       <DialogTitle>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           Upload Document
-          <IconButton aria-label="Close dialog" onClick={handleClose} size="medium" sx={{ p: 1 }}>
+          <IconButton
+            aria-label="Close dialog"
+            onClick={handleClose}
+            size="medium"
+            sx={{ p: 1 }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
@@ -144,7 +151,11 @@ const FileUploadDialog = ({
 
       <DialogContent>
         {uploadError && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setUploadError(null)}>
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            onClose={() => setUploadError(null)}
+          >
             {uploadError}
           </Alert>
         )}

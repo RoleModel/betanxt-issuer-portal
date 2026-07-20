@@ -21,7 +21,10 @@ import { useMeeting } from "@/contexts/MeetingContext";
 import { useTasks } from "@/hooks/useTasks";
 import { formatDate } from "@/lib/formats";
 import { parseTaskLinks } from "@/utils/taskLinks";
-import { getDTCCAuthorizationStatus, isDTCCAuthorizationTask } from "@/utils/taskTransformers";
+import {
+  getDTCCAuthorizationStatus,
+  isDTCCAuthorizationTask,
+} from "@/utils/taskTransformers";
 
 interface DrawerTaskItemProps {
   task: Task;
@@ -45,14 +48,16 @@ export default function DrawerTaskItem({
   const { updateTaskById } = useTasks();
   const { refreshMeetingData } = useMeeting();
   const [isAuthorized, setIsAuthorized] = useState(
-    task.status === "COMPLETE" || task.status === "AUTHORIZED",
+    task.status === "COMPLETE" || task.status === "AUTHORIZED"
   );
 
   useEffect(() => {
     setIsAuthorized(task.status === "COMPLETE" || task.status === "AUTHORIZED");
   }, [task.status]);
 
-  const handleAuthorizationChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAuthorizationChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const checked = event.target.checked;
     setIsAuthorized(checked);
 
@@ -101,7 +106,10 @@ export default function DrawerTaskItem({
         };
       }}
     >
-      <CardContent sx={{ p: 1.5, cursor: onClick ? "pointer" : "default" }} onClick={onClick}>
+      <CardContent
+        sx={{ p: 1.5, cursor: onClick ? "pointer" : "default" }}
+        onClick={onClick}
+      >
         <Box
           sx={{
             display: "flex",
@@ -125,7 +133,13 @@ export default function DrawerTaskItem({
             </Typography>
             <Typography variant="caption">{task.owner}</Typography>
           </Box>
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+            }}
+          >
             <Typography
               variant="body3"
               fontWeight={600}
@@ -142,60 +156,72 @@ export default function DrawerTaskItem({
         {task.description && (
           <Typography
             color="text.secondary"
-            sx={{ fontSize: "0.75rem", lineHeight: 1.6, display: "block", mt: 1 }}
+            sx={{
+              fontSize: "0.75rem",
+              lineHeight: 1.6,
+              display: "block",
+              mt: 1,
+            }}
           >
             {task.description}
           </Typography>
         )}
 
         {/* Task Links - Only show for issuer-owned tasks */}
-        {taskLinks.length > 0 && onLinkClick && !["BetaNXT", "DFIN"].includes(task.owner ?? "") && (
-          <Box sx={{ mt: 1 }}>
-            <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="center">
-              {taskLinks.map((link: TaskLink, linkIndex: number) => (
-                <Link
-                  key={linkIndex}
-                  component="button"
-                  variant="body3"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onLinkClick(link, task.title ?? "Task");
-                  }}
-                  sx={{
-                    fontSize: "0.875rem",
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                    border: "none",
-                    background: "none",
-                    padding: 0,
-                    "&:hover": {
-                      textDecoration: "none",
-                    },
-                  }}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {/* DTCC Authorization Checkbox */}
-              {isDTCCAuthorization && (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      color="secondary"
-                      checked={isAuthorized}
-                      onChange={handleAuthorizationChange}
-                      size="small"
-                    />
-                  }
-                  label="Authorization confirmed"
-                  onClick={(e) => e.stopPropagation()}
-                  sx={{ fontSize: "0.875rem" }}
-                />
-              )}
-            </Stack>
-          </Box>
-        )}
+        {taskLinks.length > 0 &&
+          onLinkClick &&
+          !["BetaNXT", "DFIN"].includes(task.owner ?? "") && (
+            <Box sx={{ mt: 1 }}>
+              <Stack
+                direction="row"
+                spacing={2}
+                flexWrap="wrap"
+                alignItems="center"
+              >
+                {taskLinks.map((link: TaskLink, linkIndex: number) => (
+                  <Link
+                    key={linkIndex}
+                    component="button"
+                    variant="body3"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onLinkClick(link, task.title ?? "Task");
+                    }}
+                    sx={{
+                      fontSize: "0.875rem",
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                      border: "none",
+                      background: "none",
+                      padding: 0,
+                      "&:hover": {
+                        textDecoration: "none",
+                      },
+                    }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                {/* DTCC Authorization Checkbox */}
+                {isDTCCAuthorization && (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        color="secondary"
+                        checked={isAuthorized}
+                        onChange={handleAuthorizationChange}
+                        size="small"
+                      />
+                    }
+                    label="Authorization confirmed"
+                    onClick={(e) => e.stopPropagation()}
+                    sx={{ fontSize: "0.875rem" }}
+                  />
+                )}
+              </Stack>
+            </Box>
+          )}
       </CardContent>
     </Card>
   );

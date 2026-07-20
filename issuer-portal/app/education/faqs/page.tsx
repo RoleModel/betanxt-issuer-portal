@@ -18,7 +18,8 @@ const faqs = [
       "The universal proxy rule, effective since 2022, requires both management and dissident proxy cards to include all director nominees from both sides. This gives shareholders the ability to vote for their preferred combination of candidates from both slates on a single proxy card, rather than being forced to choose one slate entirely. The rule applies to contested solicitations where dissidents seek to elect directors to represent more than 50% of board positions.",
   },
   {
-    question: "What timeline must dissidents and registrants follow in proxy contests?",
+    question:
+      "What timeline must dissidents and registrants follow in proxy contests?",
     answer:
       "Under the universal proxy rule, dissidents must file their definitive proxy statement at least 25 calendar days before the shareholder meeting date. They must also provide notice to the company no later than 60 calendar days before the anniversary of the previous year's annual meeting. Management must include dissident nominees on their proxy card and provide notice of their nominees to dissidents by the later of 25 calendar days before the meeting or 5 days after receiving dissident notice.",
   },
@@ -28,7 +29,8 @@ const faqs = [
       "No, broker discretionary voting is not permitted for director elections under NYSE and NASDAQ rules. Brokers cannot vote uninstructed shares in contested or uncontested director elections - they must receive specific voting instructions from beneficial owners. This rule helps ensure that only shareholders who actively participate in the voting process influence director elections.",
   },
   {
-    question: "How is voting handled for beneficial shareholders in virtual meetings?",
+    question:
+      "How is voting handled for beneficial shareholders in virtual meetings?",
     answer:
       "Beneficial shareholders (those holding shares through brokers) can participate in virtual meetings by obtaining a legal proxy from their broker or by using voting control numbers provided by their broker. The virtual meeting platform verifies their eligibility and provides access to voting functions. BetaNXT&apos;s digital shareholder meeting platform ensures beneficial shareholders have the same participation rights as registered shareholders, including real-time voting and Q&A submission capabilities.",
   },
@@ -37,7 +39,8 @@ const faqs = [
     answer: `Proxy cards must provide shareholders with clear voting options: "For," "Against," and "Abstain" for most proposals. For director elections, options include "For," "Against," or "Withhold." The proxy card must clearly identify each nominee and proposal, provide adequate space for marking votes, and include instructions for alternative voting methods such as internet or telephone voting.`,
   },
   {
-    question: "What are key steps in the proxy campaign process via the portal?",
+    question:
+      "What are key steps in the proxy campaign process via the portal?",
     answer:
       "Through the BetaNXT Issuer Portal, the proxy campaign process includes: 1) Document preparation and filing coordination, 2) Proxy statement review and approval workflows, 3) Distribution strategy planning with transfer agents, 4) Real-time vote tracking and reporting, 5) Solicitation campaign management, 6) Meeting preparation and digital platform setup, and 7) Post-meeting reporting and compliance documentation. The portal provides centralized task management and deadline tracking throughout the entire process.",
   },
@@ -72,9 +75,10 @@ const FAQsPage: React.FC = () => {
   const [expanded, setExpanded] = React.useState<string | false>("panel1");
   const [loading, setLoading] = useState(true);
 
-  const handleChange = (panel: string) => (_event: React.SyntheticEvent, newExpanded: boolean) => {
-    setExpanded(newExpanded ? panel : false);
-  };
+  const handleChange =
+    (panel: string) => (_event: React.SyntheticEvent, newExpanded: boolean) => {
+      setExpanded(newExpanded ? panel : false);
+    };
 
   useEffect(() => {
     setLoading(false);

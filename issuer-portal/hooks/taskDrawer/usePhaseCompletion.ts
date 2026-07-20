@@ -4,7 +4,10 @@ import { useCallback } from "react";
 import type { components } from "@/types/api";
 
 import buildApiClient from "@/domain-models/apiClient";
-import { COMPLETED_STATUSES, calculateOverallCompletion } from "@/utils/taskControl";
+import {
+  COMPLETED_STATUSES,
+  calculateOverallCompletion,
+} from "@/utils/taskControl";
 
 type Task = components["schemas"]["Task"];
 
@@ -22,7 +25,8 @@ interface Session {
 interface UsePhaseCompletionProps {
   currentMeeting: Meeting | null;
   session: Session | null;
-  refreshContext: (() => Promise<{ tasks: Task[]; positions: unknown[] } | null>) | undefined;
+  refreshContext:
+    (() => Promise<{ tasks: Task[]; positions: unknown[] } | null>) | undefined;
 }
 
 export const usePhaseCompletion = ({
@@ -54,7 +58,8 @@ export const usePhaseCompletion = ({
       // Get all tasks for the current phase (excluding BetaNXT and DFIN owned tasks)
       const currentPhaseTasks = freshTasks.filter(
         (t: Task) =>
-          t.phaseNumber === currentPhaseNumber && !["BetaNXT", "DFIN"].includes(t.owner ?? ""),
+          t.phaseNumber === currentPhaseNumber &&
+          !["BetaNXT", "DFIN"].includes(t.owner ?? "")
       );
 
       console.log("Phase advancement check:", {
@@ -71,7 +76,9 @@ export const usePhaseCompletion = ({
       // Check if all phase tasks have been initiated
       const allPhaseTasksInitiated =
         currentPhaseTasks.length > 0 &&
-        currentPhaseTasks.every((t: Task) => COMPLETED_STATUSES.includes(t.status as never));
+        currentPhaseTasks.every((t: Task) =>
+          COMPLETED_STATUSES.includes(t.status as never)
+        );
 
       console.log("All phase tasks initiated?", allPhaseTasksInitiated);
 
@@ -117,7 +124,7 @@ export const usePhaseCompletion = ({
         window.dispatchEvent(
           new CustomEvent("phaseComplete", {
             detail: { message },
-          }),
+          })
         );
 
         // Navigate to next phase dashboard after 3 seconds
@@ -125,7 +132,9 @@ export const usePhaseCompletion = ({
           const pathParts = window.location.pathname.split("/");
           const clientTicker = pathParts[1];
           const meetingId = pathParts[3];
-          router.push(`/${clientTicker}/meeting/${meetingId}/dashboard/${nextPhaseNumber}`);
+          router.push(
+            `/${clientTicker}/meeting/${meetingId}/dashboard/${nextPhaseNumber}`
+          );
         }, 3000);
 
         return true;
@@ -133,7 +142,7 @@ export const usePhaseCompletion = ({
 
       return false;
     },
-    [currentMeeting, session, refreshContext, router],
+    [currentMeeting, session, refreshContext, router]
   );
 
   return { checkAndCompletePhase };

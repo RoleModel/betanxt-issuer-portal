@@ -1,6 +1,13 @@
 "use client";
 
-import { Card, CardActionArea, CardContent, Link, Stack, Typography } from "@mui/material";
+import {
+  Card,
+  CardActionArea,
+  CardContent,
+  Link,
+  Stack,
+  Typography,
+} from "@mui/material";
 import React from "react";
 
 import type { components } from "@/domain-models/generated-schema";
@@ -82,7 +89,10 @@ const SiteHostingButton = ({ label, url }: SiteHostingButtonProps) => {
   );
 };
 
-export default function DocumentHostingCard({ meeting, className }: DocumentHostingCardProps) {
+export default function DocumentHostingCard({
+  meeting,
+  className,
+}: DocumentHostingCardProps) {
   // Generate dynamic URLs based on client branding and ticker
   const hostingSite = {
     label: "Document Hosting Site",
@@ -103,7 +113,10 @@ export default function DocumentHostingCard({ meeting, className }: DocumentHost
   const sites = [hostingSite, eVoteSite];
 
   return (
-    <Card className={className} sx={{ height: "auto", gridArea: "documentLinks" }}>
+    <Card
+      className={className}
+      sx={{ height: "auto", gridArea: "documentLinks" }}
+    >
       <CardContent>
         <Stack spacing={1.5}>
           {sites.map((site, index) => (

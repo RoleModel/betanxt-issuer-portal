@@ -27,10 +27,7 @@ OpenAPI (edit `mock-api-server/openapi-schema/openapi.yaml`) → `npm run genera
 
 ### 5. Critical Commands
 
-Setup: `npm install` (root) → `cd mock-api-server && npm run supabase:start` → schema workflow above → `npm run dev` (root).
-Regenerate types only: `npm run generate:db-types` + `npx openapi-typescript openapi-schema/openapi.yaml -o types/api.ts`.
-Seeds: `npm run generate:seeds` then `supabase db reset` (applies migrations + seeds).
-Playwright E2E (frontend dir): `npx playwright test` (UI mode: `--ui`).
+Setup: `npm install` (root) → `cd mock-api-server && npm run supabase:start` → schema workflow above → `npm run dev` (root). Regenerate types only: `npm run generate:db-types` + `npx openapi-typescript openapi-schema/openapi.yaml -o types/api.ts`. Seeds: `npm run generate:seeds` then `supabase db reset` (applies migrations + seeds). Playwright E2E (frontend dir): `npx playwright test` (UI mode: `--ui`).
 
 ### 6. Conventions
 

@@ -1,7 +1,6 @@
 # POST /api/documents/{docType}/{versionId}/approve
 
-Purpose: Approve a proxy material version currently in PENDING_REVIEW.
-Auth: ADMIN only
+Purpose: Approve a proxy material version currently in PENDING_REVIEW. Auth: ADMIN only
 
 Path Params:
 

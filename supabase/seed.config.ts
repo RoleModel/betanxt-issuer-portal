@@ -177,7 +177,8 @@ export const seedConfig = {
       companyName: "Fulcrum Therapeutics, Inc.",
       shortName: "FulcrumTx",
       industry: "Biotechnology",
-      description: "Disease-modifying medicines for genetically defined rare diseases",
+      description:
+        "Disease-modifying medicines for genetically defined rare diseases",
       website: "https://www.fulcrumtx.com",
       primaryContact: "Kevin Walsh",
       primaryContactEmail: "kevin.walsh@fulcrumtx.com",
@@ -249,7 +250,8 @@ export const seedConfig = {
       companyName: "Aligos Therapeutics, Inc.",
       shortName: "Aligos",
       industry: "Biotechnology",
-      description: "Clinical-stage biopharmaceutical company targeting liver diseases",
+      description:
+        "Clinical-stage biopharmaceutical company targeting liver diseases",
       website: "https://www.aligos.com",
       primaryContact: "James Norton",
       primaryContactEmail: "james.norton@aligos.com",
@@ -261,7 +263,8 @@ export const seedConfig = {
       companyName: "Erasca, Inc.",
       shortName: "Erasca",
       industry: "Biotechnology",
-      description: "Clinical-stage oncology company focused on RAS/MAPK pathway",
+      description:
+        "Clinical-stage oncology company focused on RAS/MAPK pathway",
       website: "https://www.erasca.com",
       primaryContact: "Laura Peterson",
       primaryContactEmail: "laura.peterson@erasca.com",
@@ -285,7 +288,8 @@ export const seedConfig = {
       companyName: "CalciMedica, Inc.",
       shortName: "CalciMedica",
       industry: "Biotechnology",
-      description: "Developing therapies for calcium release-activated calcium disorders",
+      description:
+        "Developing therapies for calcium release-activated calcium disorders",
       website: "https://www.calcimedica.com",
       primaryContact: "Angela Brooks",
       primaryContactEmail: "angela.brooks@calcimedica.com",
@@ -333,7 +337,8 @@ export const seedConfig = {
       companyName: "Boundless Big Inc.",
       shortName: "Boundless Bio",
       industry: "Biotechnology",
-      description: "Oncology company targeting gene amplification-driven cancers",
+      description:
+        "Oncology company targeting gene amplification-driven cancers",
       website: "https://www.boundlessbio.com",
       primaryContact: "Stephanie Lee",
       primaryContactEmail: "stephanie.lee@boundlessbio.com",
@@ -393,7 +398,8 @@ export const seedConfig = {
       companyName: "IN8bio, Inc.",
       shortName: "IN8bio",
       industry: "Biotechnology",
-      description: "Clinical-stage biopharmaceutical company focused on gamma-delta T cells",
+      description:
+        "Clinical-stage biopharmaceutical company focused on gamma-delta T cells",
       website: "https://www.in8bio.com",
       primaryContact: "Jonathan White",
       primaryContactEmail: "jonathan.white@in8bio.com",
@@ -417,7 +423,8 @@ export const seedConfig = {
       companyName: "Azitra, Inc.",
       shortName: "Azitra",
       industry: "Biotechnology",
-      description: "Microbiome-based therapeutics for inflammatory skin diseases",
+      description:
+        "Microbiome-based therapeutics for inflammatory skin diseases",
       website: "https://www.azitra.com",
       primaryContact: "William Turner",
       primaryContactEmail: "william.turner@azitra.com",
@@ -669,7 +676,8 @@ export const seedConfig = {
       companyName: "Adaptive Biotechnologies Corporation",
       shortName: "Adaptive Biotech",
       industry: "Biotechnology",
-      description: "Immune-driven medicine using sequencing and machine learning",
+      description:
+        "Immune-driven medicine using sequencing and machine learning",
       website: "https://www.adaptivebiotech.com",
       primaryContact: "Francis Kim",
       primaryContactEmail: "francis.kim@adaptivebiotech.com",

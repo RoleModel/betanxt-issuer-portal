@@ -34,7 +34,10 @@ const CORE_TABLES = [
 
 function extractCoreSchema() {
   const migrationsDir = join(__dirname, "../../supabase/migrations");
-  const schemaPath = join(__dirname, "../../supabase/migrations/postgresql_schema.sql");
+  const schemaPath = join(
+    __dirname,
+    "../../supabase/migrations/postgresql_schema.sql"
+  );
 
   // Read the schema file
   let fullSchema = "";
@@ -66,7 +69,7 @@ function extractCoreSchema() {
 
   const migrationPath = join(
     __dirname,
-    `../../supabase/migrations/${timestamp}_initial_schema.sql`,
+    `../../supabase/migrations/${timestamp}_initial_schema.sql`
   );
 
   let coreSchema = `-- BetaNXT Issuer Portal Database Schema
@@ -108,7 +111,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     // Updated regex to handle the actual format: "-- Table 'name' generated from model...\n--\nCREATE TABLE..."
     const tableStartRegex = new RegExp(
       `-- Table '${tableName}'[\\s\\S]*?CREATE TABLE[\\s\\S]*?\\);`,
-      "g",
+      "g"
     );
     const matches = fullSchema.match(tableStartRegex);
 
@@ -121,7 +124,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
         /CREATE TABLE IF NOT EXISTS (public\.)?("?\w+"?)/,
         (match, schema, tableName) => {
           return `DROP TABLE IF EXISTS ${schema ?? ""}${tableName} CASCADE;\nCREATE TABLE ${schema ?? ""}${tableName}`;
-        },
+        }
       );
 
       coreSchema += tableSection + "\n";
@@ -130,11 +133,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       const escapedTableName = tableName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const tableCommentRegex = new RegExp(
         `COMMENT ON TABLE (?:public\\.)?(?:")?${escapedTableName}(?:")?\\b[^;]*?;`,
-        "g",
+        "g"
       );
       const columnCommentRegex = new RegExp(
         `COMMENT ON COLUMN (?:public\\.)?(?:")?${escapedTableName}(?:")?\\.[^;]*?;`,
-        "g",
+        "g"
       );
 
       // Reset regex state for global search

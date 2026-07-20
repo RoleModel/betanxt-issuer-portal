@@ -16,12 +16,23 @@ export async function POST(request: NextRequest) {
     const file = formData.get("logo") as File;
     const ticker = formData.get("ticker") as string;
 
-    if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
-    if (!ticker) return NextResponse.json({ error: "No ticker provided" }, { status: 400 });
+    if (!file)
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    if (!ticker)
+      return NextResponse.json(
+        { error: "No ticker provided" },
+        { status: 400 }
+      );
     if (!file.type.startsWith("image/"))
-      return NextResponse.json({ error: "File must be an image" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File must be an image" },
+        { status: 400 }
+      );
     if (file.size > 5 * 1024 * 1024)
-      return NextResponse.json({ error: "File size must be less than 5MB" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File size must be less than 5MB" },
+        { status: 400 }
+      );
 
     const fileExt = file.name.split(".").pop();
     const fileName = `${ticker.toLowerCase()}-${Date.now()}.${fileExt}`;
@@ -34,17 +45,28 @@ export async function POST(request: NextRequest) {
       await supabase.storage.createBucket("client-logos", { public: true });
     }
 
-    const { data, error } = await supabase.storage.from("client-logos").upload(fileName, file, {
-      cacheControl: "3600",
-      upsert: true,
-    });
+    const { data, error } = await supabase.storage
+      .from("client-logos")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: true,
+      });
 
-    if (error) return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
+    if (error)
+      return NextResponse.json(
+        { error: "Failed to upload file" },
+        { status: 500 }
+      );
 
-    const { data: publicUrlData } = supabase.storage.from("client-logos").getPublicUrl(data.path);
+    const { data: publicUrlData } = supabase.storage
+      .from("client-logos")
+      .getPublicUrl(data.path);
 
     return NextResponse.json({ url: publicUrlData.publicUrl });
   } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

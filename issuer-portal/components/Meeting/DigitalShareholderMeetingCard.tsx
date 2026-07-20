@@ -26,7 +26,9 @@ import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import { useDocuments } from "@/contexts/DocumentContext";
 import buildApiClient from "@/domain-models/apiClient";
 
-const DocumentViewer = lazy(() => import("@/components/Documents/DocumentViewer"));
+const DocumentViewer = lazy(
+  () => import("@/components/Documents/DocumentViewer")
+);
 
 type Document = components["schemas"]["Document"];
 
@@ -45,10 +47,9 @@ interface DigitalShareholderMeetingCardProps {
   meetingId?: string;
 }
 
-const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps> = ({
-  className,
-  meetingId,
-}) => {
+const DigitalShareholderMeetingCard: React.FC<
+  DigitalShareholderMeetingCardProps
+> = ({ className, meetingId }) => {
   const [liveQA, setLiveQA] = useState(false);
   const [audioOnly, setAudioOnly] = useState(false);
   const [meetingRecording, setMeetingRecording] = useState(false);
@@ -58,10 +59,12 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<string>("");
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [previousYearAvailability, setPreviousYearAvailability] = useState<Record<string, boolean>>(
-    {},
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null
   );
+  const [previousYearAvailability, setPreviousYearAvailability] = useState<
+    Record<string, boolean>
+  >({});
   const { uploadDocument } = useDocuments();
 
   // Extract year from meeting ID to find previous year's meeting
@@ -83,7 +86,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
       parts[parts.length - 1] = previousYear.toString();
       return parts.join("-");
     },
-    [],
+    []
   );
 
   // Fetch existing DSM config on mount
@@ -95,7 +98,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
         setIsLoading(true);
         const _apiClient = await buildApiClient();
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api"}/meetings/${meetingId}/dsm-config`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api"}/meetings/${meetingId}/dsm-config`
         );
 
         if (response.ok) {
@@ -135,9 +138,12 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
 
       try {
         const apiClient = await buildApiClient();
-        const { data } = await apiClient.GET("/meetings/{meetingId}/documents", {
-          params: { path: { meetingId: previousMeetingId } },
-        });
+        const { data } = await apiClient.GET(
+          "/meetings/{meetingId}/documents",
+          {
+            params: { path: { meetingId: previousMeetingId } },
+          }
+        );
 
         if (!data) {
           setPreviousYearAvailability({});
@@ -167,7 +173,9 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                 titleNorm.includes("questions")
               );
             } else if (docType === "Audio only") {
-              return docTypeNorm.includes("audio") || titleNorm.includes("audio");
+              return (
+                docTypeNorm.includes("audio") || titleNorm.includes("audio")
+              );
             } else if (docType === "Static Slide or Presentation") {
               return (
                 docTypeNorm.includes("slide") ||
@@ -176,7 +184,9 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                 titleNorm.includes("presentation")
               );
             } else if (docType === "Documents to Display") {
-              return doc.displayCategory === "dsm" || docTypeNorm.includes("display");
+              return (
+                doc.displayCategory === "dsm" || docTypeNorm.includes("display")
+              );
             } else if (docType === "Meeting Recording") {
               return (
                 docTypeNorm.includes("recording") ||
@@ -223,7 +233,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
             "Content-Type": "application/json",
           },
           body: JSON.stringify(config),
-        },
+        }
       );
 
       if (response.ok) {
@@ -252,7 +262,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api"}/meetings/${meetingId}/dsm-config`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api"}/meetings/${meetingId}/dsm-config`
       );
 
       if (response.ok) {
@@ -279,9 +289,12 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
 
       try {
         const apiClient = await buildApiClient();
-        const { data } = await apiClient.GET("/meetings/{meetingId}/documents", {
-          params: { path: { meetingId: previousMeetingId } },
-        });
+        const { data } = await apiClient.GET(
+          "/meetings/{meetingId}/documents",
+          {
+            params: { path: { meetingId: previousMeetingId } },
+          }
+        );
 
         if (!data) {
           console.warn("No documents found for previous year");
@@ -302,7 +315,9 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                 titleNorm.includes("questions")
               );
             } else if (docType === "Audio only") {
-              return docTypeNorm.includes("audio") || titleNorm.includes("audio");
+              return (
+                docTypeNorm.includes("audio") || titleNorm.includes("audio")
+              );
             } else if (docType === "Static Slide or Presentation") {
               return (
                 docTypeNorm.includes("slide") ||
@@ -311,7 +326,9 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                 titleNorm.includes("presentation")
               );
             } else if (docType === "Documents to Display") {
-              return doc.displayCategory === "dsm" || docTypeNorm.includes("display");
+              return (
+                doc.displayCategory === "dsm" || docTypeNorm.includes("display")
+              );
             } else if (docType === "Meeting Recording") {
               return (
                 docTypeNorm.includes("recording") ||
@@ -335,7 +352,7 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
         console.error("Failed to fetch previous year documents:", error);
       }
     },
-    [meetingId, getPreviousYearMeetingId],
+    [meetingId, getPreviousYearMeetingId]
   );
 
   const handleUpload = (type: string) => {
@@ -343,7 +360,10 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
     setUploadDialogOpen(true);
   };
 
-  const handleUploadComplete = async (files: File[], associations?: Record<string, string>) => {
+  const handleUploadComplete = async (
+    files: File[],
+    associations?: Record<string, string>
+  ) => {
     if (!meetingId) return;
     try {
       // Create associations based on upload type to link to DSM placeholders
@@ -419,7 +439,10 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
           <SROnlyTableCaption>
             Digital meeting configuration options and settings.
           </SROnlyTableCaption>
-          <TableHead aria-hidden="false" sx={{ visibility: "hidden", display: "none" }}>
+          <TableHead
+            aria-hidden="false"
+            sx={{ visibility: "hidden", display: "none" }}
+          >
             <TableRow>
               <TableCell>Option</TableCell>
               <TableCell align="right">Action</TableCell>
@@ -479,15 +502,17 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                       </Button>
                     )}
                     {option.value !== undefined && option.onChange && (
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
                         {isEditMode ? (
                           <>
                             <Switch
                               size="small"
                               checked={option.value}
-                              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                option.onChange(e.target.checked)
-                              }
+                              onChange={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) => option.onChange(e.target.checked)}
                               slotProps={{
                                 input: { "aria-label": "Yes or No" },
                               }}
@@ -495,7 +520,9 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
                             <Typography variant="body3">No</Typography>
                           </>
                         ) : (
-                          <Typography variant="body3">{option.value ? "Yes" : "No"}</Typography>
+                          <Typography variant="body3">
+                            {option.value ? "Yes" : "No"}
+                          </Typography>
                         )}
                       </Box>
                     )}
@@ -510,7 +537,11 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
         {isEditMode ? (
           <>
             {_isConfirmed && (
-              <Button variant="text" sx={{ textTransform: "none" }} onClick={handleCancel}>
+              <Button
+                variant="text"
+                sx={{ textTransform: "none" }}
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
             )}
@@ -524,7 +555,11 @@ const DigitalShareholderMeetingCard: React.FC<DigitalShareholderMeetingCardProps
             </Button>
           </>
         ) : (
-          <Button variant="outlined" sx={{ textTransform: "none" }} onClick={handleEdit}>
+          <Button
+            variant="outlined"
+            sx={{ textTransform: "none" }}
+            onClick={handleEdit}
+          >
             Edit
           </Button>
         )}

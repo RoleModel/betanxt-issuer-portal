@@ -29,7 +29,7 @@ async function run() {
   console.log(`Duplicate position_vote records (${r.rows.length} combos):`);
   for (const row of r.rows) {
     console.log(
-      `  ${row.name} | ${Number(row.proposal_number).toFixed(2)} | count=${row.cnt} | total=${Number(row.total_shares).toLocaleString()} | votes=[${row.votes}]`,
+      `  ${row.name} | ${Number(row.proposal_number).toFixed(2)} | count=${row.cnt} | total=${Number(row.total_shares).toLocaleString()} | votes=[${row.votes}]`
     );
   }
 

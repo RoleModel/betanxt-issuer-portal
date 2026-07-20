@@ -1,11 +1,23 @@
 "use client";
 
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { Box, Card, CardContent, CardHeader, Typography, styled, useTheme } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  styled,
+  useTheme,
+} from "@mui/material";
 import React, { useRef } from "react";
 
 import { getPhaseColor } from "@/components/mui-styling/theme";
-import { calculateDaysUntil, formatDaysUntil, parseLocalDate } from "@/utils/dateUtils";
+import {
+  calculateDaysUntil,
+  formatDaysUntil,
+  parseLocalDate,
+} from "@/utils/dateUtils";
 
 interface TransformedKeyDate {
   title: string;
@@ -45,14 +57,17 @@ interface KeyDateBoxProps {
 }
 
 const KeyDateBox = styled(Box, {
-  shouldForwardProp: (prop) => !["isMeeting", "isPast", "phaseColor"].includes(prop as string),
+  shouldForwardProp: (prop) =>
+    !["isMeeting", "isPast", "phaseColor"].includes(prop as string),
 })<KeyDateBoxProps>(({ theme, isMeeting, isPast, phaseColor }) => ({
   flexGrow: 1,
   scrollSnapAlign: "start",
   background: isMeeting
     ? theme.vars.palette.keydate.contrastText
     : theme.vars.palette.background.default,
-  color: isMeeting ? theme.vars.palette.keydate.light : theme.vars.palette.text.primary,
+  color: isMeeting
+    ? theme.vars.palette.keydate.light
+    : theme.vars.palette.text.primary,
   borderLeft: `6px solid ${isPast ? theme.vars.palette.complete : phaseColor}`,
   boxShadow: `0px 0px 0px 1px inset ${theme.vars.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
@@ -86,10 +101,13 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   if (meeting?.brokerSearchDate) {
     meetingKeyDates.push({
       title: "Broker Search",
-      date: parseLocalDate(meeting.brokerSearchDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      date: parseLocalDate(meeting.brokerSearchDate).toLocaleDateString(
+        "en-US",
+        {
+          month: "short",
+          day: "numeric",
+        }
+      ),
       dateString: meeting.brokerSearchDate,
       phase: 2,
       phaseColor: getPhaseColor(2),
@@ -136,7 +154,8 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
     });
   }
 
-  const displayKeyDates = transformedKeyDates.length > 0 ? transformedKeyDates : meetingKeyDates;
+  const displayKeyDates =
+    transformedKeyDates.length > 0 ? transformedKeyDates : meetingKeyDates;
 
   return (
     <Card>
@@ -162,7 +181,9 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
         >
           {loading
             ? // Skeleton loading for key dates
-              Array.from({ length: 4 }, (_, index) => <LoadingBox key={index} />)
+              Array.from({ length: 4 }, (_, index) => (
+                <LoadingBox key={index} />
+              ))
             : displayKeyDates.map((phaseItem, index) => {
                 const daysUntil = calculateDaysUntil(phaseItem.dateString);
                 const isPast = daysUntil < 0;
@@ -175,7 +196,10 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                   >
                     {isPast && (
                       <CheckCircleIcon
-                        sx={{ fontSize: 20, color: theme.vars.palette.success.main }}
+                        sx={{
+                          fontSize: 20,
+                          color: theme.vars.palette.success.main,
+                        }}
                       />
                     )}
                     <Box

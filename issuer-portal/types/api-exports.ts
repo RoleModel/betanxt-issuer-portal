@@ -32,23 +32,34 @@ export type Mailing = components["schemas"]["Mailing"];
 export type TabulationReport = components["schemas"]["TabulationReport"];
 
 // Export request/response types
-export type CreateAccountRequest = components["schemas"]["CreateAccountRequest"];
-export type UpdateAccountRequest = components["schemas"]["UpdateAccountRequest"];
+export type CreateAccountRequest =
+  components["schemas"]["CreateAccountRequest"];
+export type UpdateAccountRequest =
+  components["schemas"]["UpdateAccountRequest"];
 export type CreateClientRequest = components["schemas"]["CreateClientRequest"];
 export type UpdateClientRequest = components["schemas"]["UpdateClientRequest"];
-export type CreateCommentRequest = components["schemas"]["CreateCommentRequest"];
-export type CreateDocumentRequest = components["schemas"]["CreateDocumentRequest"];
-export type UpdateDocumentRequest = components["schemas"]["UpdateDocumentRequest"];
+export type CreateCommentRequest =
+  components["schemas"]["CreateCommentRequest"];
+export type CreateDocumentRequest =
+  components["schemas"]["CreateDocumentRequest"];
+export type UpdateDocumentRequest =
+  components["schemas"]["UpdateDocumentRequest"];
 // export type AddDocumentEventRequest = components['schemas']['AddDocumentEventRequest'] // Not in schema
-export type CreateMeetingRequest = components["schemas"]["CreateMeetingRequest"];
-export type UpdateMeetingRequest = components["schemas"]["UpdateMeetingRequest"];
+export type CreateMeetingRequest =
+  components["schemas"]["CreateMeetingRequest"];
+export type UpdateMeetingRequest =
+  components["schemas"]["UpdateMeetingRequest"];
 // export type CreateNotificationRequest = components['schemas']['CreateNotificationRequest'] // Not in schema
 export type CreatePhaseRequest = components["schemas"]["CreatePhaseRequest"];
 export type UpdatePhaseRequest = components["schemas"]["UpdatePhaseRequest"];
-export type CreatePositionRequest = components["schemas"]["CreatePositionRequest"];
-export type UpdatePositionRequest = components["schemas"]["UpdatePositionRequest"];
-export type CreateProposalRequest = components["schemas"]["CreateProposalRequest"];
-export type UpdateProposalRequest = components["schemas"]["UpdateProposalRequest"];
+export type CreatePositionRequest =
+  components["schemas"]["CreatePositionRequest"];
+export type UpdatePositionRequest =
+  components["schemas"]["UpdatePositionRequest"];
+export type CreateProposalRequest =
+  components["schemas"]["CreateProposalRequest"];
+export type UpdateProposalRequest =
+  components["schemas"]["UpdateProposalRequest"];
 // export type CreateSignatureRequest = components['schemas']['CreateSignatureRequest'] // Not in schema
 // export type UpdateSignatureRequest = components['schemas']['UpdateSignatureRequest'] // Not in schema
 export type CreateTaskRequest = components["schemas"]["CreateTaskRequest"];

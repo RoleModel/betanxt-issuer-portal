@@ -1,7 +1,6 @@
 # Implementation Plan: Shareholder Proxy Document Management (Phase 1 & Phase 2)
 
-**Branch**: `001-med-1291-documents` | **Date**: 2025-09-21 | **Spec**: `/specs/001-med-1291-documents/spec.md`
-**Input**: Feature specification from `/specs/001-med-1291-documents/spec.md`
+**Branch**: `001-med-1291-documents` | **Date**: 2025-09-21 | **Spec**: `/specs/001-med-1291-documents/spec.md` **Input**: Feature specification from `/specs/001-med-1291-documents/spec.md`
 
 ## Summary
 
@@ -151,10 +150,10 @@ _These phases are beyond the scope of the /plan command_
 
 _Fill ONLY if Constitution Check has violations that must be justified_
 
-| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
-| -------------------------- | ------------------ | ------------------------------------ |
-| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+| --- | --- | --- |
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
 
 ## Progress Tracking
 

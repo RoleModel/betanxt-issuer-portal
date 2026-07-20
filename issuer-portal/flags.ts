@@ -18,12 +18,14 @@ interface FlagEntities {
  * `/api/feature-flags`. The browser sends the active client's ticker in the
  * `x-client-ticker` header, which becomes the `team` entity for targeting.
  */
-const identify = dedupe(({ headers }: { headers: ReadonlyHeaders }): FlagEntities => {
-  const ticker = headers.get("x-client-ticker");
-  if (!ticker) return {};
-  const normalized = ticker.toUpperCase();
-  return { team: { id: normalized, ticker: normalized } };
-});
+const identify = dedupe(
+  ({ headers }: { headers: ReadonlyHeaders }): FlagEntities => {
+    const ticker = headers.get("x-client-ticker");
+    if (!ticker) return {};
+    const normalized = ticker.toUpperCase();
+    return { team: { id: normalized, ticker: normalized } };
+  }
+);
 
 /**
  * Enable NOBO (Engage) features.

@@ -8,8 +8,10 @@ const debug = (...args: unknown[]) => {
   }
 };
 
-const DASHBOARD_URL = "http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/dashboard/1";
-const DOCUMENTS_URL = "http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/documents";
+const DASHBOARD_URL =
+  "http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/dashboard/1";
+const DOCUMENTS_URL =
+  "http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/documents";
 
 async function navigateToPhase(page: Page) {
   await page.goto(DASHBOARD_URL);
@@ -29,7 +31,7 @@ async function openTaskDrawer(taskCard: Locator) {
 
 async function closeTaskDrawer(page: Page) {
   const closeButton = page.locator(
-    'button:has([data-testid="CloseIcon"]), button:has(svg[data-testid="CloseIcon"])',
+    'button:has([data-testid="CloseIcon"]), button:has(svg[data-testid="CloseIcon"])'
   );
   if (await closeButton.isVisible()) {
     await closeButton.click();
@@ -46,7 +48,10 @@ async function findTaskWithSignForm(page: Page) {
     const card = cards.nth(i);
     const rawText = (await card.textContent()) || "";
     // Quick filter: skip cards already marked Complete
-    if (/Complete/i.test(rawText) && !/Needs Authorization|Incomplete/i.test(rawText)) {
+    if (
+      /Complete/i.test(rawText) &&
+      !/Needs Authorization|Incomplete/i.test(rawText)
+    ) {
       continue;
     }
     try {
@@ -54,7 +59,8 @@ async function findTaskWithSignForm(page: Page) {
       const signFormLink = drawer.locator("text=Sign Form");
       if (await signFormLink.first().isVisible()) {
         const title =
-          (await card.locator('[data-testid="task-title"]').textContent()) || rawText.trim();
+          (await card.locator('[data-testid="task-title"]').textContent()) ||
+          rawText.trim();
         return { drawer, title: title.trim() };
       }
       await closeTaskDrawer(page);
@@ -74,14 +80,20 @@ async function completeSignatureFlow(page: Page, drawer: Locator) {
   const viewer = page.locator('[data-testid="document-viewer"]');
   await expect(viewer).toBeVisible({ timeout: 10000 });
 
-  const signatureArea = viewer.locator('[data-testid*="signature-area"]').first();
+  const signatureArea = viewer
+    .locator('[data-testid*="signature-area"]')
+    .first();
   if (await signatureArea.isVisible()) {
     await signatureArea.click();
     const signatureModal = page.locator('[data-testid="signature-modal"]');
     if (await signatureModal.isVisible()) {
-      const signaturePad = signatureModal.locator('canvas, [data-testid="signature-pad"]').first();
+      const signaturePad = signatureModal
+        .locator('canvas, [data-testid="signature-pad"]')
+        .first();
       if (await signaturePad.isVisible()) {
-        await signaturePad.click({ position: { x: 50, y: 50 } }).catch(() => {});
+        await signaturePad
+          .click({ position: { x: 50, y: 50 } })
+          .catch(() => {});
       }
       const insertBtn = signatureModal.locator('button:has-text("Insert")');
       if (await insertBtn.isVisible()) {
@@ -98,7 +110,9 @@ async function completeSignatureFlow(page: Page, drawer: Locator) {
 }
 
 test.describe.serial("Signature Task Flow", () => {
-  test("should submit a signature task and create document", async ({ page }) => {
+  test("should submit a signature task and create document", async ({
+    page,
+  }) => {
     await navigateToPhase(page);
 
     const { drawer } = await findTaskWithSignForm(page);
@@ -127,7 +141,9 @@ test.describe.serial("Signature Task Flow", () => {
     await expect(newDocumentRow).toBeVisible({ timeout: 10000 });
   });
 
-  test("should update task status to COMPLETE after submission", async ({ page }) => {
+  test("should update task status to COMPLETE after submission", async ({
+    page,
+  }) => {
     await navigateToPhase(page);
 
     const { drawer, title } = await findTaskWithSignForm(page);
@@ -137,7 +153,9 @@ test.describe.serial("Signature Task Flow", () => {
 
     // Refresh task list
     await page.reload();
-    await page.waitForSelector('[data-testid*="task-card"]', { timeout: 15000 });
+    await page.waitForSelector('[data-testid*="task-card"]', {
+      timeout: 15000,
+    });
 
     // Find the same task title again
     const updatedCard = page
@@ -174,11 +192,15 @@ test.describe.serial("Signature Task Flow", () => {
     await expect(commentField).toBeVisible();
     await commentField.fill("Test comment from Playwright");
 
-    const submitCommentButton = page.locator('button:has-text("Submit Comment")');
+    const submitCommentButton = page.locator(
+      'button:has-text("Submit Comment")'
+    );
     await submitCommentButton.click();
 
-    await expect(page.locator("text=Test comment from Playwright")).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(page.locator("text=Test comment from Playwright")).toBeVisible(
+      {
+        timeout: 10000,
+      }
+    );
   });
 });

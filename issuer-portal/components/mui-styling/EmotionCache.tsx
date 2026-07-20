@@ -1,6 +1,9 @@
 "use client";
 
-import type { EmotionCache, Options as OptionsOfCreateCache } from "@emotion/cache";
+import type {
+  EmotionCache,
+  Options as OptionsOfCreateCache,
+} from "@emotion/cache";
 
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
@@ -16,8 +19,14 @@ export interface NextAppDirEmotionCacheProviderProps {
   children: React.ReactNode;
 }
 
-export function NextAppDirEmotionCacheProvider(props: NextAppDirEmotionCacheProviderProps) {
-  const { options, CacheProvider: DefaultCacheProvider = CacheProvider, children } = props;
+export function NextAppDirEmotionCacheProvider(
+  props: NextAppDirEmotionCacheProviderProps
+) {
+  const {
+    options,
+    CacheProvider: DefaultCacheProvider = CacheProvider,
+    children,
+  } = props;
 
   const [{ cache, flush }] = React.useState(() => {
     const cache = createCache(options);

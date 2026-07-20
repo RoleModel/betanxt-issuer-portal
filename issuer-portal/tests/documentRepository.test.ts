@@ -10,7 +10,10 @@ test.describe("documentRepository (smoke)", () => {
     try {
       docs = await documentRepository.listByMeeting("non-existent-meeting");
     } catch {
-      test.skip(true, "Repository threw (likely backend unavailable); skipping smoke assertion.");
+      test.skip(
+        true,
+        "Repository threw (likely backend unavailable); skipping smoke assertion."
+      );
       return;
     }
     expect(Array.isArray(docs)).toBeTruthy();

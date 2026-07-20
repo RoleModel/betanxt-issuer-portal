@@ -26,9 +26,12 @@ export function useMailing(): UseMailingResult {
       try {
         const apiClient = await buildApiClient();
 
-        const { data, error: fetchError } = await apiClient.GET("/meetings/{meetingId}/mailing", {
-          params: { path: { meetingId } },
-        });
+        const { data, error: fetchError } = await apiClient.GET(
+          "/meetings/{meetingId}/mailing",
+          {
+            params: { path: { meetingId } },
+          }
+        );
 
         if (fetchError) {
           const errorMsg =
@@ -41,7 +44,8 @@ export function useMailing(): UseMailingResult {
 
         return data || null;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error occurred";
         console.error("Error in getMailingByMeetingId:", err);
         setError(errorMessage);
         return null;
@@ -49,7 +53,7 @@ export function useMailing(): UseMailingResult {
         setLoading(false);
       }
     },
-    [],
+    []
   );
 
   return {

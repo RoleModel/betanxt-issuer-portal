@@ -202,15 +202,7 @@ XVI. TypeScript Configuration
 
 [PRINCIPLE_16_DESCRIPTION]
 
-{
-"compilerOptions": {
-"target": "es2022",
-"strict": true,
-"noEmit": true,
-"jsx": "preserve",
-"moduleResolution": "node"
-}
-}
+{ "compilerOptions": { "target": "es2022", "strict": true, "noEmit": true, "jsx": "preserve", "moduleResolution": "node" } }
 
 [PRINCIPLE_17_NAME]
 

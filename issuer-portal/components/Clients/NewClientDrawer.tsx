@@ -78,7 +78,8 @@ interface EventForm {
 function getApiErrorMessage(error: unknown, fallback: string): string {
   if (error && typeof error === "object" && "message" in error) {
     const { message } = error;
-    if (typeof message === "string" && message.trim().length > 0) return message;
+    if (typeof message === "string" && message.trim().length > 0)
+      return message;
   }
 
   return fallback;
@@ -139,7 +140,9 @@ function ColorField({
                 component="input"
                 type="color"
                 value={value}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  onChange(e.target.value)
+                }
                 sx={{
                   width: 28,
                   height: 28,
@@ -158,14 +161,19 @@ function ColorField({
   );
 }
 
-export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerProps) {
+export function NewClientDrawer({
+  open,
+  onClose,
+  onCreated,
+}: NewClientDrawerProps) {
   const { data: session, update: updateSession } = useSession();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [clientForm, setClientForm] = useState<ClientForm>(EMPTY_CLIENT);
-  const [brandingForm, setBrandingForm] = useState<BrandingForm>(EMPTY_BRANDING);
+  const [brandingForm, setBrandingForm] =
+    useState<BrandingForm>(EMPTY_BRANDING);
   const [userForm, setUserForm] = useState<UserForm>(EMPTY_USER);
   const [eventForm, setEventForm] = useState<EventForm>(EMPTY_EVENT);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -229,35 +237,43 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
         const fd = new FormData();
         fd.append("logo", brandingForm.logoFile);
         fd.append("ticker", clientForm.ticker.toUpperCase());
-        const res = await fetch("/api/upload/client-logo", { method: "POST", body: fd });
+        const res = await fetch("/api/upload/client-logo", {
+          method: "POST",
+          body: fd,
+        });
         if (res.ok) logoUrl = ((await res.json()) as { url: string }).url;
       }
 
-      const { data: clientData, error: clientError } = await api.POST("/clients", {
-        body: {
-          ticker: clientForm.ticker.toUpperCase(),
-          companyName: clientForm.companyName.trim(),
-          shortName: clientForm.shortName.trim(),
-          industry: clientForm.industry.trim() || undefined,
-          website: clientForm.website.trim() || undefined,
-          logoUrl,
-          primaryColor: brandingForm.primaryColor,
-          secondaryColor: brandingForm.secondaryColor,
-          createdBy: session?.user?.username ?? undefined,
-          isActive: true,
-          enabledFeatures: [
-            "documents",
-            "mailing",
-            "tabulation",
-            "reports",
-            "fileTransfer",
-            "agenda",
-          ],
-        },
-      });
+      const { data: clientData, error: clientError } = await api.POST(
+        "/clients",
+        {
+          body: {
+            ticker: clientForm.ticker.toUpperCase(),
+            companyName: clientForm.companyName.trim(),
+            shortName: clientForm.shortName.trim(),
+            industry: clientForm.industry.trim() || undefined,
+            website: clientForm.website.trim() || undefined,
+            logoUrl,
+            primaryColor: brandingForm.primaryColor,
+            secondaryColor: brandingForm.secondaryColor,
+            createdBy: session?.user?.username ?? undefined,
+            isActive: true,
+            enabledFeatures: [
+              "documents",
+              "mailing",
+              "tabulation",
+              "reports",
+              "fileTransfer",
+              "agenda",
+            ],
+          },
+        }
+      );
 
       if (clientError || !clientData) {
-        throw new Error(getApiErrorMessage(clientError, "Failed to create client"));
+        throw new Error(
+          getApiErrorMessage(clientError, "Failed to create client")
+        );
       }
 
       const rawId = (clientData as { id?: unknown }).id;
@@ -304,7 +320,9 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
       });
 
       if (meetingError) {
-        throw new Error(getApiErrorMessage(meetingError, "Failed to create meeting"));
+        throw new Error(
+          getApiErrorMessage(meetingError, "Failed to create meeting")
+        );
       }
 
       // Refresh the session so the JWT picks up the newly-assigned client ticker
@@ -374,7 +392,8 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
             Client Created
           </Typography>
           <Typography color="text.secondary" textAlign="center">
-            {clientForm.companyName} has been set up with a user account and first meeting.
+            {clientForm.companyName} has been set up with a user account and
+            first meeting.
           </Typography>
           <Button variant="contained" onClick={handleClose} sx={{ mt: 2 }}>
             Done
@@ -404,7 +423,11 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
           {/* Scrollable content */}
           <Box sx={{ minHeight: 0, overflowY: "auto", px: 3, py: 2 }}>
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+              <Alert
+                severity="error"
+                sx={{ mb: 2 }}
+                onClose={() => setError(null)}
+              >
                 {error}
               </Alert>
             )}
@@ -418,7 +441,10 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                   label="Ticker Symbol *"
                   value={clientForm.ticker}
                   onChange={(e) =>
-                    setClientForm((p) => ({ ...p, ticker: e.target.value.toUpperCase() }))
+                    setClientForm((p) => ({
+                      ...p,
+                      ticker: e.target.value.toUpperCase(),
+                    }))
                   }
                   size="small"
                   fullWidth
@@ -428,14 +454,21 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                 <TextField
                   label="Full Company Name *"
                   value={clientForm.companyName}
-                  onChange={(e) => setClientForm((p) => ({ ...p, companyName: e.target.value }))}
+                  onChange={(e) =>
+                    setClientForm((p) => ({
+                      ...p,
+                      companyName: e.target.value,
+                    }))
+                  }
                   size="small"
                   fullWidth
                 />
                 <TextField
                   label="Short Name *"
                   value={clientForm.shortName}
-                  onChange={(e) => setClientForm((p) => ({ ...p, shortName: e.target.value }))}
+                  onChange={(e) =>
+                    setClientForm((p) => ({ ...p, shortName: e.target.value }))
+                  }
                   size="small"
                   fullWidth
                   helperText="Display name used in the app"
@@ -443,14 +476,18 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                 <TextField
                   label="Industry"
                   value={clientForm.industry}
-                  onChange={(e) => setClientForm((p) => ({ ...p, industry: e.target.value }))}
+                  onChange={(e) =>
+                    setClientForm((p) => ({ ...p, industry: e.target.value }))
+                  }
                   size="small"
                   fullWidth
                 />
                 <TextField
                   label="Website"
                   value={clientForm.website}
-                  onChange={(e) => setClientForm((p) => ({ ...p, website: e.target.value }))}
+                  onChange={(e) =>
+                    setClientForm((p) => ({ ...p, website: e.target.value }))
+                  }
                   size="small"
                   fullWidth
                   placeholder="https://"
@@ -492,7 +529,11 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                         component="img"
                         src={brandingForm.logoPreview}
                         alt="Logo"
-                        sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                        }}
                       />
                     ) : (
                       <UploadFile sx={{ color: "text.disabled" }} />
@@ -530,12 +571,16 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                 <ColorField
                   label="Primary Color"
                   value={brandingForm.primaryColor}
-                  onChange={(v) => setBrandingForm((p) => ({ ...p, primaryColor: v }))}
+                  onChange={(v) =>
+                    setBrandingForm((p) => ({ ...p, primaryColor: v }))
+                  }
                 />
                 <ColorField
                   label="Secondary Color"
                   value={brandingForm.secondaryColor}
-                  onChange={(v) => setBrandingForm((p) => ({ ...p, secondaryColor: v }))}
+                  onChange={(v) =>
+                    setBrandingForm((p) => ({ ...p, secondaryColor: v }))
+                  }
                 />
               </Stack>
             )}
@@ -549,14 +594,18 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                   <TextField
                     label="First Name *"
                     value={userForm.firstName}
-                    onChange={(e) => setUserForm((p) => ({ ...p, firstName: e.target.value }))}
+                    onChange={(e) =>
+                      setUserForm((p) => ({ ...p, firstName: e.target.value }))
+                    }
                     size="small"
                     fullWidth
                   />
                   <TextField
                     label="Last Name *"
                     value={userForm.lastName}
-                    onChange={(e) => setUserForm((p) => ({ ...p, lastName: e.target.value }))}
+                    onChange={(e) =>
+                      setUserForm((p) => ({ ...p, lastName: e.target.value }))
+                    }
                     size="small"
                     fullWidth
                   />
@@ -565,7 +614,9 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                   label="Email *"
                   type="email"
                   value={userForm.email}
-                  onChange={(e) => setUserForm((p) => ({ ...p, email: e.target.value }))}
+                  onChange={(e) =>
+                    setUserForm((p) => ({ ...p, email: e.target.value }))
+                  }
                   size="small"
                   fullWidth
                 />
@@ -573,7 +624,10 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                   label="Username *"
                   value={userForm.username}
                   onChange={(e) =>
-                    setUserForm((p) => ({ ...p, username: e.target.value.toLowerCase() }))
+                    setUserForm((p) => ({
+                      ...p,
+                      username: e.target.value.toLowerCase(),
+                    }))
                   }
                   size="small"
                   fullWidth
@@ -583,7 +637,9 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                   label="Password *"
                   type="password"
                   value={userForm.password}
-                  onChange={(e) => setUserForm((p) => ({ ...p, password: e.target.value }))}
+                  onChange={(e) =>
+                    setUserForm((p) => ({ ...p, password: e.target.value }))
+                  }
                   size="small"
                   fullWidth
                   helperText="Min. 8 characters"
@@ -604,7 +660,12 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                   <Select
                     label="Meeting Type"
                     value={eventForm.meetingType}
-                    onChange={(e) => setEventForm((p) => ({ ...p, meetingType: e.target.value }))}
+                    onChange={(e) =>
+                      setEventForm((p) => ({
+                        ...p,
+                        meetingType: e.target.value,
+                      }))
+                    }
                   >
                     {MEETING_TYPES.map((t) => (
                       <MenuItem key={t} value={t}>
@@ -616,7 +677,9 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                 <TextField
                   label="CUSIP *"
                   value={eventForm.cusip}
-                  onChange={(e) => setEventForm((p) => ({ ...p, cusip: e.target.value }))}
+                  onChange={(e) =>
+                    setEventForm((p) => ({ ...p, cusip: e.target.value }))
+                  }
                   size="small"
                   fullWidth
                   slotProps={{ htmlInput: { maxLength: 9 } }}
@@ -626,7 +689,12 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                     label="Record Date *"
                     type="date"
                     value={eventForm.recordDate}
-                    onChange={(e) => setEventForm((p) => ({ ...p, recordDate: e.target.value }))}
+                    onChange={(e) =>
+                      setEventForm((p) => ({
+                        ...p,
+                        recordDate: e.target.value,
+                      }))
+                    }
                     size="small"
                     fullWidth
                     slotProps={{ inputLabel: { shrink: true } }}
@@ -635,7 +703,12 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                     label="Mailing Date *"
                     type="date"
                     value={eventForm.mailingDate}
-                    onChange={(e) => setEventForm((p) => ({ ...p, mailingDate: e.target.value }))}
+                    onChange={(e) =>
+                      setEventForm((p) => ({
+                        ...p,
+                        mailingDate: e.target.value,
+                      }))
+                    }
                     size="small"
                     fullWidth
                     slotProps={{ inputLabel: { shrink: true } }}
@@ -645,7 +718,9 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                   label="Meeting Date *"
                   type="date"
                   value={eventForm.meetingDate}
-                  onChange={(e) => setEventForm((p) => ({ ...p, meetingDate: e.target.value }))}
+                  onChange={(e) =>
+                    setEventForm((p) => ({ ...p, meetingDate: e.target.value }))
+                  }
                   size="small"
                   fullWidth
                   slotProps={{ inputLabel: { shrink: true } }}
@@ -668,13 +743,18 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                   type="number"
                   value={eventForm.quorumRequirement}
                   onChange={(e) =>
-                    setEventForm((p) => ({ ...p, quorumRequirement: e.target.value }))
+                    setEventForm((p) => ({
+                      ...p,
+                      quorumRequirement: e.target.value,
+                    }))
                   }
                   size="small"
                   fullWidth
                   slotProps={{
                     input: {
-                      endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                      endAdornment: (
+                        <InputAdornment position="end">%</InputAdornment>
+                      ),
                     },
                   }}
                 />
@@ -683,7 +763,12 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                   <Select
                     label="Transfer Agent"
                     value={eventForm.transferAgent}
-                    onChange={(e) => setEventForm((p) => ({ ...p, transferAgent: e.target.value }))}
+                    onChange={(e) =>
+                      setEventForm((p) => ({
+                        ...p,
+                        transferAgent: e.target.value,
+                      }))
+                    }
                   >
                     {TRANSFER_AGENTS.map((t) => (
                       <MenuItem key={t} value={t}>
@@ -691,7 +776,9 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                       </MenuItem>
                     ))}
                   </Select>
-                  <FormHelperText>Transfer agent managing shares</FormHelperText>
+                  <FormHelperText>
+                    Transfer agent managing shares
+                  </FormHelperText>
                 </FormControl>
               </Stack>
             )}
@@ -709,11 +796,16 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
               flexShrink: 0,
             }}
           >
-            <Button onClick={() => setStep((s) => s - 1)} disabled={step === 0 || submitting}>
+            <Button
+              onClick={() => setStep((s) => s - 1)}
+              disabled={step === 0 || submitting}
+            >
               Back
             </Button>
             {step < STEPS.length - 1 ? (
-              <Tooltip title={canAdvance() ? "" : "Please fill in all required fields"}>
+              <Tooltip
+                title={canAdvance() ? "" : "Please fill in all required fields"}
+              >
                 <span>
                   <Button
                     variant="contained"
@@ -725,14 +817,18 @@ export function NewClientDrawer({ open, onClose, onCreated }: NewClientDrawerPro
                 </span>
               </Tooltip>
             ) : (
-              <Tooltip title={canAdvance() ? "" : "Please fill in all required fields"}>
+              <Tooltip
+                title={canAdvance() ? "" : "Please fill in all required fields"}
+              >
                 <span>
                   <Button
                     variant="contained"
                     onClick={() => void handleSubmit()}
                     disabled={!canAdvance() || submitting}
                     startIcon={
-                      submitting ? <CircularProgress size={16} color="inherit" /> : undefined
+                      submitting ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : undefined
                     }
                   >
                     {submitting ? "Creating…" : "Create Client"}

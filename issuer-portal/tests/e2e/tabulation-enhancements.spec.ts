@@ -8,9 +8,12 @@ import { expect, test } from "@playwright/test";
  * PAYC is not, so it is used to verify NOBO feature gating.
  */
 
-const WEN_TABULATION_URL = "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/tabulation";
-const WEN_REPORTS_URL = "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/reports";
-const WEN_NOBO_URL = "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/nobo";
+const WEN_TABULATION_URL =
+  "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/tabulation";
+const WEN_REPORTS_URL =
+  "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/reports";
+const WEN_NOBO_URL =
+  "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/nobo";
 const WEN_REPORTING_URL = "http://localhost:3000/WEN/reporting";
 const PAYC_TABULATION_URL =
   "http://localhost:3000/PAYC/meeting/payc-annual-meeting-2025/tabulation";
@@ -19,7 +22,9 @@ test.describe("C1 — Voting Activity registered-only labeling", () => {
   test("chart title explicitly states Registered Holders", async ({ page }) => {
     await page.goto(WEN_TABULATION_URL);
 
-    await expect(page.getByText("Voting Activity — Registered Holders")).toBeVisible({
+    await expect(
+      page.getByText("Voting Activity — Registered Holders")
+    ).toBeVisible({
       timeout: 20000,
     });
   });
@@ -53,15 +58,21 @@ test.describe("C2 — Shares Voted proposal selector", () => {
 });
 
 test.describe("C3 — Total Votes removal", () => {
-  test("tabulation view no longer renders a Total Votes column", async ({ page }) => {
+  test("tabulation view no longer renders a Total Votes column", async ({
+    page,
+  }) => {
     await page.goto(WEN_TABULATION_URL);
 
     // Wait for the tabulation table content to be present first.
-    await expect(page.getByText("Voting Activity — Registered Holders")).toBeVisible({
+    await expect(
+      page.getByText("Voting Activity — Registered Holders")
+    ).toBeVisible({
       timeout: 20000,
     });
 
-    await expect(page.getByRole("columnheader", { name: "Total Votes" })).toHaveCount(0);
+    await expect(
+      page.getByRole("columnheader", { name: "Total Votes" })
+    ).toHaveCount(0);
   });
 });
 
@@ -79,7 +90,9 @@ test.describe("C4 — Reports dropdown + Broker Breakout", () => {
     await expect(reportSelect).toBeVisible();
     await reportSelect.click();
 
-    await expect(page.getByRole("option", { name: /Broker Breakout Report/ })).toBeVisible();
+    await expect(
+      page.getByRole("option", { name: /Broker Breakout Report/ })
+    ).toBeVisible();
     await page.keyboard.press("Escape");
 
     // No permanently disabled download rows: every PDF download button enabled.
@@ -96,7 +109,9 @@ test.describe("C6/C7 — Reporting tab analytics + quorum timeline", () => {
   test("quorum timeline replaces Early/Late segmentation", async ({ page }) => {
     await page.goto(WEN_REPORTING_URL);
 
-    await expect(page.getByText("Quorum Timeline")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText("Quorum Timeline")).toBeVisible({
+      timeout: 20000,
+    });
 
     await expect(page.getByText(/Early Votes %/)).toHaveCount(0);
     await expect(page.getByText(/Late Votes %/)).toHaveCount(0);
@@ -113,7 +128,9 @@ test.describe("C6/C7 — Reporting tab analytics + quorum timeline", () => {
 });
 
 test.describe("C8 — Geographic heat map", () => {
-  test("metric toggle and population filters render with correct defaults", async ({ page }) => {
+  test("metric toggle and population filters render with correct defaults", async ({
+    page,
+  }) => {
     await page.goto(WEN_REPORTING_URL);
 
     await expect(page.getByText("Geographic Distribution")).toBeVisible({
@@ -122,13 +139,19 @@ test.describe("C8 — Geographic heat map", () => {
 
     // Metric toggle.
     const metricGroup = page.getByRole("group", { name: "Heat map metric" });
-    await expect(metricGroup.getByRole("button", { name: "Shareholders" })).toBeVisible();
-    await expect(metricGroup.getByRole("button", { name: "Shares Held" })).toBeVisible();
+    await expect(
+      metricGroup.getByRole("button", { name: "Shareholders" })
+    ).toBeVisible();
+    await expect(
+      metricGroup.getByRole("button", { name: "Shares Held" })
+    ).toBeVisible();
 
     // Default populations: Registered + Plan checked, Beneficial unchecked.
     await expect(page.getByLabel("Registered", { exact: true })).toBeChecked();
     await expect(page.getByLabel("Plan", { exact: true })).toBeChecked();
-    await expect(page.getByLabel("Beneficial", { exact: true })).not.toBeChecked();
+    await expect(
+      page.getByLabel("Beneficial", { exact: true })
+    ).not.toBeChecked();
 
     // WEN has the nobo feature, so the NOBO checkbox is present and unchecked.
     await expect(page.getByLabel("NOBO", { exact: true })).not.toBeChecked();
@@ -145,10 +168,14 @@ test.describe("C9 — NOBO tab feature gating", () => {
     await expect(noboTab).toBeVisible({ timeout: 20000 });
 
     await page.goto(WEN_NOBO_URL);
-    await expect(page.getByText("NOBO Positions")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText("NOBO Positions")).toBeVisible({
+      timeout: 20000,
+    });
   });
 
-  test("NOBO tab hidden for clients without the nobo feature", async ({ page }) => {
+  test("NOBO tab hidden for clients without the nobo feature", async ({
+    page,
+  }) => {
     await page.goto(PAYC_TABULATION_URL);
 
     await expect(page.getByRole("tab", { name: "Tabulation" })).toBeVisible({

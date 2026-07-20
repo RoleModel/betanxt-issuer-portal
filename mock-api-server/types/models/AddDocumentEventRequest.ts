@@ -53,18 +53,22 @@ export type AddDocumentEventRequestEventTypeEnum =
 /**
  * Check if a given object implements the AddDocumentEventRequest interface.
  */
-export function instanceOfAddDocumentEventRequest(value: object): value is AddDocumentEventRequest {
+export function instanceOfAddDocumentEventRequest(
+  value: object
+): value is AddDocumentEventRequest {
   if (!("eventType" in value) || value["eventType"] === undefined) return false;
   return true;
 }
 
-export function AddDocumentEventRequestFromJSON(json: any): AddDocumentEventRequest {
+export function AddDocumentEventRequestFromJSON(
+  json: any
+): AddDocumentEventRequest {
   return AddDocumentEventRequestFromJSONTyped(json, false);
 }
 
 export function AddDocumentEventRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): AddDocumentEventRequest {
   if (json == null) {
     return json;
@@ -75,13 +79,15 @@ export function AddDocumentEventRequestFromJSONTyped(
   };
 }
 
-export function AddDocumentEventRequestToJSON(json: any): AddDocumentEventRequest {
+export function AddDocumentEventRequestToJSON(
+  json: any
+): AddDocumentEventRequest {
   return AddDocumentEventRequestToJSONTyped(json, false);
 }
 
 export function AddDocumentEventRequestToJSONTyped(
   value?: AddDocumentEventRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

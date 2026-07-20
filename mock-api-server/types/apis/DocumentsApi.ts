@@ -129,19 +129,19 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async addDocumentEventRaw(
     requestParameters: AddDocumentEventOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<DocumentHistory>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling addDocumentEvent().',
+        'Required parameter "id" was null or undefined when calling addDocumentEvent().'
       );
     }
 
     if (requestParameters["addDocumentEventRequest"] == null) {
       throw new runtime.RequiredError(
         "addDocumentEventRequest",
-        'Required parameter "addDocumentEventRequest" was null or undefined when calling addDocumentEvent().',
+        'Required parameter "addDocumentEventRequest" was null or undefined when calling addDocumentEvent().'
       );
     }
 
@@ -161,7 +161,10 @@ export class DocumentsApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/documents/{id}/events`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -169,12 +172,16 @@ export class DocumentsApi extends runtime.BaseAPI {
         method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: AddDocumentEventRequestToJSON(requestParameters["addDocumentEventRequest"]),
+        body: AddDocumentEventRequestToJSON(
+          requestParameters["addDocumentEventRequest"]
+        ),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => DocumentHistoryFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentHistoryFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -182,9 +189,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async addDocumentEvent(
     requestParameters: AddDocumentEventOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<DocumentHistory> {
-    const response = await this.addDocumentEventRaw(requestParameters, initOverrides);
+    const response = await this.addDocumentEventRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -193,26 +203,26 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async approveDocumentVersionRaw(
     requestParameters: ApproveDocumentVersionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Document>> {
     if (requestParameters["documentType"] == null) {
       throw new runtime.RequiredError(
         "documentType",
-        'Required parameter "documentType" was null or undefined when calling approveDocumentVersion().',
+        'Required parameter "documentType" was null or undefined when calling approveDocumentVersion().'
       );
     }
 
     if (requestParameters["versionId"] == null) {
       throw new runtime.RequiredError(
         "versionId",
-        'Required parameter "versionId" was null or undefined when calling approveDocumentVersion().',
+        'Required parameter "versionId" was null or undefined when calling approveDocumentVersion().'
       );
     }
 
     if (requestParameters["approveDocumentVersionRequest"] == null) {
       throw new runtime.RequiredError(
         "approveDocumentVersionRequest",
-        'Required parameter "approveDocumentVersionRequest" was null or undefined when calling approveDocumentVersion().',
+        'Required parameter "approveDocumentVersionRequest" was null or undefined when calling approveDocumentVersion().'
       );
     }
 
@@ -234,11 +244,11 @@ export class DocumentsApi extends runtime.BaseAPI {
     let urlPath = `/documents/types/{documentType}/{versionId}/approve`;
     urlPath = urlPath.replace(
       `{${"documentType"}}`,
-      encodeURIComponent(String(requestParameters["documentType"])),
+      encodeURIComponent(String(requestParameters["documentType"]))
     );
     urlPath = urlPath.replace(
       `{${"versionId"}}`,
-      encodeURIComponent(String(requestParameters["versionId"])),
+      encodeURIComponent(String(requestParameters["versionId"]))
     );
 
     const response = await this.request(
@@ -248,13 +258,15 @@ export class DocumentsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
         body: ApproveDocumentVersionRequestToJSON(
-          requestParameters["approveDocumentVersionRequest"],
+          requestParameters["approveDocumentVersionRequest"]
         ),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => DocumentFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -262,9 +274,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async approveDocumentVersion(
     requestParameters: ApproveDocumentVersionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Document> {
-    const response = await this.approveDocumentVersionRaw(requestParameters, initOverrides);
+    const response = await this.approveDocumentVersionRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -273,33 +288,33 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async createDocumentRaw(
     requestParameters: CreateDocumentRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Document>> {
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling createDocument().',
+        'Required parameter "meetingId" was null or undefined when calling createDocument().'
       );
     }
 
     if (requestParameters["title"] == null) {
       throw new runtime.RequiredError(
         "title",
-        'Required parameter "title" was null or undefined when calling createDocument().',
+        'Required parameter "title" was null or undefined when calling createDocument().'
       );
     }
 
     if (requestParameters["type"] == null) {
       throw new runtime.RequiredError(
         "type",
-        'Required parameter "type" was null or undefined when calling createDocument().',
+        'Required parameter "type" was null or undefined when calling createDocument().'
       );
     }
 
     if (requestParameters["file"] == null) {
       throw new runtime.RequiredError(
         "file",
-        'Required parameter "file" was null or undefined when calling createDocument().',
+        'Required parameter "file" was null or undefined when calling createDocument().'
       );
     }
 
@@ -315,7 +330,9 @@ export class DocumentsApi extends runtime.BaseAPI {
         headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
-    const consumes: runtime.Consume[] = [{ contentType: "multipart/form-data" }];
+    const consumes: runtime.Consume[] = [
+      { contentType: "multipart/form-data" },
+    ];
     // @ts-ignore: canConsumeForm may be unused
     const canConsumeForm = runtime.canConsumeForm(consumes);
 
@@ -352,7 +369,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     let urlPath = `/meetings/{meetingId}/documents`;
     urlPath = urlPath.replace(
       `{${"meetingId"}}`,
-      encodeURIComponent(String(requestParameters["meetingId"])),
+      encodeURIComponent(String(requestParameters["meetingId"]))
     );
 
     const response = await this.request(
@@ -363,10 +380,12 @@ export class DocumentsApi extends runtime.BaseAPI {
         query: queryParameters,
         body: formParams,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => DocumentFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -374,9 +393,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async createDocument(
     requestParameters: CreateDocumentRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Document> {
-    const response = await this.createDocumentRaw(requestParameters, initOverrides);
+    const response = await this.createDocumentRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -385,12 +407,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async downloadDocumentRaw(
     requestParameters: DownloadDocumentRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Blob>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling downloadDocument().',
+        'Required parameter "id" was null or undefined when calling downloadDocument().'
       );
     }
 
@@ -408,7 +430,10 @@ export class DocumentsApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/documents/{id}/download`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -417,7 +442,7 @@ export class DocumentsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
     return new runtime.BlobApiResponse(response);
@@ -428,9 +453,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async downloadDocument(
     requestParameters: DownloadDocumentRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Blob> {
-    const response = await this.downloadDocumentRaw(requestParameters, initOverrides);
+    const response = await this.downloadDocumentRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -439,12 +467,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async getDocumentByIdRaw(
     requestParameters: GetDocumentByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Document>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling getDocumentById().',
+        'Required parameter "id" was null or undefined when calling getDocumentById().'
       );
     }
 
@@ -462,7 +490,10 @@ export class DocumentsApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/documents/{id}`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -471,10 +502,12 @@ export class DocumentsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => DocumentFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -482,9 +515,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async getDocumentById(
     requestParameters: GetDocumentByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Document> {
-    const response = await this.getDocumentByIdRaw(requestParameters, initOverrides);
+    const response = await this.getDocumentByIdRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -493,12 +529,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async getDocumentEventsRaw(
     requestParameters: GetDocumentEventsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Array<DocumentHistory>>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling getDocumentEvents().',
+        'Required parameter "id" was null or undefined when calling getDocumentEvents().'
       );
     }
 
@@ -516,7 +552,10 @@ export class DocumentsApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/documents/{id}/events`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -525,11 +564,11 @@ export class DocumentsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(DocumentHistoryFromJSON),
+      jsonValue.map(DocumentHistoryFromJSON)
     );
   }
 
@@ -538,9 +577,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async getDocumentEvents(
     requestParameters: GetDocumentEventsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Array<DocumentHistory>> {
-    const response = await this.getDocumentEventsRaw(requestParameters, initOverrides);
+    const response = await this.getDocumentEventsRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -549,19 +591,19 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async getDocumentHistoryRaw(
     requestParameters: GetDocumentHistoryRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Array<Document>>> {
     if (requestParameters["documentType"] == null) {
       throw new runtime.RequiredError(
         "documentType",
-        'Required parameter "documentType" was null or undefined when calling getDocumentHistory().',
+        'Required parameter "documentType" was null or undefined when calling getDocumentHistory().'
       );
     }
 
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling getDocumentHistory().',
+        'Required parameter "meetingId" was null or undefined when calling getDocumentHistory().'
       );
     }
 
@@ -585,7 +627,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     let urlPath = `/documents/types/{documentType}/history`;
     urlPath = urlPath.replace(
       `{${"documentType"}}`,
-      encodeURIComponent(String(requestParameters["documentType"])),
+      encodeURIComponent(String(requestParameters["documentType"]))
     );
 
     const response = await this.request(
@@ -595,10 +637,12 @@ export class DocumentsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(DocumentFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      jsonValue.map(DocumentFromJSON)
+    );
   }
 
   /**
@@ -606,9 +650,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async getDocumentHistory(
     requestParameters: GetDocumentHistoryRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Array<Document>> {
-    const response = await this.getDocumentHistoryRaw(requestParameters, initOverrides);
+    const response = await this.getDocumentHistoryRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -617,12 +664,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async getDocumentsReadinessRaw(
     requestParameters: GetDocumentsReadinessRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<GetDocumentsReadiness200Response>> {
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling getDocumentsReadiness().',
+        'Required parameter "meetingId" was null or undefined when calling getDocumentsReadiness().'
       );
     }
 
@@ -652,11 +699,11 @@ export class DocumentsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      GetDocumentsReadiness200ResponseFromJSON(jsonValue),
+      GetDocumentsReadiness200ResponseFromJSON(jsonValue)
     );
   }
 
@@ -665,9 +712,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async getDocumentsReadiness(
     requestParameters: GetDocumentsReadinessRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<GetDocumentsReadiness200Response> {
-    const response = await this.getDocumentsReadinessRaw(requestParameters, initOverrides);
+    const response = await this.getDocumentsReadinessRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -676,12 +726,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async listDocumentsRaw(
     requestParameters: ListDocumentsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Array<Document>>> {
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling listDocuments().',
+        'Required parameter "meetingId" was null or undefined when calling listDocuments().'
       );
     }
 
@@ -709,7 +759,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     let urlPath = `/meetings/{meetingId}/documents`;
     urlPath = urlPath.replace(
       `{${"meetingId"}}`,
-      encodeURIComponent(String(requestParameters["meetingId"])),
+      encodeURIComponent(String(requestParameters["meetingId"]))
     );
 
     const response = await this.request(
@@ -719,10 +769,12 @@ export class DocumentsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(DocumentFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      jsonValue.map(DocumentFromJSON)
+    );
   }
 
   /**
@@ -730,9 +782,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async listDocuments(
     requestParameters: ListDocumentsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Array<Document>> {
-    const response = await this.listDocumentsRaw(requestParameters, initOverrides);
+    const response = await this.listDocumentsRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -741,40 +796,40 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async replaceApprovedVersionRaw(
     requestParameters: ReplaceApprovedVersionRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Document>> {
     if (requestParameters["documentType"] == null) {
       throw new runtime.RequiredError(
         "documentType",
-        'Required parameter "documentType" was null or undefined when calling replaceApprovedVersion().',
+        'Required parameter "documentType" was null or undefined when calling replaceApprovedVersion().'
       );
     }
 
     if (requestParameters["versionId"] == null) {
       throw new runtime.RequiredError(
         "versionId",
-        'Required parameter "versionId" was null or undefined when calling replaceApprovedVersion().',
+        'Required parameter "versionId" was null or undefined when calling replaceApprovedVersion().'
       );
     }
 
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling replaceApprovedVersion().',
+        'Required parameter "meetingId" was null or undefined when calling replaceApprovedVersion().'
       );
     }
 
     if (requestParameters["reason"] == null) {
       throw new runtime.RequiredError(
         "reason",
-        'Required parameter "reason" was null or undefined when calling replaceApprovedVersion().',
+        'Required parameter "reason" was null or undefined when calling replaceApprovedVersion().'
       );
     }
 
     if (requestParameters["file"] == null) {
       throw new runtime.RequiredError(
         "file",
-        'Required parameter "file" was null or undefined when calling replaceApprovedVersion().',
+        'Required parameter "file" was null or undefined when calling replaceApprovedVersion().'
       );
     }
 
@@ -790,7 +845,9 @@ export class DocumentsApi extends runtime.BaseAPI {
         headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
-    const consumes: runtime.Consume[] = [{ contentType: "multipart/form-data" }];
+    const consumes: runtime.Consume[] = [
+      { contentType: "multipart/form-data" },
+    ];
     // @ts-ignore: canConsumeForm may be unused
     const canConsumeForm = runtime.canConsumeForm(consumes);
 
@@ -819,11 +876,11 @@ export class DocumentsApi extends runtime.BaseAPI {
     let urlPath = `/documents/types/{documentType}/{versionId}/replace`;
     urlPath = urlPath.replace(
       `{${"documentType"}}`,
-      encodeURIComponent(String(requestParameters["documentType"])),
+      encodeURIComponent(String(requestParameters["documentType"]))
     );
     urlPath = urlPath.replace(
       `{${"versionId"}}`,
-      encodeURIComponent(String(requestParameters["versionId"])),
+      encodeURIComponent(String(requestParameters["versionId"]))
     );
 
     const response = await this.request(
@@ -834,10 +891,12 @@ export class DocumentsApi extends runtime.BaseAPI {
         query: queryParameters,
         body: formParams,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => DocumentFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -845,9 +904,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async replaceApprovedVersion(
     requestParameters: ReplaceApprovedVersionRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Document> {
-    const response = await this.replaceApprovedVersionRaw(requestParameters, initOverrides);
+    const response = await this.replaceApprovedVersionRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -856,19 +918,19 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async signFormDigitalRaw(
     requestParameters: SignFormDigitalOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Document>> {
     if (requestParameters["formType"] == null) {
       throw new runtime.RequiredError(
         "formType",
-        'Required parameter "formType" was null or undefined when calling signFormDigital().',
+        'Required parameter "formType" was null or undefined when calling signFormDigital().'
       );
     }
 
     if (requestParameters["signFormDigitalRequest"] == null) {
       throw new runtime.RequiredError(
         "signFormDigitalRequest",
-        'Required parameter "signFormDigitalRequest" was null or undefined when calling signFormDigital().',
+        'Required parameter "signFormDigitalRequest" was null or undefined when calling signFormDigital().'
       );
     }
 
@@ -890,7 +952,7 @@ export class DocumentsApi extends runtime.BaseAPI {
     let urlPath = `/documents/forms/{formType}/sign-digital`;
     urlPath = urlPath.replace(
       `{${"formType"}}`,
-      encodeURIComponent(String(requestParameters["formType"])),
+      encodeURIComponent(String(requestParameters["formType"]))
     );
 
     const response = await this.request(
@@ -899,12 +961,16 @@ export class DocumentsApi extends runtime.BaseAPI {
         method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: SignFormDigitalRequestToJSON(requestParameters["signFormDigitalRequest"]),
+        body: SignFormDigitalRequestToJSON(
+          requestParameters["signFormDigitalRequest"]
+        ),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => DocumentFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -912,9 +978,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async signFormDigital(
     requestParameters: SignFormDigitalOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Document> {
-    const response = await this.signFormDigitalRaw(requestParameters, initOverrides);
+    const response = await this.signFormDigitalRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -923,19 +992,19 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async updateDocumentRaw(
     requestParameters: UpdateDocumentOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Document>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling updateDocument().',
+        'Required parameter "id" was null or undefined when calling updateDocument().'
       );
     }
 
     if (requestParameters["updateDocumentRequest"] == null) {
       throw new runtime.RequiredError(
         "updateDocumentRequest",
-        'Required parameter "updateDocumentRequest" was null or undefined when calling updateDocument().',
+        'Required parameter "updateDocumentRequest" was null or undefined when calling updateDocument().'
       );
     }
 
@@ -955,7 +1024,10 @@ export class DocumentsApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/documents/{id}`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -963,12 +1035,16 @@ export class DocumentsApi extends runtime.BaseAPI {
         method: "PUT",
         headers: headerParameters,
         query: queryParameters,
-        body: UpdateDocumentRequestToJSON(requestParameters["updateDocumentRequest"]),
+        body: UpdateDocumentRequestToJSON(
+          requestParameters["updateDocumentRequest"]
+        ),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => DocumentFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -976,9 +1052,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async updateDocument(
     requestParameters: UpdateDocumentOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Document> {
-    const response = await this.updateDocumentRaw(requestParameters, initOverrides);
+    const response = await this.updateDocumentRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -987,26 +1066,26 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async uploadDocumentVersionRaw(
     requestParameters: UploadDocumentVersionRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Document>> {
     if (requestParameters["documentType"] == null) {
       throw new runtime.RequiredError(
         "documentType",
-        'Required parameter "documentType" was null or undefined when calling uploadDocumentVersion().',
+        'Required parameter "documentType" was null or undefined when calling uploadDocumentVersion().'
       );
     }
 
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling uploadDocumentVersion().',
+        'Required parameter "meetingId" was null or undefined when calling uploadDocumentVersion().'
       );
     }
 
     if (requestParameters["file"] == null) {
       throw new runtime.RequiredError(
         "file",
-        'Required parameter "file" was null or undefined when calling uploadDocumentVersion().',
+        'Required parameter "file" was null or undefined when calling uploadDocumentVersion().'
       );
     }
 
@@ -1022,7 +1101,9 @@ export class DocumentsApi extends runtime.BaseAPI {
         headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
-    const consumes: runtime.Consume[] = [{ contentType: "multipart/form-data" }];
+    const consumes: runtime.Consume[] = [
+      { contentType: "multipart/form-data" },
+    ];
     // @ts-ignore: canConsumeForm may be unused
     const canConsumeForm = runtime.canConsumeForm(consumes);
 
@@ -1045,13 +1126,16 @@ export class DocumentsApi extends runtime.BaseAPI {
     }
 
     if (requestParameters["versionNotes"] != null) {
-      formParams.append("versionNotes", requestParameters["versionNotes"] as any);
+      formParams.append(
+        "versionNotes",
+        requestParameters["versionNotes"] as any
+      );
     }
 
     let urlPath = `/documents/types/{documentType}/upload`;
     urlPath = urlPath.replace(
       `{${"documentType"}}`,
-      encodeURIComponent(String(requestParameters["documentType"])),
+      encodeURIComponent(String(requestParameters["documentType"]))
     );
 
     const response = await this.request(
@@ -1062,10 +1146,12 @@ export class DocumentsApi extends runtime.BaseAPI {
         query: queryParameters,
         body: formParams,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => DocumentFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -1073,9 +1159,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async uploadDocumentVersion(
     requestParameters: UploadDocumentVersionRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Document> {
-    const response = await this.uploadDocumentVersionRaw(requestParameters, initOverrides);
+    const response = await this.uploadDocumentVersionRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -1084,26 +1173,26 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async uploadExecutedFormRaw(
     requestParameters: UploadExecutedFormRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Document>> {
     if (requestParameters["formType"] == null) {
       throw new runtime.RequiredError(
         "formType",
-        'Required parameter "formType" was null or undefined when calling uploadExecutedForm().',
+        'Required parameter "formType" was null or undefined when calling uploadExecutedForm().'
       );
     }
 
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling uploadExecutedForm().',
+        'Required parameter "meetingId" was null or undefined when calling uploadExecutedForm().'
       );
     }
 
     if (requestParameters["file"] == null) {
       throw new runtime.RequiredError(
         "file",
-        'Required parameter "file" was null or undefined when calling uploadExecutedForm().',
+        'Required parameter "file" was null or undefined when calling uploadExecutedForm().'
       );
     }
 
@@ -1119,7 +1208,9 @@ export class DocumentsApi extends runtime.BaseAPI {
         headerParameters["Authorization"] = `Bearer ${tokenString}`;
       }
     }
-    const consumes: runtime.Consume[] = [{ contentType: "multipart/form-data" }];
+    const consumes: runtime.Consume[] = [
+      { contentType: "multipart/form-data" },
+    ];
     // @ts-ignore: canConsumeForm may be unused
     const canConsumeForm = runtime.canConsumeForm(consumes);
 
@@ -1142,13 +1233,16 @@ export class DocumentsApi extends runtime.BaseAPI {
     }
 
     if (requestParameters["originalGeneratedId"] != null) {
-      formParams.append("originalGeneratedId", requestParameters["originalGeneratedId"] as any);
+      formParams.append(
+        "originalGeneratedId",
+        requestParameters["originalGeneratedId"] as any
+      );
     }
 
     let urlPath = `/documents/forms/{formType}/upload-executed`;
     urlPath = urlPath.replace(
       `{${"formType"}}`,
-      encodeURIComponent(String(requestParameters["formType"])),
+      encodeURIComponent(String(requestParameters["formType"]))
     );
 
     const response = await this.request(
@@ -1159,10 +1253,12 @@ export class DocumentsApi extends runtime.BaseAPI {
         query: queryParameters,
         body: formParams,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => DocumentFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DocumentFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -1170,9 +1266,12 @@ export class DocumentsApi extends runtime.BaseAPI {
    */
   async uploadExecutedForm(
     requestParameters: UploadExecutedFormRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Document> {
-    const response = await this.uploadExecutedFormRaw(requestParameters, initOverrides);
+    const response = await this.uploadExecutedFormRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 }

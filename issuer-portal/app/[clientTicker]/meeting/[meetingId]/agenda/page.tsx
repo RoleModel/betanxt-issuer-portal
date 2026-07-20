@@ -37,7 +37,9 @@ interface ParsedProposal {
 
 export default function AgendaPage() {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
-  const { proposals, uploadProposals } = useVotingTabulation(currentMeeting?.id ?? "");
+  const { proposals, uploadProposals } = useVotingTabulation(
+    currentMeeting?.id ?? ""
+  );
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   const handleUploadClick = () => {
@@ -67,7 +69,8 @@ export default function AgendaPage() {
               const proposalNumber = row["Proposal Number"] ?? row.Number ?? "";
               const proposalTitle = row["Proposal Title"] ?? row.Title ?? "";
               const proposalType = row["Proposal Type"] ?? row.Type ?? "";
-              const proposalSubtype = row["Proposal Subtype"] ?? row.Subtype ?? "";
+              const proposalSubtype =
+                row["Proposal Subtype"] ?? row.Subtype ?? "";
               const directorName = row["Director Name"] ?? row.Director ?? "";
               const recommendation = row.Recommendation ?? "";
 
@@ -105,7 +108,9 @@ export default function AgendaPage() {
 
           resolve(mappedData);
         } catch (error) {
-          reject(error instanceof Error ? error : new Error("Failed to parse file"));
+          reject(
+            error instanceof Error ? error : new Error("Failed to parse file")
+          );
         }
       };
 

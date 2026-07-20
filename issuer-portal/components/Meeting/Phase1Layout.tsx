@@ -26,17 +26,22 @@ function Phase1Layout({ meeting }: Phase1LayoutProps) {
     async () => {
       if (!meeting?.id) return null;
       const apiClient = await buildApiClient();
-      const result = await apiClient.GET("/meetings/{meetingId}/tabulation-report", {
-        params: { path: { meetingId: meeting.id } },
-      });
+      const result = await apiClient.GET(
+        "/meetings/{meetingId}/tabulation-report",
+        {
+          params: { path: { meetingId: meeting.id } },
+        }
+      );
       return result.data ?? null;
     },
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false }
   );
 
   const representedShares = tabulationReport?.positionsVoted?.votedShares ?? 0;
   const totalOutstandingShares =
-    tabulationReport?.positionsVoted?.totalShares ?? meeting?.totalSharesOutstanding ?? 0;
+    tabulationReport?.positionsVoted?.totalShares ??
+    meeting?.totalSharesOutstanding ??
+    0;
 
   const quorumGaugeModel = buildQuorumGaugeModel({
     totalOutstandingShares,

@@ -53,7 +53,9 @@ export default function MeetingDocuments({
   const [selectedDocumentStatus, setSelectedDocumentStatus] = useState<
     Document["status"] | undefined
   >(undefined);
-  const [selectedPlaceholderId, setSelectedPlaceholderId] = useState<string | undefined>(undefined);
+  const [selectedPlaceholderId, setSelectedPlaceholderId] = useState<
+    string | undefined
+  >(undefined);
   const [loading, setLoading] = useState(!!meetingId);
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
   const [documentViewerUrl, setDocumentViewerUrl] = useState("");
@@ -126,7 +128,7 @@ export default function MeetingDocuments({
       !filteredDocuments.find(
         (doc) =>
           doc.type === "draft-proxy-statement" ||
-          doc.title?.toLowerCase().includes("draft proxy statement"),
+          doc.title?.toLowerCase().includes("draft proxy statement")
       )
     ) {
       placeholderDocs.push({
@@ -142,7 +144,9 @@ export default function MeetingDocuments({
     // Check if Proxy Card exists
     if (
       !filteredDocuments.find(
-        (doc) => doc.type === "proxy-card" || doc.title?.toLowerCase().includes("proxy card"),
+        (doc) =>
+          doc.type === "proxy-card" ||
+          doc.title?.toLowerCase().includes("proxy card")
       )
     ) {
       placeholderDocs.push({
@@ -158,7 +162,9 @@ export default function MeetingDocuments({
     // Check if Notice exists
     if (
       !filteredDocuments.find(
-        (doc) => doc.type === "notice-access-form" || doc.title?.toLowerCase().includes("Notice"),
+        (doc) =>
+          doc.type === "notice-access-form" ||
+          doc.title?.toLowerCase().includes("Notice")
       )
     ) {
       placeholderDocs.push({
@@ -231,7 +237,7 @@ export default function MeetingDocuments({
         !filteredDocuments.find(
           (doc) =>
             doc.type === "draft-proxy-statement" ||
-            doc.title?.toLowerCase().includes("draft proxy statement"),
+            doc.title?.toLowerCase().includes("draft proxy statement")
         )
       ) {
         placeholderDocs.push({
@@ -247,7 +253,9 @@ export default function MeetingDocuments({
       // Check if Proxy Card exists
       if (
         !filteredDocuments.find(
-          (doc) => doc.type === "proxy-card" || doc.title?.toLowerCase().includes("proxy card"),
+          (doc) =>
+            doc.type === "proxy-card" ||
+            doc.title?.toLowerCase().includes("proxy card")
         )
       ) {
         placeholderDocs.push({
@@ -263,7 +271,9 @@ export default function MeetingDocuments({
       // Check if Notice exists
       if (
         !filteredDocuments.find(
-          (doc) => doc.type === "notice-access-form" || doc.title?.toLowerCase().includes("Notice"),
+          (doc) =>
+            doc.type === "notice-access-form" ||
+            doc.title?.toLowerCase().includes("Notice")
         )
       ) {
         placeholderDocs.push({
@@ -293,7 +303,9 @@ export default function MeetingDocuments({
 
   // Listen for document uploads from other components (like TaskDrawer)
   useEffect(() => {
-    const handleDocumentsUploaded = (event: CustomEvent<{ meetingId: string }>) => {
+    const handleDocumentsUploaded = (
+      event: CustomEvent<{ meetingId: string }>
+    ) => {
       if (event.detail.meetingId === meetingId) {
         void fetchDocuments();
       }
@@ -301,13 +313,13 @@ export default function MeetingDocuments({
 
     window.addEventListener(
       "documentsUploaded" as keyof WindowEventMap,
-      handleDocumentsUploaded as EventListener,
+      handleDocumentsUploaded as EventListener
     );
 
     return () => {
       window.removeEventListener(
         "documentsUploaded" as keyof WindowEventMap,
-        handleDocumentsUploaded as EventListener,
+        handleDocumentsUploaded as EventListener
       );
     };
   }, [meetingId, fetchDocuments]);
@@ -321,7 +333,10 @@ export default function MeetingDocuments({
     setUploadDialogOpen(true);
   };
 
-  const handleFileUpload = async (files: File[], associations?: Record<string, string>) => {
+  const handleFileUpload = async (
+    files: File[],
+    associations?: Record<string, string>
+  ) => {
     if (files.length === 0) return;
 
     const optimisticIds: string[] = [];
@@ -360,7 +375,12 @@ export default function MeetingDocuments({
           placeholderId.startsWith("placeholder-")
         ) {
           const documentType = placeholderId.replace("placeholder-", "");
-          result = await uploadDocument(file, documentType, meetingId ?? "", file.name);
+          result = await uploadDocument(
+            file,
+            documentType,
+            meetingId ?? "",
+            file.name
+          );
         } else {
           result = await uploadDocument(file, file.name, meetingId ?? "");
         }
@@ -451,7 +471,8 @@ export default function MeetingDocuments({
     };
 
     // Status config not currently used, but kept for future enhancement
-    const _config = statusConfig[status ?? "AWAITING_DRAFT"] || statusConfig.AWAITING_DRAFT;
+    const _config =
+      statusConfig[status ?? "AWAITING_DRAFT"] || statusConfig.AWAITING_DRAFT;
     return <StatusChip status={status || null} />;
   };
 
@@ -489,7 +510,10 @@ export default function MeetingDocuments({
       case "PENDING_AUTHORIZATION":
       case "SUBMITTED_AWAITING_RECORD_DATE":
         return (
-          <Button variant="text" onClick={() => handleApprove(document.id ?? "")}>
+          <Button
+            variant="text"
+            onClick={() => handleApprove(document.id ?? "")}
+          >
             View
           </Button>
         );
@@ -542,16 +566,24 @@ export default function MeetingDocuments({
                         {document.uploadedDate ? (
                           <Typography color="text.secondary">
                             Uploaded:{" "}
-                            {new Date(document.uploadedDate).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })}
+                            {new Date(document.uploadedDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )}
                           </Typography>
                         ) : (
                           document.id?.startsWith("placeholder-") &&
                           typeof document.deadline === "string" && (
-                            <Typography noWrap color="text.secondary" sx={{ fontStyle: "italic" }}>
-                              Deadline: {formatDateForDisplay(document.deadline)}
+                            <Typography
+                              noWrap
+                              color="text.secondary"
+                              sx={{ fontStyle: "italic" }}
+                            >
+                              Deadline:{" "}
+                              {formatDateForDisplay(document.deadline)}
                             </Typography>
                           )
                         )}
@@ -574,14 +606,17 @@ export default function MeetingDocuments({
                           )
                             return "XLSX";
                           if (docType === "application/msword") return "DOC";
-                          if (docType === "application/vnd.ms-excel") return "XLS";
+                          if (docType === "application/vnd.ms-excel")
+                            return "XLS";
                           // Return as-is if already friendly or unknown
                           return docType;
                         })()}
                       </Typography>
                     </TableCell>
                     <TableCell>{getStatusChip(document.status)}</TableCell>
-                    <TableCell align="right">{getActionButton(document)}</TableCell>
+                    <TableCell align="right">
+                      {getActionButton(document)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -590,11 +625,19 @@ export default function MeetingDocuments({
         )}
       </CardContent>
       <CardActions sx={{ justifyContent: "flex-end" }}>
-        <Button variant="outlined" onClick={() => handleUpload()} disabled={!meetingId}>
+        <Button
+          variant="outlined"
+          onClick={() => handleUpload()}
+          disabled={!meetingId}
+        >
           Upload
         </Button>
         {documents.length > 0 && (
-          <Button variant="outlined" onClick={handleViewAllDocuments} disabled={!meetingId}>
+          <Button
+            variant="outlined"
+            onClick={handleViewAllDocuments}
+            disabled={!meetingId}
+          >
             View All
           </Button>
         )}

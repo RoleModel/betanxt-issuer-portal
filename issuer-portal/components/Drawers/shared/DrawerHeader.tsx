@@ -74,12 +74,18 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
             disabled={navigation.current <= 1}
             onClick={navigation.onPrevious}
             aria-label="Go to previous phase"
-            sx={{ color: "inherit", opacity: navigation.current <= 1 ? 0.5 : 1 }}
+            sx={{
+              color: "inherit",
+              opacity: navigation.current <= 1 ? 0.5 : 1,
+            }}
           >
             <ChevronLeftIcon />
           </IconButton>
 
-          <Typography variant="caption" sx={{ color: "inherit", fontSize: "12px" }}>
+          <Typography
+            variant="caption"
+            sx={{ color: "inherit", fontSize: "12px" }}
+          >
             {subtitle ?? `Phase ${navigation.current} of ${navigation.total}`}
           </Typography>
 

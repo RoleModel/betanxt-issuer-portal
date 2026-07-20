@@ -36,19 +36,21 @@ export interface ApproveDocumentVersionRequest {
  * Check if a given object implements the ApproveDocumentVersionRequest interface.
  */
 export function instanceOfApproveDocumentVersionRequest(
-  value: object,
+  value: object
 ): value is ApproveDocumentVersionRequest {
   if (!("meetingId" in value) || value["meetingId"] === undefined) return false;
   return true;
 }
 
-export function ApproveDocumentVersionRequestFromJSON(json: any): ApproveDocumentVersionRequest {
+export function ApproveDocumentVersionRequestFromJSON(
+  json: any
+): ApproveDocumentVersionRequest {
   return ApproveDocumentVersionRequestFromJSONTyped(json, false);
 }
 
 export function ApproveDocumentVersionRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): ApproveDocumentVersionRequest {
   if (json == null) {
     return json;
@@ -59,13 +61,15 @@ export function ApproveDocumentVersionRequestFromJSONTyped(
   };
 }
 
-export function ApproveDocumentVersionRequestToJSON(json: any): ApproveDocumentVersionRequest {
+export function ApproveDocumentVersionRequestToJSON(
+  json: any
+): ApproveDocumentVersionRequest {
   return ApproveDocumentVersionRequestToJSONTyped(json, false);
 }
 
 export function ApproveDocumentVersionRequestToJSONTyped(
   value?: ApproveDocumentVersionRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

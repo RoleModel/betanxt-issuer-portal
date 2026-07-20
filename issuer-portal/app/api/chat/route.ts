@@ -14,11 +14,15 @@ import { enqueueChatbotAction } from "@/lib/chatbotActionsStore";
 
 export const maxDuration = 30;
 
-const AI_GATEWAY_BASE_URL = process.env.AI_GATEWAY_BASE_URL ?? "https://ai-gateway.vercel.sh/v1";
+const AI_GATEWAY_BASE_URL =
+  process.env.AI_GATEWAY_BASE_URL ?? "https://ai-gateway.vercel.sh/v1";
 const AI_GATEWAY_MODEL =
-  process.env.AI_GATEWAY_MODEL ?? process.env.OPENAI_MODEL ?? "openai/gpt-4.1-mini";
+  process.env.AI_GATEWAY_MODEL ??
+  process.env.OPENAI_MODEL ??
+  "openai/gpt-4.1-mini";
 
-type MeetingPage = "dashboard" | "agenda" | "mailing" | "tabulation" | "reports";
+type MeetingPage =
+  "dashboard" | "agenda" | "mailing" | "tabulation" | "reports";
 type QueryEntity =
   | "clients"
   | "meetings"
@@ -99,7 +103,8 @@ const INTERNAL_PATH_REGEX = /^\/(?!\/).*/;
 const TICKER_PATH_REGEX = /^\/([A-Za-z]{2,5})(?:\/|$)/;
 const MAX_QUERY_LIMIT = 25;
 const MAX_CONTEXT_MESSAGES = 10;
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
 const getCurrentPath = (request: Request): string => {
   const referer = request.headers.get("referer");
@@ -136,7 +141,9 @@ const asNumber = (value: unknown): number => {
 
 const asStringArray = (value: unknown): string[] => {
   return Array.isArray(value)
-    ? value.map((item) => asString(item)).filter((item): item is string => Boolean(item))
+    ? value
+        .map((item) => asString(item))
+        .filter((item): item is string => Boolean(item))
     : [];
 };
 
@@ -182,7 +189,7 @@ const extractMeetingSearchTerm = (
   clientName: string | null,
   clientTicker: string | null,
   meetingYear: number | undefined,
-  meetingType: string | undefined,
+  meetingType: string | undefined
 ): string => {
   if (!search) return "";
 
@@ -213,7 +220,7 @@ const extractMeetingSearchTerm = (
       "information",
       clientTicker ? clientTicker.toLowerCase() : "",
       meetingYear ? String(meetingYear) : "",
-    ].filter(Boolean),
+    ].filter(Boolean)
   );
 
   const phraseRemovals = [
@@ -248,7 +255,9 @@ const extractMeetingIdFromPath = (path: string): string | null => {
   return match?.[1] ?? null;
 };
 
-const getChatAccessContext = async (currentPath: string): Promise<ChatAccessContext> => {
+const getChatAccessContext = async (
+  currentPath: string
+): Promise<ChatAccessContext> => {
   const session = await auth();
   const user = session?.user;
 
@@ -276,7 +285,7 @@ const getChatAccessContext = async (currentPath: string): Promise<ChatAccessCont
 
 const isTickerAllowed = (
   ticker: string | null | undefined,
-  allowedTickers: string[] | null,
+  allowedTickers: string[] | null
 ): boolean => {
   if (!ticker) return true;
   if (allowedTickers === null) return true;
@@ -307,8 +316,12 @@ const fetchPortalJson = async (path: string): Promise<unknown> => {
   return (await response.json()) as unknown;
 };
 
-const fetchMeetingPositions = async (meetingId: string): Promise<Record<string, unknown>[]> => {
-  const payload = await fetchPortalJson(`/positions?meetingId=${meetingId}&limit=50000`);
+const fetchMeetingPositions = async (
+  meetingId: string
+): Promise<Record<string, unknown>[]> => {
+  const payload = await fetchPortalJson(
+    `/positions?meetingId=${meetingId}&limit=50000`
+  );
   const root = asRecord(payload);
 
   return asArray(root?.positions)
@@ -331,7 +344,7 @@ const getClientAliases = (row: Record<string, unknown>): string[] => {
 
 const inferTickerFromSearch = async (
   search: string,
-  accessContext: ChatAccessContext,
+  accessContext: ChatAccessContext
 ): Promise<string | null> => {
   const normalizedSearch = normalizeText(search);
   if (!normalizedSearch) return null;
@@ -348,10 +361,12 @@ const inferTickerFromSearch = async (
       aliases: getClientAliases(row),
     }))
     .filter((client) => client.ticker && client.aliases.length > 0)
-    .filter((client) => isTickerAllowed(client.ticker, accessContext.allowedTickers));
+    .filter((client) =>
+      isTickerAllowed(client.ticker, accessContext.allowedTickers)
+    );
 
   const directTickerMatch = clients.find((client) =>
-    normalizedSearch.includes(client.ticker.toLowerCase()),
+    normalizedSearch.includes(client.ticker.toLowerCase())
   );
 
   if (directTickerMatch) {
@@ -362,7 +377,8 @@ const inferTickerFromSearch = async (
     return client.aliases.some((alias) => {
       const normalizedAlias = normalizeText(alias);
       return (
-        normalizedSearch.includes(normalizedAlias) || normalizedAlias.includes(normalizedSearch)
+        normalizedSearch.includes(normalizedAlias) ||
+        normalizedAlias.includes(normalizedSearch)
       );
     });
   });
@@ -377,10 +393,13 @@ const inferTickerFromSearch = async (
       const aliasTokens = normalizedAlias
         .split(" ")
         .map((token) => token.trim())
-        .filter((token) => token.length > 2 && token !== "the" && token !== "company");
+        .filter(
+          (token) => token.length > 2 && token !== "the" && token !== "company"
+        );
 
       return (
-        aliasTokens.length > 0 && aliasTokens.every((token) => normalizedSearch.includes(token))
+        aliasTokens.length > 0 &&
+        aliasTokens.every((token) => normalizedSearch.includes(token))
       );
     });
   });
@@ -390,7 +409,7 @@ const inferTickerFromSearch = async (
 
 const getClientNameForTicker = async (
   ticker: string,
-  accessContext: ChatAccessContext,
+  accessContext: ChatAccessContext
 ): Promise<string | null> => {
   const payload = await fetchPortalJson("/clients");
   const root = asRecord(payload);
@@ -404,49 +423,77 @@ const getClientNameForTicker = async (
       aliases: getClientAliases(row),
     }))
     .filter((client) => client.ticker && client.aliases.length > 0)
-    .filter((client) => isTickerAllowed(client.ticker, accessContext.allowedTickers))
+    .filter((client) =>
+      isTickerAllowed(client.ticker, accessContext.allowedTickers)
+    )
     .find((client) => client.ticker === ticker.toUpperCase());
 
   return matchingClient?.aliases[0] ?? null;
 };
 
 const deriveTabulationReportSummary = (
-  positions: Record<string, unknown>[],
+  positions: Record<string, unknown>[]
 ): DerivedTabulationReportSummary => {
   const votedPositions = positions.filter(
-    (position) => asString(position.voteStatus ?? position.vote_status) === "Voted",
+    (position) =>
+      asString(position.voteStatus ?? position.vote_status) === "Voted"
   );
   const unvotedPositions = positions.filter(
-    (position) => asString(position.voteStatus ?? position.vote_status) === "Unvoted",
+    (position) =>
+      asString(position.voteStatus ?? position.vote_status) === "Unvoted"
   );
 
-  const totalShares = positions.reduce((sum, position) => sum + asNumber(position.shares), 0);
+  const totalShares = positions.reduce(
+    (sum, position) => sum + asNumber(position.shares),
+    0
+  );
   const votedShares = votedPositions.reduce(
-    (sum, position) => sum + asNumber(position.sharesVoted ?? position.shares_voted),
-    0,
+    (sum, position) =>
+      sum + asNumber(position.sharesVoted ?? position.shares_voted),
+    0
   );
 
   const dtcVotedShares = votedPositions
-    .filter((position) => asString(position.accountType ?? position.account_type) === "DTC/CDS")
-    .reduce((sum, position) => sum + asNumber(position.sharesVoted ?? position.shares_voted), 0);
+    .filter(
+      (position) =>
+        asString(position.accountType ?? position.account_type) === "DTC/CDS"
+    )
+    .reduce(
+      (sum, position) =>
+        sum + asNumber(position.sharesVoted ?? position.shares_voted),
+      0
+    );
 
   const dtcUnvotedShares = unvotedPositions
-    .filter((position) => asString(position.accountType ?? position.account_type) === "DTC/CDS")
+    .filter(
+      (position) =>
+        asString(position.accountType ?? position.account_type) === "DTC/CDS"
+    )
     .reduce((sum, position) => sum + asNumber(position.shares), 0);
 
   const nonDtcVotedShares = votedPositions
-    .filter((position) => asString(position.accountType ?? position.account_type) === "Non-DTC")
-    .reduce((sum, position) => sum + asNumber(position.sharesVoted ?? position.shares_voted), 0);
+    .filter(
+      (position) =>
+        asString(position.accountType ?? position.account_type) === "Non-DTC"
+    )
+    .reduce(
+      (sum, position) =>
+        sum + asNumber(position.sharesVoted ?? position.shares_voted),
+      0
+    );
 
   const nonDtcUnvotedShares = unvotedPositions
-    .filter((position) => asString(position.accountType ?? position.account_type) === "Non-DTC")
+    .filter(
+      (position) =>
+        asString(position.accountType ?? position.account_type) === "Non-DTC"
+    )
     .reduce((sum, position) => sum + asNumber(position.shares), 0);
 
   const setKeys = [
     ...new Set(
       positions
         .map((position) => asString(position.setKey ?? position.set_key))
-        .filter((value): value is string => Boolean(value)),
+        .filter((value): value is string => Boolean(value))
     ),
   ];
 
@@ -469,7 +516,7 @@ const deriveTabulationReportSummary = (
 
 const getMeetingData = async (
   meetingId: string,
-  allowedTickers: string[] | null,
+  allowedTickers: string[] | null
 ): Promise<Record<string, unknown>> => {
   const payload = await fetchPortalJson(`/meetings/${meetingId}`);
   const meeting = asRecord(payload);
@@ -488,7 +535,7 @@ const getMeetingData = async (
 
 const resolveClientTicker = (
   requestedTicker: string | undefined,
-  accessContext: ChatAccessContext,
+  accessContext: ChatAccessContext
 ): string | null => {
   if (requestedTicker) {
     return requestedTicker.toUpperCase();
@@ -507,12 +554,15 @@ const resolveClientTicker = (
 
 const resolveMeetingId = (
   requestedMeetingId: string | undefined,
-  accessContext: ChatAccessContext,
+  accessContext: ChatAccessContext
 ): string | null => {
   return requestedMeetingId ?? accessContext.currentMeetingId;
 };
 
-const isAllowedNavigationPath = (path: string, allowedTickers: string[] | null): boolean => {
+const isAllowedNavigationPath = (
+  path: string,
+  allowedTickers: string[] | null
+): boolean => {
   if (!INTERNAL_PATH_REGEX.test(path)) {
     return false;
   }
@@ -521,8 +571,13 @@ const isAllowedNavigationPath = (path: string, allowedTickers: string[] | null):
   return isTickerAllowed(ticker, allowedTickers);
 };
 
-const buildMeetingRoute = (currentPath: string, nextSegment: string): string | null => {
-  const match = /^\/([^/]+)\/((?:past-)?meeting)\/([^/]+)(?:\/.*)?$/.exec(currentPath);
+const buildMeetingRoute = (
+  currentPath: string,
+  nextSegment: string
+): string | null => {
+  const match = /^\/([^/]+)\/((?:past-)?meeting)\/([^/]+)(?:\/.*)?$/.exec(
+    currentPath
+  );
 
   if (!match) {
     return null;
@@ -560,12 +615,23 @@ const sanitizeMessagesForModel = (messages: UIMessage[]): UIMessage[] => {
   });
 };
 
-const getFallbackAssistantReply = (messages: UIMessage[], currentPath: string): string => {
-  const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
+const getFallbackAssistantReply = (
+  messages: UIMessage[],
+  currentPath: string
+): string => {
+  const latestUserMessage = [...messages]
+    .reverse()
+    .find((message) => message.role === "user");
 
-  const prompt = latestUserMessage ? getMessageText(latestUserMessage).toLowerCase() : "";
+  const prompt = latestUserMessage
+    ? getMessageText(latestUserMessage).toLowerCase()
+    : "";
 
-  if (prompt.includes("support") || prompt.includes("contact") || prompt.includes("help desk")) {
+  if (
+    prompt.includes("support") ||
+    prompt.includes("contact") ||
+    prompt.includes("help desk")
+  ) {
     enqueueChatbotAction({
       type: "OPEN_SUPPORT_CONTACTS",
     });
@@ -582,11 +648,12 @@ const getFallbackAssistantReply = (messages: UIMessage[], currentPath: string): 
   ];
 
   const matchedPage = pageMatches.find(({ keywords }) =>
-    keywords.some((keyword) => prompt.includes(keyword)),
+    keywords.some((keyword) => prompt.includes(keyword))
   );
 
   if (matchedPage) {
-    const nextSegment = matchedPage.page === "dashboard" ? "dashboard/1" : matchedPage.page;
+    const nextSegment =
+      matchedPage.page === "dashboard" ? "dashboard/1" : matchedPage.page;
     const path = buildMeetingRoute(currentPath, nextSegment);
 
     if (path) {
@@ -604,7 +671,10 @@ const getFallbackAssistantReply = (messages: UIMessage[], currentPath: string): 
   return "AI Gateway is not configured yet. I can still open support contacts or navigate to dashboard, agenda, mailing, tabulation, and reports.";
 };
 
-const createFallbackResponse = (messages: UIMessage[], currentPath: string): Response => {
+const createFallbackResponse = (
+  messages: UIMessage[],
+  currentPath: string
+): Response => {
   const content = getFallbackAssistantReply(messages, currentPath);
   const stream = createUIMessageStream({
     originalMessages: messages,
@@ -630,7 +700,10 @@ const createFallbackResponse = (messages: UIMessage[], currentPath: string): Res
   return createUIMessageStreamResponse({ stream });
 };
 
-const createAssistantTextResponse = (messages: UIMessage[], content: string): Response => {
+const createAssistantTextResponse = (
+  messages: UIMessage[],
+  content: string
+): Response => {
   const stream = createUIMessageStream({
     originalMessages: messages,
     execute: ({ writer }) => {
@@ -690,13 +763,17 @@ const tryHandleMeetingOverviewPrompt = async ({
 
   if (
     !normalizedPrompt.includes("meeting") ||
-    (!extractMeetingYearFromSearch(prompt) && !extractMeetingTypeFromSearch(prompt))
+    (!extractMeetingYearFromSearch(prompt) &&
+      !extractMeetingTypeFromSearch(prompt))
   ) {
     return null;
   }
 
   const inferredTicker = await inferTickerFromSearch(prompt, accessContext);
-  const resolvedTicker = resolveClientTicker(inferredTicker ?? undefined, accessContext);
+  const resolvedTicker = resolveClientTicker(
+    inferredTicker ?? undefined,
+    accessContext
+  );
   const meetingYear = extractMeetingYearFromSearch(prompt);
 
   if (!resolvedTicker || !meetingYear) {
@@ -726,8 +803,8 @@ const tryHandleMeetingOverviewPrompt = async ({
       ? meetings[0]
       : (meetings.find((meeting) =>
           normalizeText(asString(meeting.meetingType) ?? "").includes(
-            normalizeText(extractMeetingTypeFromSearch(prompt) ?? ""),
-          ),
+            normalizeText(extractMeetingTypeFromSearch(prompt) ?? "")
+          )
         ) ?? meetings[0]);
 
   const meetingId = asString(selectedMeeting.id);
@@ -739,17 +816,27 @@ const tryHandleMeetingOverviewPrompt = async ({
   const meeting = await getMeetingData(meetingId, accessContext.allowedTickers);
   const title = asString(meeting.title) ?? "Meeting";
   const ticker = (asString(meeting.ticker) ?? resolvedTicker).toUpperCase();
-  const meetingType = asString(meeting.meetingType) ?? asString(meeting.meeting_type) ?? "Meeting";
+  const meetingType =
+    asString(meeting.meetingType) ??
+    asString(meeting.meeting_type) ??
+    "Meeting";
   const status = asString(meeting.status) ?? "UNKNOWN";
   const cusip = asString(meeting.cusip) ?? "Unavailable";
   const currentPhase =
-    asString(meeting.currentPhase) ?? asString(meeting.current_phase) ?? "Unavailable";
-  const meetingDate = asString(meeting.meetingDate) ?? asString(meeting.meeting_date);
-  const recordDate = asString(meeting.recordDate) ?? asString(meeting.record_date);
-  const mailingDate = asString(meeting.mailingDate) ?? asString(meeting.mailing_date);
-  const quorumRequirement = asNumber(meeting.quorumRequirement ?? meeting.quorum_requirement);
+    asString(meeting.currentPhase) ??
+    asString(meeting.current_phase) ??
+    "Unavailable";
+  const meetingDate =
+    asString(meeting.meetingDate) ?? asString(meeting.meeting_date);
+  const recordDate =
+    asString(meeting.recordDate) ?? asString(meeting.record_date);
+  const mailingDate =
+    asString(meeting.mailingDate) ?? asString(meeting.mailing_date);
+  const quorumRequirement = asNumber(
+    meeting.quorumRequirement ?? meeting.quorum_requirement
+  );
   const totalSharesOutstanding = asNumber(
-    meeting.totalSharesOutstanding ?? meeting.total_shares_outstanding,
+    meeting.totalSharesOutstanding ?? meeting.total_shares_outstanding
   );
 
   const content = [
@@ -815,14 +902,20 @@ const tryHandleDirectorSlatePrompt = async ({
   const proposalResultRecord = asRecord(proposalResults);
   const proposals = asArray(proposalResultRecord?.proposals)
     .map((proposal) => asRecord(proposal))
-    .filter((proposal): proposal is Record<string, unknown> => Boolean(proposal));
+    .filter((proposal): proposal is Record<string, unknown> =>
+      Boolean(proposal)
+    );
 
   const directorSlate = proposals.filter((proposal) => {
     const directorName = asString(proposal.directorName);
     const proposalType = normalizeText(asString(proposal.proposalType) ?? "");
     const title = normalizeText(asString(proposal.title) ?? "");
 
-    return Boolean(directorName) || proposalType.includes("director") || title.includes("director");
+    return (
+      Boolean(directorName) ||
+      proposalType.includes("director") ||
+      title.includes("director")
+    );
   });
 
   if (directorSlate.length === 0) {
@@ -841,7 +934,7 @@ const tryHandleDirectorSlatePrompt = async ({
 
   return createAssistantTextResponse(
     messages,
-    ["The director slate for this meeting is:", ...lines].join("\n"),
+    ["The director slate for this meeting is:", ...lines].join("\n")
   );
 };
 
@@ -884,7 +977,9 @@ const executePortalQuery = async ({
             "",
         }))
         .filter((client) => client.id && client.ticker && client.name)
-        .filter((client) => isTickerAllowed(client.ticker, accessContext.allowedTickers))
+        .filter((client) =>
+          isTickerAllowed(client.ticker, accessContext.allowedTickers)
+        )
         .filter((client) => {
           if (!normalizedSearch) return true;
           return (
@@ -907,7 +1002,7 @@ const executePortalQuery = async ({
           : null;
       const resolvedTicker = resolveClientTicker(
         clientTicker ?? inferredTicker ?? undefined,
-        accessContext,
+        accessContext
       );
       if (!resolvedTicker) {
         return {
@@ -920,24 +1015,33 @@ const executePortalQuery = async ({
         return { error: `You do not have access to client ${resolvedTicker}.` };
       }
 
-      const resolvedMeetingYear = meetingYear ?? extractMeetingYearFromSearch(search);
+      const resolvedMeetingYear =
+        meetingYear ?? extractMeetingYearFromSearch(search);
       const requestedMeetingType = extractMeetingTypeFromSearch(search);
-      const clientName = await getClientNameForTicker(resolvedTicker, accessContext);
+      const clientName = await getClientNameForTicker(
+        resolvedTicker,
+        accessContext
+      );
       const normalizedMeetingSearch = extractMeetingSearchTerm(
         search,
         clientName,
         resolvedTicker,
         resolvedMeetingYear,
-        requestedMeetingType,
+        requestedMeetingType
       );
 
       const queryParams = new URLSearchParams({ ticker: resolvedTicker });
 
-      if (typeof resolvedMeetingYear === "number" && Number.isFinite(resolvedMeetingYear)) {
+      if (
+        typeof resolvedMeetingYear === "number" &&
+        Number.isFinite(resolvedMeetingYear)
+      ) {
         queryParams.set("meetingYear", String(Math.trunc(resolvedMeetingYear)));
       }
 
-      const payload = await fetchPortalJson(`/meetings?${queryParams.toString()}`);
+      const payload = await fetchPortalJson(
+        `/meetings?${queryParams.toString()}`
+      );
       const root = asRecord(payload);
       const rows = Array.isArray(root?.meetings) ? root.meetings : [];
       const meetings = rows
@@ -948,19 +1052,26 @@ const executePortalQuery = async ({
           ticker: (asString(row.ticker) ?? resolvedTicker).toUpperCase(),
           title: asString(row.title) ?? "",
           status: asString(row.status) ?? "UNKNOWN",
-          meetingType: asString(row.meetingType) ?? asString(row.meeting_type) ?? "Meeting",
+          meetingType:
+            asString(row.meetingType) ??
+            asString(row.meeting_type) ??
+            "Meeting",
           meetingYear:
             row.meetingYear !== undefined
               ? asNumber(row.meetingYear)
               : row.meeting_year !== undefined
                 ? asNumber(row.meeting_year)
                 : null,
-          meetingDate: asString(row.meetingDate) ?? asString(row.meeting_date) ?? null,
+          meetingDate:
+            asString(row.meetingDate) ?? asString(row.meeting_date) ?? null,
         }))
         .filter((meeting) => meeting.id && meeting.title)
         .filter((meeting) => {
           if (!requestedMeetingType) return true;
-          return normalizeText(meeting.meetingType) === normalizeText(requestedMeetingType);
+          return (
+            normalizeText(meeting.meetingType) ===
+            normalizeText(requestedMeetingType)
+          );
         })
         .filter((meeting) => {
           if (!normalizedMeetingSearch) return true;
@@ -968,7 +1079,9 @@ const executePortalQuery = async ({
             normalizeText(meeting.title).includes(normalizedMeetingSearch) ||
             normalizeText(meeting.id).includes(normalizedMeetingSearch) ||
             normalizeText(meeting.status).includes(normalizedMeetingSearch) ||
-            normalizeText(meeting.meetingType).includes(normalizedMeetingSearch) ||
+            normalizeText(meeting.meetingType).includes(
+              normalizedMeetingSearch
+            ) ||
             String(meeting.meetingYear ?? "").includes(normalizedMeetingSearch)
           );
         });
@@ -985,10 +1098,16 @@ const executePortalQuery = async ({
     case "meeting": {
       const resolvedMeetingId = resolveMeetingId(meetingId, accessContext);
       if (!resolvedMeetingId) {
-        return { error: "Provide a meetingId or ask this while viewing a meeting page." };
+        return {
+          error:
+            "Provide a meetingId or ask this while viewing a meeting page.",
+        };
       }
 
-      const meeting = await getMeetingData(resolvedMeetingId, accessContext.allowedTickers);
+      const meeting = await getMeetingData(
+        resolvedMeetingId,
+        accessContext.allowedTickers
+      );
 
       return {
         entity,
@@ -997,13 +1116,27 @@ const executePortalQuery = async ({
           ticker: asString(meeting.ticker) ?? "",
           title: asString(meeting.title) ?? "",
           status: asString(meeting.status) ?? "",
-          meetingType: asString(meeting.meetingType) ?? asString(meeting.meeting_type) ?? "",
-          meetingDate: asString(meeting.meetingDate) ?? asString(meeting.meeting_date) ?? null,
-          recordDate: asString(meeting.recordDate) ?? asString(meeting.record_date) ?? null,
-          mailingDate: asString(meeting.mailingDate) ?? asString(meeting.mailing_date) ?? null,
-          quorumRequirement: asNumber(meeting.quorumRequirement ?? meeting.quorum_requirement),
+          meetingType:
+            asString(meeting.meetingType) ??
+            asString(meeting.meeting_type) ??
+            "",
+          meetingDate:
+            asString(meeting.meetingDate) ??
+            asString(meeting.meeting_date) ??
+            null,
+          recordDate:
+            asString(meeting.recordDate) ??
+            asString(meeting.record_date) ??
+            null,
+          mailingDate:
+            asString(meeting.mailingDate) ??
+            asString(meeting.mailing_date) ??
+            null,
+          quorumRequirement: asNumber(
+            meeting.quorumRequirement ?? meeting.quorum_requirement
+          ),
           totalSharesOutstanding: asNumber(
-            meeting.totalSharesOutstanding ?? meeting.total_shares_outstanding,
+            meeting.totalSharesOutstanding ?? meeting.total_shares_outstanding
           ),
         },
       };
@@ -1012,11 +1145,16 @@ const executePortalQuery = async ({
     case "proposals": {
       const resolvedMeetingId = resolveMeetingId(meetingId, accessContext);
       if (!resolvedMeetingId) {
-        return { error: "Provide a meetingId or ask this while viewing a meeting page." };
+        return {
+          error:
+            "Provide a meetingId or ask this while viewing a meeting page.",
+        };
       }
 
       await getMeetingData(resolvedMeetingId, accessContext.allowedTickers);
-      const payload = await fetchPortalJson(`/meetings/${resolvedMeetingId}/proposals`);
+      const payload = await fetchPortalJson(
+        `/meetings/${resolvedMeetingId}/proposals`
+      );
       const rows = Array.isArray(payload) ? payload : [];
       const proposals = rows
         .map((row) => asRecord(row))
@@ -1035,14 +1173,17 @@ const executePortalQuery = async ({
             asString(row.directorName) ??
             asString(row.director_name) ??
             "",
-          directorName: asString(row.directorName) ?? asString(row.director_name) ?? null,
-          proposalType: asString(row.proposalType) ?? asString(row.proposal_type) ?? null,
+          directorName:
+            asString(row.directorName) ?? asString(row.director_name) ?? null,
+          proposalType:
+            asString(row.proposalType) ?? asString(row.proposal_type) ?? null,
           managementRecommendation:
             asString(row.managementRecommendation) ??
             asString(row.management_recommendation) ??
             asString(row.recommendation) ??
             "",
-          finalResult: asString(row.finalResult) ?? asString(row.final_result) ?? "",
+          finalResult:
+            asString(row.finalResult) ?? asString(row.final_result) ?? "",
         }))
         .filter((proposal) => proposal.id || proposal.title)
         .filter((proposal) => {
@@ -1051,8 +1192,10 @@ const executePortalQuery = async ({
             proposal.title.toLowerCase().includes(normalizedSearch) ||
             proposal.proposalNumber.toLowerCase().includes(normalizedSearch) ||
             proposal.finalResult.toLowerCase().includes(normalizedSearch) ||
-            (proposal.directorName?.toLowerCase().includes(normalizedSearch) ?? false) ||
-            (proposal.proposalType?.toLowerCase().includes(normalizedSearch) ?? false)
+            (proposal.directorName?.toLowerCase().includes(normalizedSearch) ??
+              false) ||
+            (proposal.proposalType?.toLowerCase().includes(normalizedSearch) ??
+              false)
           );
         });
 
@@ -1067,17 +1210,26 @@ const executePortalQuery = async ({
     case "tasks": {
       const resolvedMeetingId = resolveMeetingId(meetingId, accessContext);
       if (!resolvedMeetingId) {
-        return { error: "Provide a meetingId or ask this while viewing a meeting page." };
+        return {
+          error:
+            "Provide a meetingId or ask this while viewing a meeting page.",
+        };
       }
 
       await getMeetingData(resolvedMeetingId, accessContext.allowedTickers);
-      const payload = await fetchPortalJson(`/meetings/${resolvedMeetingId}/tasks`);
+      const payload = await fetchPortalJson(
+        `/meetings/${resolvedMeetingId}/tasks`
+      );
       const rows = Array.isArray(payload) ? payload : [];
       const tasks = rows
         .map((row) => asRecord(row))
         .filter((row): row is Record<string, unknown> => Boolean(row))
         .map<TaskSummary>((row) => ({
-          taskId: asString(row.taskId) ?? asString(row.task_id) ?? asString(row.id) ?? "",
+          taskId:
+            asString(row.taskId) ??
+            asString(row.task_id) ??
+            asString(row.id) ??
+            "",
           title: asString(row.title) ?? "",
           status: asString(row.status) ?? "",
           dueDate: asString(row.dueDate) ?? asString(row.due_date) ?? null,
@@ -1110,12 +1262,15 @@ const executePortalQuery = async ({
     case "positions": {
       const resolvedMeetingId = resolveMeetingId(meetingId, accessContext);
       if (!resolvedMeetingId) {
-        return { error: "Provide a meetingId or ask this while viewing a meeting page." };
+        return {
+          error:
+            "Provide a meetingId or ask this while viewing a meeting page.",
+        };
       }
 
       await getMeetingData(resolvedMeetingId, accessContext.allowedTickers);
       const payload = await fetchPortalJson(
-        `/positions?meetingId=${resolvedMeetingId}&limit=50000`,
+        `/positions?meetingId=${resolvedMeetingId}&limit=50000`
       );
       const root = asRecord(payload);
       const rows = Array.isArray(payload) ? payload : asArray(root?.positions);
@@ -1124,12 +1279,15 @@ const executePortalQuery = async ({
         .filter((row): row is Record<string, unknown> => Boolean(row))
         .map<PositionSummary>((row) => ({
           name: asString(row.name) ?? "",
-          accountType: asString(row.accountType) ?? asString(row.account_type) ?? "",
-          voteStatus: asString(row.voteStatus) ?? asString(row.vote_status) ?? "",
+          accountType:
+            asString(row.accountType) ?? asString(row.account_type) ?? "",
+          voteStatus:
+            asString(row.voteStatus) ?? asString(row.vote_status) ?? "",
           shares: asNumber(row.shares),
           sharesVoted: asNumber(row.sharesVoted ?? row.shares_voted),
           source: asString(row.source) ?? "",
-          controlNumber: asString(row.controlNumber) ?? asString(row.control_number) ?? "",
+          controlNumber:
+            asString(row.controlNumber) ?? asString(row.control_number) ?? "",
         }))
         .filter((position) => position.name)
         .filter((position) => {
@@ -1153,15 +1311,22 @@ const executePortalQuery = async ({
     case "tabulationReport": {
       const resolvedMeetingId = resolveMeetingId(meetingId, accessContext);
       if (!resolvedMeetingId) {
-        return { error: "Provide a meetingId or ask this while viewing a meeting page." };
+        return {
+          error:
+            "Provide a meetingId or ask this while viewing a meeting page.",
+        };
       }
 
       await getMeetingData(resolvedMeetingId, accessContext.allowedTickers);
       try {
-        const payload = await fetchPortalJson(`/meetings/${resolvedMeetingId}/tabulation-report`);
+        const payload = await fetchPortalJson(
+          `/meetings/${resolvedMeetingId}/tabulation-report`
+        );
         const report = asRecord(payload);
         if (!report) {
-          throw new Error(`Tabulation report for ${resolvedMeetingId} is unavailable.`);
+          throw new Error(
+            `Tabulation report for ${resolvedMeetingId} is unavailable.`
+          );
         }
 
         return {
@@ -1200,7 +1365,7 @@ export async function POST(request: Request) {
     }
 
     const sanitizedMessages = sanitizeMessagesForModel(messages).filter(
-      (message) => message.parts.length > 0,
+      (message) => message.parts.length > 0
     );
 
     if (sanitizedMessages.length === 0) {
@@ -1221,11 +1386,12 @@ export async function POST(request: Request) {
       return deterministicMeetingResponse;
     }
 
-    const deterministicDirectorSlateResponse = await tryHandleDirectorSlatePrompt({
-      messages,
-      sanitizedMessages,
-      accessContext,
-    });
+    const deterministicDirectorSlateResponse =
+      await tryHandleDirectorSlatePrompt({
+        messages,
+        sanitizedMessages,
+        accessContext,
+      });
 
     if (deterministicDirectorSlateResponse) {
       return deterministicDirectorSlateResponse;
@@ -1266,7 +1432,13 @@ export async function POST(request: Request) {
         description:
           "Navigate to a meeting page in the issuer portal for dashboard, agenda, mailing, tabulation, or reports.",
         inputSchema: z.object({
-          page: z.enum(["dashboard", "agenda", "mailing", "tabulation", "reports"]),
+          page: z.enum([
+            "dashboard",
+            "agenda",
+            "mailing",
+            "tabulation",
+            "reports",
+          ]),
         }),
         execute: ({ page }: { page: MeetingPage }) => {
           const nextSegment = page === "dashboard" ? "dashboard/1" : page;
@@ -1274,7 +1446,8 @@ export async function POST(request: Request) {
 
           if (!path) {
             return {
-              error: "The user is not currently on a meeting route that can be navigated from.",
+              error:
+                "The user is not currently on a meeting route that can be navigated from.",
             };
           }
 
@@ -1356,7 +1529,10 @@ export async function POST(request: Request) {
             });
           } catch (error) {
             return {
-              error: error instanceof Error ? error.message : "The portal data query failed.",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "The portal data query failed.",
             };
           }
         },
@@ -1392,6 +1568,8 @@ Important:
     });
   } catch (error) {
     console.error("Chat assistant failed:", error);
-    return new Response("The assistant is unavailable right now.", { status: 500 });
+    return new Response("The assistant is unavailable right now.", {
+      status: 500,
+    });
   }
 }

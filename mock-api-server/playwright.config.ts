@@ -8,7 +8,10 @@ import { fileURLToPath } from "url";
 export default defineConfig({
   testDir: "./tests",
   /* Global setup */
-  globalSetup: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "tests/setup.ts"),
+  globalSetup: path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "tests/setup.ts"
+  ),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

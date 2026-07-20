@@ -64,7 +64,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
@@ -73,7 +77,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         {process.env.NODE_ENV === "development" && (
-          <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
+          <script
+            src="https://mcp.figma.com/mcp/html-to-design/capture.js"
+            async
+          />
         )}
       </head>
       <body>

@@ -20,7 +20,14 @@ import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BN
 import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
@@ -51,7 +58,8 @@ interface MeetingTab {
  * tab — are filtered out of the rendered tab list whenever the client's
  * matching feature flag is disabled.
  */
-type FeatureGate = "agenda" | "mailing" | "tabulation" | "reports" | "nobo" | null;
+type FeatureGate =
+  "agenda" | "mailing" | "tabulation" | "reports" | "nobo" | null;
 
 const ALL_NAVIGATION_TABS = (currentPhase: number) => [
   {
@@ -60,13 +68,26 @@ const ALL_NAVIGATION_TABS = (currentPhase: number) => [
     featureGate: null as FeatureGate,
   },
   { label: "Agenda", route: "/agenda", featureGate: "agenda" as FeatureGate },
-  { label: "Mailing", route: "/mailing", featureGate: "mailing" as FeatureGate },
-  { label: "Tabulation", route: "/tabulation", featureGate: "tabulation" as FeatureGate },
-  { label: "Reports", route: "/reports", featureGate: "reports" as FeatureGate },
+  {
+    label: "Mailing",
+    route: "/mailing",
+    featureGate: "mailing" as FeatureGate,
+  },
+  {
+    label: "Tabulation",
+    route: "/tabulation",
+    featureGate: "tabulation" as FeatureGate,
+  },
+  {
+    label: "Reports",
+    route: "/reports",
+    featureGate: "reports" as FeatureGate,
+  },
   { label: "NOBO", route: "/nobo", featureGate: "nobo" as FeatureGate },
 ];
 
-const getNavigationTabs = (currentPhase: number) => ALL_NAVIGATION_TABS(currentPhase);
+const getNavigationTabs = (currentPhase: number) =>
+  ALL_NAVIGATION_TABS(currentPhase);
 
 const ScrollButton = styled(IconButton, {
   shouldForwardProp: (prop) => !["direction"].includes(prop as string),
@@ -93,7 +114,9 @@ const ScrollButton = styled(IconButton, {
   },
 }));
 
-const parsePhaseNumber = (phase: string | number | null | undefined): number => {
+const parsePhaseNumber = (
+  phase: string | number | null | undefined
+): number => {
   if (typeof phase === "number" && Number.isFinite(phase)) {
     return Math.max(1, phase);
   }
@@ -144,12 +167,16 @@ export function EventTabs() {
 
   const meetings = useMemo(
     () => meetingContextValue?.meetings ?? [],
-    [meetingContextValue?.meetings],
+    [meetingContextValue?.meetings]
   );
   const loading = meetingContextValue?.isLoading ?? false;
   const activeMeeting = meetingContextValue?.currentMeeting ?? null;
 
-  const { currentClient, loading: clientLoading, error: clientError } = useClient();
+  const {
+    currentClient,
+    loading: clientLoading,
+    error: clientError,
+  } = useClient();
   const { isEnabled } = useClientFeatures();
   const theme = useTheme();
   const meetingIdFromUrl = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname)?.[1];
@@ -166,11 +193,14 @@ export function EventTabs() {
   // from a prior client are filtered out until the correct ones load.
   const scopedMeetings = useMemo(
     () =>
-      urlTicker ? meetings.filter((m) => (m.ticker ?? "").toUpperCase() === urlTicker) : meetings,
-    [meetings, urlTicker],
+      urlTicker
+        ? meetings.filter((m) => (m.ticker ?? "").toUpperCase() === urlTicker)
+        : meetings,
+    [meetings, urlTicker]
   );
   const currentMeeting =
-    (activeMeeting && (!urlTicker || (activeMeeting.ticker ?? "").toUpperCase() === urlTicker)
+    (activeMeeting &&
+    (!urlTicker || (activeMeeting.ticker ?? "").toUpperCase() === urlTicker)
       ? activeMeeting
       : null) || scopedMeetings.find((m) => m.id === meetingIdFromUrl);
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -178,16 +208,16 @@ export function EventTabs() {
   // (Optimization) Memoize current phase parsing
   const currentPhase = useMemo(
     () => parsePhaseNumber(currentMeeting?.currentPhase),
-    [currentMeeting?.currentPhase],
+    [currentMeeting?.currentPhase]
   );
 
   // Memoize navigation tabs with current phase, filtered by client feature flags
   const navigationTabs = useMemo(
     () =>
       getNavigationTabs(currentPhase).filter(
-        (tab) => tab.featureGate === null || isEnabled(tab.featureGate),
+        (tab) => tab.featureGate === null || isEnabled(tab.featureGate)
       ),
-    [currentPhase, isEnabled],
+    [currentPhase, isEnabled]
   );
 
   // Preload routes for the current meeting
@@ -196,7 +226,12 @@ export function EventTabs() {
   // (Optimization) Debounced prefetch to reduce immediate burst on mount/meeting change
   // Only prefetch when not currently loading to avoid excessive API calls
   useEffect(() => {
-    if (currentMeeting?.id && currentClient?.ticker && !loading && !clientLoading) {
+    if (
+      currentMeeting?.id &&
+      currentClient?.ticker &&
+      !loading &&
+      !clientLoading
+    ) {
       const timeout = setTimeout(() => {
         navigationTabs.forEach((tab) => {
           const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`;
@@ -205,16 +240,25 @@ export function EventTabs() {
       }, 120);
       return () => clearTimeout(timeout);
     }
-  }, [currentMeeting?.id, currentClient?.ticker, router, navigationTabs, loading, clientLoading]);
+  }, [
+    currentMeeting?.id,
+    currentClient?.ticker,
+    router,
+    navigationTabs,
+    loading,
+    clientLoading,
+  ]);
 
   // Get active tab from current pathname (memoized to prevent re-renders)
   const currentRoute = useMemo(
     () => pathname.replace(/^\/[^/]+\/(?:past-)?meeting\/[^/]+/, ""),
-    [pathname],
+    [pathname]
   );
   const activeTab = useMemo(
-    () => navigationTabs.find((tab) => tab.route === currentRoute)?.label ?? "Meeting Dashboard",
-    [navigationTabs, currentRoute],
+    () =>
+      navigationTabs.find((tab) => tab.route === currentRoute)?.label ??
+      "Meeting Dashboard",
+    [navigationTabs, currentRoute]
   );
 
   // Handle URL-based meeting selection for past meetings
@@ -228,7 +272,9 @@ export function EventTabs() {
         if (activeMeeting?.id !== meetingIdFromURL) {
           // If we have meetings loaded and none match the URL ID, it might be a past meeting
           const meetingsArray = meetings || [];
-          const existingMeeting = meetingsArray.find((m) => m.id === meetingIdFromURL);
+          const existingMeeting = meetingsArray.find(
+            (m) => m.id === meetingIdFromURL
+          );
           if (!existingMeeting && meetingsArray.length > 0) {
             // This could be a past meeting - let the MeetingContext handle it
             // The context will fetch the meeting from the database
@@ -255,7 +301,7 @@ export function EventTabs() {
       overallCompletion: m.overallCompletion ?? 0,
       client: currentClient?.company_name ?? "",
     }),
-    [currentClient?.company_name],
+    [currentClient?.company_name]
   );
 
   // Show only active meetings OR the currently selected past meeting
@@ -264,7 +310,8 @@ export function EventTabs() {
     src: components["schemas"]["Meeting"];
   }[] = useMemo(() => {
     const meetingsArray = scopedMeetings;
-    const completedMeeting = currentMeeting?.status === "COMPLETE" ? currentMeeting : null;
+    const completedMeeting =
+      currentMeeting?.status === "COMPLETE" ? currentMeeting : null;
     if (completedMeeting) {
       return [
         {
@@ -288,7 +335,9 @@ export function EventTabs() {
   // Sync activeMeetingTab with current meeting
   useEffect(() => {
     if (currentMeeting && transformedMeetings.length > 0) {
-      const meetingIndex = transformedMeetings.findIndex((m) => m.src.id === currentMeeting.id);
+      const meetingIndex = transformedMeetings.findIndex(
+        (m) => m.src.id === currentMeeting.id
+      );
       if (meetingIndex !== -1 && meetingIndex !== activeMeetingTab) {
         setActiveMeetingTab(meetingIndex);
       }
@@ -298,7 +347,8 @@ export function EventTabs() {
   // Check scroll position and update button visibility (memoized)
   const checkScrollButtons = useCallback(() => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current;
       setCanScrollLeft(scrollLeft > 1); // Small tolerance for floating point precision
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
     }
@@ -308,10 +358,13 @@ export function EventTabs() {
   const scrollToActiveTab = useCallback(() => {
     if (scrollContainerRef.current && activeMeetingTab !== -1) {
       const container = scrollContainerRef.current;
-      const activeTabEl = container.querySelector(`[data-tab-index="${activeMeetingTab}"]`);
+      const activeTabEl = container.querySelector(
+        `[data-tab-index="${activeMeetingTab}"]`
+      );
       if (activeTabEl instanceof HTMLElement) {
         const tabLeft = activeTabEl.offsetLeft;
-        const targetScroll = activeMeetingTab === 0 ? 0 : Math.max(0, tabLeft - 12);
+        const targetScroll =
+          activeMeetingTab === 0 ? 0 : Math.max(0, tabLeft - 12);
         container.scrollTo({ left: targetScroll, behavior: "smooth" });
         checkScrollButtons();
       }
@@ -425,12 +478,16 @@ export function EventTabs() {
       // Calculate scroll position to fit the target tab in the visible area
       // We want to scroll just enough to show this tab, not necessarily position it at the left
       const targetTabRight = targetTab.offsetLeft + targetTab.offsetWidth;
-      const neededScroll = targetTabRight - (currentScrollLeft + containerWidth);
+      const neededScroll =
+        targetTabRight - (currentScrollLeft + containerWidth);
 
       let targetScrollLeft;
       if (neededScroll > 0) {
         // Scroll just enough to show the tab
-        targetScrollLeft = Math.min(currentScrollLeft + neededScroll, maxScrollLeft);
+        targetScrollLeft = Math.min(
+          currentScrollLeft + neededScroll,
+          maxScrollLeft
+        );
       } else {
         // Tab is already visible, scroll to its left position
         targetScrollLeft = Math.min(targetTab.offsetLeft, maxScrollLeft);
@@ -516,7 +573,13 @@ export function EventTabs() {
 
   const InactiveMeetingDetails = ({ meeting }: { meeting: MeetingTab }) => {
     return (
-      <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+        }}
+      >
         <Stack sx={{ alignItems: "flex-end" }}>
           <Typography
             variant="caption"
@@ -559,7 +622,10 @@ export function EventTabs() {
     const meetingType = isPastMeeting ? "past-meeting" : "meeting";
 
     // Remove both /meeting/ and /past-meeting/ from current path
-    const currentPath = pathname.replace(/\/[^/]+\/(?:past-)?meeting\/[^/]+/, "");
+    const currentPath = pathname.replace(
+      /\/[^/]+\/(?:past-)?meeting\/[^/]+/,
+      ""
+    );
 
     // If on dashboard with phase, navigate to the target meeting's phase
     const targetPath = useMemo(() => {
@@ -607,7 +673,9 @@ export function EventTabs() {
                   ? theme.vars.palette.background.default
                   : theme.vars.palette.common.black,
               }),
-              color: isActive ? theme.vars.palette.primary.main : theme.vars.palette.text.secondary,
+              color: isActive
+                ? theme.vars.palette.primary.main
+                : theme.vars.palette.text.secondary,
               position: "relative",
               borderRight: `1px solid ${theme.vars.palette.divider}`,
               minWidth: "fit-content",
@@ -620,7 +688,8 @@ export function EventTabs() {
                 <Typography
                   variant="h1"
                   sx={{
-                    fontFamily: "var(--font-roboto-condensed), Roboto Condensed, sans-serif",
+                    fontFamily:
+                      "var(--font-roboto-condensed), Roboto Condensed, sans-serif",
                     fontWeight: 500,
                     fontSize: "2rem",
                     lineHeight: 1.125,
@@ -637,7 +706,8 @@ export function EventTabs() {
                 {isActive && !isMobile ? (
                   <ActiveMeetingDetails meeting={meeting} />
                 ) : (
-                  !isActive && !isMobile && <InactiveMeetingDetails meeting={meeting} />
+                  !isActive &&
+                  !isMobile && <InactiveMeetingDetails meeting={meeting} />
                 )}
               </Stack>
             </Box>
@@ -740,7 +810,11 @@ export function EventTabs() {
         <Container maxWidth="xl" sx={{ position: "relative" }}>
           {/* Left Scroll Button - Only show for active meetings with multiple tabs */}
           {canScrollLeft && transformedMeetings.length > 1 && (
-            <ScrollButton direction="left" onClick={scrollLeft} aria-label="Scroll meetings left">
+            <ScrollButton
+              direction="left"
+              onClick={scrollLeft}
+              aria-label="Scroll meetings left"
+            >
               <ArrowDropDownIcon />
             </ScrollButton>
           )}
@@ -781,7 +855,12 @@ export function EventTabs() {
               }}
             >
               {transformedMeetings.map(({ tab, src }, index) => (
-                <MeetingTab key={tab.id || index} meeting={tab} src={src} index={index} />
+                <MeetingTab
+                  key={tab.id || index}
+                  meeting={tab}
+                  src={src}
+                  index={index}
+                />
               ))}
             </Stack>
           </Box>
@@ -832,7 +911,9 @@ export function EventTabs() {
               const ticker = currentMeeting?.ticker || currentClient?.ticker;
               // Detect if we're on a past-meeting route from the current pathname
               const isPastMeetingRoute = pathname.includes("/past-meeting/");
-              const meetingType = isPastMeetingRoute ? "past-meeting" : "meeting";
+              const meetingType = isPastMeetingRoute
+                ? "past-meeting"
+                : "meeting";
               const tabHref =
                 currentMeeting && ticker
                   ? `/${ticker}/${meetingType}/${currentMeeting.id}${tab.route}`

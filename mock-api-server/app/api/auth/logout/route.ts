@@ -29,8 +29,8 @@ export async function POST(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "logoutUser",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

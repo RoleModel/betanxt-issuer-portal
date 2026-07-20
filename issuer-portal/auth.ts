@@ -198,7 +198,8 @@ export const {
 } = NextAuth({
   trustHost: true,
   secret:
-    process.env.NEXTAUTH_SECRET ?? "fallback-secret-for-development-only-change-in-production",
+    process.env.NEXTAUTH_SECRET ??
+    "fallback-secret-for-development-only-change-in-production",
 
   useSecureCookies: process.env.NODE_ENV === "production",
 
@@ -217,12 +218,9 @@ export const {
           credentials?.username === "bypass" &&
           credentials?.password === "bypass"
         ) {
-          const bypassRole = (process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || "ADMIN") as
-            | "ISSUER"
-            | "ADMIN"
-            | "PARENT_CLIENT"
-            | "SOLICITOR"
-            | "CSM";
+          const bypassRole = (process.env.NEXT_PUBLIC_BYPASS_USER_ROLE ||
+            "ADMIN") as
+            "ISSUER" | "ADMIN" | "PARENT_CLIENT" | "SOLICITOR" | "CSM";
           // For role-specific bypass users, delegate to the matching mock user so that
           // role-specific fields (e.g. clientTickers for CSM) are properly included.
           const roleToMockUser: Partial<Record<string, string>> = {
@@ -299,7 +297,9 @@ export const {
             baseTickers.push(mockUser.client_ticker);
           }
           const createdTickers = await getCreatedClientTickers(username);
-          token.clientTickers = [...new Set([...baseTickers, ...createdTickers])];
+          token.clientTickers = [
+            ...new Set([...baseTickers, ...createdTickers]),
+          ];
         }
 
         if (trigger === "update" && updateData) {
@@ -336,7 +336,8 @@ export const {
       user.image = t.image ?? null;
       user.clientTickers = t.clientTickers ?? undefined;
       user.name = t.name ?? t.username ?? session.user.name ?? "User";
-      user.email = t.email ?? session.user.email ?? `${t.username ?? "user"}@example.com`;
+      user.email =
+        t.email ?? session.user.email ?? `${t.username ?? "user"}@example.com`;
       return session;
     },
     // eslint-disable-next-line @typescript-eslint/require-await

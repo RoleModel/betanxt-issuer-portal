@@ -44,7 +44,11 @@ const SortableHeaderCell = <T,>({
         alignItems: "center",
         gap: 0.5,
         justifyContent:
-          align === "right" ? "flex-end" : align === "center" ? "center" : "flex-start",
+          align === "right"
+            ? "flex-end"
+            : align === "center"
+              ? "center"
+              : "flex-start",
       }}
     >
       {children}
@@ -59,7 +63,10 @@ const SortableHeaderCell = <T,>({
 );
 
 // Utility function for sorting arrays
-export function createSortFunction<T>(sortColumn: keyof T | null, sortDirection: "asc" | "desc") {
+export function createSortFunction<T>(
+  sortColumn: keyof T | null,
+  sortDirection: "asc" | "desc"
+) {
   return (data: T[]): T[] => {
     if (!sortColumn) return data;
 
@@ -91,7 +98,9 @@ export function createSortFunction<T>(sortColumn: keyof T | null, sortDirection:
 // Hook for managing sort state
 export function useSortableTable<T>() {
   const [sortColumn, setSortColumn] = React.useState<keyof T | null>(null);
-  const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">("asc");
+  const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">(
+    "asc"
+  );
 
   const handleSort = React.useCallback(
     (column: keyof T) => {
@@ -102,12 +111,12 @@ export function useSortableTable<T>() {
         setSortDirection("asc");
       }
     },
-    [sortColumn, sortDirection],
+    [sortColumn, sortDirection]
   );
 
   const sortData = React.useCallback(
     (data: T[]) => createSortFunction(sortColumn, sortDirection)(data),
-    [sortColumn, sortDirection],
+    [sortColumn, sortDirection]
   );
 
   return {

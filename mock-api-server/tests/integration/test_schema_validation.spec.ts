@@ -18,7 +18,10 @@ test.describe("Database Schema Validation", () => {
     },
   });
 
-  const contractsPath = path.join(__dirname, "../../openapi-schema/openapi.yaml");
+  const contractsPath = path.join(
+    __dirname,
+    "../../openapi-schema/openapi.yaml"
+  );
 
   test("should have valid OpenAPI schema", () => {
     expect(fs.existsSync(contractsPath)).toBe(true);
@@ -46,14 +49,24 @@ test.describe("Database Schema Validation", () => {
     ];
 
     endpointVariants.forEach((variants) => {
-      const found = variants.some((endpoint) => schemaContent.includes(endpoint));
+      const found = variants.some((endpoint) =>
+        schemaContent.includes(endpoint)
+      );
       expect(found).toBe(true);
     });
   });
 
   test("should validate database schema against API schema", async () => {
     // Test that all API endpoints have corresponding database tables
-    const coreEntities = ["meeting", "position", "task", "document", "proposal", "account", "user"];
+    const coreEntities = [
+      "meeting",
+      "position",
+      "task",
+      "document",
+      "proposal",
+      "account",
+      "user",
+    ];
 
     for (const entity of coreEntities) {
       const { error } = await supabase.from(entity).select("count").limit(1);
@@ -71,7 +84,7 @@ test.describe("Database Schema Validation", () => {
         id,
         title,
         positions:position(id, cusip)
-      `,
+      `
       )
       .limit(1);
 
@@ -91,7 +104,7 @@ test.describe("Database Schema Validation", () => {
         `
         id,
         phases:phase(id, name, status)
-      `,
+      `
       )
       .limit(1);
 
@@ -120,7 +133,10 @@ test.describe("Database Schema Validation", () => {
     }
 
     // Test task status enum
-    const { data: tasks, error: taskError } = await supabase.from("task").select("status").limit(5);
+    const { data: tasks, error: taskError } = await supabase
+      .from("task")
+      .select("status")
+      .limit(5);
 
     expect(taskError).toBeNull();
 

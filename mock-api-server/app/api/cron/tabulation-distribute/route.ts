@@ -16,9 +16,12 @@ export const runtime = "nodejs";
 
 type TabulationDistribution = components["schemas"]["TabulationDistribution"];
 type MeetingRow = Database["public"]["Tables"]["meeting"]["Row"];
-type NotificationInsert = Database["public"]["Tables"]["notification"]["Insert"];
-type TabulationDistributeResult = components["schemas"]["TabulationDistributeResult"];
-type TabulationDistributeMeetingResult = components["schemas"]["TabulationDistributeMeetingResult"];
+type NotificationInsert =
+  Database["public"]["Tables"]["notification"]["Insert"];
+type TabulationDistributeResult =
+  components["schemas"]["TabulationDistributeResult"];
+type TabulationDistributeMeetingResult =
+  components["schemas"]["TabulationDistributeMeetingResult"];
 
 const DISTRIBUTION_TIME_ZONE = "America/Chicago";
 const SCHEDULED_DISTRIBUTION_HOUR = 8;
@@ -68,26 +71,35 @@ function alreadySentToday(lastSentAt: string | null | undefined): boolean {
   return getDistributionDate(new Date(lastSentAt)) === getDistributionDate();
 }
 
-function parseDist(raw: MeetingRow["tabulation_distribution"]): TabulationDistribution | null {
+function parseDist(
+  raw: MeetingRow["tabulation_distribution"]
+): TabulationDistribution | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const obj = raw as Record<string, unknown>;
   return {
     enabled: Boolean(obj.enabled),
-    startOffsetDays: typeof obj.startOffsetDays === "number" ? obj.startOffsetDays : 15,
-    recipients: Array.isArray(obj.recipients) ? (obj.recipients as string[]) : [],
+    startOffsetDays:
+      typeof obj.startOffsetDays === "number" ? obj.startOffsetDays : 15,
+    recipients: Array.isArray(obj.recipients)
+      ? (obj.recipients as string[])
+      : [],
     lastSentAt: typeof obj.lastSentAt === "string" ? obj.lastSentAt : null,
-    nextScheduledAt: typeof obj.nextScheduledAt === "string" ? obj.nextScheduledAt : null,
+    nextScheduledAt:
+      typeof obj.nextScheduledAt === "string" ? obj.nextScheduledAt : null,
   };
 }
 
 async function getNotificationUserIds(
   meeting: Pick<MeetingRow, "client_id" | "ticker">,
   requestingUserId?: string,
-  requestingUsername?: string,
+  requestingUsername?: string
 ): Promise<string[]> {
   const ids = new Set<string>();
 
-  const resolvedRequesterId = await resolveNotificationUserId(requestingUserId, requestingUsername);
+  const resolvedRequesterId = await resolveNotificationUserId(
+    requestingUserId,
+    requestingUsername
+  );
   if (resolvedRequesterId) ids.add(resolvedRequesterId);
 
   const clientId = meeting.client_id;
@@ -110,7 +122,9 @@ async function getNotificationUserIds(
         .select("id, primary_contact")
         .eq("client_id", resolvedClientId);
 
-      const accountIds = (accounts ?? []).map((a) => a.id).filter(Boolean) as string[];
+      const accountIds = (accounts ?? [])
+        .map((a) => a.id)
+        .filter(Boolean) as string[];
       for (const account of accounts ?? []) {
         if (account.primary_contact) ids.add(account.primary_contact);
       }
@@ -144,12 +158,12 @@ interface MeetingEmailData {
 async function getMeetingEmailData(
   meetingId: string,
   meetingTotalSharesOutstanding: number | string | null | undefined,
-  meetingQuorumRequirement: number | null | undefined,
+  meetingQuorumRequirement: number | null | undefined
 ): Promise<MeetingEmailData> {
   const { data: rows } = await supabase
     .from("proposal")
     .select(
-      "proposal_number, proposal_title, total_shares_eligible, total_votes_for, total_votes_against, total_votes_abstain",
+      "proposal_number, proposal_title, total_shares_eligible, total_votes_for, total_votes_against, total_votes_abstain"
     )
     .eq("meeting_id", meetingId)
     .order("proposal_number", { ascending: true });
@@ -159,7 +173,10 @@ async function getMeetingEmailData(
     const votesFor = r.total_votes_for ?? 0;
     const votesAgainst = r.total_votes_against ?? 0;
     const votesAbstain = r.total_votes_abstain ?? 0;
-    const votesNotCast = Math.max(0, eligible - votesFor - votesAgainst - votesAbstain);
+    const votesNotCast = Math.max(
+      0,
+      eligible - votesFor - votesAgainst - votesAbstain
+    );
     return {
       number: String(r.proposal_number ?? ""),
       title: r.proposal_title ?? `Proposal ${r.proposal_number ?? ""}`,
@@ -178,8 +195,10 @@ async function getMeetingEmailData(
   // eligible shares as the basis if we have no meeting-level breakdown)
   const totalSharesVoted =
     proposals.length > 0
-      ? proposals.reduce((sum, p) => sum + p.votesFor + p.votesAgainst + p.votesAbstain, 0) /
-        proposals.length
+      ? proposals.reduce(
+          (sum, p) => sum + p.votesFor + p.votesAgainst + p.votesAbstain,
+          0
+        ) / proposals.length
       : 0;
 
   const quorumMet =
@@ -201,7 +220,9 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
   if (cronSecret) {
     const authHeader = request.headers.get("authorization");
     if (authHeader !== `Bearer ${cronSecret}`) {
-      return withCors(NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
+      return withCors(
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      );
     }
   }
 
@@ -224,7 +245,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         skipped: 0,
         results,
         message: `Scheduled distribution only runs at ${SCHEDULED_DISTRIBUTION_HOUR}:00 ${DISTRIBUTION_TIME_ZONE}`,
-      }),
+      })
     );
   }
 
@@ -232,7 +253,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
     let query = supabase
       .from("meeting")
       .select(
-        "id, ticker, client_id, meeting_date, tabulation_distribution, title, meeting_type, total_shares_outstanding, quorum_requirement",
+        "id, ticker, client_id, meeting_date, tabulation_distribution, title, meeting_type, total_shares_outstanding, quorum_requirement"
       );
 
     if (forceMeetingId) query = query.eq("id", forceMeetingId);
@@ -243,8 +264,8 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
       return withCors(
         NextResponse.json(
           { error: "Failed to fetch meetings", message: meetingsError.message },
-          { status: 500 },
-        ),
+          { status: 500 }
+        )
       );
     }
 
@@ -292,10 +313,14 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         continue;
       }
 
-      const userIds = await getNotificationUserIds(meeting, requestingUserId, requestingUsername);
+      const userIds = await getNotificationUserIds(
+        meeting,
+        requestingUserId,
+        requestingUsername
+      );
 
       const daysUntil = Math.ceil(
-        (new Date(meetingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+        (new Date(meetingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
       );
       const actionUrl = `/${ticker}/meeting/${meetingId}/tabulation`;
       const notificationRows: NotificationInsert[] = userIds.map((userId) => ({
@@ -314,7 +339,9 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
       let notificationsCreated = 0;
       let notificationError: string | undefined;
       if (notificationRows.length > 0) {
-        const { error: insertError } = await supabase.from("notification").insert(notificationRows);
+        const { error: insertError } = await supabase
+          .from("notification")
+          .insert(notificationRows);
         if (!insertError) {
           notificationsCreated = notificationRows.length;
         } else {
@@ -328,13 +355,14 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
       if (recipients.length > 0) {
         try {
           const emailService = getEmailService();
-          const { default: TabulationReportEmail } = await import("@/emails/TabulationReportEmail");
+          const { default: TabulationReportEmail } =
+            await import("@/emails/TabulationReportEmail");
           const React = (await import("react")).default;
 
           const emailData = await getMeetingEmailData(
             meetingId,
             meeting.total_shares_outstanding,
-            meeting.quorum_requirement,
+            meeting.quorum_requirement
           );
 
           await emailService.send({
@@ -353,12 +381,16 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
               quorumRequired: emailData.quorumRequired,
               quorumMet: emailData.quorumMet,
               viewTabulationUrl: `${process.env.PORTAL_BASE_URL ?? "http://localhost:3000"}${actionUrl}`,
-              portalBaseUrl: process.env.PORTAL_BASE_URL ?? "http://localhost:3000",
+              portalBaseUrl:
+                process.env.PORTAL_BASE_URL ?? "http://localhost:3000",
             }),
           });
           emailsSent = recipients.length;
         } catch (emailError) {
-          console.error(`[tabulation-distribute] Email failed for ${meetingId}:`, emailError);
+          console.error(
+            `[tabulation-distribute] Email failed for ${meetingId}:`,
+            emailError
+          );
         }
       }
 
@@ -368,7 +400,9 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
       };
       await supabase
         .from("meeting")
-        .update({ tabulation_distribution: JSON.parse(JSON.stringify(updatedDist)) })
+        .update({
+          tabulation_distribution: JSON.parse(JSON.stringify(updatedDist)),
+        })
         .eq("id", meetingId);
 
       results.push({
@@ -399,8 +433,8 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
           error: "Internal server error",
           message: error instanceof Error ? error.message : "Unknown error",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

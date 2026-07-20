@@ -1,6 +1,14 @@
 "use client";
 
-import { Box, Card, CardContent, CardHeader, Chip, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { Gauge } from "@mui/x-charts/Gauge";
 
 import type { QuorumGaugeViewModel } from "@/utils/quorum";
@@ -12,7 +20,11 @@ interface QuorumGaugeCardProps {
   className?: string;
 }
 
-export default function QuorumGaugeCard({ title, model, loading = false }: QuorumGaugeCardProps) {
+export default function QuorumGaugeCard({
+  title,
+  model,
+  loading = false,
+}: QuorumGaugeCardProps) {
   const statusLabel = model?.quorumMet ? "Quorum Met" : "Below Quorum";
   const statusColor = model?.quorumMet ? "success" : "default";
   const displayTitle = title ?? "Quorum tracker";

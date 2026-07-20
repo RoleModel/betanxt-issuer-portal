@@ -20,7 +20,7 @@ export interface KeyDate {
 }
 
 export async function listKeyDatesForMeeting(
-  meetingId: string,
+  meetingId: string
 ): Promise<ApiResponse<KeyDate[] | undefined>> {
   // Fetch meeting for top-level dates
   const meetingResult = await apiClient.GET("/meetings/{meetingId}", {
@@ -29,7 +29,11 @@ export async function listKeyDatesForMeeting(
     },
   });
 
-  const { data: meeting, error: meetingError, response: meetingResponse } = meetingResult;
+  const {
+    data: meeting,
+    error: meetingError,
+    response: meetingResponse,
+  } = meetingResult;
 
   if (meetingError) {
     return {
@@ -49,7 +53,11 @@ export async function listKeyDatesForMeeting(
     },
   });
 
-  const { data: phases, error: phasesError, response: phasesResponse } = phasesResult;
+  const {
+    data: phases,
+    error: phasesError,
+    response: phasesResponse,
+  } = phasesResult;
 
   if (phasesError) {
     return {

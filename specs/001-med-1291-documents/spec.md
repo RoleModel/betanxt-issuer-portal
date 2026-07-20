@@ -3,8 +3,7 @@
 **Feature Branch**: `001-med-1291-documents`  
 **Created**: 2025-09-21  
 **Status**: Draft  
-**Input**: User description (superseded by phased re-scope):
-"Phase 1 Documents
+**Input**: User description (superseded by phased re-scope): "Phase 1 Documents
 
 Transfer Agent Registered File Request Form (generated PDF, Digitally signed or Download wet signature and reupload)
 
@@ -120,16 +119,7 @@ Cross-Phase Readiness 13. **Given** Phase 1 COMPLETE and all required Phase 2 co
 - Digital signature session abandoned mid-process → form remains FORM GENERATED awaiting completion.
 - User attempts to delete an EXECUTED Phase 1 form → prohibited; must create a superseding correction process — [NEEDS CLARIFICATION: Correction path?].
 
-_[NEEDS CLARIFICATION: Approval roles per document category (e.g., legal vs operations)? ]_
-_[NEEDS CLARIFICATION: Are supporting documents optional or required for readiness? ]_
-_[NEEDS CLARIFICATION: Digital signature provider constraints / limits? ]_
-_[NEEDS CLARIFICATION: Maximum file size & formats per document category? ]_
-_[NEEDS CLARIFICATION: Version correction / amendment workflow for executed Phase 1 forms? ]_
-_[NEEDS CLARIFICATION: Automatic watermarking of Draft versions? ]_
-_[NEEDS CLARIFICATION: Do supporting docs require approval or just presence? ]_
-_[NEEDS CLARIFICATION: Agenda synchronization latency or version linkage? ]_
-_[NEEDS CLARIFICATION: Required retention / archival strategy for superseded or rejected versions? ]_
-_[NEEDS CLARIFICATION: Digital signature validation evidence (hash, certificate) storage scope? ]_
+_[NEEDS CLARIFICATION: Approval roles per document category (e.g., legal vs operations)? ]_ _[NEEDS CLARIFICATION: Are supporting documents optional or required for readiness? ]_ _[NEEDS CLARIFICATION: Digital signature provider constraints / limits? ]_ _[NEEDS CLARIFICATION: Maximum file size & formats per document category? ]_ _[NEEDS CLARIFICATION: Version correction / amendment workflow for executed Phase 1 forms? ]_ _[NEEDS CLARIFICATION: Automatic watermarking of Draft versions? ]_ _[NEEDS CLARIFICATION: Do supporting docs require approval or just presence? ]_ _[NEEDS CLARIFICATION: Agenda synchronization latency or version linkage? ]_ _[NEEDS CLARIFICATION: Required retention / archival strategy for superseded or rejected versions? ]_ _[NEEDS CLARIFICATION: Digital signature validation evidence (hash, certificate) storage scope? ]_
 
 ## Requirements _(mandatory)_
 

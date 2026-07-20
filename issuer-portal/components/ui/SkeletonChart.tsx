@@ -16,7 +16,12 @@ export default function SkeletonChart({
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Main chart area */}
-      <Skeleton variant="rectangular" width="100%" height={height} sx={{ borderRadius: 1 }} />
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={height}
+        sx={{ borderRadius: 1 }}
+      />
 
       {/* Legend area */}
       {showLegend && (
@@ -35,7 +40,13 @@ export default function SkeletonChart({
 
   return (
     <Card>
-      <CardHeader title={title ? <Skeleton variant="text" width="60%" height={32} /> : undefined} />
+      <CardHeader
+        title={
+          title ? (
+            <Skeleton variant="text" width="60%" height={32} />
+          ) : undefined
+        }
+      />
       <CardContent>{content}</CardContent>
     </Card>
   );

@@ -7,7 +7,11 @@ import { NextResponse } from "next/server";
 
 import type { components } from "@/types/api";
 
-import { deleteMeeting, getMeetingById, updateMeeting } from "@/domain-models/api/meetings";
+import {
+  deleteMeeting,
+  getMeetingById,
+  updateMeeting,
+} from "@/domain-models/api/meetings";
 import { handleCors, withCors } from "@/utils/cors";
 
 interface RouteParams {
@@ -16,7 +20,7 @@ interface RouteParams {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -28,7 +32,10 @@ export async function GET(
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -41,15 +48,15 @@ export async function GET(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "getMeetingById",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -57,14 +64,18 @@ export async function PUT(
     const meetingId = resolvedParams.meetingId;
 
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["UpdateMeetingRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["UpdateMeetingRequest"];
 
     // Use existing domain model function
     const { data, error } = await updateMeeting(meetingId, body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -77,15 +88,15 @@ export async function PUT(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "updateMeeting",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -97,7 +108,10 @@ export async function DELETE(
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -110,8 +124,8 @@ export async function DELETE(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "deleteMeeting",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

@@ -10,7 +10,9 @@ import PastMeetingsTable, {
   type Order,
   type PastMeetingData,
 } from "@/components/Meeting/PastMeetingsTable";
-import buildApiClient, { type ApiClientReturnType } from "@/domain-models/apiClient";
+import buildApiClient, {
+  type ApiClientReturnType,
+} from "@/domain-models/apiClient";
 import { generateSeededEventParticipationPercent } from "@/utils/eventParticipation";
 import { asRecord, asString } from "@/utils/typeUtils";
 
@@ -53,12 +55,16 @@ const getVoteStatus = (position: components["schemas"]["Position"]): string => {
   return asString(record.vote_status) ?? asString(record.status) ?? "";
 };
 
-const isPositionVoted = (position: components["schemas"]["Position"]): boolean => {
+const isPositionVoted = (
+  position: components["schemas"]["Position"]
+): boolean => {
   const status = getVoteStatus(position).toLowerCase();
   return status === "voted";
 };
 
-const _extractPositions = (data: unknown): components["schemas"]["Position"][] => {
+const _extractPositions = (
+  data: unknown
+): components["schemas"]["Position"][] => {
   if (Array.isArray(data)) {
     return data as components["schemas"]["Position"][];
   }
@@ -92,7 +98,9 @@ const getTotalSharesOutstanding = (meeting: Meeting): number => {
   const meetingRecord = asRecord(meeting);
   if (!meetingRecord) return 0;
 
-  const camelCaseValue = parseNumericValue(meetingRecord.totalSharesOutstanding);
+  const camelCaseValue = parseNumericValue(
+    meetingRecord.totalSharesOutstanding
+  );
   if (camelCaseValue > 0) return camelCaseValue;
 
   return parseNumericValue(meetingRecord.total_shares_outstanding);
@@ -100,7 +108,7 @@ const getTotalSharesOutstanding = (meeting: Meeting): number => {
 
 const _computeParticipationMetrics = (
   meeting: Meeting,
-  positions: components["schemas"]["Position"][],
+  positions: components["schemas"]["Position"][]
 ): ParticipationMetrics => {
   const meetingId = getMeetingId(meeting);
   if (positions.length === 0) {
@@ -110,26 +118,33 @@ const _computeParticipationMetrics = (
   const totalSharesOutstanding = getTotalSharesOutstanding(meeting);
   const totalSharesFromPositions = positions.reduce(
     (sum, position) => sum + parseNumericValue(position.shares),
-    0,
+    0
   );
 
   const totalShares =
-    totalSharesOutstanding > 0 ? totalSharesOutstanding : totalSharesFromPositions;
+    totalSharesOutstanding > 0
+      ? totalSharesOutstanding
+      : totalSharesFromPositions;
 
   const votedShares = positions.reduce((sum, position) => {
     if (!isPositionVoted(position)) return sum;
     const sharesValue =
-      position.sharesVoted ?? asRecord(position)?.shares_voted ?? position.shares ?? 0;
+      position.sharesVoted ??
+      asRecord(position)?.shares_voted ??
+      position.shares ??
+      0;
     return sum + parseNumericValue(sharesValue);
   }, 0);
 
   const totalVotes = positions.reduce(
     (count, position) => (isPositionVoted(position) ? count + 1 : count),
-    0,
+    0
   );
 
   const participationPercent =
-    totalShares > 0 ? Math.round((votedShares / totalShares) * 100 * 10) / 10 : 0;
+    totalShares > 0
+      ? Math.round((votedShares / totalShares) * 100 * 10) / 10
+      : 0;
 
   return {
     participationPercent,
@@ -181,13 +196,14 @@ export default function PastMeetingsPage() {
         meetings?: Meeting[];
         pagination?: components["schemas"]["Pagination"];
       }
-      const typedData = meetingsResponse.data as MeetingsApiResponse | undefined;
+      const typedData = meetingsResponse.data as
+        MeetingsApiResponse | undefined;
       const completedMeetings: Meeting[] = Array.isArray(typedData?.meetings)
         ? typedData.meetings
         : [];
 
-      const meetingsWithParticipation: PastMeetingData[] = completedMeetings.map(
-        (meeting: Meeting): PastMeetingData => {
+      const meetingsWithParticipation: PastMeetingData[] =
+        completedMeetings.map((meeting: Meeting): PastMeetingData => {
           const meetingId = getMeetingId(meeting);
           const metrics = getDefaultMetrics(meetingId);
           const totalSharesOutstanding = getTotalSharesOutstanding(meeting);
@@ -197,11 +213,13 @@ export default function PastMeetingsPage() {
             ...metrics,
             votingShares:
               totalSharesOutstanding > 0
-                ? Math.round((totalSharesOutstanding * metrics.participationPercent) / 100)
+                ? Math.round(
+                    (totalSharesOutstanding * metrics.participationPercent) /
+                      100
+                  )
                 : metrics.votingShares,
           };
-        },
-      );
+        });
 
       setMeetings(meetingsWithParticipation);
     } catch (error) {

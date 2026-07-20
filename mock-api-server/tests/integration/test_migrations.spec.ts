@@ -25,13 +25,17 @@ test.describe("Database Migrations", () => {
   });
 
   test("should have migration files", () => {
-    const migrations = fs.readdirSync(migrationsPath).filter((file) => file.endsWith(".sql"));
+    const migrations = fs
+      .readdirSync(migrationsPath)
+      .filter((file) => file.endsWith(".sql"));
 
     expect(migrations.length).toBeGreaterThan(0);
   });
 
   test("should have valid migration files", () => {
-    const migrations = fs.readdirSync(migrationsPath).filter((file) => file.endsWith(".sql"));
+    const migrations = fs
+      .readdirSync(migrationsPath)
+      .filter((file) => file.endsWith(".sql"));
 
     // Looser check: ensure we have at least initial schema and some model migrations
     const hasInitial = migrations.some((m) => m.includes("initial_schema"));
@@ -47,7 +51,11 @@ test.describe("Database Migrations", () => {
       .single();
 
     // Function might not exist or require auth, but should not have connection errors
-    if (funcError && funcError.code !== "PGRST116" && funcError.code !== "PGRST202") {
+    if (
+      funcError &&
+      funcError.code !== "PGRST116" &&
+      funcError.code !== "PGRST202"
+    ) {
       console.warn("Function check:", funcError.message);
     }
 
@@ -60,7 +68,10 @@ test.describe("Database Migrations", () => {
 
     expect(meetingError).toBeNull();
 
-    const { error: taskError } = await supabase.from("task").select("status").limit(1);
+    const { error: taskError } = await supabase
+      .from("task")
+      .select("status")
+      .limit(1);
 
     expect(taskError).toBeNull();
   });

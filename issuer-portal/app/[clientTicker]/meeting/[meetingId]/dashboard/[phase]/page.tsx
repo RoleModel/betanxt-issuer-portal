@@ -7,8 +7,14 @@ import { useParams } from "next/navigation";
 import { useMeeting } from "@/contexts/MeetingContext";
 
 // Dynamically load layout & tracker to reduce initial JS bundle
-const Phase1Layout = dynamic(() => import("@/components/Meeting/Phase1Layout"), {});
-const TabulationTracker = dynamic(() => import("@/components/Meeting/TabulationTracker"), {});
+const Phase1Layout = dynamic(
+  () => import("@/components/Meeting/Phase1Layout"),
+  {}
+);
+const TabulationTracker = dynamic(
+  () => import("@/components/Meeting/TabulationTracker"),
+  {}
+);
 
 export default function PhasePage() {
   const params = useParams();

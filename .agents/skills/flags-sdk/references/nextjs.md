@@ -60,7 +60,11 @@ export default withVercelToolbar(nextConfig);
 // app/layout.tsx
 import { VercelToolbar } from "@vercel/toolbar/next";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   // On Vercel, the toolbar is auto-injected in preview deployments.
   // This manual injection is only needed for local development.
   const shouldInjectToolbar = process.env.NODE_ENV === "development";
@@ -104,7 +108,9 @@ export const getServerSideProps = (async ({ req }) => {
   return { props: { example } };
 }) satisfies GetServerSideProps<{ example: boolean }>;
 
-export default function Page({ example }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Page({
+  example,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return <div>{example ? "Flag is on" : "Flag is off"}</div>;
 }
 ```
@@ -121,10 +127,12 @@ interface Entities {
   user?: { id: string };
 }
 
-const identify = dedupe(({ cookies }: { cookies: ReadonlyRequestCookies }): Entities => {
-  const userId = cookies.get("user-id")?.value;
-  return { user: userId ? { id: userId } : undefined };
-});
+const identify = dedupe(
+  ({ cookies }: { cookies: ReadonlyRequestCookies }): Entities => {
+    const userId = cookies.get("user-id")?.value;
+    return { user: userId ? { id: userId } : undefined };
+  }
+);
 
 export const myFlag = flag<boolean, Entities>({
   key: "my-flag",
@@ -219,7 +227,7 @@ export async function proxy(request: NextRequest) {
   const code = await precompute(marketingFlags);
   const nextUrl = new URL(
     `/${code}${request.nextUrl.pathname}${request.nextUrl.search}`,
-    request.url,
+    request.url
   );
   return NextResponse.rewrite(nextUrl, { request });
 }
@@ -339,10 +347,12 @@ interface Entities {
   user?: { id: string };
 }
 
-const identify = dedupe(({ cookies }: { cookies: ReadonlyRequestCookies }): Entities => {
-  const userId = cookies.get("dashboard-user-id")?.value;
-  return { user: userId ? { id: userId } : undefined };
-});
+const identify = dedupe(
+  ({ cookies }: { cookies: ReadonlyRequestCookies }): Entities => {
+    const userId = cookies.get("dashboard-user-id")?.value;
+    return { user: userId ? { id: userId } : undefined };
+  }
+);
 
 export const dashboardFlag = flag<boolean, Entities>({
   key: "dashboard-flag",
@@ -379,16 +389,22 @@ import { marketingFlags } from "./flags";
 import { getOrGenerateVisitorId } from "./get-or-generate-visitor-id";
 
 export async function marketingProxy(request: NextRequest) {
-  const visitorId = await getOrGenerateVisitorId(request.cookies, request.headers);
+  const visitorId = await getOrGenerateVisitorId(
+    request.cookies,
+    request.headers
+  );
 
   const code = await precompute(marketingFlags);
 
-  return NextResponse.rewrite(new URL(`/examples/marketing-pages/${code}`, request.url), {
-    headers: {
-      "Set-Cookie": `marketing-visitor-id=${visitorId}; Path=/`,
-      "x-marketing-visitor-id": visitorId,
-    },
-  });
+  return NextResponse.rewrite(
+    new URL(`/examples/marketing-pages/${code}`, request.url),
+    {
+      headers: {
+        "Set-Cookie": `marketing-visitor-id=${visitorId}; Path=/`,
+        "x-marketing-visitor-id": visitorId,
+      },
+    }
+  );
 }
 ```
 
@@ -403,7 +419,7 @@ const generateId = dedupe(async () => nanoid());
 
 export const getOrGenerateVisitorId = async (
   cookies: ReadonlyRequestCookies,
-  headers: ReadonlyHeaders,
+  headers: ReadonlyHeaders
 ) => {
   const cookieVisitorId = cookies.get("marketing-visitor-id")?.value;
   if (cookieVisitorId) return cookieVisitorId;
@@ -419,10 +435,14 @@ export const getOrGenerateVisitorId = async (
 
 ```ts
 const identify = dedupe(
-  async ({ cookies }: { cookies: ReadonlyRequestCookies }): Promise<Entities> => {
+  async ({
+    cookies,
+  }: {
+    cookies: ReadonlyRequestCookies;
+  }): Promise<Entities> => {
     const visitorId = await getOrGenerateVisitorId(cookies);
     return { visitor: visitorId ? { id: visitorId } : undefined };
-  },
+  }
 );
 
 export const marketingAbTest = flag<boolean, Entities>({
@@ -517,9 +537,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
   const access = await verifyAccess(req.headers.authorization);
   if (!access) return res.status(401).json(null);
 
-  const providerData = {
-    /* ... */
-  };
+  const providerData = {/* ... */};
   return res.status(200).json(providerData);
 }
 ```

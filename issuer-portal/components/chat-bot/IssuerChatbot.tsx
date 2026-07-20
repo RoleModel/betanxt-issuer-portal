@@ -73,7 +73,7 @@ const getMessageContent = (message: UIMessage): string => {
 
 const toStoredMessages = (
   messages: UIMessage[],
-  timestamps: Record<string, number>,
+  timestamps: Record<string, number>
 ): StoredConversationMessage[] => {
   return messages.map((message) => ({
     id: message.id,
@@ -98,22 +98,35 @@ const toUiMessages = (messages: StoredConversationMessage[]): UIMessage[] => {
 
 export default function IssuerChatbot() {
   const [showConversations, setShowConversations] = React.useState(false);
-  const [conversations, setConversations] = React.useState<StoredConversation[]>([]);
-  const [currentConversationId, setCurrentConversationId] = React.useState<string | null>(null);
+  const [conversations, setConversations] = React.useState<
+    StoredConversation[]
+  >([]);
+  const [currentConversationId, setCurrentConversationId] = React.useState<
+    string | null
+  >(null);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [input, setInput] = React.useState("");
-  const [messageTimestamps, setMessageTimestamps] = React.useState<Record<string, number>>({});
+  const [messageTimestamps, setMessageTimestamps] = React.useState<
+    Record<string, number>
+  >({});
   const [actionPollBudget, setActionPollBudget] = React.useState(0);
   const chatContainerRef = React.useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      prepareSendMessagesRequest: ({ messages: pendingMessages, body, headers, credentials }) => {
+      prepareSendMessagesRequest: ({
+        messages: pendingMessages,
+        body,
+        headers,
+        credentials,
+      }) => {
         return {
           body: {
             ...body,
-            messages: pendingMessages.slice(-MAX_MESSAGES_PER_REQUEST).map(toRequestMessage),
+            messages: pendingMessages
+              .slice(-MAX_MESSAGES_PER_REQUEST)
+              .map(toRequestMessage),
           },
           headers,
           credentials,
@@ -121,7 +134,8 @@ export default function IssuerChatbot() {
       },
     }),
   });
-  const { executeAction, isEnabled, isOpen, closeChatbot } = useChatbotContext();
+  const { executeAction, isEnabled, isOpen, closeChatbot } =
+    useChatbotContext();
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -134,7 +148,8 @@ export default function IssuerChatbot() {
 
   const scrollToBottom = React.useCallback(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, []);
 
@@ -224,7 +239,9 @@ export default function IssuerChatbot() {
       setConversations(parsedConversations);
 
       if (parsedConversations.length > 0) {
-        const mostRecent = [...parsedConversations].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+        const mostRecent = [...parsedConversations].sort(
+          (a, b) => b.updatedAt - a.updatedAt
+        )[0];
 
         setCurrentConversationId(mostRecent.id);
         setMessages(toUiMessages(mostRecent.messages));
@@ -232,7 +249,7 @@ export default function IssuerChatbot() {
           mostRecent.messages.reduce<Record<string, number>>((acc, message) => {
             acc[message.id] = message.createdAt ?? Date.now();
             return acc;
-          }, {}),
+          }, {})
         );
       }
     } catch (error) {
@@ -244,7 +261,8 @@ export default function IssuerChatbot() {
     if (messages.length === 0) return;
 
     const saveConversation = () => {
-      const sanitize = (text: string) => text.replaceAll("**", "").replaceAll("##", "");
+      const sanitize = (text: string) =>
+        text.replaceAll("**", "").replaceAll("##", "");
 
       const firstMessageContent = getMessageContent(messages[0]);
       const conversationTitle = firstMessageContent
@@ -259,17 +277,22 @@ export default function IssuerChatbot() {
         title: conversationTitle,
         messages: toStoredMessages(messages, messageTimestamps),
         createdAt: currentConversationId
-          ? conversations.find((conversation) => conversation.id === currentConversationId)
-              ?.createdAt || now
+          ? conversations.find(
+              (conversation) => conversation.id === currentConversationId
+            )?.createdAt || now
           : now,
         updatedAt: now,
       };
 
       setConversations((prev) => {
-        const existing = prev.find((conversation) => conversation.id === conversationData.id);
+        const existing = prev.find(
+          (conversation) => conversation.id === conversationData.id
+        );
         const updated = existing
           ? prev.map((conversation) =>
-              conversation.id === conversationData.id ? conversationData : conversation,
+              conversation.id === conversationData.id
+                ? conversationData
+                : conversation
             )
           : [...prev, conversationData];
 
@@ -291,8 +314,13 @@ export default function IssuerChatbot() {
       return;
     }
 
-    const speedDialElement = document.querySelector('[aria-label="Support Contacts"]');
-    const nextAnchor = speedDialElement instanceof HTMLElement ? speedDialElement : document.body;
+    const speedDialElement = document.querySelector(
+      '[aria-label="Support Contacts"]'
+    );
+    const nextAnchor =
+      speedDialElement instanceof HTMLElement
+        ? speedDialElement
+        : document.body;
 
     setAnchorEl(nextAnchor);
     setShowConversations(false);
@@ -317,7 +345,7 @@ export default function IssuerChatbot() {
       conversation.messages.reduce<Record<string, number>>((acc, message) => {
         acc[message.id] = message.createdAt ?? Date.now();
         return acc;
-      }, {}),
+      }, {})
     );
     setShowConversations(false);
   };
@@ -499,7 +527,12 @@ export default function IssuerChatbot() {
           ) : (
             <Stack spacing={3} sx={{ flexGrow: 1 }}>
               <Box>
-                <Typography variant="body2" fontWeight={500} color="text.primary" sx={{ mb: 0.5 }}>
+                <Typography
+                  variant="body2"
+                  fontWeight={500}
+                  color="text.primary"
+                  sx={{ mb: 0.5 }}
+                >
                   Recent Conversations
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
@@ -544,7 +577,11 @@ export default function IssuerChatbot() {
                           <SmartToy />
                         </Avatar>
                         <Stack spacing={0.625} sx={{ flex: 1, maxWidth: 285 }}>
-                          <Typography variant="body2" color="text.primary" fontWeight={500}>
+                          <Typography
+                            variant="body2"
+                            color="text.primary"
+                            fontWeight={500}
+                          >
                             Assistant
                           </Typography>
                           <Box
@@ -565,17 +602,28 @@ export default function IssuerChatbot() {
                                 lineHeight: 1.4,
                               }}
                             >
-                              {sanitize(lastAssistantMessage?.content || conversation.title)}
+                              {sanitize(
+                                lastAssistantMessage?.content ||
+                                  conversation.title
+                              )}
                             </Typography>
                           </Box>
-                          <Typography variant="caption" color="text.secondary" textAlign="right">
-                            {new Date(conversation.updatedAt).toLocaleDateString("en-US", {
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            textAlign="right"
+                          >
+                            {new Date(
+                              conversation.updatedAt
+                            ).toLocaleDateString("en-US", {
                               weekday: "long",
                               year: "numeric",
                               month: "long",
                               day: "numeric",
                             })}{" "}
-                            {new Date(conversation.updatedAt).toLocaleTimeString("en-US", {
+                            {new Date(
+                              conversation.updatedAt
+                            ).toLocaleTimeString("en-US", {
                               hour: "numeric",
                               minute: "2-digit",
                               hour12: true,
@@ -634,9 +682,16 @@ export default function IssuerChatbot() {
                         wordBreak: "break-word",
                       }}
                     >
-                      <FormattedMessage content={messageContent} variant="body2" />
+                      <FormattedMessage
+                        content={messageContent}
+                        variant="body2"
+                      />
                     </Paper>
-                    <Typography variant="caption" color="text.secondary" textAlign="right">
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      textAlign="right"
+                    >
                       {formatTime(timestamp)}
                     </Typography>
                   </Stack>
@@ -654,7 +709,11 @@ export default function IssuerChatbot() {
                       <SmartToy />
                     </Avatar>
                     <Stack spacing={0.625} sx={{ flex: 1, maxWidth: 285 }}>
-                      <Typography variant="body2" color="text.primary" fontWeight={500}>
+                      <Typography
+                        variant="body2"
+                        color="text.primary"
+                        fontWeight={500}
+                      >
                         Assistant
                       </Typography>
                       <Paper
@@ -667,9 +726,16 @@ export default function IssuerChatbot() {
                           wordBreak: "break-word",
                         }}
                       >
-                        <FormattedMessage content={messageContent} variant="body2" />
+                        <FormattedMessage
+                          content={messageContent}
+                          variant="body2"
+                        />
                       </Paper>
-                      <Typography variant="caption" color="text.secondary" textAlign="right">
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        textAlign="right"
+                      >
                         {formatTime(timestamp)}
                       </Typography>
                     </Stack>
@@ -694,7 +760,11 @@ export default function IssuerChatbot() {
                   <SmartToy />
                 </Avatar>
                 <Stack spacing={0.625} sx={{ flex: 1, maxWidth: 285 }}>
-                  <Typography variant="body2" color="text.primary" fontWeight={500}>
+                  <Typography
+                    variant="body2"
+                    color="text.primary"
+                    fontWeight={500}
+                  >
                     Assistant
                   </Typography>
                   <Paper

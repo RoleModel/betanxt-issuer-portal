@@ -39,10 +39,10 @@ Factory function that creates a LineMarker component compatible with MUI X Chart
 
 #### Parameters
 
-| Parameter       | Type     | Default     | Description                          |
-| --------------- | -------- | ----------- | ------------------------------------ |
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
 | `options.color` | `string` | `'#EB6333'` | Color of the marker lines and circle |
-| `options.size`  | `number` | `24`        | Size of the marker in pixels         |
+| `options.size` | `number` | `24` | Size of the marker in pixels |
 
 #### Returns
 
@@ -54,12 +54,12 @@ The base marker component.
 
 #### Props
 
-| Prop    | Type                            | Default     | Description                       |
-| ------- | ------------------------------- | ----------- | --------------------------------- |
-| `x`     | `string \| number \| undefined` | -           | X coordinate for marker placement |
-| `y`     | `string \| number \| undefined` | -           | Y coordinate for marker placement |
-| `color` | `string`                        | `'#EB6333'` | Color of the marker               |
-| `size`  | `number`                        | `24`        | Size of the marker                |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `x` | `string \| number \| undefined` | - | X coordinate for marker placement |
+| `y` | `string \| number \| undefined` | - | Y coordinate for marker placement |
+| `color` | `string` | `'#EB6333'` | Color of the marker |
+| `size` | `number` | `24` | Size of the marker |
 
 ## Design
 

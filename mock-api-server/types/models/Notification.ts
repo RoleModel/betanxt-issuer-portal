@@ -107,7 +107,8 @@ export const NotificationTypeEnum = {
   Error: "error",
   Success: "success",
 } as const;
-export type NotificationTypeEnum = (typeof NotificationTypeEnum)[keyof typeof NotificationTypeEnum];
+export type NotificationTypeEnum =
+  (typeof NotificationTypeEnum)[keyof typeof NotificationTypeEnum];
 
 /**
  * @export
@@ -132,7 +133,10 @@ export function NotificationFromJSON(json: any): Notification {
   return NotificationFromJSONTyped(json, false);
 }
 
-export function NotificationFromJSONTyped(json: any, ignoreDiscriminator: boolean): Notification {
+export function NotificationFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Notification {
   if (json == null) {
     return json;
   }
@@ -147,9 +151,11 @@ export function NotificationFromJSONTyped(json: any, ignoreDiscriminator: boolea
     meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
     taskId: json["taskId"] == null ? undefined : json["taskId"],
     actionUrl: json["actionUrl"] == null ? undefined : json["actionUrl"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
     readAt: json["readAt"] == null ? undefined : new Date(json["readAt"]),
-    expiresAt: json["expiresAt"] == null ? undefined : new Date(json["expiresAt"]),
+    expiresAt:
+      json["expiresAt"] == null ? undefined : new Date(json["expiresAt"]),
   };
 }
 
@@ -159,7 +165,7 @@ export function NotificationToJSON(json: any): Notification {
 
 export function NotificationToJSONTyped(
   value?: Notification | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -176,8 +182,13 @@ export function NotificationToJSONTyped(
     meetingId: value["meetingId"],
     taskId: value["taskId"],
     actionUrl: value["actionUrl"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    readAt: value["readAt"] === null ? null : (value["readAt"] as any)?.toISOString(),
-    expiresAt: value["expiresAt"] === null ? null : (value["expiresAt"] as any)?.toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    readAt:
+      value["readAt"] === null ? null : (value["readAt"] as any)?.toISOString(),
+    expiresAt:
+      value["expiresAt"] === null
+        ? null
+        : (value["expiresAt"] as any)?.toISOString(),
   };
 }

@@ -94,12 +94,15 @@ export const getDateLabel = (task: Task, formattedDate: string): string => {
 export const getDocumentTypeFromTask = (task: Task): string => {
   const title = (task.title ?? "").toLowerCase();
 
-  if (title.includes(TASK_TYPES.DRAFT_PROXY_STATEMENT)) return "draft-proxy-statement";
+  if (title.includes(TASK_TYPES.DRAFT_PROXY_STATEMENT))
+    return "draft-proxy-statement";
   if (title.includes(TASK_TYPES.PROXY_CARD)) return "proxy-card";
   if (title.includes(TASK_TYPES.NOTICE_ACCESS) && title.includes("access"))
     return "notice-access-form";
-  if (title.includes(TASK_TYPES.VOTING_INSTRUCTION)) return "voting-instruction-form";
-  if (title.includes(TASK_TYPES.TRANSFER_AGENT)) return "transfer-agent-request";
+  if (title.includes(TASK_TYPES.VOTING_INSTRUCTION))
+    return "voting-instruction-form";
+  if (title.includes(TASK_TYPES.TRANSFER_AGENT))
+    return "transfer-agent-request";
   if (title.includes(TASK_TYPES.PLAN_FILE)) return "plan-file-request";
   if (title.includes(TASK_TYPES.BROADRIDGE)) return "broadridge-form";
 
@@ -113,7 +116,7 @@ export const getDocumentTypeFromTask = (task: Task): string => {
 export const shouldShowTaskInPhase = (
   task: Task,
   currentPhase: number,
-  excludeOwners: string[] = ["BetaNXT", "DFIN"],
+  excludeOwners: string[] = ["BetaNXT", "DFIN"]
 ): boolean => {
   // Special case: Phase 4 includes BetaNXT delivery tasks
   if (currentPhase === 4) {
@@ -150,7 +153,7 @@ export const PHASE_2_CARRYOVER_TASKS = [
 export const isCarryoverTask = (taskTitle: string): boolean => {
   const normalizedTitle = taskTitle.toLowerCase().trim();
   return PHASE_2_CARRYOVER_TASKS.some((carryoverTask) =>
-    normalizedTitle.includes(carryoverTask.toLowerCase()),
+    normalizedTitle.includes(carryoverTask.toLowerCase())
   );
 };
 
@@ -161,7 +164,10 @@ export const isCarryoverTask = (taskTitle: string): boolean => {
 export const syncCarryoverTaskStatus = async (
   updatedTask: Task,
   allTasks: Task[],
-  updateTaskFn: (taskId: string, updates: { status: TaskStatus }) => Promise<void>,
+  updateTaskFn: (
+    taskId: string,
+    updates: { status: TaskStatus }
+  ) => Promise<void>
 ): Promise<string[]> => {
   // Only sync if this is a carryover task
   if (!updatedTask.title || !isCarryoverTask(updatedTask.title)) {
@@ -174,7 +180,7 @@ export const syncCarryoverTaskStatus = async (
       task.id !== updatedTask.id && // Don't update the task that was just updated
       task.title === updatedTask.title &&
       task.meetingId === updatedTask.meetingId &&
-      task.phaseNumber !== updatedTask.phaseNumber, // Only sync across different phases
+      task.phaseNumber !== updatedTask.phaseNumber // Only sync across different phases
   );
 
   // Update all matching tasks with the new status
@@ -263,7 +269,10 @@ export const hasSignedDocumentStatus = (status?: string | null): boolean => {
 /**
  * Get the appropriate action button label based on task state
  */
-export const getTaskActionButtonLabel = (taskTitle: string, hasSignedDocument: boolean): string => {
+export const getTaskActionButtonLabel = (
+  taskTitle: string,
+  hasSignedDocument: boolean
+): string => {
   const titleLower = taskTitle.toLowerCase();
   const isFormTask =
     titleLower.includes("form") ||
@@ -283,12 +292,12 @@ export const getTaskActionButtonLabel = (taskTitle: string, hasSignedDocument: b
  */
 export const calculateOverallCompletion = (
   tasks: { status?: string | null }[],
-  completedStatuses: TaskStatus[] = COMPLETED_STATUSES,
+  completedStatuses: TaskStatus[] = COMPLETED_STATUSES
 ): number => {
   if (tasks.length === 0) return 0;
 
   const completedTasks = tasks.filter((t) =>
-    completedStatuses.includes(t.status as TaskStatus),
+    completedStatuses.includes(t.status as TaskStatus)
   ).length;
 
   return Math.round((completedTasks / tasks.length) * 100);

@@ -49,7 +49,10 @@ export function asNumber(value: unknown): number | null {
  * @param keys - Array of possible keys to check
  * @returns String value or null if not found
  */
-export function getStr(obj: Record<string, unknown>, keys: string[]): string | null {
+export function getStr(
+  obj: Record<string, unknown>,
+  keys: string[]
+): string | null {
   for (const k of keys) {
     const v = asString(obj[k]);
     if (v !== null) return v;
@@ -63,7 +66,10 @@ export function getStr(obj: Record<string, unknown>, keys: string[]): string | n
  * @param keys - Array of possible keys to check
  * @returns Number value or null if not found
  */
-export function getNum(obj: Record<string, unknown>, keys: string[]): number | null {
+export function getNum(
+  obj: Record<string, unknown>,
+  keys: string[]
+): number | null {
   for (const k of keys) {
     const v = asNumber(obj[k]);
     if (v !== null) return v;

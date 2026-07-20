@@ -1,7 +1,6 @@
 # Phase 0 Research: Tabulation, Reporting & Data Visualization Enhancements
 
-**Branch**: `002-tabulation-enhancements` | **Date**: 2026-06-11
-**Input**: `specs/002-tabulation-enhancements/spec.md` (8 `[NEEDS CLARIFICATION]` markers)
+**Branch**: `002-tabulation-enhancements` | **Date**: 2026-06-11 **Input**: `specs/002-tabulation-enhancements/spec.md` (8 `[NEEDS CLARIFICATION]` markers)
 
 Each unknown from the spec is resolved below with a decision, rationale, and alternatives considered. Decisions are scoped to the prototype/mock-data nature of this portal.
 
@@ -85,15 +84,15 @@ Each unknown from the spec is resolved below with a decision, rationale, and alt
 
 ## Resolved-unknowns summary
 
-| Spec marker                        | Resolution                                          |
-| ---------------------------------- | --------------------------------------------------- |
-| Historical report regeneration     | R1 — render-on-demand, automatic                    |
-| Legacy report inventory            | R2 — `MOCK_REPORTS` + tabulation PDF                |
-| ADR vs non-ADR broker fields       | R3 — single generic structure                       |
-| Reporting tab visualizations       | R4 — wire orphaned charts                           |
-| Heat map missing-location handling | R6 — "Unknown" bucket, count disclosed              |
-| Heat map granularity               | R6 — US state + International                       |
-| Engage-active determination        | R7 — `enabledFeatures` / `ClientFeatureKey: "nobo"` |
-| NOBO minimum fields                | R8 — `holderCategory` on Position                   |
+| Spec marker | Resolution |
+| --- | --- |
+| Historical report regeneration | R1 — render-on-demand, automatic |
+| Legacy report inventory | R2 — `MOCK_REPORTS` + tabulation PDF |
+| ADR vs non-ADR broker fields | R3 — single generic structure |
+| Reporting tab visualizations | R4 — wire orphaned charts |
+| Heat map missing-location handling | R6 — "Unknown" bucket, count disclosed |
+| Heat map granularity | R6 — US state + International |
+| Engage-active determination | R7 — `enabledFeatures` / `ClientFeatureKey: "nobo"` |
+| NOBO minimum fields | R8 — `holderCategory` on Position |
 
 All `[NEEDS CLARIFICATION]` markers are resolved. **Phase 0 complete.**

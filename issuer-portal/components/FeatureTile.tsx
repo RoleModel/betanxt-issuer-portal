@@ -178,7 +178,9 @@ export function FeatureTile({
           gutterBottom={gutterBottom}
           sx={[
             {
-              fontFamily: brandFont ? "var(--font-tungsten)" : "var(--font-roboto-condensed)",
+              fontFamily: brandFont
+                ? "var(--font-tungsten)"
+                : "var(--font-roboto-condensed)",
               fontWeight: 500,
               color: variantColors.color,
             },

@@ -129,7 +129,10 @@ export function TaskFromJSON(json: any): Task {
   return TaskFromJSONTyped(json, false);
 }
 
-export function TaskFromJSONTyped(json: any, ignoreDiscriminator: boolean): Task {
+export function TaskFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Task {
   if (json == null) {
     return json;
   }
@@ -142,13 +145,16 @@ export function TaskFromJSONTyped(json: any, ignoreDiscriminator: boolean): Task
     title: json["title"] == null ? undefined : json["title"],
     description: json["description"] == null ? undefined : json["description"],
     type: json["type"] == null ? undefined : json["type"],
-    status: json["status"] == null ? undefined : TaskStatusFromJSON(json["status"]),
+    status:
+      json["status"] == null ? undefined : TaskStatusFromJSON(json["status"]),
     dueDate: json["dueDate"] == null ? undefined : new Date(json["dueDate"]),
     owner: json["owner"] == null ? undefined : json["owner"],
     documentId: json["documentId"] == null ? undefined : json["documentId"],
     links: json["links"] == null ? undefined : json["links"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
   };
 }
 
@@ -156,7 +162,10 @@ export function TaskToJSON(json: any): Task {
   return TaskToJSONTyped(json, false);
 }
 
-export function TaskToJSONTyped(value?: Task | null, ignoreDiscriminator: boolean = false): any {
+export function TaskToJSONTyped(
+  value?: Task | null,
+  ignoreDiscriminator: boolean = false
+): any {
   if (value == null) {
     return value;
   }
@@ -172,11 +181,15 @@ export function TaskToJSONTyped(value?: Task | null, ignoreDiscriminator: boolea
     type: value["type"],
     status: TaskStatusToJSON(value["status"]),
     dueDate:
-      value["dueDate"] === null ? null : (value["dueDate"] as any)?.toISOString().substring(0, 10),
+      value["dueDate"] === null
+        ? null
+        : (value["dueDate"] as any)?.toISOString().substring(0, 10),
     owner: value["owner"],
     documentId: value["documentId"],
     links: value["links"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
   };
 }

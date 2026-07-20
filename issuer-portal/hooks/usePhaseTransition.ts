@@ -21,9 +21,10 @@ export function usePhaseTransition(meetingId: string) {
 
       try {
         // Fetch all tasks for the current phase
-        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
         const response = await fetch(
-          `${API_URL}/meetings/${meetingId}/tasks?phaseId=${currentPhaseId}`,
+          `${API_URL}/meetings/${meetingId}/tasks?phaseId=${currentPhaseId}`
         );
 
         if (!response.ok) {
@@ -34,7 +35,7 @@ export function usePhaseTransition(meetingId: string) {
 
         // Find incomplete tasks
         const incompleteTasks = tasks.filter(
-          (task) => task.status !== "COMPLETE" && task.status !== "CANCELLED",
+          (task) => task.status !== "COMPLETE" && task.status !== "CANCELLED"
         );
 
         const canTransition = incompleteTasks.length === 0;
@@ -42,10 +43,13 @@ export function usePhaseTransition(meetingId: string) {
         return {
           canTransition,
           incompleteTasks,
-          reason: canTransition ? null : `${incompleteTasks.length} task(s) must be completed`,
+          reason: canTransition
+            ? null
+            : `${incompleteTasks.length} task(s) must be completed`,
         };
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Validation failed";
+        const errorMessage =
+          err instanceof Error ? err.message : "Validation failed";
         setError(errorMessage);
         return {
           canTransition: false,
@@ -56,7 +60,7 @@ export function usePhaseTransition(meetingId: string) {
         setIsValidating(false);
       }
     },
-    [meetingId],
+    [meetingId]
   );
 
   const transitionPhase = useCallback(
@@ -74,12 +78,16 @@ export function usePhaseTransition(meetingId: string) {
         }
 
         // Mark current phase as complete
-        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-        const completeResponse = await fetch(`${API_URL}/phases/${currentPhaseId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "COMPLETE" }),
-        });
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+        const completeResponse = await fetch(
+          `${API_URL}/phases/${currentPhaseId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "COMPLETE" }),
+          }
+        );
 
         if (!completeResponse.ok) {
           throw new Error("Failed to complete current phase");
@@ -98,14 +106,15 @@ export function usePhaseTransition(meetingId: string) {
 
         return true;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Phase transition failed";
+        const errorMessage =
+          err instanceof Error ? err.message : "Phase transition failed";
         setError(errorMessage);
         return false;
       } finally {
         setIsValidating(false);
       }
     },
-    [validatePhaseTransition],
+    [validatePhaseTransition]
   );
 
   return {

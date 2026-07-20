@@ -67,7 +67,10 @@ export function PositionVoteFromJSON(json: any): PositionVote {
   return PositionVoteFromJSONTyped(json, false);
 }
 
-export function PositionVoteFromJSONTyped(json: any, ignoreDiscriminator: boolean): PositionVote {
+export function PositionVoteFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): PositionVote {
   if (json == null) {
     return json;
   }
@@ -76,8 +79,10 @@ export function PositionVoteFromJSONTyped(json: any, ignoreDiscriminator: boolea
     positionId: json["positionId"] == null ? undefined : json["positionId"],
     proposalId: json["proposalId"] == null ? undefined : json["proposalId"],
     vote: json["vote"] == null ? undefined : json["vote"],
-    sharesVoting: json["sharesVoting"] == null ? undefined : json["sharesVoting"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    sharesVoting:
+      json["sharesVoting"] == null ? undefined : json["sharesVoting"],
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
   };
 }
 
@@ -87,7 +92,7 @@ export function PositionVoteToJSON(json: any): PositionVote {
 
 export function PositionVoteToJSONTyped(
   value?: PositionVote | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -99,6 +104,7 @@ export function PositionVoteToJSONTyped(
     proposalId: value["proposalId"],
     vote: value["vote"],
     sharesVoting: value["sharesVoting"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
   };
 }

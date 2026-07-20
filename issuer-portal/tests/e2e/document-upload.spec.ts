@@ -17,11 +17,16 @@ function createTempPdf(filename: string): string {
 // - After upload, documents table refreshes and displays new file name
 // If selectors differ in implementation, adjust data-testid markers accordingly.
 
-test("upload DSM placeholder document and verify appearance", async ({ page }) => {
+test("upload DSM placeholder document and verify appearance", async ({
+  page,
+}) => {
   // Navigate directly to documents page (MeetingContext should lazy resolve)
-  await page.goto("http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/documents", {
-    waitUntil: "domcontentloaded",
-  });
+  await page.goto(
+    "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/documents",
+    {
+      waitUntil: "domcontentloaded",
+    }
+  );
 
   // Retry logic: attempt to reload a few times if heading not present (handle transient 500s)
   let attempts = 0;
@@ -55,7 +60,9 @@ test("upload DSM placeholder document and verify appearance", async ({ page }) =
   await fileInput.setInputFiles(tempPdf);
 
   // Optional: add version notes if field exists
-  const notesField = dialog.locator("textarea, input").filter({ hasText: "Notes" });
+  const notesField = dialog
+    .locator("textarea, input")
+    .filter({ hasText: "Notes" });
   // swallow errors if not present
   try {
     if (await notesField.first().isVisible())
@@ -74,7 +81,9 @@ test("upload DSM placeholder document and verify appearance", async ({ page }) =
   await page.waitForTimeout(1500);
 
   // Verify new document row appears (search across rows for filename)
-  const rowByName = page.locator("tr", { hasText: "playwright-upload-test.pdf" }).first();
+  const rowByName = page
+    .locator("tr", { hasText: "playwright-upload-test.pdf" })
+    .first();
   await expect(rowByName).toBeVisible({ timeout: 10000 });
 
   // Verify status cell contains UPLOADED or similar (case-insensitive)

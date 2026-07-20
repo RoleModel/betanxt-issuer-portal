@@ -3,7 +3,10 @@
 import { useMemo } from "react";
 
 import { useClient } from "@/contexts/ClientContext";
-import { type ClientFeatureKey, DEFAULT_FEATURE_KEYS } from "@/hooks/useClients";
+import {
+  type ClientFeatureKey,
+  DEFAULT_FEATURE_KEYS,
+} from "@/hooks/useClients";
 import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { FEATURE_KEYS } from "@/utils/clientFeatures";
 
@@ -40,7 +43,8 @@ export function useClientFeatures(): UseClientFeaturesResult {
       // No client loaded yet — show the standard set while loading (NOBO stays opt-in)
       if (!currentClient) return DEFAULT_FEATURE_KEYS;
       // Trust whatever was saved; an empty array means all tabs disabled (admin intent)
-      if (Array.isArray(currentClient.enabledFeatures)) return currentClient.enabledFeatures;
+      if (Array.isArray(currentClient.enabledFeatures))
+        return currentClient.enabledFeatures;
       // Null / undefined means the column was never set — default to the standard set
       return DEFAULT_FEATURE_KEYS;
     })();
@@ -54,7 +58,7 @@ export function useClientFeatures(): UseClientFeaturesResult {
     () =>
       (feature: ClientFeatureKey): boolean =>
         enabledFeatures.includes(feature),
-    [enabledFeatures],
+    [enabledFeatures]
   );
 
   return { enabledFeatures, isEnabled };

@@ -48,9 +48,21 @@ Then add the CustomLegend component after your chart:
 
 ```tsx
 const legendItems = [
-  { label: "Line Series", color: "var(--mui-palette-chartSeries-1-main)", type: "line" },
-  { label: "Bar Series", color: "var(--mui-palette-chartSeries-2-main)", type: "bar" },
-  { label: "Another Line", color: "var(--mui-palette-chartSeries-3-main)", type: "line" },
+  {
+    label: "Line Series",
+    color: "var(--mui-palette-chartSeries-1-main)",
+    type: "line",
+  },
+  {
+    label: "Bar Series",
+    color: "var(--mui-palette-chartSeries-2-main)",
+    type: "bar",
+  },
+  {
+    label: "Another Line",
+    color: "var(--mui-palette-chartSeries-3-main)",
+    type: "line",
+  },
 ];
 
 return (
@@ -65,13 +77,13 @@ return (
 
 ### Props
 
-| Prop          | Type                              | Default        | Description                                      |
-| ------------- | --------------------------------- | -------------- | ------------------------------------------------ |
-| `items`       | `LegendItem[]`                    | **Required**   | Array of legend items with label and color       |
-| `direction`   | `'horizontal' \| 'vertical'`      | `'horizontal'` | Layout direction for legend items                |
-| `markerSize`  | `number`                          | `16`           | Size of LineMarker symbols in pixels             |
-| `gap`         | `number`                          | `3`            | Spacing between legend items (MUI spacing units) |
-| `textVariant` | `'body1' \| 'body3' \| 'caption'` | `'body3'`      | Typography variant for labels                    |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` | `LegendItem[]` | **Required** | Array of legend items with label and color |
+| `direction` | `'horizontal' \| 'vertical'` | `'horizontal'` | Layout direction for legend items |
+| `markerSize` | `number` | `16` | Size of LineMarker symbols in pixels |
+| `gap` | `number` | `3` | Spacing between legend items (MUI spacing units) |
+| `textVariant` | `'body1' \| 'body3' \| 'caption'` | `'body3'` | Typography variant for labels |
 
 ### Types
 
@@ -107,9 +119,21 @@ const IndividualDirectorChart = ({ data, directorName, loading }) => {
   // ... loading and empty state handling
 
   const legendItems = [
-    { label: "For", color: "var(--mui-palette-chartSeries-1-main)", type: "line" },
-    { label: "Against", color: "var(--mui-palette-chartSeries-5-main)", type: "line" },
-    { label: "Abstain", color: "var(--mui-palette-chartSeries-2-main)", type: "line" },
+    {
+      label: "For",
+      color: "var(--mui-palette-chartSeries-1-main)",
+      type: "line",
+    },
+    {
+      label: "Against",
+      color: "var(--mui-palette-chartSeries-5-main)",
+      type: "line",
+    },
+    {
+      label: "Abstain",
+      color: "var(--mui-palette-chartSeries-2-main)",
+      type: "line",
+    },
   ];
 
   return (
@@ -142,8 +166,16 @@ const IndividualDirectorChart = ({ data, directorName, loading }) => {
 ```tsx
 const VotingPerformanceChart = ({ data }) => {
   const legendItems = [
-    { label: "Positions", color: "var(--mui-palette-chartSeries-1-main)", type: "bar" },
-    { label: "Shares", color: "var(--mui-palette-chartSeries-2-main)", type: "bar" },
+    {
+      label: "Positions",
+      color: "var(--mui-palette-chartSeries-1-main)",
+      type: "bar",
+    },
+    {
+      label: "Shares",
+      color: "var(--mui-palette-chartSeries-2-main)",
+      type: "bar",
+    },
     {
       label: "Percent Voted",
       color: "var(--mui-palette-chartSeries-3-main)",

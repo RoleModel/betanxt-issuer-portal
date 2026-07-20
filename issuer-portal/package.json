@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "npx playwright test",
-    "type-check": "tsc --noEmit",
+    "type-check": "pnpm --workspace-root exec tsc --noEmit -p issuer-portal/tsconfig.json",
     "generate:types": "openapi-typescript ../mock-api-server/openapi-schema/openapi.yaml -o domain-models/generated-schema.ts",
     "generate:api-types": "openapi-typescript ../mock-api-server/openapi-schema/openapi.yaml -o types/api.ts",
     "generate:all-types": "pnpm run generate:types && pnpm run generate:api-types && cd ../mock-api-server && pnpm run generate:db-types",

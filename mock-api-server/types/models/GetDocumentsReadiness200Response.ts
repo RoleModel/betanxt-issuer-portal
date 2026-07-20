@@ -54,20 +54,20 @@ export interface GetDocumentsReadiness200Response {
  * Check if a given object implements the GetDocumentsReadiness200Response interface.
  */
 export function instanceOfGetDocumentsReadiness200Response(
-  value: object,
+  value: object
 ): value is GetDocumentsReadiness200Response {
   return true;
 }
 
 export function GetDocumentsReadiness200ResponseFromJSON(
-  json: any,
+  json: any
 ): GetDocumentsReadiness200Response {
   return GetDocumentsReadiness200ResponseFromJSONTyped(json, false);
 }
 
 export function GetDocumentsReadiness200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): GetDocumentsReadiness200Response {
   if (json == null) {
     return json;
@@ -75,21 +75,24 @@ export function GetDocumentsReadiness200ResponseFromJSONTyped(
   return {
     phase1Ready: json["phase1Ready"] == null ? undefined : json["phase1Ready"],
     phase2Ready: json["phase2Ready"] == null ? undefined : json["phase2Ready"],
-    overallReady: json["overallReady"] == null ? undefined : json["overallReady"],
-    outstandingPhase1: json["outstandingPhase1"] == null ? undefined : json["outstandingPhase1"],
-    outstandingPhase2: json["outstandingPhase2"] == null ? undefined : json["outstandingPhase2"],
+    overallReady:
+      json["overallReady"] == null ? undefined : json["overallReady"],
+    outstandingPhase1:
+      json["outstandingPhase1"] == null ? undefined : json["outstandingPhase1"],
+    outstandingPhase2:
+      json["outstandingPhase2"] == null ? undefined : json["outstandingPhase2"],
   };
 }
 
 export function GetDocumentsReadiness200ResponseToJSON(
-  json: any,
+  json: any
 ): GetDocumentsReadiness200Response {
   return GetDocumentsReadiness200ResponseToJSONTyped(json, false);
 }
 
 export function GetDocumentsReadiness200ResponseToJSONTyped(
   value?: GetDocumentsReadiness200Response | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

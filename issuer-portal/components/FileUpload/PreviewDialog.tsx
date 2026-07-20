@@ -85,10 +85,17 @@ export default function PreviewDialog<T>({
 
 // Helper function for creating chip renderers
 export const createChipRenderer = (
-  getColor: (value: string) => "primary" | "secondary" | "success" | "warning" | "info" | "default",
+  getColor: (
+    value: string
+  ) => "primary" | "secondary" | "success" | "warning" | "info" | "default"
 ) => {
   const ChipRenderer = (value: unknown) => (
-    <Chip label={String(value)} color={getColor(String(value))} variant="outlined" size="small" />
+    <Chip
+      label={String(value)}
+      color={getColor(String(value))}
+      variant="outlined"
+      size="small"
+    />
   );
   ChipRenderer.displayName = "ChipRenderer";
   return ChipRenderer;
@@ -100,7 +107,9 @@ export const createNumberRenderer = (formatter?: (num: number) => string) => {
     const num = Number(value);
     if (isNaN(num) || num === 0) return "-";
     return (
-      <Typography variant="body2">{formatter ? formatter(num) : num.toLocaleString()}</Typography>
+      <Typography variant="body2">
+        {formatter ? formatter(num) : num.toLocaleString()}
+      </Typography>
     );
   };
   NumberRenderer.displayName = "NumberRenderer";
@@ -108,7 +117,9 @@ export const createNumberRenderer = (formatter?: (num: number) => string) => {
 };
 
 // Helper function for creating text renderer
-export const createTextRenderer = (color?: "text.secondary" | "text.primary") => {
+export const createTextRenderer = (
+  color?: "text.secondary" | "text.primary"
+) => {
   const TextRenderer = (value: unknown) => {
     let displayValue: string;
     if (value == null) {
@@ -117,10 +128,7 @@ export const createTextRenderer = (color?: "text.secondary" | "text.primary") =>
       displayValue = JSON.stringify(value);
     } else {
       const primitive: string | number | boolean | bigint = value as
-        | string
-        | number
-        | boolean
-        | bigint;
+        string | number | boolean | bigint;
       displayValue = String(primitive);
     }
     return (

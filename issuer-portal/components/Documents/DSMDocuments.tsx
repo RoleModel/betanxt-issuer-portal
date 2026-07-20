@@ -39,8 +39,13 @@ interface DSMDocumentsProps {
   dsmEmptyRows: number;
   dsmProgress: { uploaded: number; totalRequired: number; percentage: number };
   onUpload: () => void;
-  onPageChange: (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => void;
-  onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onPageChange: (
+    _event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => void;
+  onRowsPerPageChange: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   onOpenDocument: (doc: Document) => void;
   onOpenUploadFor: (doc: Document) => void;
   placeholders?: { id: string; title: string }[];
@@ -64,14 +69,16 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
   console.log(
     "[DSMDocuments] Received dsmDocuments:",
     dsmDocuments.length,
-    dsmDocuments.map((d) => ({ title: d.title, type: d.type })),
+    dsmDocuments.map((d) => ({ title: d.title, type: d.type }))
   );
 
   // Show all DSM documents - placeholders for missing items, real documents for uploaded ones
   const mergedRows: Document[] = [];
 
   // Create a map of uploaded documents by title for easy lookup
-  const uploadedDocsByTitle = new Map(dsmDocuments.map((doc) => [doc.title?.toLowerCase(), doc]));
+  const uploadedDocsByTitle = new Map(
+    dsmDocuments.map((doc) => [doc.title?.toLowerCase(), doc])
+  );
 
   // For each placeholder, either show the real document or the placeholder
   placeholders.forEach((placeholder) => {
@@ -80,8 +87,13 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
 
     // If no exact match and placeholder is "Static Slide or Presentation",
     // look for documents containing "presentation"
-    if (!realDoc && placeholder.title.toLowerCase() === "static slide or presentation") {
-      realDoc = dsmDocuments.find((doc) => doc.title?.toLowerCase().includes("presentation"));
+    if (
+      !realDoc &&
+      placeholder.title.toLowerCase() === "static slide or presentation"
+    ) {
+      realDoc = dsmDocuments.find((doc) =>
+        doc.title?.toLowerCase().includes("presentation")
+      );
     }
 
     if (realDoc) {
@@ -99,7 +111,7 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
   // Add any DSM documents that don't match placeholders
   dsmDocuments.forEach((doc) => {
     const matchesPlaceholder = placeholders.some(
-      (p) => p.title.toLowerCase() === doc.title?.toLowerCase(),
+      (p) => p.title.toLowerCase() === doc.title?.toLowerCase()
     );
     if (!matchesPlaceholder) {
       mergedRows.push(doc);
@@ -112,7 +124,11 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
         title={" Digital Shareholder Meeting Documents"}
         subheader={`${dsmProgress.uploaded} of ${dsmProgress.totalRequired} Materials Uploaded`}
         action={
-          <Button variant="contained" onClick={onUpload} startIcon={<FileUploadOutlined />}>
+          <Button
+            variant="contained"
+            onClick={onUpload}
+            startIcon={<FileUploadOutlined />}
+          >
             Upload
           </Button>
         }
@@ -122,7 +138,8 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
         <TableContainer>
           <Table>
             <SrOnlyTableCaption>
-              Digital Shareholder Meeting Documents - {dsmProgress.percentage}% complete
+              Digital Shareholder Meeting Documents - {dsmProgress.percentage}%
+              complete
             </SrOnlyTableCaption>
             <TableHead>
               <TableRow>
@@ -136,7 +153,7 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
               {(dsmRowsPerPage > 0
                 ? mergedRows.slice(
                     dsmPage * dsmRowsPerPage,
-                    dsmPage * dsmRowsPerPage + dsmRowsPerPage,
+                    dsmPage * dsmRowsPerPage + dsmRowsPerPage
                   )
                 : mergedRows
               ).map((doc) => (
@@ -156,7 +173,8 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
                   <TableCell size="small">
                     <StatusChip
                       status={
-                        doc.status === "NOT_UPLOADED" || (!doc.filePath && !doc.status)
+                        doc.status === "NOT_UPLOADED" ||
+                        (!doc.filePath && !doc.status)
                           ? "NOT_UPLOADED"
                           : (doc.status ?? null)
                       }

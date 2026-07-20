@@ -41,7 +41,10 @@ interface MeetingRolesCardProps {
   meetingId?: string;
 }
 
-const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingId }) => {
+const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
+  className,
+  meetingId,
+}) => {
   const [dsm, setDsm] = useState(true);
   const [ioe, setIoe] = useState(true);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -123,13 +126,15 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
           "/meetings/{meetingId}/dsm-config",
           {
             params: { path: { meetingId: activeMeetingId } },
-          },
+          }
         );
 
         if (!dsmError && dsmData) {
           setDsm((dsmData as { dsmEnabled?: boolean }).dsmEnabled ?? true);
           setIoe((dsmData as { ioeEnabled?: boolean }).ioeEnabled ?? true);
-          setIsConfirmed((dsmData as { isConfirmed?: boolean }).isConfirmed || false);
+          setIsConfirmed(
+            (dsmData as { isConfirmed?: boolean }).isConfirmed || false
+          );
 
           if ((dsmData as { isConfirmed?: boolean }).isConfirmed) {
             setIsEditMode(false);
@@ -209,7 +214,8 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
         inspectorName: "Marsha Waters",
         inspectorEmail: "marsh.waters@betanxt.com",
         speakerListDocId: uploadedDocs["Speaker List"] || undefined,
-        guestLinkRegistrationDocId: uploadedDocs["Guest Link Registration"] || undefined,
+        guestLinkRegistrationDocId:
+          uploadedDocs["Guest Link Registration"] || undefined,
         isConfirmed: true,
         liveQa: true,
         audioOnly: false,
@@ -218,10 +224,13 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
         dryRunScheduled: false,
       };
 
-      const { data, error } = await apiClient.POST("/meetings/{meetingId}/dsm-config", {
-        params: { path: { meetingId: activeMeetingId } },
-        body: config,
-      });
+      const { data, error } = await apiClient.POST(
+        "/meetings/{meetingId}/dsm-config",
+        {
+          params: { path: { meetingId: activeMeetingId } },
+          body: config,
+        }
+      );
 
       if (!error && data) {
         setIsConfirmed(true);
@@ -267,7 +276,10 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
           <SROnlyTableCaption>
             Meeting roles, contacts, and file uploads for access management.
           </SROnlyTableCaption>
-          <TableHead aria-hidden="false" sx={{ visibility: "hidden", display: "none" }}>
+          <TableHead
+            aria-hidden="false"
+            sx={{ visibility: "hidden", display: "none" }}
+          >
             <TableRow>
               <TableCell>Item</TableCell>
               <TableCell align="right">Value/Action</TableCell>
@@ -307,13 +319,17 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
                         <>
                           <Switch
                             checked={item.value || false}
-                            onChange={(e) => handleToggle(item.label, e.target.checked)}
+                            onChange={(e) =>
+                              handleToggle(item.label, e.target.checked)
+                            }
                             size="small"
                           />
                           <Typography variant="body3">Yes</Typography>
                         </>
                       ) : (
-                        <Typography variant="body3">{item.value ? "Yes" : "No"}</Typography>
+                        <Typography variant="body3">
+                          {item.value ? "Yes" : "No"}
+                        </Typography>
                       )}
                     </Box>
                   )}
@@ -343,7 +359,10 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
                       }}
                     >
                       {uploadedDocs[item.label] && (
-                        <CheckCircleIcon color="success" sx={{ fontSize: 20 }} />
+                        <CheckCircleIcon
+                          color="success"
+                          sx={{ fontSize: 20 }}
+                        />
                       )}
                       <Button
                         variant="text"
@@ -369,7 +388,11 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
         {isEditMode ? (
           <>
             {_isConfirmed && (
-              <Button variant="text" sx={{ textTransform: "none" }} onClick={handleCancel}>
+              <Button
+                variant="text"
+                sx={{ textTransform: "none" }}
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
             )}
@@ -383,7 +406,11 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className, meetingI
             </Button>
           </>
         ) : (
-          <Button variant="outlined" sx={{ textTransform: "none" }} onClick={handleEdit}>
+          <Button
+            variant="outlined"
+            sx={{ textTransform: "none" }}
+            onClick={handleEdit}
+          >
             Edit
           </Button>
         )}

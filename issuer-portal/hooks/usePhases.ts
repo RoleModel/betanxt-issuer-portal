@@ -28,13 +28,19 @@ export interface Phase {
 
 // Removed unused type definitions to fix linter warnings
 
-const asString = (val: unknown): string | null => (typeof val === "string" ? val : null);
+const asString = (val: unknown): string | null =>
+  typeof val === "string" ? val : null;
 const asNumber = (val: unknown): number | null =>
   typeof val === "number" && Number.isFinite(val) ? val : null;
 const asRecord = (val: unknown): Record<string, unknown> | null =>
-  typeof val === "object" && val !== null ? (val as Record<string, unknown>) : null;
+  typeof val === "object" && val !== null
+    ? (val as Record<string, unknown>)
+    : null;
 
-const getStr = (obj: Record<string, unknown>, keys: string[]): string | null => {
+const getStr = (
+  obj: Record<string, unknown>,
+  keys: string[]
+): string | null => {
   for (const k of keys) {
     const v = asString(obj[k]);
     if (v !== null) return v;
@@ -42,7 +48,10 @@ const getStr = (obj: Record<string, unknown>, keys: string[]): string | null => 
   return null;
 };
 
-const getNum = (obj: Record<string, unknown>, keys: string[]): number | null => {
+const getNum = (
+  obj: Record<string, unknown>,
+  keys: string[]
+): number | null => {
   for (const k of keys) {
     const v = asNumber(obj[k]);
     if (v !== null) return v;
@@ -136,7 +145,7 @@ export const usePhases = (meetingId?: string): UsePhasesResult => {
       keepPreviousData: true,
       // Dedupe multiple requests in 2 second window
       dedupingInterval: 2000,
-    },
+    }
   );
 
   return {

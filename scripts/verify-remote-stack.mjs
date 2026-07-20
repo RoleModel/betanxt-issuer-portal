@@ -4,7 +4,8 @@
  * Usage: node scripts/verify-remote-stack.mjs
  */
 
-const API_BASE = process.env.API_BASE_URL ?? "https://bn-mock-api-server.vercel.app/api";
+const API_BASE =
+  process.env.API_BASE_URL ?? "https://bn-mock-api-server.vercel.app/api";
 const TICKER = process.env.VERIFY_TICKER ?? "FOC";
 
 async function fetchJson(path) {
@@ -19,19 +20,25 @@ async function fetchJson(path) {
 
 async function main() {
   const complete = await fetchJson("/meetings?status=COMPLETE");
-  const completeCount = Array.isArray(complete.meetings) ? complete.meetings.length : 0;
+  const completeCount = Array.isArray(complete.meetings)
+    ? complete.meetings.length
+    : 0;
 
   const byTicker = await fetchJson(
-    `/meetings?ticker=${encodeURIComponent(TICKER)}&status=COMPLETE`,
+    `/meetings?ticker=${encodeURIComponent(TICKER)}&status=COMPLETE`
   );
-  const tickerCount = Array.isArray(byTicker.meetings) ? byTicker.meetings.length : 0;
+  const tickerCount = Array.isArray(byTicker.meetings)
+    ? byTicker.meetings.length
+    : 0;
 
   console.log(`API: ${API_BASE}`);
   console.log(`COMPLETE meetings (all tickers): ${completeCount}`);
   console.log(`COMPLETE meetings (${TICKER}): ${tickerCount}`);
 
   if (completeCount < 100) {
-    console.error("FAIL: expected hundreds of COMPLETE meetings after seed:remote");
+    console.error(
+      "FAIL: expected hundreds of COMPLETE meetings after seed:remote"
+    );
     process.exit(1);
   }
 

@@ -40,7 +40,10 @@ export const clientBranding = [
 ];
 
 // Compute a logo base path (without extension) from client name/ticker
-export const computeClientLogoBase = (clientName?: string, ticker?: string): string => {
+export const computeClientLogoBase = (
+  clientName?: string,
+  ticker?: string
+): string => {
   if (ticker) {
     // Use uppercase for ticker since that's how the logo files are named
     const tickerUpper = ticker.toUpperCase();
@@ -60,7 +63,7 @@ export const computeClientLogoSrc = (
   clientName?: string,
   ticker?: string,
   defaultSrc = "/images/logo.svg",
-  suffix?: string,
+  suffix?: string
 ): string => {
   const base = computeClientLogoBase(clientName, ticker);
   // Prefer SVG for UI usage
@@ -131,7 +134,9 @@ export const loadClientLogoAsPngBase64 = async (opts: {
  * any non-PNG format) via canvas. Returns `undefined` instead of falling back
  * when the image cannot be fetched or converted.
  */
-export const loadImageAsPngDataUrl = async (url: string): Promise<string | undefined> => {
+export const loadImageAsPngDataUrl = async (
+  url: string
+): Promise<string | undefined> => {
   try {
     const res = await fetch(url);
     if (!res.ok) return undefined;

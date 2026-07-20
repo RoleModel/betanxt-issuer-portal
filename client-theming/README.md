@@ -40,12 +40,12 @@ Every function is JSDoc-annotated — hover in your editor for parameter docs an
 
 ### Which module runs where
 
-| Module                      | Environment                                  | Needs                         |
-| --------------------------- | -------------------------------------------- | ----------------------------- |
+| Module | Environment | Needs |
+| --- | --- | --- |
 | `client-theming/brandfetch` | **Server only** (API route, script, backend) | `BRANDFETCH_API_KEY`, `fetch` |
-| `client-theming/theme`      | Isomorphic                                   | `@mui/material`               |
-| `client-theming/brand`      | Isomorphic                                   | —                             |
-| `client-theming/logo`       | **Browser only**                             | `document`, `canvas`, `fetch` |
+| `client-theming/theme` | Isomorphic | `@mui/material` |
+| `client-theming/brand` | Isomorphic | — |
+| `client-theming/logo` | **Browser only** | `document`, `canvas`, `fetch` |
 
 > Keep `BRANDFETCH_API_KEY` server-side. It's a private, billable credential — never ship it to the browser.
 
@@ -137,7 +137,11 @@ import "@rolemodel/client-theming/theme";
 ### 2. Fetch a brand from Brandfetch (server-side)
 
 ```ts
-import { fetchBrand, fetchBrandByName, pickBrandColors } from "@rolemodel/client-theming/brandfetch";
+import {
+  fetchBrand,
+  fetchBrandByName,
+  pickBrandColors,
+} from "@rolemodel/client-theming/brandfetch";
 
 const brand = await fetchBrand("paycom.com"); // by domain
 const byName = await fetchBrandByName("Paycom"); // search + fetch
@@ -150,7 +154,10 @@ if (brand) {
 ### 3. Look up brands in the registry
 
 ```ts
-import { getBrandConfigByTicker, getBrandLogoPath } from "@rolemodel/client-theming/brand";
+import {
+  getBrandConfigByTicker,
+  getBrandLogoPath,
+} from "@rolemodel/client-theming/brand";
 
 const config = getBrandConfigByTicker("WEN"); // BrandConfig | null
 const logo = getBrandLogoPath("The Wendy's Company");
@@ -160,7 +167,10 @@ const logo = getBrandLogoPath("The Wendy's Company");
 
 ```ts
 "use client";
-import { loadClientLogoAsPngBase64, loadImageAsPngDataUrl } from "@rolemodel/client-theming/logo";
+import {
+  loadClientLogoAsPngBase64,
+  loadImageAsPngDataUrl,
+} from "@rolemodel/client-theming/logo";
 
 const dataUrl = await loadClientLogoAsPngBase64({ ticker: "WEN" });
 const anyLogo = await loadImageAsPngDataUrl("/logos/brands/acme_logo.svg"); // rasterizes SVG
@@ -175,7 +185,10 @@ const anyLogo = await loadImageAsPngDataUrl("/logos/brands/acme_logo.svg"); // r
 ```ts
 // scripts/generate-registry.ts  — run with: npx tsx scripts/generate-registry.ts
 import { writeFileSync } from "node:fs";
-import { fetchBrandByName, brandResponseToBrandConfig } from "@rolemodel/client-theming/brandfetch";
+import {
+  fetchBrandByName,
+  brandResponseToBrandConfig,
+} from "@rolemodel/client-theming/brandfetch";
 import type { BrandConfig } from "@rolemodel/client-theming/brand";
 
 const companies = [
@@ -186,13 +199,17 @@ const companies = [
 const registry: Record<string, BrandConfig> = {};
 for (const { name, ticker } of companies) {
   const brand = await fetchBrandByName(name);
-  if (brand) registry[name] = brandResponseToBrandConfig(brand, { ticker, companyName: name });
+  if (brand)
+    registry[name] = brandResponseToBrandConfig(brand, {
+      ticker,
+      companyName: name,
+    });
 }
 
 writeFileSync(
   "src/brand/registry.generated.ts",
   `import type { BrandConfig } from "./types";\n\n` +
-    `export const brandConfigs: Record<string, BrandConfig> = ${JSON.stringify(registry, null, 2)};\n`,
+    `export const brandConfigs: Record<string, BrandConfig> = ${JSON.stringify(registry, null, 2)};\n`
 );
 ```
 

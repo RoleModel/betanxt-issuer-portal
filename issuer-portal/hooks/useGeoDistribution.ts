@@ -12,7 +12,10 @@ import { useMemo } from "react";
 import useSWR from "swr";
 
 import buildApiClient from "@/domain-models/apiClient";
-import { type HolderCategory, normalizeHolderCategory } from "@/utils/holderCategory";
+import {
+  type HolderCategory,
+  normalizeHolderCategory,
+} from "@/utils/holderCategory";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
 /** Bucket label for positions outside the United States. */
@@ -132,11 +135,14 @@ const normalizeGeoPosition = (value: unknown): GeoPosition | null => {
   const record = asRecord(value);
   if (!record) return null;
 
-  const accountType = asString(record.account_type) ?? asString(record.accountType) ?? "";
+  const accountType =
+    asString(record.account_type) ?? asString(record.accountType) ?? "";
   // Missing holderCategory falls back to the legacy accountType inference
   const holderCategory =
     normalizeHolderCategory(record.holder_category ?? record.holderCategory) ??
-    (accountType === LEGACY_REGISTERED_ACCOUNT_TYPE ? "REGISTERED" : "BENEFICIAL");
+    (accountType === LEGACY_REGISTERED_ACCOUNT_TYPE
+      ? "REGISTERED"
+      : "BENEFICIAL");
 
   return {
     holderCategory,
@@ -157,7 +163,9 @@ const fetchGeoPositions = async (meetingId: string): Promise<GeoPosition[]> => {
     throw new Error("Failed to fetch positions");
   }
 
-  const positionsRaw = Array.isArray(data) ? data : asArray(asRecord(data)?.positions);
+  const positionsRaw = Array.isArray(data)
+    ? data
+    : asArray(asRecord(data)?.positions);
   return positionsRaw
     .map((position) => normalizeGeoPosition(position))
     .filter((position): position is GeoPosition => position !== null);
@@ -168,7 +176,9 @@ const fetchGeoPositions = async (meetingId: string): Promise<GeoPosition[]> => {
  * state value; a recognized US state/territory code maps to that state;
  * anything else falls into the Unknown bucket.
  */
-const resolveLocation = (position: GeoPosition): { location: string; kind: GeoLocationKind } => {
+const resolveLocation = (
+  position: GeoPosition
+): { location: string; kind: GeoLocationKind } => {
   const country = position.country?.trim().toUpperCase() ?? null;
   const state = position.state?.trim().toUpperCase() ?? null;
 
@@ -197,7 +207,7 @@ const resolveLocation = (position: GeoPosition): { location: string; kind: GeoLo
  */
 export const useGeoDistribution = (
   meetingId: string | undefined,
-  includedCategories: readonly HolderCategory[],
+  includedCategories: readonly HolderCategory[]
 ): UseGeoDistributionResult => {
   const { data, error, isLoading } = useSWR(
     meetingId ? (["/geo-distribution", meetingId] as const) : null,
@@ -206,7 +216,7 @@ export const useGeoDistribution = (
       revalidateOnFocus: false,
       keepPreviousData: true,
       dedupingInterval: 2000,
-    },
+    }
   );
 
   const includedKey = includedCategories.join(",");

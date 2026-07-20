@@ -2,7 +2,13 @@
 
 import type { ReactNode } from "react";
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
@@ -20,17 +26,21 @@ interface DocumentContextType {
     meetingId: string,
     files: File[],
     documentType: string,
-    associations?: Record<string, string>,
+    associations?: Record<string, string>
   ) => Promise<void>;
 }
 
-const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
+const DocumentContext = createContext<DocumentContextType | undefined>(
+  undefined
+);
 
 interface DocumentProviderProps {
   children: ReactNode;
 }
 
-export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) => {
+export const DocumentProvider: React.FC<DocumentProviderProps> = ({
+  children,
+}) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [dsmDocuments, setDsmDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,9 +54,12 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       setError(null);
 
       const apiClient = await buildApiClient();
-      const { data, error: apiError } = await apiClient.GET("/meetings/{meetingId}/documents", {
-        params: { path: { meetingId } },
-      });
+      const { data, error: apiError } = await apiClient.GET(
+        "/meetings/{meetingId}/documents",
+        {
+          params: { path: { meetingId } },
+        }
+      );
 
       if (apiError || !data) {
         setError("Failed to fetch documents");
@@ -77,7 +90,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       console.log(
         "[DocumentContext] DSM documents:",
         dsm.length,
-        dsm.map((d) => ({ title: d.title, type: d.type })),
+        dsm.map((d) => ({ title: d.title, type: d.type }))
       );
       console.log("[DocumentContext] Regular documents:", regular.length);
 
@@ -95,7 +108,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       meetingId: string,
       files: File[],
       documentType: string,
-      associations?: Record<string, string>,
+      associations?: Record<string, string>
     ) => {
       try {
         setLoading(true);
@@ -108,7 +121,8 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
           // 2. filename-filesize (used by FileUploadDialog)
           const fileIndexKey = `file_${index}`;
           const fileNameSizeKey = `${file.name}-${file.size}`;
-          const associationId = associations?.[fileIndexKey] || associations?.[fileNameSizeKey];
+          const associationId =
+            associations?.[fileIndexKey] || associations?.[fileNameSizeKey];
           const title = associationId || file.name;
 
           const fileData = await new Promise<string>((resolve, reject) => {
@@ -120,11 +134,13 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
                 reject(new Error(`Failed to read ${file.name}`));
               }
             };
-            reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+            reader.onerror = () =>
+              reject(new Error(`Failed to read ${file.name}`));
             reader.readAsDataURL(file);
           });
 
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+          const apiBaseUrl =
+            process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
           const response = await fetch(
             `${apiBaseUrl}/meetings/${encodeURIComponent(meetingId)}/documents`,
             {
@@ -137,7 +153,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
                 type: documentType,
                 file: fileData,
               }),
-            },
+            }
           );
 
           if (!response.ok) {
@@ -160,7 +176,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
         setLoading(false);
       }
     },
-    [refreshDocuments],
+    [refreshDocuments]
   );
 
   const value: DocumentContextType = useMemo(
@@ -172,10 +188,14 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
       refreshDocuments,
       uploadDocument,
     }),
-    [documents, dsmDocuments, loading, error, refreshDocuments, uploadDocument],
+    [documents, dsmDocuments, loading, error, refreshDocuments, uploadDocument]
   );
 
-  return <DocumentContext.Provider value={value}>{children}</DocumentContext.Provider>;
+  return (
+    <DocumentContext.Provider value={value}>
+      {children}
+    </DocumentContext.Provider>
+  );
 };
 
 export const useDocuments = (): DocumentContextType => {

@@ -66,6 +66,10 @@ if (process.env.NODE_ENV === "development") {
   performance.mark("appbar-render-start");
   // ... component logic
   performance.mark("appbar-render-end");
-  performance.measure("appbar-render", "appbar-render-start", "appbar-render-end");
+  performance.measure(
+    "appbar-render",
+    "appbar-render-start",
+    "appbar-render-end"
+  );
 }
 ```

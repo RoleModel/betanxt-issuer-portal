@@ -11,7 +11,9 @@ import { MeetingProvider } from "@/contexts/MeetingContext";
 
 // Main meeting layout with normal nested routes
 // EventTabs stay mounted while nested routes change
-export default function MeetingLayout(props: LayoutProps<"/[clientTicker]/meeting">) {
+export default function MeetingLayout(
+  props: LayoutProps<"/[clientTicker]/meeting">
+) {
   return (
     <MeetingProvider>
       <DocumentProvider>

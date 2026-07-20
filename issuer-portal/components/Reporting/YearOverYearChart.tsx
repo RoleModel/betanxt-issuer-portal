@@ -43,7 +43,12 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <Box display="flex" alignItems="center" justifyContent="center" height={300}>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        height={300}
+      >
         <Typography variant="body1" color="text.secondary">
           No year over year data available
         </Typography>

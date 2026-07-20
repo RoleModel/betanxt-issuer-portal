@@ -10,7 +10,10 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type { ListNotifications200Response, Notification } from "../models/index";
+import type {
+  ListNotifications200Response,
+  Notification,
+} from "../models/index";
 
 import {
   ListNotifications200ResponseFromJSON,
@@ -41,7 +44,7 @@ export class NotificationsApi extends runtime.BaseAPI {
    */
   async listNotificationsRaw(
     requestParameters: ListNotificationsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<ListNotifications200Response>> {
     const queryParameters: any = {};
 
@@ -85,11 +88,11 @@ export class NotificationsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      ListNotifications200ResponseFromJSON(jsonValue),
+      ListNotifications200ResponseFromJSON(jsonValue)
     );
   }
 
@@ -98,9 +101,12 @@ export class NotificationsApi extends runtime.BaseAPI {
    */
   async listNotifications(
     requestParameters: ListNotificationsRequest = {},
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<ListNotifications200Response> {
-    const response = await this.listNotificationsRaw(requestParameters, initOverrides);
+    const response = await this.listNotificationsRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -109,12 +115,12 @@ export class NotificationsApi extends runtime.BaseAPI {
    */
   async markNotificationReadRaw(
     requestParameters: MarkNotificationReadRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Notification>> {
     if (requestParameters["notificationId"] == null) {
       throw new runtime.RequiredError(
         "notificationId",
-        'Required parameter "notificationId" was null or undefined when calling markNotificationRead().',
+        'Required parameter "notificationId" was null or undefined when calling markNotificationRead().'
       );
     }
 
@@ -134,7 +140,7 @@ export class NotificationsApi extends runtime.BaseAPI {
     let urlPath = `/notifications/{notificationId}/mark-read`;
     urlPath = urlPath.replace(
       `{${"notificationId"}}`,
-      encodeURIComponent(String(requestParameters["notificationId"])),
+      encodeURIComponent(String(requestParameters["notificationId"]))
     );
 
     const response = await this.request(
@@ -144,10 +150,12 @@ export class NotificationsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => NotificationFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      NotificationFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -155,9 +163,12 @@ export class NotificationsApi extends runtime.BaseAPI {
    */
   async markNotificationRead(
     requestParameters: MarkNotificationReadRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Notification> {
-    const response = await this.markNotificationReadRaw(requestParameters, initOverrides);
+    const response = await this.markNotificationReadRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 }

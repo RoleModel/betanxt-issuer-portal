@@ -31,7 +31,12 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
 
   if (!data.meetings || data.meetings.length === 0) {
     return (
-      <Box display="flex" alignItems="center" justifyContent="center" height={300}>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        height={300}
+      >
         <Typography variant="body1" color="text.secondary">
           No participation data available
         </Typography>
@@ -50,7 +55,9 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
     return acc;
   }, new Map<string, { sum: number; count: number }>());
 
-  const years = Array.from(aggByYear.keys()).sort((a, b) => Number(a) - Number(b));
+  const years = Array.from(aggByYear.keys()).sort(
+    (a, b) => Number(a) - Number(b)
+  );
   const values = years.map((y) => {
     const { sum, count } = aggByYear.get(y) as { sum: number; count: number };
     return sum / Math.max(1, count);
@@ -66,7 +73,8 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
           {
             scaleType: "band",
             data: indices,
-            valueFormatter: (v) => years[typeof v === "number" ? v : Number(v)] ?? "",
+            valueFormatter: (v) =>
+              years[typeof v === "number" ? v : Number(v)] ?? "",
           },
         ]}
         yAxis={[
@@ -79,7 +87,8 @@ const ParticipationChart: React.FC<ParticipationChartProps> = ({
         series={[
           {
             data: values,
-            valueFormatter: (v: number | null) => (v == null ? "" : `${v.toFixed(1)}%`),
+            valueFormatter: (v: number | null) =>
+              v == null ? "" : `${v.toFixed(1)}%`,
             color: "var(--mui-palette-chartSeries-4-main)",
           },
         ]}

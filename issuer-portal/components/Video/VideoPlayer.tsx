@@ -125,7 +125,8 @@ export default function VideoPlayer({
         sx={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(to bottom, rgba(3, 47, 63, 0) 0%, rgba(3, 47, 63, 1) 100%)",
+          background:
+            "linear-gradient(to bottom, rgba(3, 47, 63, 0) 0%, rgba(3, 47, 63, 1) 100%)",
         }}
       />
 
@@ -207,7 +208,8 @@ export default function VideoPlayer({
             bottom: 0,
             left: 0,
             right: 0,
-            background: "linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 100%)",
+            background:
+              "linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 100%)",
             padding: 2,
             opacity: showControls || !isPlaying ? 1 : 0,
             transition: "opacity 0.3s ease",
@@ -240,7 +242,11 @@ export default function VideoPlayer({
             />
 
             {/* Control buttons */}
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+            >
               <Stack direction="row" alignItems="center" spacing={1}>
                 <IconButton
                   onClick={(e) => {
@@ -253,7 +259,10 @@ export default function VideoPlayer({
                   {isPlaying ? <Pause /> : <PlayArrow />}
                 </IconButton>
 
-                <Typography variant="caption" sx={{ color: "white", minWidth: 80 }}>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "white", minWidth: 80 }}
+                >
                   {formatTime(currentTime)} / {formatTime(duration)}
                 </Typography>
               </Stack>

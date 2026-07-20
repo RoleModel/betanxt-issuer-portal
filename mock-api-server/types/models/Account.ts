@@ -75,17 +75,23 @@ export function AccountFromJSON(json: any): Account {
   return AccountFromJSONTyped(json, false);
 }
 
-export function AccountFromJSONTyped(json: any, ignoreDiscriminator: boolean): Account {
+export function AccountFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Account {
   if (json == null) {
     return json;
   }
   return {
     id: json["id"] == null ? undefined : json["id"],
     name: json["name"] == null ? undefined : json["name"],
-    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
+    primaryContact:
+      json["primaryContact"] == null ? undefined : json["primaryContact"],
     clientId: json["clientId"] == null ? undefined : json["clientId"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    client: json["client"] == null ? undefined : ClientsFromJSON(json["client"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    client:
+      json["client"] == null ? undefined : ClientsFromJSON(json["client"]),
   };
 }
 
@@ -95,7 +101,7 @@ export function AccountToJSON(json: any): Account {
 
 export function AccountToJSONTyped(
   value?: Account | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -106,7 +112,8 @@ export function AccountToJSONTyped(
     name: value["name"],
     primaryContact: value["primaryContact"],
     clientId: value["clientId"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
     client: ClientsToJSON(value["client"]),
   };
 }

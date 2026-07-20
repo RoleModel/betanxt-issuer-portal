@@ -39,7 +39,8 @@ export function fontSizeScaledBy(numberToDisplay: number) {
 }
 
 export const truncateNumber = (num: number | string) => {
-  const parsedNum = typeof num === "string" ? parseFloat(num.replace(/,/g, "")) : num;
+  const parsedNum =
+    typeof num === "string" ? parseFloat(num.replace(/,/g, "")) : num;
 
   if (!Number.isFinite(parsedNum)) {
     return typeof num === "string" ? num : "0";

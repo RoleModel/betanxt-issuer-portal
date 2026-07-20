@@ -18,6 +18,7 @@ async function fetchMeetings(ticker?: string): Promise<Meeting[]> {
 
 export const getMeetingsCached = cacheFn(
   fetchMeetings,
-  (ticker?: string) => (ticker ? [CACHE_TAGS.CLIENT(ticker)] : ["meetings:all"]),
-  { revalidate: 120 },
+  (ticker?: string) =>
+    ticker ? [CACHE_TAGS.CLIENT(ticker)] : ["meetings:all"],
+  { revalidate: 120 }
 );

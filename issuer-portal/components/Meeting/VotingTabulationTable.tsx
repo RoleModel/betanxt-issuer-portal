@@ -54,11 +54,15 @@ export default function VotingTabulationTable({
   return (
     <TableContainer>
       <Table>
-        <SROnlyTableCaption>Voting tabulation for proposals.</SROnlyTableCaption>
+        <SROnlyTableCaption>
+          Voting tabulation for proposals.
+        </SROnlyTableCaption>
         <TableHead>
           <TableRow>
             <TableCell>Proposals</TableCell>
-            <TableCell sx={{ width: "100px" }}>Management Recommendation</TableCell>
+            <TableCell sx={{ width: "100px" }}>
+              Management Recommendation
+            </TableCell>
             <TableCell align="right">{votingLabels.for}</TableCell>
             <TableCell align="right">{votingLabels.against}</TableCell>
             <TableCell align="right">{votingLabels.abstain}</TableCell>
@@ -79,12 +83,18 @@ export default function VotingTabulationTable({
               </TableCell>
 
               <TableCell>
-                <Typography variant="body3">{proposal.recommendation || "N/A"}</Typography>
+                <Typography variant="body3">
+                  {proposal.recommendation || "N/A"}
+                </Typography>
               </TableCell>
 
               <TableCell align="right">
                 <Box>
-                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: "left" }}>
+                  <Typography
+                    variant="body3"
+                    fontWeight="medium"
+                    sx={{ textAlign: "left" }}
+                  >
                     {formatPercentage(proposal.votingResults.for.percentage)}
                   </Typography>
                   <LinearProgress
@@ -97,8 +107,14 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: "left" }}>
-                    {formatPercentage(proposal.votingResults.against.percentage)}
+                  <Typography
+                    variant="body3"
+                    fontWeight="medium"
+                    sx={{ textAlign: "left" }}
+                  >
+                    {formatPercentage(
+                      proposal.votingResults.against.percentage
+                    )}
                   </Typography>
                   <LinearProgress
                     color="chartSeries[3].main"
@@ -110,8 +126,14 @@ export default function VotingTabulationTable({
 
               <TableCell align="right">
                 <Box>
-                  <Typography variant="body3" fontWeight="medium" sx={{ textAlign: "left" }}>
-                    {formatPercentage(proposal.votingResults.abstain.percentage)}
+                  <Typography
+                    variant="body3"
+                    fontWeight="medium"
+                    sx={{ textAlign: "left" }}
+                  >
+                    {formatPercentage(
+                      proposal.votingResults.abstain.percentage
+                    )}
                   </Typography>
                   <LinearProgress
                     color="chartSeries[2].main"

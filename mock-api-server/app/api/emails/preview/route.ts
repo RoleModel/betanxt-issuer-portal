@@ -13,7 +13,8 @@ const DOCUMENT_FIXTURE = {
   issuerAccountName: "Sample Issuer Account",
   documentName: "Proxy Notice",
   uploaderName: "Sarah Chen",
-  documentDescription: "Sarah Chen has uploaded the first draft of the Proxy Notice.",
+  documentDescription:
+    "Sarah Chen has uploaded the first draft of the Proxy Notice.",
   uploadDate: "2026-06-02T12:00:00.000Z",
   viewDocumentUrl: "http://localhost:3000/documents/preview",
   portalBaseUrl: "http://localhost:3000",
@@ -30,7 +31,8 @@ const TABULATION_FIXTURE = {
   totalSharesVoted: 6_842_000,
   quorumRequired: 50,
   quorumMet: true,
-  viewTabulationUrl: "http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/tabulation",
+  viewTabulationUrl:
+    "http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/tabulation",
   portalBaseUrl: "http://localhost:3000",
   proposals: [
     {
@@ -74,7 +76,9 @@ const TABULATION_FIXTURE = {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   if (process.env.ENABLE_EMAIL_PREVIEW !== "true") {
-    return withCors(NextResponse.json({ error: "Not available" }, { status: 404 }));
+    return withCors(
+      NextResponse.json({ error: "Not available" }, { status: 404 })
+    );
   }
 
   const { searchParams } = new URL(request.url);
@@ -87,7 +91,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } else if (template === "tabulation-daily-report") {
     element = React.createElement(TabulationReportEmail, TABULATION_FIXTURE);
   } else {
-    return withCors(NextResponse.json({ error: "Unknown template" }, { status: 400 }));
+    return withCors(
+      NextResponse.json({ error: "Unknown template" }, { status: 400 })
+    );
   }
 
   const html = await render(element);

@@ -1,7 +1,13 @@
 "use client";
 
 import { OpenInNew } from "@mui/icons-material";
-import { Card, CardContent, CardHeader, Stack, Typography } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Stack,
+  Typography,
+} from "@mui/material";
 import GearProcessIcon from "@rolemodel/betanxt-design-system/components/icons/brand/GearProcessIcon";
 import GroupMeetingIcon from "@rolemodel/betanxt-design-system/components/icons/brand/GroupMeetingIcon";
 import StarBadgeIcon from "@rolemodel/betanxt-design-system/components/icons/brand/StarBadgeIcon";
@@ -51,9 +57,12 @@ export default function EndToEndProxySolutionsPage() {
       description: (
         <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
           <li>Dedicated proxy experts manage your entire campaign</li>
-          <li>In-depth analysis of your timeline, pre-record date data and budget</li>
           <li>
-            Secure file transfer protocols and procedures to maikain control of your dela and event
+            In-depth analysis of your timeline, pre-record date data and budget
+          </li>
+          <li>
+            Secure file transfer protocols and procedures to maikain control of
+            your dela and event
           </li>
         </ul>
       ),
@@ -63,7 +72,10 @@ export default function EndToEndProxySolutionsPage() {
       title: "Print and distribution management",
       description: (
         <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
-          <li>Custom-branded shareholder materials including multi-color print capabilities</li>
+          <li>
+            Custom-branded shareholder materials including multi-color print
+            capabilities
+          </li>
           <li>Scalable, integrated print and distribution network</li>
           <li>Enhanced mail, e-delivery, and text capabilities</li>
         </ul>
@@ -75,7 +87,10 @@ export default function EndToEndProxySolutionsPage() {
       description: (
         <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
           <li>Real-time vote tracking and reporting available</li>
-          <li>24 / 7 In-depth data analytics and vote modeling for all tabulation scenarios</li>
+          <li>
+            24 / 7 In-depth data analytics and vote modeling for all tabulation
+            scenarios
+          </li>
         </ul>
       ),
     },
@@ -96,12 +111,14 @@ export default function EndToEndProxySolutionsPage() {
     <Stack gap={2}>
       <ContentTitle title="Achieve quorum and proposal passage by generating greater participation" />
       <Typography variant="body1">
-        <strong>MIC Digital Shareholder Meeting (DSM)</strong> enables shareholders to participate
-        in annual meetings remotely with the same level of access as in-person attendees - they can
-        view, vote, and ask questions. DSM also allows you to shape your meeting to best facilitate
-        your shareholders&apos; engagement with ease of access on any device, real-time voting,
-        questions, polling, and more. Combined with the platform&apos;s Q&A management capabilities,
-        branding options, and high-touch service, DSM is the industry&apos;s most innovative and
+        <strong>MIC Digital Shareholder Meeting (DSM)</strong> enables
+        shareholders to participate in annual meetings remotely with the same
+        level of access as in-person attendees - they can view, vote, and ask
+        questions. DSM also allows you to shape your meeting to best facilitate
+        your shareholders&apos; engagement with ease of access on any device,
+        real-time voting, questions, polling, and more. Combined with the
+        platform&apos;s Q&A management capabilities, branding options, and
+        high-touch service, DSM is the industry&apos;s most innovative and
         leading platform.
       </Typography>
       <Card>
@@ -173,12 +190,16 @@ export default function EndToEndProxySolutionsPage() {
       }}
     >
       <Typography variant="body3" component="p" gutterBottom>
-        Get a complete look at the tools and services available to you in one place.
+        Get a complete look at the tools and services available to you in one
+        place.
       </Typography>
     </SidebarCard>
   );
 
   return (
-    <ProductsLayout leftColumnContent={leftColumnContent} rightColumnContent={rightColumnContent} />
+    <ProductsLayout
+      leftColumnContent={leftColumnContent}
+      rightColumnContent={rightColumnContent}
+    />
   );
 }

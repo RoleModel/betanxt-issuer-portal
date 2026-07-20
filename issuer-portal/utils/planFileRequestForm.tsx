@@ -67,7 +67,7 @@ interface FormHandlerProps {
   onDocumentOpen: (
     documentUrl: string,
     documentId: string,
-    signatureAreas: SignatureArea[],
+    signatureAreas: SignatureArea[]
   ) => void;
   clientData?: ClientData;
 }
@@ -233,7 +233,9 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
             <PDFImage style={styles.logo} src={logoBase64} />
           ) : (
             <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoText}>{clientData?.ticker ?? "LOGO"}</Text>
+              <Text style={styles.logoText}>
+                {clientData?.ticker ?? "LOGO"}
+              </Text>
             </View>
           )}
           <Text style={styles.date}>{currentDate}</Text>
@@ -241,26 +243,35 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
 
         {/* Recipient information */}
         <View style={styles.recipient}>
-          <Text style={styles.recipientText}>Dan Spengel (daniel.spengel@equiniti.com)</Text>
+          <Text style={styles.recipientText}>
+            Dan Spengel (daniel.spengel@equiniti.com)
+          </Text>
           <Text style={styles.recipientText}>EQ (AST &amp; Equiniti)</Text>
-          <Text style={styles.recipientText}>Re: {clientData?.issuerName ?? "[COMPANY NAME]"}</Text>
+          <Text style={styles.recipientText}>
+            Re: {clientData?.issuerName ?? "[COMPANY NAME]"}
+          </Text>
         </View>
 
         {/* Main letter text - different from Transfer Agent */}
         <Text style={styles.mainText}>
-          Please use this letter as authorization and instruction to send our Registered Shareholder
-          files as of our Proxy Record Date as stated below.
+          Please use this letter as authorization and instruction to send our
+          Registered Shareholder files as of our Proxy Record Date as stated
+          below.
         </Text>
 
         {/* Meeting details table */}
         <View style={styles.table}>
           <View style={styles.tableRow}>
             <Text style={styles.tableLabel}>Issuer:</Text>
-            <Text style={styles.tableValue}>{clientData?.issuerName ?? "[COMPANY NAME]"}</Text>
+            <Text style={styles.tableValue}>
+              {clientData?.issuerName ?? "[COMPANY NAME]"}
+            </Text>
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.tableLabel}>CUSIP:</Text>
-            <Text style={styles.tableValue}>{clientData?.cusipNumber ?? "[CUSIP]"}</Text>
+            <Text style={styles.tableValue}>
+              {clientData?.cusipNumber ?? "[CUSIP]"}
+            </Text>
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.tableLabel}>Date:</Text>
@@ -274,31 +285,34 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
 
         {/* Important notice text */}
         <Text style={styles.noticeText}>
-          Please ensure that the share total of the file extract matches the Proxy Record Date
-          balance that is provided to us for inclusion into the Proxy Statement.
+          Please ensure that the share total of the file extract matches the
+          Proxy Record Date balance that is provided to us for inclusion into
+          the Proxy Statement.
         </Text>
 
         <Text style={styles.noticeText}>
-          An appropriate and adjusted file (if necessary) MUST be provided to BetaNXT so that the
-          file as of the Record Date would MATCH the number you indicate that is to appear in our
-          Proxy Statement.
+          An appropriate and adjusted file (if necessary) MUST be provided to
+          BetaNXT so that the file as of the Record Date would MATCH the number
+          you indicate that is to appear in our Proxy Statement.
         </Text>
 
         <Text style={styles.noticeText}>
-          You will be contacted if adjustments must be made by BetaNXT in order to match or balance
-          the file you deliver with the figure you provide to us as appearing in the Proxy Statement
-          in order to maintain the integrity and accuracy of the shareholder record file.
+          You will be contacted if adjustments must be made by BetaNXT in order
+          to match or balance the file you deliver with the figure you provide
+          to us as appearing in the Proxy Statement in order to maintain the
+          integrity and accuracy of the shareholder record file.
         </Text>
 
         <Text style={styles.noticeText}>
-          If there are any registered shareholder email addresses who have consented to receive
-          electronic delivery of proxy material, please indicate and include on the record date
-          file.
+          If there are any registered shareholder email addresses who have
+          consented to receive electronic delivery of proxy material, please
+          indicate and include on the record date file.
         </Text>
 
         {/* File requirements section */}
         <Text style={styles.sectionHeader}>
-          In preparation for receiving the files, BetaNXT&#39;s file requirements are as follows:
+          In preparation for receiving the files, BetaNXT&#39;s file
+          requirements are as follows:
         </Text>
 
         <View style={styles.bulletList}>
@@ -311,39 +325,47 @@ const PlanFileRequestPDFDocument: React.FC<PlanFileRequestPDFDocumentProps> = ({
           <View style={styles.bulletRow}>
             <Text style={styles.bullet}>•</Text>
             <Text style={styles.bulletText}>
-              Please provide a file layout if not identical to prescribed or pre-established
-              standards
+              Please provide a file layout if not identical to prescribed or
+              pre-established standards
             </Text>
           </View>
           <View style={styles.bulletRow}>
             <Text style={styles.bullet}>•</Text>
             <Text style={styles.bulletText}>
-              Please provide control totals (Total Number of Records and Total Shares)
+              Please provide control totals (Total Number of Records and Total
+              Shares)
             </Text>
           </View>
         </View>
 
         {/* Delivery instructions */}
         <Text style={styles.deliveryText}>
-          As is customary, BetaNXT will accept the files through their secure portal ONLY, or,
-          password protected file through a secure, encrypted, and/or otherwise secure format as
-          pre-established. Please note that the Relationship Manager assigned to handle my account
-          is Robert Anderson robert.anderson@betanxt.com of Mediant Communications, and can also be
-          reached at Mediant.Gold.Team@Betanxt.com
+          As is customary, BetaNXT will accept the files through their secure
+          portal ONLY, or, password protected file through a secure, encrypted,
+          and/or otherwise secure format as pre-established. Please note that
+          the Relationship Manager assigned to handle my account is Robert
+          Anderson robert.anderson@betanxt.com of Mediant Communications, and
+          can also be reached at Mediant.Gold.Team@Betanxt.com
         </Text>
 
         {/* Signature section */}
         <View style={styles.signature}>
           <Text style={styles.signatureThankYou}>Thank you,</Text>
-          <Text style={styles.signatureName}>{clientData?.contactName ?? "[AUTHORITY NAME]"}</Text>
-          <Text style={styles.signatureName}>{clientData?.issuerName ?? "[COMPANY NAME]"}</Text>
+          <Text style={styles.signatureName}>
+            {clientData?.contactName ?? "[AUTHORITY NAME]"}
+          </Text>
+          <Text style={styles.signatureName}>
+            {clientData?.issuerName ?? "[COMPANY NAME]"}
+          </Text>
         </View>
       </Page>
     </Document>
   );
 };
 
-const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<string> => {
+const generatePlanFileRequestPDF = async (
+  clientData?: ClientData
+): Promise<string> => {
   // Try to load client logo
   let logoBase64: string | undefined;
 
@@ -351,10 +373,19 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
     try {
       const logoPath = `/logos/${clientData.ticker.toUpperCase()}_logo.png`;
 
-      console.log("[PlanFileRequestForm] Loading logo from:", logoPath, "clientData:", clientData);
+      console.log(
+        "[PlanFileRequestForm] Loading logo from:",
+        logoPath,
+        "clientData:",
+        clientData
+      );
       const response = await fetch(logoPath);
 
-      console.log("[PlanFileRequestForm] Logo fetch response:", response.ok, response.status);
+      console.log(
+        "[PlanFileRequestForm] Logo fetch response:",
+        response.ok,
+        response.status
+      );
       if (response.ok) {
         const blob = await response.blob();
         const reader = new FileReader();
@@ -366,7 +397,7 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
 
         console.log(
           "[PlanFileRequestForm] Logo loaded successfully, base64 length:",
-          logoBase64?.length,
+          logoBase64?.length
         );
       }
     } catch (error) {
@@ -378,7 +409,10 @@ const generatePlanFileRequestPDF = async (clientData?: ClientData): Promise<stri
 
   // Generate the PDF
   const pdfBlob = await pdf(
-    <PlanFileRequestPDFDocument clientData={clientData} logoBase64={logoBase64} />,
+    <PlanFileRequestPDFDocument
+      clientData={clientData}
+      logoBase64={logoBase64}
+    />
   ).toBlob();
 
   // Convert blob to data URI
@@ -397,7 +431,10 @@ export const handleFormDownload = async (clientData?: ClientData) => {
   downloadLink.click();
 };
 
-export const handleFormSign = async ({ onDocumentOpen, clientData }: FormHandlerProps) => {
+export const handleFormSign = async ({
+  onDocumentOpen,
+  clientData,
+}: FormHandlerProps) => {
   // Generate the PDF form
   const pdfDataUri = await generatePlanFileRequestPDF(clientData);
 

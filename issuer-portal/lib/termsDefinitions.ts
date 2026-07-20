@@ -178,7 +178,8 @@ export const termsDefinitions = {
   tabulation: {
     category: "Proxy & Voting",
     term: "Tabulation",
-    definition: "The act of counting shareholder votes cast for an annual or special meeting.",
+    definition:
+      "The act of counting shareholder votes cast for an annual or special meeting.",
   },
   votinginstructionform: {
     category: "Proxy & Voting",
@@ -557,7 +558,8 @@ export const termsDefinitions = {
   custodian: {
     category: "Roles & Intermediaries",
     term: "Custodian",
-    definition: "A financial institution that holds securities for another person or entity.",
+    definition:
+      "A financial institution that holds securities for another person or entity.",
   },
   depositaries: {
     category: "Roles & Intermediaries",

@@ -37,7 +37,11 @@ test.describe("Reporting Data Verification", () => {
     await page.waitForSelector("text=Reporting", { timeout: 15000 });
 
     // Look for director names from CSV data
-    const directorNames = ["Arthur B. Winkleblack", "Peter W. May", "Wendy C. Arlin"];
+    const directorNames = [
+      "Arthur B. Winkleblack",
+      "Peter W. May",
+      "Wendy C. Arlin",
+    ];
 
     // Check if at least one director is visible
     let foundDirector = false;
@@ -83,7 +87,9 @@ test.describe("Reporting Data Verification", () => {
     }
   });
 
-  test("should show year-over-year data for completed meetings", async ({ page }) => {
+  test("should show year-over-year data for completed meetings", async ({
+    page,
+  }) => {
     await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load

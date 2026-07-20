@@ -1,7 +1,6 @@
 # Tasks: Shareholder Proxy Document Management
 
-NOTE (Divergence Update - Direct Supabase Integration Implemented):
-We implemented an initial thin data-access layer directly against the existing Supabase tables (table `document`) ahead of the originally planned OpenAPI-first workflow. The following unplanned but completed adjustments occurred:
+NOTE (Divergence Update - Direct Supabase Integration Implemented): We implemented an initial thin data-access layer directly against the existing Supabase tables (table `document`) ahead of the originally planned OpenAPI-first workflow. The following unplanned but completed adjustments occurred:
 
 Completed Outside Original Plan:
 
@@ -25,8 +24,7 @@ Status Legend Addendum:
 
 - (DONE\*) indicates task accomplished via divergence prior to this revision.
 
-**Input**: `/specs/001-med-1291-documents/` + `mock-api-server/openapi-schema/openapi.yaml` + `supabase/seed.ts`
-**Prerequisites**: plan.md, research.md, data-model.md, contracts/, quickstart.md, openapi spec
+**Input**: `/specs/001-med-1291-documents/` + `mock-api-server/openapi-schema/openapi.yaml` + `supabase/seed.ts` **Prerequisites**: plan.md, research.md, data-model.md, contracts/, quickstart.md, openapi spec
 
 ## Format
 

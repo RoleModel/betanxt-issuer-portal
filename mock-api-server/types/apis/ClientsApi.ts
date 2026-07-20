@@ -70,12 +70,12 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async createClientRaw(
     requestParameters: CreateClientOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Clients>> {
     if (requestParameters["createClientRequest"] == null) {
       throw new runtime.RequiredError(
         "createClientRequest",
-        'Required parameter "createClientRequest" was null or undefined when calling createClient().',
+        'Required parameter "createClientRequest" was null or undefined when calling createClient().'
       );
     }
 
@@ -102,12 +102,16 @@ export class ClientsApi extends runtime.BaseAPI {
         method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: CreateClientRequestToJSON(requestParameters["createClientRequest"]),
+        body: CreateClientRequestToJSON(
+          requestParameters["createClientRequest"]
+        ),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => ClientsFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      ClientsFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -115,9 +119,12 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async createClient(
     requestParameters: CreateClientOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Clients> {
-    const response = await this.createClientRaw(requestParameters, initOverrides);
+    const response = await this.createClientRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -126,12 +133,12 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async deleteClientRaw(
     requestParameters: DeleteClientRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<void>> {
     if (requestParameters["ticker"] == null) {
       throw new runtime.RequiredError(
         "ticker",
-        'Required parameter "ticker" was null or undefined when calling deleteClient().',
+        'Required parameter "ticker" was null or undefined when calling deleteClient().'
       );
     }
 
@@ -151,7 +158,7 @@ export class ClientsApi extends runtime.BaseAPI {
     let urlPath = `/clients/{ticker}`;
     urlPath = urlPath.replace(
       `{${"ticker"}}`,
-      encodeURIComponent(String(requestParameters["ticker"])),
+      encodeURIComponent(String(requestParameters["ticker"]))
     );
 
     const response = await this.request(
@@ -161,7 +168,7 @@ export class ClientsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
     return new runtime.VoidApiResponse(response);
@@ -172,7 +179,7 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async deleteClient(
     requestParameters: DeleteClientRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<void> {
     await this.deleteClientRaw(requestParameters, initOverrides);
   }
@@ -182,12 +189,12 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async getClientByTickerRaw(
     requestParameters: GetClientByTickerRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Clients>> {
     if (requestParameters["ticker"] == null) {
       throw new runtime.RequiredError(
         "ticker",
-        'Required parameter "ticker" was null or undefined when calling getClientByTicker().',
+        'Required parameter "ticker" was null or undefined when calling getClientByTicker().'
       );
     }
 
@@ -207,7 +214,7 @@ export class ClientsApi extends runtime.BaseAPI {
     let urlPath = `/clients/{ticker}`;
     urlPath = urlPath.replace(
       `{${"ticker"}}`,
-      encodeURIComponent(String(requestParameters["ticker"])),
+      encodeURIComponent(String(requestParameters["ticker"]))
     );
 
     const response = await this.request(
@@ -217,10 +224,12 @@ export class ClientsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => ClientsFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      ClientsFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -228,9 +237,12 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async getClientByTicker(
     requestParameters: GetClientByTickerRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Clients> {
-    const response = await this.getClientByTickerRaw(requestParameters, initOverrides);
+    const response = await this.getClientByTickerRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -239,12 +251,12 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async listClientAccountsRaw(
     requestParameters: ListClientAccountsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<ListAccounts200Response>> {
     if (requestParameters["ticker"] == null) {
       throw new runtime.RequiredError(
         "ticker",
-        'Required parameter "ticker" was null or undefined when calling listClientAccounts().',
+        'Required parameter "ticker" was null or undefined when calling listClientAccounts().'
       );
     }
 
@@ -272,7 +284,7 @@ export class ClientsApi extends runtime.BaseAPI {
     let urlPath = `/clients/{ticker}/accounts`;
     urlPath = urlPath.replace(
       `{${"ticker"}}`,
-      encodeURIComponent(String(requestParameters["ticker"])),
+      encodeURIComponent(String(requestParameters["ticker"]))
     );
 
     const response = await this.request(
@@ -282,11 +294,11 @@ export class ClientsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      ListAccounts200ResponseFromJSON(jsonValue),
+      ListAccounts200ResponseFromJSON(jsonValue)
     );
   }
 
@@ -295,9 +307,12 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async listClientAccounts(
     requestParameters: ListClientAccountsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<ListAccounts200Response> {
-    const response = await this.listClientAccountsRaw(requestParameters, initOverrides);
+    const response = await this.listClientAccountsRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -306,7 +321,7 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async listClientsRaw(
     requestParameters: ListClientsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<ListClients200Response>> {
     const queryParameters: any = {};
 
@@ -342,11 +357,11 @@ export class ClientsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      ListClients200ResponseFromJSON(jsonValue),
+      ListClients200ResponseFromJSON(jsonValue)
     );
   }
 
@@ -355,9 +370,12 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async listClients(
     requestParameters: ListClientsRequest = {},
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<ListClients200Response> {
-    const response = await this.listClientsRaw(requestParameters, initOverrides);
+    const response = await this.listClientsRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -366,19 +384,19 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async updateClientRaw(
     requestParameters: UpdateClientOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Clients>> {
     if (requestParameters["ticker"] == null) {
       throw new runtime.RequiredError(
         "ticker",
-        'Required parameter "ticker" was null or undefined when calling updateClient().',
+        'Required parameter "ticker" was null or undefined when calling updateClient().'
       );
     }
 
     if (requestParameters["updateClientRequest"] == null) {
       throw new runtime.RequiredError(
         "updateClientRequest",
-        'Required parameter "updateClientRequest" was null or undefined when calling updateClient().',
+        'Required parameter "updateClientRequest" was null or undefined when calling updateClient().'
       );
     }
 
@@ -400,7 +418,7 @@ export class ClientsApi extends runtime.BaseAPI {
     let urlPath = `/clients/{ticker}`;
     urlPath = urlPath.replace(
       `{${"ticker"}}`,
-      encodeURIComponent(String(requestParameters["ticker"])),
+      encodeURIComponent(String(requestParameters["ticker"]))
     );
 
     const response = await this.request(
@@ -409,12 +427,16 @@ export class ClientsApi extends runtime.BaseAPI {
         method: "PUT",
         headers: headerParameters,
         query: queryParameters,
-        body: UpdateClientRequestToJSON(requestParameters["updateClientRequest"]),
+        body: UpdateClientRequestToJSON(
+          requestParameters["updateClientRequest"]
+        ),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => ClientsFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      ClientsFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -422,9 +444,12 @@ export class ClientsApi extends runtime.BaseAPI {
    */
   async updateClient(
     requestParameters: UpdateClientOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Clients> {
-    const response = await this.updateClientRaw(requestParameters, initOverrides);
+    const response = await this.updateClientRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 }

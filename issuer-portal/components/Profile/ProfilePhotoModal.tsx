@@ -64,37 +64,40 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
     return "U";
   }, [userName, userEmail]);
 
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        return;
+      }
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      setError("Please select a valid image file");
-      return;
-    }
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setError("Please select a valid image file");
+        return;
+      }
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      setError("File size must be less than 5MB");
-      return;
-    }
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("File size must be less than 5MB");
+        return;
+      }
 
-    setError(null);
-    setSelectedFile(file);
+      setError(null);
+      setSelectedFile(file);
 
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setPreviewUrl(e.target?.result as string);
-    };
-    reader.onerror = (e) => {
-      console.error("FileReader error:", e);
-    };
-    reader.readAsDataURL(file);
-  }, []);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
+      };
+      reader.onerror = (e) => {
+        console.error("FileReader error:", e);
+      };
+      reader.readAsDataURL(file);
+    },
+    []
+  );
 
   const handleUploadClick = () => {
     if (fileInputRef.current) {
@@ -165,7 +168,9 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.text();
-        throw new Error(`Failed to upload image: ${uploadResponse.status} - ${errorData}`);
+        throw new Error(
+          `Failed to upload image: ${uploadResponse.status} - ${errorData}`
+        );
       }
 
       const uploadData = (await uploadResponse.json()) as { url: string };
@@ -184,7 +189,9 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
 
       if (!updateResponse.ok) {
         const errorData = await updateResponse.text();
-        throw new Error(`Failed to update user profile: ${updateResponse.status} - ${errorData}`);
+        throw new Error(
+          `Failed to update user profile: ${updateResponse.status} - ${errorData}`
+        );
       }
 
       const updatedUserResponse = (await updateResponse.json()) as {
@@ -237,16 +244,30 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>
-          <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
             <Typography variant="h3">Profile Photo</Typography>
-            <IconButton size="small" onClick={handleClose} disabled={isUploading}>
+            <IconButton
+              size="small"
+              onClick={handleClose}
+              disabled={isUploading}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
 
         <DialogContent>
-          <Box display="flex" flexDirection="column" alignItems="center" gap={3} py={2}>
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            gap={3}
+            py={2}
+          >
             {/* Avatar Preview */}
             <Box position="relative">
               <Avatar
@@ -290,7 +311,10 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
             {previewUrl && (
               <Box width="100%" maxWidth={200}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  <CropIcon fontSize="small" sx={{ mr: 1, verticalAlign: "middle" }} />
+                  <CropIcon
+                    fontSize="small"
+                    sx={{ mr: 1, verticalAlign: "middle" }}
+                  />
                   Zoom
                 </Typography>
                 <Slider
@@ -326,7 +350,11 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
 
             {/* Current Photo Info */}
             {!selectedFile && hasCurrentPhoto && (
-              <Typography variant="body2" color="text.secondary" textAlign="center">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                textAlign="center"
+              >
                 Current profile photo
               </Typography>
             )}
@@ -361,12 +389,20 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
             )}
 
             <Box ml="auto" display="flex" gap={1}>
-              <Button variant="outlined" onClick={handleClose} disabled={isUploading}>
+              <Button
+                variant="outlined"
+                onClick={handleClose}
+                disabled={isUploading}
+              >
                 Cancel
               </Button>
 
               {selectedFile && (
-                <Button variant="contained" onClick={handleSavePhoto} disabled={isUploading}>
+                <Button
+                  variant="contained"
+                  onClick={handleSavePhoto}
+                  disabled={isUploading}
+                >
                   {isUploading ? (
                     <>
                       <CircularProgress size={20} sx={{ mr: 1 }} />

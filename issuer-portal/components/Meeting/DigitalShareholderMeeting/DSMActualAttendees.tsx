@@ -20,7 +20,8 @@ import type { components } from "@/domain-models/generated-schema";
 
 import { ExportButton } from "../ExportButton";
 
-type DigitalShareholderMeeting = components["schemas"]["DigitalShareholderMeeting"];
+type DigitalShareholderMeeting =
+  components["schemas"]["DigitalShareholderMeeting"];
 
 interface DSMActualAttendeesProps {
   meetingId: string;
@@ -34,8 +35,11 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
     try {
       setError(null);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`);
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch actual attendees");
       }
@@ -44,12 +48,14 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
 
       // Filter for attendees who actually attended the meeting
       const actualAttendees = data.filter(
-        (participant) => (participant.minutesAttendedMeeting ?? 0) > 0,
+        (participant) => (participant.minutesAttendedMeeting ?? 0) > 0
       );
 
       setAttendees(actualAttendees);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load actual attendees");
+      setError(
+        err instanceof Error ? err.message : "Failed to load actual attendees"
+      );
     }
   }, [meetingId]);
 
@@ -124,7 +130,11 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
                         />
                       </TableCell>
                       <TableCell>
-                        <Chip label={`${minutesAttended} min`} size="small" color="success" />
+                        <Chip
+                          label={`${minutesAttended} min`}
+                          size="small"
+                          color="success"
+                        />
                       </TableCell>
                     </TableRow>
                   );

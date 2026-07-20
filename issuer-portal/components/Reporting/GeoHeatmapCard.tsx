@@ -80,7 +80,10 @@ const getMetricValue = (row: GeoDistributionRow, metric: GeoMetric): number =>
  * @param kind - Bucket kind (`international` or `unknown`)
  * @returns An empty {@link GeoDistributionRow} for the bucket
  */
-const emptyBucket = (location: string, kind: GeoDistributionRow["kind"]): GeoDistributionRow => ({
+const emptyBucket = (
+  location: string,
+  kind: GeoDistributionRow["kind"]
+): GeoDistributionRow => ({
   location,
   kind,
   shareholderCount: 0,
@@ -92,11 +95,13 @@ const emptyBucket = (location: string, kind: GeoDistributionRow["kind"]): GeoDis
 const getCategoryMetricValue = (
   row: GeoDistributionRow,
   category: HolderCategory,
-  metric: GeoMetric,
+  metric: GeoMetric
 ): number => {
   const totals = row.byCategory[category];
   if (!totals) return 0;
-  return metric === "shareholders" ? totals.shareholderCount : totals.sharesHeld;
+  return metric === "shareholders"
+    ? totals.shareholderCount
+    : totals.sharesHeld;
 };
 
 /**
@@ -126,7 +131,8 @@ export function GeoHeatmapCard({
   const hasNoboFeature = isEnabled("nobo");
   const theme = useTheme();
   const [metric, setMetric] = useState<GeoMetric>("shareholders");
-  const [populations, setPopulations] = useState<PopulationState>(DEFAULT_POPULATIONS);
+  const [populations, setPopulations] =
+    useState<PopulationState>(DEFAULT_POPULATIONS);
 
   const includedCategories = useMemo<HolderCategory[]>(() => {
     const categories: HolderCategory[] = [];
@@ -137,7 +143,10 @@ export function GeoHeatmapCard({
     return categories;
   }, [populations, hasNoboFeature]);
 
-  const { rows, loading, error } = useGeoDistribution(meetingId, includedCategories);
+  const { rows, loading, error } = useGeoDistribution(
+    meetingId,
+    includedCategories
+  );
 
   const sortedRows = useMemo<GeoDistributionRow[]>(() => {
     const states = rows
@@ -147,7 +156,8 @@ export function GeoHeatmapCard({
       rows.find((row) => row.kind === "international") ??
       emptyBucket(INTERNATIONAL_LOCATION, "international");
     const unknown =
-      rows.find((row) => row.kind === "unknown") ?? emptyBucket(UNKNOWN_LOCATION, "unknown");
+      rows.find((row) => row.kind === "unknown") ??
+      emptyBucket(UNKNOWN_LOCATION, "unknown");
     return [...states, international, unknown];
   }, [rows, metric]);
 
@@ -156,16 +166,19 @@ export function GeoHeatmapCard({
       sortedRows.map((row) =>
         row.kind === "unknown"
           ? `${UNKNOWN_LOCATION} (${formatNumber(row.shareholderCount)})`
-          : row.location,
+          : row.location
       ),
-    [sortedRows],
+    [sortedRows]
   );
 
   // Columns follow the fixed Registered → Plan → Beneficial → NOBO order,
   // limited to the populations currently checked.
   const columns = useMemo(
-    () => CATEGORY_COLUMNS.filter(({ category }) => includedCategories.includes(category)),
-    [includedCategories],
+    () =>
+      CATEGORY_COLUMNS.filter(({ category }) =>
+        includedCategories.includes(category)
+      ),
+    [includedCategories]
   );
 
   const heatmapData = useMemo<[number, number, number][]>(
@@ -175,9 +188,9 @@ export function GeoHeatmapCard({
           columnIndex,
           rowIndex,
           getCategoryMetricValue(row, category, metric),
-        ]),
+        ])
       ),
-    [sortedRows, columns, metric],
+    [sortedRows, columns, metric]
   );
 
   const maxValue = useMemo(
@@ -187,11 +200,11 @@ export function GeoHeatmapCard({
           columns.reduce(
             (cellMax, { category }) =>
               Math.max(cellMax, getCategoryMetricValue(row, category, metric)),
-            max,
+            max
           ),
-        0,
+        0
       ),
-    [sortedRows, columns, metric],
+    [sortedRows, columns, metric]
   );
 
   const resolvedMode = mode === "system" ? systemMode : mode;
@@ -202,10 +215,15 @@ export function GeoHeatmapCard({
     ? [alpha(heatColor, 0.52), heatColor]
     : [alpha(heatColor, 0.03), heatColor];
 
-  const hasData = columns.length > 0 && sortedRows.some((row) => getMetricValue(row, metric) > 0);
+  const hasData =
+    columns.length > 0 &&
+    sortedRows.some((row) => getMetricValue(row, metric) > 0);
   const chartHeight = Math.max(280, sortedRows.length * 28 + 48);
 
-  const handleMetricChange = (_event: MouseEvent<HTMLElement>, value: GeoMetric | null) => {
+  const handleMetricChange = (
+    _event: MouseEvent<HTMLElement>,
+    value: GeoMetric | null
+  ) => {
     if (value) setMetric(value);
   };
 
@@ -232,8 +250,12 @@ export function GeoHeatmapCard({
             onChange={handleMetricChange}
             aria-label="Heat map metric"
           >
-            <ToggleButton value="shareholders">{METRIC_LABELS.shareholders}</ToggleButton>
-            <ToggleButton value="sharesHeld">{METRIC_LABELS.sharesHeld}</ToggleButton>
+            <ToggleButton value="shareholders">
+              {METRIC_LABELS.shareholders}
+            </ToggleButton>
+            <ToggleButton value="sharesHeld">
+              {METRIC_LABELS.sharesHeld}
+            </ToggleButton>
           </ToggleButtonGroup>
 
           <FormGroup row aria-label="Holder populations">
@@ -318,8 +340,10 @@ export function GeoHeatmapCard({
               legend: {
                 direction: "vertical",
                 position: { vertical: "middle", horizontal: "end" },
-                minLabel: ({ value }: { value: number | Date }) => formatNumber(Number(value)),
-                maxLabel: ({ value }: { value: number | Date }) => formatNumber(Number(value)),
+                minLabel: ({ value }: { value: number | Date }) =>
+                  formatNumber(Number(value)),
+                maxLabel: ({ value }: { value: number | Date }) =>
+                  formatNumber(Number(value)),
                 sx: { height: Math.min(240, chartHeight - 96) },
               },
             }}
@@ -342,8 +366,12 @@ export function GeoHeatmapCard({
                 data: heatmapData,
                 // Accepts both Heatmap formatter shapes seen across @mui/x-charts
                 // versions: a plain cell value or an [x, y, value] tuple.
-                valueFormatter: (value: number | readonly [number, number, number] | null) =>
-                  value === null ? null : formatNumber(Array.isArray(value) ? value[2] : value),
+                valueFormatter: (
+                  value: number | readonly [number, number, number] | null
+                ) =>
+                  value === null
+                    ? null
+                    : formatNumber(Array.isArray(value) ? value[2] : value),
               },
             ]}
           />

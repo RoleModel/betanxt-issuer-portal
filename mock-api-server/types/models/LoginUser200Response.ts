@@ -13,7 +13,12 @@ import type { User } from "./User";
  * Do not edit the class manually.
  */
 import { mapValues } from "../runtime";
-import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from "./User";
+import {
+  UserFromJSON,
+  UserFromJSONTyped,
+  UserToJSON,
+  UserToJSONTyped,
+} from "./User";
 
 /**
  *
@@ -38,7 +43,9 @@ export interface LoginUser200Response {
 /**
  * Check if a given object implements the LoginUser200Response interface.
  */
-export function instanceOfLoginUser200Response(value: object): value is LoginUser200Response {
+export function instanceOfLoginUser200Response(
+  value: object
+): value is LoginUser200Response {
   return true;
 }
 
@@ -48,7 +55,7 @@ export function LoginUser200ResponseFromJSON(json: any): LoginUser200Response {
 
 export function LoginUser200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): LoginUser200Response {
   if (json == null) {
     return json;
@@ -65,7 +72,7 @@ export function LoginUser200ResponseToJSON(json: any): LoginUser200Response {
 
 export function LoginUser200ResponseToJSONTyped(
   value?: LoginUser200Response | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

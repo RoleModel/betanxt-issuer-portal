@@ -15,7 +15,10 @@ interface SkeletonTableProps {
   columns?: number;
 }
 
-export default function SkeletonTable({ rows = 4, columns = 2 }: SkeletonTableProps) {
+export default function SkeletonTable({
+  rows = 4,
+  columns = 2,
+}: SkeletonTableProps) {
   return (
     <Card>
       <CardHeader title={<Skeleton variant="text" width="40%" height={30} />} />

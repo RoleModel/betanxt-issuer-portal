@@ -71,7 +71,7 @@ export default function EducationContent() {
         icon: <ChatQuestionIcon fontSize="3xl" />,
       },
     ],
-    [],
+    []
   );
 
   const documentTemplates = React.useMemo(
@@ -82,7 +82,7 @@ export default function EducationContent() {
         actionText: "Download",
         icon: <DocumentEditIcon />,
       })),
-    [],
+    []
   );
 
   const forms = React.useMemo(
@@ -165,7 +165,7 @@ export default function EducationContent() {
         },
       },
     ],
-    [],
+    []
   );
 
   const servicePapers = React.useMemo(
@@ -181,7 +181,8 @@ export default function EducationContent() {
       },
       {
         title: "Inspector of Elections",
-        description: "Ensures transparent vote counting and certified inspection",
+        description:
+          "Ensures transparent vote counting and certified inspection",
         actionText: "Learn More",
         icon: <ChecklistDocumentIcon accentColor="#ebb322" fontSize="3xl" />,
         variant: "secondary" as const,
@@ -204,12 +205,14 @@ export default function EducationContent() {
         variant: "base" as const,
       },
     ],
-    [],
+    []
   );
 
   const [viewerOpen, setViewerOpen] = React.useState(false);
   const [fileUrl, setFileUrl] = React.useState<string | undefined>(undefined);
-  const [viewerTitle, setViewerTitle] = React.useState<string | undefined>(undefined);
+  const [viewerTitle, setViewerTitle] = React.useState<string | undefined>(
+    undefined
+  );
   const handleViewerClose = () => {
     setViewerOpen(false);
   };
@@ -246,7 +249,12 @@ export default function EducationContent() {
                   <Grid container spacing={2} alignItems="stretch">
                     {servicePapers.map((service, index) => (
                       <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
-                        <FeatureTile brandFont={true} flex={true} {...service} height="100%" />
+                        <FeatureTile
+                          brandFont={true}
+                          flex={true}
+                          {...service}
+                          height="100%"
+                        />
                       </Grid>
                     ))}
                   </Grid>
@@ -267,9 +275,17 @@ export default function EducationContent() {
                 <CardHeader title="Document Resources" />
                 <CardContent sx={{ p: 0 }}>
                   <ScrollContainer direction="horizontal">
-                    <Stack spacing={2} direction="row" sx={{ p: 2, flexWrap: "nowrap" }}>
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ p: 2, flexWrap: "nowrap" }}
+                    >
                       {documentTemplates.map((template, index) => (
-                        <ResourceTitle key={index} {...template} minWidth="200px" />
+                        <ResourceTitle
+                          key={index}
+                          {...template}
+                          minWidth="200px"
+                        />
                       ))}
                     </Stack>
                   </ScrollContainer>
@@ -280,7 +296,11 @@ export default function EducationContent() {
                 <CardHeader title="Forms" />
                 <CardContent sx={{ p: 0 }}>
                   <ScrollContainer direction="horizontal">
-                    <Stack spacing={2} direction="row" sx={{ p: 2, flexWrap: "nowrap" }}>
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ p: 2, flexWrap: "nowrap" }}
+                    >
                       {forms.map((form, index) => (
                         <ResourceTitle key={index} {...form} minWidth="200px" />
                       ))}

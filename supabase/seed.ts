@@ -8,7 +8,9 @@ import { fileURLToPath } from "url";
 import { CSVProcessor } from "../mock-api-server/csv-processor";
 import { seedConfig } from "./seed.config";
 
-type VoteStatusSummary = Awaited<ReturnType<typeof CSVProcessor.processVoteStatusSummary>>;
+type VoteStatusSummary = Awaited<
+  ReturnType<typeof CSVProcessor.processVoteStatusSummary>
+>;
 
 // Add missing type definitions
 interface CompanyPositionData {
@@ -78,11 +80,14 @@ const clamp = (value: number, min: number, max: number): number => {
 
 const computeParticipationFromPositions = (
   positions: CompanyPositionData[] | null | undefined,
-  totalSharesOutstanding: number,
+  totalSharesOutstanding: number
 ): number | null => {
   if (!positions || positions.length === 0) return null;
 
-  const votedShares = positions.reduce((sum, position) => sum + (position.sharesVoted ?? 0), 0);
+  const votedShares = positions.reduce(
+    (sum, position) => sum + (position.sharesVoted ?? 0),
+    0
+  );
 
   const denominator = totalSharesOutstanding
     ? totalSharesOutstanding
@@ -98,7 +103,7 @@ const computeParticipationFromPositions = (
 
 const computeParticipationFromVoteSummary = (
   summary: VoteStatusSummary | null | undefined,
-  totalSharesOutstanding: number,
+  totalSharesOutstanding: number
 ): number | null => {
   if (!summary) return null;
 
@@ -114,7 +119,8 @@ const computeParticipationFromVoteSummary = (
   const inferredNonDtcTotal = nonDtcGrandTotal || nonDtcVoted + nonDtcUnvoted;
 
   const denominatorCandidate = inferredDtcTotal + inferredNonDtcTotal;
-  const denominator = totalSharesOutstanding > 0 ? totalSharesOutstanding : denominatorCandidate;
+  const denominator =
+    totalSharesOutstanding > 0 ? totalSharesOutstanding : denominatorCandidate;
 
   if (!Number.isFinite(denominator) || denominator <= 0) {
     return null;
@@ -127,28 +133,40 @@ const computeParticipationFromVoteSummary = (
 const buildResultsFromCsvProposal = (
   proposal: CompanyProposalData,
   totalSharesOutstanding: number,
-  meetingDateISO?: string,
+  meetingDateISO?: string
 ) => {
   const totalVotesFor = Math.max(0, proposal.votesFor ?? 0);
   const totalVotesAgainst = Math.max(0, proposal.votesAgainst ?? 0);
   const totalVotesAbstain = Math.max(0, proposal.votesAbstain ?? 0);
 
-  const totalVotesCalculated = totalVotesFor + totalVotesAgainst + totalVotesAbstain;
-  const totalVotes = Math.max(totalVotesCalculated, proposal.votesTotal || totalVotesCalculated);
+  const totalVotesCalculated =
+    totalVotesFor + totalVotesAgainst + totalVotesAbstain;
+  const totalVotes = Math.max(
+    totalVotesCalculated,
+    proposal.votesTotal || totalVotesCalculated
+  );
 
-  const totalSharesEligible = Math.max(totalSharesOutstanding || totalVotes, totalVotes);
+  const totalSharesEligible = Math.max(
+    totalSharesOutstanding || totalVotes,
+    totalVotes
+  );
 
   const forPercentage = totalVotes > 0 ? (totalVotesFor / totalVotes) * 100 : 0;
-  const againstPercentage = totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0;
-  const abstainPercentage = totalVotes > 0 ? (totalVotesAbstain / totalVotes) * 100 : 0;
-  const participationRate = totalSharesEligible > 0 ? (totalVotes / totalSharesEligible) * 100 : 0;
+  const againstPercentage =
+    totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0;
+  const abstainPercentage =
+    totalVotes > 0 ? (totalVotesAbstain / totalVotes) * 100 : 0;
+  const participationRate =
+    totalSharesEligible > 0 ? (totalVotes / totalSharesEligible) * 100 : 0;
 
   const votingCompletedAt = meetingDateISO
     ? DateTime.fromISO(meetingDateISO).plus({ days: 1 }).toISO()
     : DateTime.now().toISO();
 
   return {
-    finalResult: sqlValue(totalVotesFor >= totalVotesAgainst ? "PASSED" : "FAILED"),
+    finalResult: sqlValue(
+      totalVotesFor >= totalVotesAgainst ? "PASSED" : "FAILED"
+    ),
     totalVotesFor: totalVotesFor.toString(),
     totalVotesAgainst: totalVotesAgainst.toString(),
     totalVotesAbstain: totalVotesAbstain.toString(),
@@ -167,11 +185,14 @@ const calculateParticipationTarget = (
   ticker: string,
   year: number,
   meetingType: string,
-  phase: number,
+  phase: number
 ): number => {
   // For historical completed meetings (2024 and earlier), always use realistic participation
   if (year <= 2024 && phase === 8) {
-    const seed = copycat.int(`${ticker}-${year}-participation`, { min: 0, max: 1000 });
+    const seed = copycat.int(`${ticker}-${year}-participation`, {
+      min: 0,
+      max: 1000,
+    });
     return 0.6 + (seed / 1000) * 0.15; // 60–75% for completed historical meetings
   }
 
@@ -193,10 +214,13 @@ const calculateParticipationTarget = (
     min: -100,
     max: 100,
   });
-  const meetingAdjustment = copycat.int(`participation-${ticker}-${year}-${meetingType}`, {
-    min: -75,
-    max: 75,
-  });
+  const meetingAdjustment = copycat.int(
+    `participation-${ticker}-${year}-${meetingType}`,
+    {
+      min: -75,
+      max: 75,
+    }
+  );
 
   base += (tickerAdjustment + meetingAdjustment) / 10000;
 
@@ -211,7 +235,7 @@ const calculateParticipationTarget = (
 
 function appendWenStyleAnnualVoteOverrides(
   sqlStatements: string[],
-  meetingTickerSlug: string,
+  meetingTickerSlug: string
 ): void {
   const meeting2026 = `${meetingTickerSlug}-annual-meeting-2026`;
   const meeting2025 = `${meetingTickerSlug}-annual-meeting-2025`;
@@ -333,7 +357,9 @@ WHERE p.id = agg.proposal_id AND p.meeting_id = '${meeting2026}';
 }
 
 function appendFocPositionsClonedFromWen(sqlStatements: string[]): void {
-  sqlStatements.push("-- FOC positions cloned from WEN (wendys_positions CSV no longer available)");
+  sqlStatements.push(
+    "-- FOC positions cloned from WEN (wendys_positions CSV no longer available)"
+  );
   sqlStatements.push("DELETE FROM position WHERE meeting_id LIKE 'foc-%';");
   sqlStatements.push(`
 INSERT INTO "position"(
@@ -398,7 +424,7 @@ const generateProposalResults = (
   meetingType?: string,
   targetParticipation?: number,
   sharesOutstandingOverride?: number,
-  meetingPhase?: number,
+  meetingPhase?: number
 ) => {
   const year = parseInt(meetingYear);
 
@@ -430,7 +456,8 @@ const generateProposalResults = (
   const seed = copycat.int(seedStr, { min: 0, max: 999999 });
 
   const baseShares =
-    typeof sharesOutstandingOverride === "number" && sharesOutstandingOverride > 0
+    typeof sharesOutstandingOverride === "number" &&
+    sharesOutstandingOverride > 0
       ? Math.floor(sharesOutstandingOverride)
       : isWendys
         ? 148285700
@@ -444,7 +471,8 @@ const generateProposalResults = (
     passRate = 0.75; // More contentious
   else if (proposalType === "Auditor Ratification")
     passRate = 0.98; // Almost always pass
-  else if (proposalType && proposalType.includes("Shareholder")) passRate = 0.25; // Shareholder proposals often fail
+  else if (proposalType && proposalType.includes("Shareholder"))
+    passRate = 0.25; // Shareholder proposals often fail
 
   const willPass = seed % 100 < passRate * 100;
   let participationRate: number;
@@ -452,9 +480,13 @@ const generateProposalResults = (
   if (typeof targetParticipation === "number") {
     const participationSeed = copycat.int(
       `proposal-participation-${proposalType}-${meetingYear}-${proposalIndex}`,
-      { min: -40, max: 40 },
+      { min: -40, max: 40 }
     );
-    participationRate = clamp(targetParticipation + participationSeed / 10000, 0.6, 0.75);
+    participationRate = clamp(
+      targetParticipation + participationSeed / 10000,
+      0.6,
+      0.75
+    );
   } else {
     participationRate = 0.6 + ((seed % 1000) / 1000) * 0.15; // 60–75% participation
   }
@@ -476,8 +508,10 @@ const generateProposalResults = (
   }
 
   const forPct = totalEligible > 0 ? (forVotes / totalEligible) * 100 : 0;
-  const againstPct = totalEligible > 0 ? (againstVotes / totalEligible) * 100 : 0;
-  const abstainPct = totalEligible > 0 ? (abstainVotes / totalEligible) * 100 : 0;
+  const againstPct =
+    totalEligible > 0 ? (againstVotes / totalEligible) * 100 : 0;
+  const abstainPct =
+    totalEligible > 0 ? (abstainVotes / totalEligible) * 100 : 0;
 
   return {
     finalResult: sqlValue(willPass ? "PASSED" : "FAILED"),
@@ -496,7 +530,11 @@ const generateProposalResults = (
 };
 
 // Function to generate task description
-const generateTaskDescription = (title: string, type: string, status: string): string => {
+const generateTaskDescription = (
+  title: string,
+  type: string,
+  status: string
+): string => {
   const descriptions: Record<string, string> = {
     "DTCC (SPR) Authorization Status":
       "Check and confirm authorization status with DTCC for shareholder proxy record access.",
@@ -506,12 +544,14 @@ const generateTaskDescription = (title: string, type: string, status: string): s
       "BetaNXT will be in contact with your transfer agent to request a copy of the record date shareholder file. We ask that the attached authorization letter be printed on company letterhead, signed, and scanned back to us.",
     "Broadridge/ICS Access":
       "Broadridge is now requiring your submission of the attached Issuer Profile form. Please sign and upload the form here.",
-    "DTCC authorization": "Complete DTCC authorization process for proxy voting access.",
+    "DTCC authorization":
+      "Complete DTCC authorization process for proxy voting access.",
     "Draft Proxy Statement":
       "Please provide the current draft version of your proxy statement as we will need to generate your proxy card and/or notice using the agenda in the proxy statement. We also need to proof it to verify minimum vote requirements for each of your proposal agenda items, including director elections (plurality vs majority) and we will check for logistics regarding your meeting date (Digital/Hybrid/In-person).",
     "Proxy Card":
       "Please be sure to alert the BetaNXT team of any additional edits needed to the proxy card (and/or NAA Form).",
-    Notice: "Please be sure to alert the BetaNXT team of any additional edits needed to Notice",
+    Notice:
+      "Please be sure to alert the BetaNXT team of any additional edits needed to Notice",
     "TA Registered File":
       "Registered file received from your Transfer Agent is typically completed anywhere between 2 and 4 business days. Mediant will be in touch if any additional action is needed on your part.",
     "DTCC SPR":
@@ -519,14 +559,18 @@ const generateTaskDescription = (title: string, type: string, status: string): s
     "Plan File(s)": "Upload employee stock plan participant files.",
     "Beneficial Count Settlement (5 Business Days Post-Record Date)":
       "Confirm and settle beneficial shareholder count with intermediaries.",
-    "10-K print-ready PDF": "Finalize and prepare 10-K annual report PDF for printing.",
-    "DTC SPR file transmitted": "Transmit DTCC SPR file to proxy distribution system.",
-    "Transfer-agent file transmitted": "Transmit transfer agent file to proxy distribution system.",
+    "10-K print-ready PDF":
+      "Finalize and prepare 10-K annual report PDF for printing.",
+    "DTC SPR file transmitted":
+      "Transmit DTCC SPR file to proxy distribution system.",
+    "Transfer-agent file transmitted":
+      "Transmit transfer agent file to proxy distribution system.",
     "Shareholder quantity count confirmed":
       "Verify and confirm total shareholder count across all sources.",
     "Proxy Stmt → electronic PDF proof":
       "Generate electronic PDF proof of proxy statement for review.",
-    "Release to print 10-K": "Authorize release of 10-K annual report to printing facility.",
+    "Release to print 10-K":
+      "Authorize release of 10-K annual report to printing facility.",
     "Release to print Proxy Statement":
       "Authorize release of proxy statement to printing facility.",
     "Final hi-res bookmarked PDFs shared with BetaNXT":
@@ -540,28 +584,45 @@ const generateTaskDescription = (title: string, type: string, status: string): s
     "File ARS": "File annual report to shareholders with SEC.",
     "Deliver SH material (10-K & Proxy Stmt)":
       "Deliver shareholder materials including 10-K and proxy statement.",
-    "Provide access to MIC": "Provide access to Meeting Information Center for stakeholders.",
-    "2024 FY filing deadline": "Meet fiscal year 2024 SEC filing deadline requirements.",
-    "Notice & Access deadline": "Meet Notice & Access posting deadline for proxy materials.",
-    "DSM introduction": "Conduct Digital Shareholder Meeting introduction and training session.",
+    "Provide access to MIC":
+      "Provide access to Meeting Information Center for stakeholders.",
+    "2024 FY filing deadline":
+      "Meet fiscal year 2024 SEC filing deadline requirements.",
+    "Notice & Access deadline":
+      "Meet Notice & Access posting deadline for proxy materials.",
+    "DSM introduction":
+      "Conduct Digital Shareholder Meeting introduction and training session.",
     "Mailing proxy materials: Registered & NOBO / Intermediary mailings":
       "Mail proxy materials to registered shareholders and beneficial owners.",
-    "Begin daily tabulation reporting": "Start daily tabulation and vote reporting process.",
-    "DSM Logistics Call": "Conduct Digital Shareholder Meeting logistics coordination call.",
+    "Begin daily tabulation reporting":
+      "Start daily tabulation and vote reporting process.",
+    "DSM Logistics Call":
+      "Conduct Digital Shareholder Meeting logistics coordination call.",
     "Official daily tabulation reporting begins":
       "Begin official daily tabulation reporting to all stakeholders.",
-    "DSM dry run": "Conduct full Digital Shareholder Meeting dry run and testing.",
-    "DSM deliverables due": "Submit all required Digital Shareholder Meeting deliverables.",
-    "Final tabulation Results": "Compile and deliver final tabulation results for the meeting.",
+    "DSM dry run":
+      "Conduct full Digital Shareholder Meeting dry run and testing.",
+    "DSM deliverables due":
+      "Submit all required Digital Shareholder Meeting deliverables.",
+    "Final tabulation Results":
+      "Compile and deliver final tabulation results for the meeting.",
     "Form 8-K Item 5.07 deadline":
       "File Form 8-K Item 5.07 reporting meeting results within required timeframe.",
   };
 
-  return descriptions[title] || `Complete ${title.toLowerCase()} task for ${type.toLowerCase()}.`;
+  return (
+    descriptions[title] ||
+    `Complete ${title.toLowerCase()} task for ${type.toLowerCase()}.`
+  );
 };
 
 // Function to generate task links
-const generateTaskLinks = (title: string, type: string, status: string, ticker: string): any[] => {
+const generateTaskLinks = (
+  title: string,
+  type: string,
+  status: string,
+  ticker: string
+): any[] => {
   const links: any[] = [];
 
   // Authorization tasks
@@ -861,40 +922,50 @@ const main = async () => {
     const wendysMeetingFile = seedConfig.csvFiles.wendysMeetingInfo;
     const wendysProposalsFile = seedConfig.csvFiles.wendysProposals;
     const wendysPositionsFile = seedConfig.csvFiles.wendysPositions;
-    const hasWendysMeeting = wendysMeetingFile && csvFileExists(wendysMeetingFile);
-    const hasWendysProposals = wendysProposalsFile && csvFileExists(wendysProposalsFile);
-    const hasWendysPositions = wendysPositionsFile && csvFileExists(wendysPositionsFile);
+    const hasWendysMeeting =
+      wendysMeetingFile && csvFileExists(wendysMeetingFile);
+    const hasWendysProposals =
+      wendysProposalsFile && csvFileExists(wendysProposalsFile);
+    const hasWendysPositions =
+      wendysPositionsFile && csvFileExists(wendysPositionsFile);
     if (hasWendysMeeting && hasWendysProposals) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, wendysMeetingFile),
+        path.join(__dirname, wendysMeetingFile)
       );
       const proposals = await CSVProcessor.processCompanyProposals(
-        path.join(__dirname, wendysProposalsFile),
+        path.join(__dirname, wendysProposalsFile)
       );
       const positions = hasWendysPositions
         ? await CSVProcessor.processCompanyPositions(
             path.join(__dirname, wendysPositionsFile),
             "95058W100",
-            65000,
+            65000
           )
         : [];
 
       let voteStatusSummary: VoteStatusSummary | null = null;
       const dtcFile = seedConfig.csvFiles.wendysDTC;
       const nonDtcFile = seedConfig.csvFiles.wendysNonDTC;
-      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
+      if (
+        dtcFile &&
+        nonDtcFile &&
+        csvFileExists(dtcFile) &&
+        csvFileExists(nonDtcFile)
+      ) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
           path.join(__dirname, dtcFile),
-          path.join(__dirname, nonDtcFile),
+          path.join(__dirname, nonDtcFile)
         );
       }
 
       wendysData = { meetingInfo, proposals, positions, voteStatusSummary };
       console.error(
-        `Loaded Wendy's data: ${proposals.length} proposals, ${positions.length} positions`,
+        `Loaded Wendy's data: ${proposals.length} proposals, ${positions.length} positions`
       );
     } else {
-      console.error(`Skipping Wendy's CSV data (files not found) — using synthetic data`);
+      console.error(
+        `Skipping Wendy's CSV data (files not found) — using synthetic data`
+      );
     }
 
     // Load Enliven data if available and all required files exist
@@ -910,33 +981,40 @@ const main = async () => {
       csvFileExists(enlivenPositionsFile)
     ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, enlivenMeetingFile),
+        path.join(__dirname, enlivenMeetingFile)
       );
       const proposals = await CSVProcessor.processCompanyProposals(
-        path.join(__dirname, enlivenProposalsFile),
+        path.join(__dirname, enlivenProposalsFile)
       );
       const positions = await CSVProcessor.processCompanyPositions(
         path.join(__dirname, enlivenPositionsFile),
         "29337E102",
-        5000,
+        5000
       );
 
       let voteStatusSummary: VoteStatusSummary | null = null;
       const dtcFile = seedConfig.csvFiles.enlivenDTC;
       const nonDtcFile = seedConfig.csvFiles.enlivenNonDTC;
-      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
+      if (
+        dtcFile &&
+        nonDtcFile &&
+        csvFileExists(dtcFile) &&
+        csvFileExists(nonDtcFile)
+      ) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
           path.join(__dirname, dtcFile),
-          path.join(__dirname, nonDtcFile),
+          path.join(__dirname, nonDtcFile)
         );
       }
 
       enlivenData = { meetingInfo, proposals, positions, voteStatusSummary };
       console.error(
-        `Loaded Enliven data: ${proposals.length} proposals, ${positions.length} positions`,
+        `Loaded Enliven data: ${proposals.length} proposals, ${positions.length} positions`
       );
     } else {
-      console.error(`Skipping Enliven CSV data (files not found) — using synthetic data`);
+      console.error(
+        `Skipping Enliven CSV data (files not found) — using synthetic data`
+      );
     }
 
     // Load Paycom data if available and all required files exist
@@ -952,33 +1030,40 @@ const main = async () => {
       csvFileExists(paycomPositionsFile)
     ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, paycomMeetingFile),
+        path.join(__dirname, paycomMeetingFile)
       );
       const proposals = await CSVProcessor.processCompanyProposals(
-        path.join(__dirname, paycomProposalsFile),
+        path.join(__dirname, paycomProposalsFile)
       );
       const positions = await CSVProcessor.processCompanyPositions(
         path.join(__dirname, paycomPositionsFile),
         "70432V102",
-        100000,
+        100000
       );
 
       let voteStatusSummary: VoteStatusSummary | null = null;
       const dtcFile = seedConfig.csvFiles.paycomDTC;
       const nonDtcFile = seedConfig.csvFiles.paycomNonDTC;
-      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
+      if (
+        dtcFile &&
+        nonDtcFile &&
+        csvFileExists(dtcFile) &&
+        csvFileExists(nonDtcFile)
+      ) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
           path.join(__dirname, dtcFile),
-          path.join(__dirname, nonDtcFile),
+          path.join(__dirname, nonDtcFile)
         );
       }
 
       paycomData = { meetingInfo, proposals, positions, voteStatusSummary };
       console.error(
-        `Loaded Paycom data: ${proposals.length} proposals, ${positions.length} positions`,
+        `Loaded Paycom data: ${proposals.length} proposals, ${positions.length} positions`
       );
     } else {
-      console.error(`Skipping Paycom CSV data (files not found) — using synthetic data`);
+      console.error(
+        `Skipping Paycom CSV data (files not found) — using synthetic data`
+      );
     }
 
     // Load Woodward data if available and all required files exist
@@ -991,35 +1076,44 @@ const main = async () => {
       csvFileExists(woodwardPositionsFile)
     ) {
       const meetingInfo = await CSVProcessor.processCompanyMeetingInfo(
-        path.join(__dirname, woodwardMeetingFile),
+        path.join(__dirname, woodwardMeetingFile)
       );
       const woodwardProposalsFile = seedConfig.csvFiles.woodwardProposals;
       const proposals =
         woodwardProposalsFile && csvFileExists(woodwardProposalsFile)
-          ? await CSVProcessor.processCompanyProposals(path.join(__dirname, woodwardProposalsFile))
+          ? await CSVProcessor.processCompanyProposals(
+              path.join(__dirname, woodwardProposalsFile)
+            )
           : [];
       const positions = await CSVProcessor.processCompanyPositions(
         path.join(__dirname, woodwardPositionsFile),
         "980745103",
-        100000,
+        100000
       );
 
       let voteStatusSummary: VoteStatusSummary | null = null;
       const dtcFile = seedConfig.csvFiles.woodwardDTC;
       const nonDtcFile = seedConfig.csvFiles.woodwardNonDTC;
-      if (dtcFile && nonDtcFile && csvFileExists(dtcFile) && csvFileExists(nonDtcFile)) {
+      if (
+        dtcFile &&
+        nonDtcFile &&
+        csvFileExists(dtcFile) &&
+        csvFileExists(nonDtcFile)
+      ) {
         voteStatusSummary = await CSVProcessor.processVoteStatusSummary(
           path.join(__dirname, dtcFile),
-          path.join(__dirname, nonDtcFile),
+          path.join(__dirname, nonDtcFile)
         );
       }
 
       woodwardData = { meetingInfo, proposals, positions, voteStatusSummary };
       console.error(
-        `Loaded Woodward data: ${proposals.length} proposals, ${positions.length} positions`,
+        `Loaded Woodward data: ${proposals.length} proposals, ${positions.length} positions`
       );
     } else {
-      console.error(`Skipping Woodward CSV data (files not found) — using synthetic data`);
+      console.error(
+        `Skipping Woodward CSV data (files not found) — using synthetic data`
+      );
     }
   } catch (error) {
     console.error("Error loading company CSV data:", error);
@@ -1028,7 +1122,9 @@ const main = async () => {
 
   // Generic CSV data map for ALL companies (keyed by ticker)
   type CompanyCsvData = {
-    meetingInfo: Awaited<ReturnType<typeof CSVProcessor.processCompanyMeetingInfo>>;
+    meetingInfo: Awaited<
+      ReturnType<typeof CSVProcessor.processCompanyMeetingInfo>
+    >;
     proposals: Awaited<ReturnType<typeof CSVProcessor.processCompanyProposals>>;
     positions: Awaited<ReturnType<typeof CSVProcessor.processCompanyPositions>>;
     voteStatusSummary: VoteStatusSummary | null;
@@ -1050,7 +1146,9 @@ const main = async () => {
   if (wendysData) {
     companyCsvDataMap["WEN"] = wendysData;
     companyCsvDataMap["FOC"] = cloneCompanyCsvData(wendysData);
-    console.error(`Cloned Wendy's CSV data for FOC (${wendysData.proposals.length} proposals)`);
+    console.error(
+      `Cloned Wendy's CSV data for FOC (${wendysData.proposals.length} proposals)`
+    );
   }
   if (enlivenData) companyCsvDataMap["ELVN"] = enlivenData;
   if (paycomData) companyCsvDataMap["PAYC"] = paycomData;
@@ -1079,10 +1177,14 @@ const main = async () => {
 
       if (hasMeeting || hasProposals) {
         const meetingInfo = hasMeeting
-          ? await CSVProcessor.processCompanyMeetingInfo(path.join(__dirname, meetingPath))
+          ? await CSVProcessor.processCompanyMeetingInfo(
+              path.join(__dirname, meetingPath)
+            )
           : null;
         const proposals = hasProposals
-          ? await CSVProcessor.processCompanyProposals(path.join(__dirname, proposalsPath))
+          ? await CSVProcessor.processCompanyProposals(
+              path.join(__dirname, proposalsPath)
+            )
           : [];
 
         companyCsvDataMap[client.ticker] = {
@@ -1091,10 +1193,14 @@ const main = async () => {
           positions: [],
           voteStatusSummary: null,
         };
-        console.error(`Loaded ${client.ticker} (${slug}) data: ${proposals.length} proposals`);
+        console.error(
+          `Loaded ${client.ticker} (${slug}) data: ${proposals.length} proposals`
+        );
       }
     }
-    console.error(`Total companies with CSV data: ${Object.keys(companyCsvDataMap).length}`);
+    console.error(
+      `Total companies with CSV data: ${Object.keys(companyCsvDataMap).length}`
+    );
   } catch (error) {
     console.error("Error loading generic company CSV data:", error);
   }
@@ -1138,7 +1244,14 @@ const main = async () => {
     const baseFeatures =
       index === 0
         ? ["documents", "mailing", "tabulation", "reports", "agenda"]
-        : ["documents", "mailing", "tabulation", "reports", "fileTransfer", "agenda"];
+        : [
+            "documents",
+            "mailing",
+            "tabulation",
+            "reports",
+            "fileTransfer",
+            "agenda",
+          ];
     // Engage-enabled clients additionally get the NOBO module, which gates the
     // NOBO positions page and report surfaces (002-tabulation-enhancements R7)
     const engageTickers = ["WEN", "FOC"];
@@ -1159,7 +1272,7 @@ const main = async () => {
         `${sqlValue(client.isActive)}, ` +
         `${sqlValue(client.brandingId)}, ` +
         `'${JSON.stringify(enabledFeatures)}'::jsonb, ` +
-        `${sqlValue(createdAt)});`,
+        `${sqlValue(createdAt)});`
     );
   });
 
@@ -1176,12 +1289,14 @@ const main = async () => {
       `${sqlValue(relationshipManagerAccountId)}, ` +
       `${sqlValue("BetaNXT Relationship Management")}, ` +
       `${sqlValue("Sarah Johnson")}, ` +
-      `${sqlValue(createdAt)});`,
+      `${sqlValue(createdAt)});`
   );
 
   // Insert company accounts (now with client references)
   seedConfig.accounts.forEach((account, index) => {
-    const accountId = copycat.uuid(`account-${account.clientTicker}-${timestamp}`);
+    const accountId = copycat.uuid(
+      `account-${account.clientTicker}-${timestamp}`
+    );
     companyAccountIds.push(accountId);
     const clientId = clientIds[account.clientTicker];
 
@@ -1191,7 +1306,7 @@ const main = async () => {
         `${sqlValue(clientId)}, ` +
         `${sqlValue(account.accountName)}, ` +
         `${sqlValue(account.primaryContact)}, ` +
-        `${sqlValue(createdAt)});`,
+        `${sqlValue(createdAt)});`
     );
   });
 
@@ -1212,7 +1327,7 @@ const main = async () => {
       `${sqlValue(seedConfig.users.developer.email)}, ` +
       `${sqlValue(devPassword)}, ` +
       `${sqlValue(seedConfig.users.developer.type)}, ` +
-      `${sqlValue(null)});`,
+      `${sqlValue(null)});`
   );
 
   // Insert test user
@@ -1227,7 +1342,7 @@ const main = async () => {
       `${sqlValue(seedConfig.users.test.email)}, ` +
       `${sqlValue(testPassword)}, ` +
       `${sqlValue(seedConfig.users.test.type)}, ` +
-      `${sqlValue(null)});`,
+      `${sqlValue(null)});`
   );
 
   // Insert relationship manager user
@@ -1242,7 +1357,7 @@ const main = async () => {
       `${sqlValue(seedConfig.users.relationshipManager.email)}, ` +
       `${sqlValue(rmPassword)}, ` +
       `${sqlValue("RELATIONSHIP_MANAGER")}, ` +
-      `${sqlValue(relationshipManagerAccountId)});`,
+      `${sqlValue(relationshipManagerAccountId)});`
   );
 
   const csmUserId = seedConfig.users.csm.id;
@@ -1256,7 +1371,7 @@ const main = async () => {
       `${sqlValue(seedConfig.users.csm.email)}, ` +
       `${sqlValue(csmPassword)}, ` +
       `${sqlValue(seedConfig.users.csm.type)}, ` +
-      `${sqlValue(null)});`,
+      `${sqlValue(null)});`
   );
 
   // Insert issuer users
@@ -1275,7 +1390,7 @@ const main = async () => {
         `${sqlValue(user.email)}, ` +
         `${sqlValue(userPassword)}, ` +
         `${sqlValue(user.type)}, ` +
-        `${sqlValue(companyAccountIds[index])});`,
+        `${sqlValue(companyAccountIds[index])});`
     );
   });
 
@@ -1291,7 +1406,10 @@ const main = async () => {
   const meetingPhaseMap: Record<string, number> = {};
 
   // Real 2025 Annual Meeting data from CSV files
-  const real2025Meetings: Record<string, { meetingDate: string; recordDate: string }> = {
+  const real2025Meetings: Record<
+    string,
+    { meetingDate: string; recordDate: string }
+  > = {
     WEN: { meetingDate: "2025-05-21", recordDate: "2025-03-24" },
     PAYC: { meetingDate: "2025-05-05", recordDate: "2025-03-12" },
     WWD: { meetingDate: "2025-01-29", recordDate: "2024-12-02" },
@@ -1351,7 +1469,10 @@ const main = async () => {
   };
 
   // 2026 Annual Meeting dates (mid-April to late-June 2026 for realistic planning timeline)
-  const real2026Meetings: Record<string, { meetingDate: string; recordDate: string }> = {
+  const real2026Meetings: Record<
+    string,
+    { meetingDate: string; recordDate: string }
+  > = {
     WEN: { meetingDate: "2026-05-20", recordDate: "2026-03-23" },
     PAYC: { meetingDate: "2026-05-04", recordDate: "2026-03-11" },
     WWD: { meetingDate: "2026-04-15", recordDate: "2026-02-16" },
@@ -1410,23 +1531,32 @@ const main = async () => {
     ADPT: { meetingDate: "2026-06-09", recordDate: "2026-04-10" },
   };
 
-  const real2026JulyMeetings: Record<string, { meetingDate: string; recordDate: string }> =
-    Object.fromEntries(
-      Object.entries(real2026Meetings).map(([ticker, dates]) => {
-        const originalMeetingDate = DateTime.fromISO(dates.meetingDate);
-        const julyMeetingDate = originalMeetingDate.set({ month: 7 });
-        const meetingShiftDays = Math.round(julyMeetingDate.diff(originalMeetingDate, "days").days);
-        const julyRecordDate = DateTime.fromISO(dates.recordDate).plus({ days: meetingShiftDays });
+  const real2026JulyMeetings: Record<
+    string,
+    { meetingDate: string; recordDate: string }
+  > = Object.fromEntries(
+    Object.entries(real2026Meetings).map(([ticker, dates]) => {
+      const originalMeetingDate = DateTime.fromISO(dates.meetingDate);
+      const julyMeetingDate = originalMeetingDate.set({ month: 7 });
+      const meetingShiftDays = Math.round(
+        julyMeetingDate.diff(originalMeetingDate, "days").days
+      );
+      const julyRecordDate = DateTime.fromISO(dates.recordDate).plus({
+        days: meetingShiftDays,
+      });
 
-        return [
-          ticker,
-          {
-            meetingDate: julyMeetingDate.toISODate() || julyMeetingDate.toFormat("yyyy-MM-dd"),
-            recordDate: julyRecordDate.toISODate() || julyRecordDate.toFormat("yyyy-MM-dd"),
-          },
-        ];
-      }),
-    ) as Record<string, { meetingDate: string; recordDate: string }>;
+      return [
+        ticker,
+        {
+          meetingDate:
+            julyMeetingDate.toISODate() ||
+            julyMeetingDate.toFormat("yyyy-MM-dd"),
+          recordDate:
+            julyRecordDate.toISODate() || julyRecordDate.toFormat("yyyy-MM-dd"),
+        },
+      ];
+    })
+  ) as Record<string, { meetingDate: string; recordDate: string }>;
 
   // 2 meetings per year: Annual + Special for 2022-2026
   const meetingsByYear = [
@@ -1475,7 +1605,8 @@ const main = async () => {
 
         if ("useRealDates" in meeting && meeting.useRealDates) {
           // Use real CSV-based dates for 2025 and 2026
-          const realDataSource = yearConfig.year === 2026 ? real2026JulyMeetings : real2025Meetings;
+          const realDataSource =
+            yearConfig.year === 2026 ? real2026JulyMeetings : real2025Meetings;
           const realData = realDataSource[client.ticker];
 
           if (realData) {
@@ -1487,7 +1618,9 @@ const main = async () => {
             recordDateTime = meetingDateTime.minus({ days: 60 });
           }
         } else if ("monthOffset" in meeting) {
-          meetingDateTime = DateTime.now().plus({ months: meeting.monthOffset });
+          meetingDateTime = DateTime.now().plus({
+            months: meeting.monthOffset,
+          });
           recordDateTime = meetingDateTime.minus({ days: 60 });
         } else {
           // Fallback for meetings without monthOffset
@@ -1500,14 +1633,20 @@ const main = async () => {
         const brokerSearchDateTime = meetingDateTime.minus({ days: 80 });
         const preFilingDateTime = meetingDateTime.minus({ days: 105 });
 
-        const meetingDate = meetingDateTime.toISODate() || meetingDateTime.toFormat("yyyy-MM-dd");
-        const recordDate = recordDateTime.toISODate() || recordDateTime.toFormat("yyyy-MM-dd");
-        const mailingDate = mailingDateTime.toISODate() || mailingDateTime.toFormat("yyyy-MM-dd");
-        const filingDate = filingDateTime.toISODate() || filingDateTime.toFormat("yyyy-MM-dd");
+        const meetingDate =
+          meetingDateTime.toISODate() || meetingDateTime.toFormat("yyyy-MM-dd");
+        const recordDate =
+          recordDateTime.toISODate() || recordDateTime.toFormat("yyyy-MM-dd");
+        const mailingDate =
+          mailingDateTime.toISODate() || mailingDateTime.toFormat("yyyy-MM-dd");
+        const filingDate =
+          filingDateTime.toISODate() || filingDateTime.toFormat("yyyy-MM-dd");
         const brokerSearchDate =
-          brokerSearchDateTime.toISODate() || brokerSearchDateTime.toFormat("yyyy-MM-dd");
+          brokerSearchDateTime.toISODate() ||
+          brokerSearchDateTime.toFormat("yyyy-MM-dd");
         const preFilingDate =
-          preFilingDateTime.toISODate() || preFilingDateTime.toFormat("yyyy-MM-dd");
+          preFilingDateTime.toISODate() ||
+          preFilingDateTime.toFormat("yyyy-MM-dd");
         const cutoffDateTimeRaw = meetingDateTime.minus({ days: 1 });
         const cutoffDateTime =
           cutoffDateTimeRaw.weekday === 7
@@ -1515,7 +1654,8 @@ const main = async () => {
             : cutoffDateTimeRaw.weekday === 6
               ? cutoffDateTimeRaw.minus({ days: 1 })
               : cutoffDateTimeRaw;
-        const cutoffDate = cutoffDateTime.toISODate() || cutoffDateTime.toFormat("yyyy-MM-dd");
+        const cutoffDate =
+          cutoffDateTime.toISODate() || cutoffDateTime.toFormat("yyyy-MM-dd");
 
         const meetingTypeSlug = meeting.type.toLowerCase().replace(/\s+/g, "-");
         const meetingId = `${client.ticker.toLowerCase()}-${meetingTypeSlug}-${yearConfig.year}`;
@@ -1523,9 +1663,13 @@ const main = async () => {
         meetingToClient[meetingId] = client;
         meetingToDate[meetingId] = meetingDate;
 
-        const account = seedConfig.accounts.find((acc) => acc.clientTicker === client.ticker);
+        const account = seedConfig.accounts.find(
+          (acc) => acc.clientTicker === client.ticker
+        );
         if (!account) {
-          throw new Error(`No account found for client ticker: ${client.ticker}`);
+          throw new Error(
+            `No account found for client ticker: ${client.ticker}`
+          );
         }
 
         const currentPhase = "phase" in meeting ? meeting.phase : 8;
@@ -1535,7 +1679,8 @@ const main = async () => {
         const quorumForMeeting = isPastMeeting
           ? Math.round((60 + Math.random() * 10) * 100) / 100
           : account.quorumRequirement;
-        const status = currentPhase === 8 || isPastMeeting ? "COMPLETE" : "ACTIVE";
+        const status =
+          currentPhase === 8 || isPastMeeting ? "COMPLETE" : "ACTIVE";
         const phaseName = `Phase ${currentPhase}`;
         // Calculate completion based on phase and meeting type
         let overallCompletion = 0;
@@ -1543,7 +1688,9 @@ const main = async () => {
           overallCompletion = 100;
         } else if (currentPhase === 7) {
           // Phase 7 meetings are in active voting - higher completion for special meetings
-          overallCompletion = meeting.type.toLowerCase().includes("special") ? 85 : 75;
+          overallCompletion = meeting.type.toLowerCase().includes("special")
+            ? 85
+            : 75;
         } else if (currentPhase >= 5) {
           // Later phases show progressive completion
           overallCompletion = Math.min(currentPhase * 10, 60);
@@ -1554,14 +1701,16 @@ const main = async () => {
 
         meetingPhaseMap[meetingId] = currentPhase;
 
-        const totalSharesOutstanding = Number(account.totalSharesOutstanding ?? 0);
+        const totalSharesOutstanding = Number(
+          account.totalSharesOutstanding ?? 0
+        );
         meetingShareBase[meetingId] = totalSharesOutstanding;
 
         let participationTarget = calculateParticipationTarget(
           client.ticker,
           yearConfig.year,
           meeting.type,
-          currentPhase,
+          currentPhase
         );
 
         if (yearConfig.year === 2025 && meeting.type === "Annual Meeting") {
@@ -1574,7 +1723,7 @@ const main = async () => {
 
           const summaryParticipation = computeParticipationFromVoteSummary(
             voteSummary,
-            totalSharesOutstanding,
+            totalSharesOutstanding
           );
 
           if (summaryParticipation !== null) {
@@ -1582,7 +1731,7 @@ const main = async () => {
           } else {
             const csvParticipation = computeParticipationFromPositions(
               csvPositions,
-              totalSharesOutstanding,
+              totalSharesOutstanding
             );
             if (csvParticipation !== null) {
               participationTarget = csvParticipation;
@@ -1636,8 +1785,14 @@ const main = async () => {
         const solicitors = [
           { company: "D.F. King & Co., Inc.", email: "david.king@dfking.com" },
           { company: "Georgeson Inc.", email: "contact@georgeson.com" },
-          { company: "Innisfree M&A Incorporated", email: "proxy@innisfree.com" },
-          { company: "MacKenzie Partners, Inc.", email: "proxy@mackenziepartners.com" },
+          {
+            company: "Innisfree M&A Incorporated",
+            email: "proxy@innisfree.com",
+          },
+          {
+            company: "MacKenzie Partners, Inc.",
+            email: "proxy@mackenziepartners.com",
+          },
           { company: "Morrow Sodali LLC", email: "info@morrowsodali.com" },
         ];
 
@@ -1659,7 +1814,8 @@ const main = async () => {
         const transferAgent = transferAgents[transferAgentIndex];
 
         // Determine mailing status based on meeting status
-        const mailingStatus = status === "COMPLETE" ? "Mailing Completed" : "Preparing for Mailing";
+        const mailingStatus =
+          status === "COMPLETE" ? "Mailing Completed" : "Preparing for Mailing";
 
         sqlStatements.push(
           `INSERT INTO meeting(` +
@@ -1704,7 +1860,7 @@ const main = async () => {
             `${sqlValue(mailingStatus)}, ` +
             `${sqlValue(clientIds[client.ticker])}, ` +
             `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`,
+            `${sqlValue(createdAt)});`
         );
       });
     });
@@ -1770,13 +1926,19 @@ const main = async () => {
 
           const fullsetMail = data["Mail Positions"]?.Fullset ?? 0;
           const naaMail = data["Mail Positions"]?.NAA ?? 0;
-          const courtesyOtherMail = data["Mail Positions"]?.["Courtesy/Other"] || null;
+          const courtesyOtherMail =
+            data["Mail Positions"]?.["Courtesy/Other"] || null;
 
-          const electronicSuppressed = data["Suppressed Positions"]?.Electronic ?? 0;
-          const householdSuppressed = data["Suppressed Positions"]?.Household ?? 0;
-          const managedSuppressed = data["Suppressed Positions"]?.Managed || null;
-          const consolidatedSuppressed = data["Suppressed Positions"]?.Consolidated || null;
-          const canceledSuppressed = data["Suppressed Positions"]?.Canceled ?? 0;
+          const electronicSuppressed =
+            data["Suppressed Positions"]?.Electronic ?? 0;
+          const householdSuppressed =
+            data["Suppressed Positions"]?.Household ?? 0;
+          const managedSuppressed =
+            data["Suppressed Positions"]?.Managed || null;
+          const consolidatedSuppressed =
+            data["Suppressed Positions"]?.Consolidated || null;
+          const canceledSuppressed =
+            data["Suppressed Positions"]?.Canceled ?? 0;
 
           sqlStatements.push(
             `INSERT INTO mailing(id, meeting_id, ticker, total_accounts, total_positions, total_retransmissions, total_rollups, fullset_mail_positions, naa_mail_positions, courtesy_other_mail_positions, electronic_suppressed_positions, household_suppressed_positions, managed_suppressed_positions, consolidated_suppressed_positions, canceled_suppressed_positions, created_at, updated_at) VALUES (` +
@@ -1796,7 +1958,7 @@ const main = async () => {
               `${sqlValue(consolidatedSuppressed)}, ` +
               `${sqlValue(canceledSuppressed)}, ` +
               `${sqlValue(createdAt)}, ` +
-              `${sqlValue(createdAt)});`,
+              `${sqlValue(createdAt)});`
           );
         });
       }
@@ -1823,7 +1985,7 @@ const main = async () => {
   meetingIds.forEach((meetingId, meetingIndex) => {
     // Find the corresponding meeting data for SEC date calculations
     const meetingData = sqlStatements.find(
-      (s) => s.includes(`INSERT INTO meeting`) && s.includes(`'${meetingId}'`),
+      (s) => s.includes(`INSERT INTO meeting`) && s.includes(`'${meetingId}'`)
     );
 
     // Extract meeting and record dates from the meeting insert statement
@@ -1832,7 +1994,9 @@ const main = async () => {
     let currentPhase: number;
     if (year >= 2026) {
       // Future meetings - only 2026+ are active
-      const meetingType = meetingId.includes("annual") ? "Annual Meeting" : "Special Meeting";
+      const meetingType = meetingId.includes("annual")
+        ? "Annual Meeting"
+        : "Special Meeting";
       if (meetingType === "Annual Meeting") {
         currentPhase = 1; // Phase 1 for Annual Meetings
       } else if (meetingType === "Special Meeting") {
@@ -1877,7 +2041,9 @@ const main = async () => {
       // Calculate dates based on phase progress - use consistent baseMeetingDate
       const startDate = baseDate.minus({ months: 8 - phaseIndex }).toISODate();
       const endDate =
-        status === "COMPLETE" ? baseDate.minus({ months: 7 - phaseIndex }).toISODate() : null;
+        status === "COMPLETE"
+          ? baseDate.minus({ months: 7 - phaseIndex }).toISODate()
+          : null;
       const dueDate = baseDate.plus({ weeks: phaseIndex + 1 }).toISODate();
       const completionDate = status === "COMPLETE" ? endDate : null;
 
@@ -1947,7 +2113,7 @@ const main = async () => {
           `${sqlValue(status)}, ` +
           `${sqlValue(JSON.stringify(keyDates))}, ` +
           `${sqlValue(createdAt)}, ` +
-          `${sqlValue(createdAt)});`,
+          `${sqlValue(createdAt)});`
       );
     });
   });
@@ -2001,7 +2167,11 @@ const main = async () => {
     3: [
       { title: "Draft Proxy Statement", type: "File Upload", owner: "issuer" },
       { title: "Proxy Card", type: "File Upload", owner: "issuer" },
-      { title: "Notice and Access (NAA) Form", type: "File Upload", owner: "issuer" },
+      {
+        title: "Notice and Access (NAA) Form",
+        type: "File Upload",
+        owner: "issuer",
+      },
       {
         title: "Beneficial Count Settlement",
         type: "Settlement",
@@ -2048,7 +2218,8 @@ const main = async () => {
     ],
     6: [
       {
-        title: "Mailing proxy materials: Registered & NOBO / Intermediary mailings",
+        title:
+          "Mailing proxy materials: Registered & NOBO / Intermediary mailings",
         type: "Mailing",
         owner: "BetaNXT",
       },
@@ -2105,7 +2276,9 @@ const main = async () => {
 
     // Validate we have enough phases
     if (endPhaseIndex > phaseIds.length) {
-      console.warn(`Not enough phases for meeting ${meetingId} at index ${meetingIndex}`);
+      console.warn(
+        `Not enough phases for meeting ${meetingId} at index ${meetingIndex}`
+      );
       return;
     }
 
@@ -2119,7 +2292,9 @@ const main = async () => {
 
       // Validate phaseId and phaseTasks exist
       if (!phaseId) {
-        console.warn(`Phase ID not found for meeting ${meetingId}, phase ${phaseNum}`);
+        console.warn(
+          `Phase ID not found for meeting ${meetingId}, phase ${phaseNum}`
+        );
         continue;
       }
 
@@ -2129,7 +2304,9 @@ const main = async () => {
       }
 
       phaseTasks.forEach((task, taskIndex) => {
-        const taskId = copycat.uuid(`task-${meetingId}-${phaseNum}-${taskIndex}`);
+        const taskId = copycat.uuid(
+          `task-${meetingId}-${phaseNum}-${taskIndex}`
+        );
         taskIds.push(taskId);
         const taskIdString = `${meetingId}-P${phaseNum}-${taskIndex + 1}`;
 
@@ -2150,7 +2327,10 @@ const main = async () => {
           if (phaseNum <= 6) {
             if (task.title.includes("DTCC") && task.type === "Authorization") {
               taskStatus = "AUTHORIZED";
-            } else if (task.title.includes("Broadridge/ICS") && task.type === "Authorization") {
+            } else if (
+              task.title.includes("Broadridge/ICS") &&
+              task.type === "Authorization"
+            ) {
               taskStatus = "PENDING_AUTHORIZATION";
             } else if (taskTitle.includes("transfer agent")) {
               taskStatus = "SUBMITTED_AWAITING_RECORD_DATE";
@@ -2167,7 +2347,10 @@ const main = async () => {
           // Future meetings (2026+) that are not complete: most tasks incomplete, but special handling for authorization tasks
           if (task.title.includes("DTCC") && task.type === "Authorization") {
             taskStatus = "NEEDS_AUTHORIZATION";
-          } else if (task.title.includes("Broadridge/ICS") && task.type === "Authorization") {
+          } else if (
+            task.title.includes("Broadridge/ICS") &&
+            task.type === "Authorization"
+          ) {
             taskStatus = "NEEDS_AUTHORIZATION";
           } else {
             taskStatus = "INCOMPLETE";
@@ -2176,11 +2359,16 @@ const main = async () => {
           // Past events (2025 and earlier or phase 8): specific statuses for key tasks
           if (task.title.includes("DTCC") && task.type === "Authorization") {
             taskStatus = "AUTHORIZED";
-          } else if (task.title.includes("Broadridge/ICS") && task.type === "Authorization") {
+          } else if (
+            task.title.includes("Broadridge/ICS") &&
+            task.type === "Authorization"
+          ) {
             taskStatus = "AUTHORIZED";
           } else if (task.title === "Plan File Request form") {
             taskStatus = "COMPLETE";
-          } else if (task.title === "Transfer Agent Registered File Request Form") {
+          } else if (
+            task.title === "Transfer Agent Registered File Request Form"
+          ) {
             taskStatus = "COMPLETE";
           } else {
             taskStatus = "COMPLETE";
@@ -2200,12 +2388,18 @@ const main = async () => {
         // Special case: Form 8-K Item 5.07 deadline for Special Meetings should be 5 days AFTER meeting
         let taskDueDate: DateTime;
 
-        if (task.title === "Form 8-K Item 5.07 deadline" && meetingId.includes("special")) {
+        if (
+          task.title === "Form 8-K Item 5.07 deadline" &&
+          meetingId.includes("special")
+        ) {
           // Form 8-K deadline is 5 days AFTER Special Meeting
           taskDueDate = actualMeetingDate.plus({ days: 5 });
         } else {
           // All other tasks are BEFORE the meeting date
-          const daysBeforeMeeting = Math.max(10, 120 - (phaseNum - 1) * 15 - taskIndex * 2);
+          const daysBeforeMeeting = Math.max(
+            10,
+            120 - (phaseNum - 1) * 15 - taskIndex * 2
+          );
           taskDueDate = actualMeetingDate.minus({ days: daysBeforeMeeting });
         }
 
@@ -2217,10 +2411,19 @@ const main = async () => {
         const owner = task.owner === "issuer" ? client.companyName : "BetaNXT";
 
         // Generate task description based on type and title
-        const description = generateTaskDescription(task.title, task.type, taskStatus);
+        const description = generateTaskDescription(
+          task.title,
+          task.type,
+          taskStatus
+        );
 
         // Generate task links based on type and status
-        const links = generateTaskLinks(task.title, task.type, taskStatus, client.ticker);
+        const links = generateTaskLinks(
+          task.title,
+          task.type,
+          taskStatus,
+          client.ticker
+        );
 
         sqlStatements.push(
           `INSERT INTO task(` +
@@ -2239,7 +2442,7 @@ const main = async () => {
             `${sqlValue(owner)}, ` +
             `${sqlValue(JSON.stringify(links))}, ` +
             `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`,
+            `${sqlValue(createdAt)});`
         );
 
         // Skip generating signed documents for development since files don't exist
@@ -2270,12 +2473,18 @@ const main = async () => {
     }
   });
 
-  console.error(`Generated ${taskCounter} tasks for ${meetingIds.length} meetings`);
-  sqlStatements.push(`-- Generated ${taskCounter} tasks for ${meetingIds.length} meetings`);
+  console.error(
+    `Generated ${taskCounter} tasks for ${meetingIds.length} meetings`
+  );
+  sqlStatements.push(
+    `-- Generated ${taskCounter} tasks for ${meetingIds.length} meetings`
+  );
   sqlStatements.push("");
 
   // Generate signed documents for tasks with submitted/authorized statuses
-  sqlStatements.push("-- Insert signed documents for submitted/authorized tasks");
+  sqlStatements.push(
+    "-- Insert signed documents for submitted/authorized tasks"
+  );
   let signedDocCounter = 0;
 
   tasksNeedingSignedDocs.forEach((task) => {
@@ -2314,17 +2523,17 @@ const main = async () => {
         `${sqlValue(documentType)}, ` +
         `${sqlValue("SIGNED")}, ` +
         `${sqlValue(createdAt)}, ` +
-        `${sqlValue(createdAt)});`,
+        `${sqlValue(createdAt)});`
     );
 
     signedDocCounter++;
   });
 
   console.error(
-    `Generated ${signedDocCounter} signed documents for ${tasksNeedingSignedDocs.length} tasks`,
+    `Generated ${signedDocCounter} signed documents for ${tasksNeedingSignedDocs.length} tasks`
   );
   sqlStatements.push(
-    `-- Generated ${signedDocCounter} signed documents for ${tasksNeedingSignedDocs.length} tasks`,
+    `-- Generated ${signedDocCounter} signed documents for ${tasksNeedingSignedDocs.length} tasks`
   );
   sqlStatements.push("");
 
@@ -2418,7 +2627,8 @@ const main = async () => {
         "Your DEF 14A filing deadline is in 5 business days. Please ensure all documents are finalized and ready for submission.",
       type: "warning",
       priority: "high",
-      link: (ticker: string) => `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%204`,
+      link: (ticker: string) =>
+        `/${ticker}/meeting/{{meetingId}}/dashboard/Phase%204`,
     },
   ];
 
@@ -2458,12 +2668,14 @@ const main = async () => {
           meetingIds.find(
             (id) =>
               id.includes(userClientTicker) &&
-              template.forMeetings?.some((type) => id.includes(type)),
+              template.forMeetings?.some((type) => id.includes(type))
           ) || null;
       } else {
         // Use any 2026 meeting for this client
         meetingId =
-          meetingIds.find((id) => id.includes(userClientTicker) && id.includes("2026")) || null;
+          meetingIds.find(
+            (id) => id.includes(userClientTicker) && id.includes("2026")
+          ) || null;
       }
 
       // Calculate notification timing based on index
@@ -2483,14 +2695,16 @@ const main = async () => {
       if ("link" in template && template.link && meetingId) {
         const client = meetingToClient[meetingId];
         if (client) {
-          actionUrl = template.link(client.ticker).replace("{{meetingId}}", meetingId);
+          actionUrl = template
+            .link(client.ticker)
+            .replace("{{meetingId}}", meetingId);
           message = template.message; // Keep message as-is, link will be in action_url field
         } else {
           console.warn(`Client not found for meetingId: ${meetingId}`);
         }
       } else if ("link" in template && !meetingId) {
         console.warn(
-          `No meetingId found for notification: ${template.title} for user: ${user.username}`,
+          `No meetingId found for notification: ${template.title} for user: ${user.username}`
         );
       }
 
@@ -2508,7 +2722,7 @@ const main = async () => {
           `${sqlValue(meetingId)}, ` +
           `${sqlValue(actionUrl)}, ` +
           `${sqlValue(createdAt)}, ` +
-          `${sqlValue(readAt)});`,
+          `${sqlValue(readAt)});`
       );
     }
   });
@@ -2584,7 +2798,7 @@ const main = async () => {
         `${sqlValue(status)}, ` +
         `${sqlValue(status === "Approved" ? approvedAt : null)}, ` +
         `${sqlValue(createdAt)}, ` +
-        `${sqlValue(createdAt)});`,
+        `${sqlValue(createdAt)});`
     );
 
     // Comments removed to avoid SQL syntax issues
@@ -2607,7 +2821,9 @@ const main = async () => {
   meetingIds.forEach((meetingId, meetingIndex) => {
     const client = meetingToClient[meetingId];
     const clientTicker = client?.ticker;
-    const hasCsvData = !!(clientTicker && companyCsvDataMap[clientTicker]?.proposals?.length);
+    const hasCsvData = !!(
+      clientTicker && companyCsvDataMap[clientTicker]?.proposals?.length
+    );
     const meetingDateISO = meetingToDate[meetingId];
 
     // Extract meeting type from meetingId (format: ticker-meeting-type-year)
@@ -2626,10 +2842,13 @@ const main = async () => {
     const meetingYear = parseInt(meetingId.split("-").slice(-1)[0]) || 2025;
 
     // Use CSV data for 2025 annual meetings, synthetic for others
-    const is2025Annual = meetingId.includes("2025") && meetingId.includes("annual-meeting");
-    const is2026Annual = meetingYear === 2026 && meetingType === "Annual Meeting";
+    const is2025Annual =
+      meetingId.includes("2025") && meetingId.includes("annual-meeting");
+    const is2026Annual =
+      meetingYear === 2026 && meetingType === "Annual Meeting";
     const csvData = companyCsvDataMap[clientTicker];
-    const hasCsvProposals = (is2025Annual || is2026Annual) && (csvData?.proposals?.length ?? 0) > 0;
+    const hasCsvProposals =
+      (is2025Annual || is2026Annual) && (csvData?.proposals?.length ?? 0) > 0;
     let proposals: any[] = [];
 
     const participationTarget = meetingParticipationTargets[meetingId];
@@ -2638,10 +2857,17 @@ const main = async () => {
     if (csvData?.proposals && csvData.proposals.length > 0 && is2025Annual) {
       // Use 2025 CSV proposals (with real vote data) for any company that has them
       proposals = csvData.proposals;
-    } else if (csvData?.proposals && csvData.proposals.length > 0 && is2026Annual) {
+    } else if (
+      csvData?.proposals &&
+      csvData.proposals.length > 0 &&
+      is2026Annual
+    ) {
       // For 2026 annual meetings, use CSV proposals with zeroed vote data (meeting hasn't happened yet)
       const directorProposals = csvData.proposals
-        .filter((p: any) => p.type === "Director Election" && p.subtype === "Individual")
+        .filter(
+          (p: any) =>
+            p.type === "Director Election" && p.subtype === "Individual"
+        )
         .map((p: any) => ({
           ...p,
           votesFor: 0,
@@ -2650,7 +2876,10 @@ const main = async () => {
           votesTotal: 0,
         }));
       const nonDirectorProposals = csvData.proposals
-        .filter((p: any) => p.type !== "Director Election" || p.subtype !== "Individual")
+        .filter(
+          (p: any) =>
+            p.type !== "Director Election" || p.subtype !== "Individual"
+        )
         .map((p: any) => ({
           ...p,
           votesFor: 0,
@@ -2663,7 +2892,10 @@ const main = async () => {
       // For other non-2025 meetings, use the same proposals from CSV but with zeroed vote data
       // so generateProposalResults will be used instead of buildResultsFromCsvProposal
       const directorProposals = csvData.proposals
-        .filter((p: any) => p.type === "Director Election" && p.subtype === "Individual")
+        .filter(
+          (p: any) =>
+            p.type === "Director Election" && p.subtype === "Individual"
+        )
         .map((p: any) => ({
           ...p,
           votesFor: 0,
@@ -2672,7 +2904,10 @@ const main = async () => {
           votesTotal: 0,
         }));
       const nonDirectorProposals = csvData.proposals
-        .filter((p: any) => p.type !== "Director Election" || p.subtype !== "Individual")
+        .filter(
+          (p: any) =>
+            p.type !== "Director Election" || p.subtype !== "Individual"
+        )
         .map((p: any) => ({
           ...p,
           votesFor: 0,
@@ -2693,7 +2928,8 @@ const main = async () => {
         },
         {
           number: 2,
-          title: "Ratification of Independent Registered Public Accounting Firm",
+          title:
+            "Ratification of Independent Registered Public Accounting Firm",
           type: "Auditor Ratification",
           subtype: null,
           recommendation: "FOR",
@@ -2751,19 +2987,25 @@ const main = async () => {
       ) {
         // For director elections from CSV, extract director name if possible
         const directorMatch = proposal.title.match(/([A-Za-z\s.\-]+)$/);
-        const directorName = directorMatch ? directorMatch[1].trim() : proposal.title;
+        const directorName = directorMatch
+          ? directorMatch[1].trim()
+          : proposal.title;
 
         // Clean up proposal title by removing the proposal number prefix (e.g., "1.01 ")
         const cleanTitle = proposal.title.replace(/^\d+\.\d+\s+/, "");
 
-        const proposalId = copycat.uuid(`proposal-${meetingId}-${parseFloat(proposal.number)}`);
+        const proposalId = copycat.uuid(
+          `proposal-${meetingId}-${parseFloat(proposal.number)}`
+        );
         registerProposalId(meetingId, proposalId);
 
         // Extract year from meetingId for results generation
         const meetingYear = meetingId.split("-").slice(-1)[0];
         const meetingPhase = meetingPhaseMap[meetingId] ?? 1;
         const isPhase7Special2026 =
-          meetingPhase === 7 && meetingType === "Special Meeting" && parseInt(meetingYear) >= 2026;
+          meetingPhase === 7 &&
+          meetingType === "Special Meeting" &&
+          parseInt(meetingYear) >= 2026;
 
         // Check if CSV has actual vote data
         const hasVoteData =
@@ -2782,7 +3024,7 @@ const main = async () => {
                 meetingType,
                 participationTarget,
                 sharesBase,
-                meetingPhase,
+                meetingPhase
               )
             : buildResultsFromCsvProposal(proposal, sharesBase, meetingDateISO);
 
@@ -2794,7 +3036,8 @@ const main = async () => {
           !meetingId.includes("2023") &&
           !meetingId.includes("2022")
         ) {
-          meetingParticipationTargets[meetingId] = results.participationFraction;
+          meetingParticipationTargets[meetingId] =
+            results.participationFraction;
         }
 
         sqlStatements.push(
@@ -2830,18 +3073,22 @@ const main = async () => {
             `${results.votingCompleted}, ` +
             `${results.votingCompletedAt}, ` +
             `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`,
+            `${sqlValue(createdAt)});`
         );
       } else if (hasCsvData) {
         // For non-director CSV proposals (any company with CSV data)
-        const proposalId = copycat.uuid(`proposal-${meetingId}-${parseFloat(proposal.number)}`);
+        const proposalId = copycat.uuid(
+          `proposal-${meetingId}-${parseFloat(proposal.number)}`
+        );
         registerProposalId(meetingId, proposalId);
 
         // Extract year from meetingId for results generation
         const meetingYear = meetingId.split("-").slice(-1)[0];
         const meetingPhase = meetingPhaseMap[meetingId] ?? 1;
         const isPhase7Special2026 =
-          meetingPhase === 7 && meetingType === "Special Meeting" && parseInt(meetingYear) >= 2026;
+          meetingPhase === 7 &&
+          meetingType === "Special Meeting" &&
+          parseInt(meetingYear) >= 2026;
 
         // Check if CSV has actual vote data
         const hasVoteData =
@@ -2860,7 +3107,7 @@ const main = async () => {
                 meetingType,
                 participationTarget,
                 sharesBase,
-                meetingPhase,
+                meetingPhase
               )
             : buildResultsFromCsvProposal(proposal, sharesBase, meetingDateISO);
 
@@ -2872,7 +3119,8 @@ const main = async () => {
           !meetingId.includes("2023") &&
           !meetingId.includes("2022")
         ) {
-          meetingParticipationTargets[meetingId] = results.participationFraction;
+          meetingParticipationTargets[meetingId] =
+            results.participationFraction;
         }
 
         sqlStatements.push(
@@ -2908,7 +3156,7 @@ const main = async () => {
             `${results.votingCompleted}, ` +
             `${results.votingCompletedAt}, ` +
             `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`,
+            `${sqlValue(createdAt)});`
         );
       } else if (
         !hasCsvData &&
@@ -2935,7 +3183,7 @@ const main = async () => {
             meetingType,
             participationTarget,
             sharesBase,
-            meetingPhase,
+            meetingPhase
           );
 
           sqlStatements.push(
@@ -2971,23 +3219,32 @@ const main = async () => {
               `${results.votingCompleted}, ` +
               `${results.votingCompletedAt}, ` +
               `${sqlValue(createdAt)}, ` +
-              `${sqlValue(createdAt)});`,
+              `${sqlValue(createdAt)});`
           );
         });
       } else if (!hasCsvData && hasCsvProposals) {
-        const proposalId = copycat.uuid(`proposal-${meetingId}-${propIndex + 1}`);
+        const proposalId = copycat.uuid(
+          `proposal-${meetingId}-${propIndex + 1}`
+        );
         registerProposalId(meetingId, proposalId);
 
         // For director elections, extract director name from title
         let directorName: string | null = null;
-        if (proposal.type === "Director Election" && proposal.subtype === "Individual") {
+        if (
+          proposal.type === "Director Election" &&
+          proposal.subtype === "Individual"
+        ) {
           // Remove the proposal number prefix (e.g., "1.01 " or "1. ")
           const cleanTitle = proposal.title.replace(/^\d+\.\d*\s+/, "");
           // The remaining text is the director name
           directorName = cleanTitle.trim();
         }
 
-        const results = buildResultsFromCsvProposal(proposal, sharesBase, meetingDateISO);
+        const results = buildResultsFromCsvProposal(
+          proposal,
+          sharesBase,
+          meetingDateISO
+        );
 
         // Only update participation target if we don't already have one for historical meetings
         if (
@@ -2997,7 +3254,8 @@ const main = async () => {
           !meetingId.includes("2023") &&
           !meetingId.includes("2022")
         ) {
-          meetingParticipationTargets[meetingId] = results.participationFraction;
+          meetingParticipationTargets[meetingId] =
+            results.participationFraction;
         }
 
         sqlStatements.push(
@@ -3033,11 +3291,13 @@ const main = async () => {
             `${results.votingCompleted}, ` +
             `${results.votingCompletedAt}, ` +
             `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`,
+            `${sqlValue(createdAt)});`
         );
       } else if (!hasCsvData) {
         // For companies without CSV data — non-director synthetic proposals
-        const proposalId = copycat.uuid(`proposal-${meetingId}-${propIndex + directors.length}`);
+        const proposalId = copycat.uuid(
+          `proposal-${meetingId}-${propIndex + directors.length}`
+        );
         registerProposalId(meetingId, proposalId);
 
         const frequencyOptions =
@@ -3057,7 +3317,7 @@ const main = async () => {
           meetingType,
           participationTarget,
           sharesBase,
-          meetingPhase,
+          meetingPhase
         );
 
         sqlStatements.push(
@@ -3093,7 +3353,7 @@ const main = async () => {
             `${results.votingCompleted}, ` +
             `${results.votingCompletedAt}, ` +
             `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`,
+            `${sqlValue(createdAt)});`
         );
       }
     });
@@ -3137,9 +3397,13 @@ const main = async () => {
     const tickerCsvData = companyCsvDataMap[client.ticker];
 
     // Find corresponding account for this client
-    const account = seedConfig.accounts.find((acc) => acc.clientTicker === client.ticker);
+    const account = seedConfig.accounts.find(
+      (acc) => acc.clientTicker === client.ticker
+    );
     if (!account) {
-      console.warn(`No account found for client ticker: ${client.ticker} (meeting: ${meetingId})`);
+      console.warn(
+        `No account found for client ticker: ${client.ticker} (meeting: ${meetingId})`
+      );
       return; // Skip if account not found
     }
 
@@ -3151,13 +3415,16 @@ const main = async () => {
     // Extract year from meetingId (format: meeting-type-YEAR)
     const meetingYear = meetingId.split("-").slice(-1)[0];
     const isSpecialMeeting = meetingId.includes("special");
-    const is2025Annual = meetingYear === "2025" && meetingId.includes("annual-meeting");
+    const is2025Annual =
+      meetingYear === "2025" && meetingId.includes("annual-meeting");
     // Use the meetingPhaseMap that was populated when meetings were created
     const meetingPhase =
-      meetingPhaseMap[meetingId] ?? (parseInt(meetingYear) < 2026 ? 8 : isSpecialMeeting ? 7 : 1);
+      meetingPhaseMap[meetingId] ??
+      (parseInt(meetingYear) < 2026 ? 8 : isSpecialMeeting ? 7 : 1);
 
     // Use CSV data for 2025 annual meetings if available
-    const useCSVPositions = is2025Annual && (tickerCsvData?.positions?.length ?? 0) > 0;
+    const useCSVPositions =
+      is2025Annual && (tickerCsvData?.positions?.length ?? 0) > 0;
 
     if (useCSVPositions) {
       // Get the appropriate CSV position data
@@ -3169,7 +3436,9 @@ const main = async () => {
         positionToMeetingMap[positionId] = meetingId;
 
         // For Phase 1-5, override vote status to Unvoted
-        const normalizedAccountType = normalizeAccountType(position.accountType);
+        const normalizedAccountType = normalizeAccountType(
+          position.accountType
+        );
         let voteStatus = position.voteStatus ?? "Unvoted";
         let sharesVoted = position.sharesVoted ?? 0;
         let source = position.source;
@@ -3183,8 +3452,11 @@ const main = async () => {
         }
 
         // Generate email for account (30% have emails)
-        const hasEmail = copycat.int(`has-email-${positionId}`, { min: 0, max: 99 }) < 30;
-        const accountEmail = hasEmail ? copycat.email(`email-${positionId}`) : null;
+        const hasEmail =
+          copycat.int(`has-email-${positionId}`, { min: 0, max: 99 }) < 30;
+        const accountEmail = hasEmail
+          ? copycat.email(`email-${positionId}`)
+          : null;
 
         sqlStatements.push(
           `INSERT INTO "position"(` +
@@ -3206,7 +3478,7 @@ const main = async () => {
             `${sqlValue(source)}, ` +
             `${sqlValue(dateVoted)}, ` +
             `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`,
+            `${sqlValue(createdAt)});`
         );
 
         positionVoteMeta[positionId] = {
@@ -3250,14 +3522,15 @@ const main = async () => {
 
               for (let i = 0; i < shareholdersToCreate; i++) {
                 const positionId = copycat.uuid(
-                  `position-nondtc-${meetingId}-${method.source}-${i}`,
+                  `position-nondtc-${meetingId}-${method.source}-${i}`
                 );
                 positionIds.push(positionId);
                 positionToMeetingMap[positionId] = meetingId;
 
                 const shares =
                   i === shareholdersToCreate - 1
-                    ? method.shares - sharesPerShareholder * (shareholdersToCreate - 1) // Last position gets remainder
+                    ? method.shares -
+                      sharesPerShareholder * (shareholdersToCreate - 1) // Last position gets remainder
                     : sharesPerShareholder;
 
                 const holderName = copycat
@@ -3267,8 +3540,12 @@ const main = async () => {
                 const accountNumber = `NDTC${String(i + 1).padStart(6, "0")}`;
 
                 // Generate email for account (30% have emails)
-                const hasEmail = copycat.int(`has-email-${positionId}`, { min: 0, max: 99 }) < 30;
-                const accountEmail = hasEmail ? copycat.email(`email-${positionId}`) : null;
+                const hasEmail =
+                  copycat.int(`has-email-${positionId}`, { min: 0, max: 99 }) <
+                  30;
+                const accountEmail = hasEmail
+                  ? copycat.email(`email-${positionId}`)
+                  : null;
 
                 const meetingDateString = meetingToDate[meetingId];
                 const meetingDate = meetingDateString
@@ -3306,7 +3583,7 @@ const main = async () => {
                     `${sqlValue(method.source)}, ` +
                     `${sqlValue(dateVoted)}, ` +
                     `${sqlValue(createdAt)}, ` +
-                    `${sqlValue(createdAt)});`,
+                    `${sqlValue(createdAt)});`
                 );
 
                 positionVoteMeta[positionId] = {
@@ -3322,17 +3599,26 @@ const main = async () => {
     } else {
       const totalSharesValue = Number(account.totalSharesOutstanding ?? 0);
       const totalSharesOutstanding =
-        Number.isFinite(totalSharesValue) && totalSharesValue > 0 ? totalSharesValue : 0;
-      const safeTotalShares = totalSharesOutstanding > 0 ? totalSharesOutstanding : 1;
+        Number.isFinite(totalSharesValue) && totalSharesValue > 0
+          ? totalSharesValue
+          : 0;
+      const safeTotalShares =
+        totalSharesOutstanding > 0 ? totalSharesOutstanding : 1;
       const participationTarget = meetingParticipationTargets[meetingId] ?? 0;
 
       const targetVotingSharesRaw =
         meetingPhase >= 6
-          ? clamp(Math.round(participationTarget * safeTotalShares), 0, safeTotalShares)
+          ? clamp(
+              Math.round(participationTarget * safeTotalShares),
+              0,
+              safeTotalShares
+            )
           : 0;
 
       const meetingDateString = meetingToDate[meetingId];
-      const meetingDate = meetingDateString ? DateTime.fromISO(meetingDateString) : DateTime.now();
+      const meetingDate = meetingDateString
+        ? DateTime.fromISO(meetingDateString)
+        : DateTime.now();
 
       const cedePositionId = copycat.uuid(`position-${meetingId}-cede`);
       positionIds.push(cedePositionId);
@@ -3340,7 +3626,9 @@ const main = async () => {
 
       const cedeShares = Math.floor(safeTotalShares * 0.75);
       const cedeVoteTarget =
-        meetingPhase >= 6 ? Math.min(cedeShares, Math.round(targetVotingSharesRaw * 0.82)) : 0;
+        meetingPhase >= 6
+          ? Math.min(cedeShares, Math.round(targetVotingSharesRaw * 0.82))
+          : 0;
       const cedeVoteStatus = cedeVoteTarget > 0 ? "Voted" : "Unvoted";
       const cedeSource = cedeVoteTarget > 0 ? "WEB" : null;
 
@@ -3357,12 +3645,18 @@ const main = async () => {
 
       const cedeDateVoted =
         cedeVoteTarget > 0
-          ? meetingDate.minus({ days: cedeDaysBefore }).toFormat("MM/dd/yyyy hh:mma").toUpperCase()
+          ? meetingDate
+              .minus({ days: cedeDaysBefore })
+              .toFormat("MM/dd/yyyy hh:mma")
+              .toUpperCase()
           : null;
 
       // Generate email for CEDE account (30% have emails)
-      const cedeHasEmail = copycat.int(`has-email-${cedePositionId}`, { min: 0, max: 99 }) < 30;
-      const cedeAccountEmail = cedeHasEmail ? copycat.email(`email-${cedePositionId}`) : null;
+      const cedeHasEmail =
+        copycat.int(`has-email-${cedePositionId}`, { min: 0, max: 99 }) < 30;
+      const cedeAccountEmail = cedeHasEmail
+        ? copycat.email(`email-${cedePositionId}`)
+        : null;
 
       // Generate account number for CEDE & CO position
       const cedeAccountNumber = `CEDE${String(meetingIndex).padStart(6, "0")}`;
@@ -3387,7 +3681,7 @@ const main = async () => {
           `${sqlValue(cedeSource)}, ` +
           `${sqlValue(cedeDateVoted)}, ` +
           `${sqlValue(createdAt)}, ` +
-          `${sqlValue(createdAt)});`,
+          `${sqlValue(createdAt)});`
       );
 
       positionVoteMeta[cedePositionId] = {
@@ -3402,7 +3696,8 @@ const main = async () => {
         max: 999999,
       });
       // Reduce positions to make seed file smaller
-      const basePositions = (tickerCsvData?.positions?.length ?? 0) > 0 ? 30 : 20;
+      const basePositions =
+        (tickerCsvData?.positions?.length ?? 0) > 0 ? 30 : 20;
       const positionVariation = (meetingSeed % 50) + 10;
       const numPositions = Math.max(15, basePositions + positionVariation);
 
@@ -3419,9 +3714,10 @@ const main = async () => {
         rawWeights.push(weight * weightSeed);
       }
 
-      const weightTotal = rawWeights.reduce((sum, weight) => sum + weight, 0) || 1;
+      const weightTotal =
+        rawWeights.reduce((sum, weight) => sum + weight, 0) || 1;
       const positionShares = rawWeights.map((weight) =>
-        Math.max(1, Math.floor((weight / weightTotal) * remainingShares)),
+        Math.max(1, Math.floor((weight / weightTotal) * remainingShares))
       );
 
       let sharesSum = positionShares.reduce((sum, value) => sum + value, 0);
@@ -3442,12 +3738,19 @@ const main = async () => {
       if (sharesSum !== remainingShares && positionShares.length > 0) {
         positionShares[positionShares.length - 1] = Math.max(
           1,
-          positionShares[positionShares.length - 1] + (remainingShares - sharesSum),
+          positionShares[positionShares.length - 1] +
+            (remainingShares - sharesSum)
         );
       }
 
-      let remainingVotePool = Math.max(0, targetVotingSharesRaw - cedeVoteTarget);
-      let remainingRegisteredShares = positionShares.reduce((sum, shares) => sum + shares, 0);
+      let remainingVotePool = Math.max(
+        0,
+        targetVotingSharesRaw - cedeVoteTarget
+      );
+      let remainingRegisteredShares = positionShares.reduce(
+        (sum, shares) => sum + shares,
+        0
+      );
 
       // Use actual account names from CSV data for consistency across all events
       // Get unique account names from CSV data for this client
@@ -3459,8 +3762,8 @@ const main = async () => {
             new Set(
               csvPositions
                 .filter((p: any) => p.name && !p.name.includes("CEDE"))
-                .map((p: any) => p.name.trim()),
-            ),
+                .map((p: any) => p.name.trim())
+            )
           ).slice(0, 100) // Use first 100 unique names
         : [];
 
@@ -3492,7 +3795,9 @@ const main = async () => {
       ];
 
       const institutionalNames =
-        csvAccountNames.length > 0 ? csvAccountNames : fallbackInstitutionalNames;
+        csvAccountNames.length > 0
+          ? csvAccountNames
+          : fallbackInstitutionalNames;
       const individualNames =
         csvAccountNames.length > 0 ? csvAccountNames : fallbackIndividualNames;
 
@@ -3505,13 +3810,17 @@ const main = async () => {
 
         let sharesVoted = 0;
         if (meetingPhase >= 6 && remainingVotePool > 0) {
-          const proportion = remainingRegisteredShares > 0 ? shares / remainingRegisteredShares : 0;
+          const proportion =
+            remainingRegisteredShares > 0
+              ? shares / remainingRegisteredShares
+              : 0;
           const expectedVotes = Math.round(proportion * remainingVotePool);
           const jitterSeed = copycat.int(`vote-allocation-${meetingId}-${p}`, {
             min: -150,
             max: 150,
           });
-          let allocatedVotes = expectedVotes + Math.round((expectedVotes * jitterSeed) / 1000);
+          let allocatedVotes =
+            expectedVotes + Math.round((expectedVotes * jitterSeed) / 1000);
 
           allocatedVotes = clamp(allocatedVotes, 0, shares);
           if (allocatedVotes > remainingVotePool) {
@@ -3529,7 +3838,8 @@ const main = async () => {
           min: 0,
           max: sources.length - 1,
         });
-        const source = sharesVoted > 0 ? sources[sourceSeed % sources.length] : null;
+        const source =
+          sharesVoted > 0 ? sources[sourceSeed % sources.length] : null;
 
         const timingSeed = copycat.int(`vote-timing-${meetingId}-${p}`, {
           min: 0,
@@ -3543,7 +3853,10 @@ const main = async () => {
               : timingSeed % 7;
         const dateVoted =
           sharesVoted > 0
-            ? meetingDate.minus({ days: daysBefore }).toFormat("MM/dd/yyyy hh:mma").toUpperCase()
+            ? meetingDate
+                .minus({ days: daysBefore })
+                .toFormat("MM/dd/yyyy hh:mma")
+                .toUpperCase()
             : null;
 
         const holderSeed = copycat.int(`holder-${meetingId}-${p}`, {
@@ -3567,7 +3880,15 @@ const main = async () => {
         } else {
           const firstName = copycat.firstName(`person-${meetingId}-${p}`);
           const lastName = copycat.lastName(`person-${meetingId}-${p}`);
-          const suffixes = ["", " JR", " SR", " III", " TR", " TTEE", " & ASSOC"];
+          const suffixes = [
+            "",
+            " JR",
+            " SR",
+            " III",
+            " TR",
+            " TTEE",
+            " & ASSOC",
+          ];
           holderName = `${firstName.toUpperCase()} ${lastName.toUpperCase()}${suffixes[p % suffixes.length]}`;
         }
 
@@ -3575,8 +3896,11 @@ const main = async () => {
         const controlNumber = String(p + 1).padStart(8, "0");
 
         // Generate email for registered account (30% have emails)
-        const hasEmail = copycat.int(`has-email-${positionId}`, { min: 0, max: 99 }) < 30;
-        const accountEmail = hasEmail ? copycat.email(`email-${positionId}`) : null;
+        const hasEmail =
+          copycat.int(`has-email-${positionId}`, { min: 0, max: 99 }) < 30;
+        const accountEmail = hasEmail
+          ? copycat.email(`email-${positionId}`)
+          : null;
 
         sqlStatements.push(
           `INSERT INTO "position"(` +
@@ -3598,7 +3922,7 @@ const main = async () => {
             `${sqlValue(source)}, ` +
             `${sqlValue(dateVoted)}, ` +
             `${sqlValue(createdAt)}, ` +
-            `${sqlValue(createdAt)});`,
+            `${sqlValue(createdAt)});`
         );
 
         positionVoteMeta[positionId] = {
@@ -3608,7 +3932,10 @@ const main = async () => {
         };
 
         remainingVotePool = Math.max(0, remainingVotePool - sharesVoted);
-        remainingRegisteredShares = Math.max(0, remainingRegisteredShares - shares);
+        remainingRegisteredShares = Math.max(
+          0,
+          remainingRegisteredShares - shares
+        );
       }
     }
   });
@@ -3649,20 +3976,30 @@ const main = async () => {
     meetingProposals.forEach((proposalId, proposalIndexForMeeting) => {
       if (!proposalId || remainingShares <= 0) return;
 
-      const remainingProposals = meetingProposals.length - proposalIndexForMeeting;
+      const remainingProposals =
+        meetingProposals.length - proposalIndexForMeeting;
       let sharesVoting =
         proposalIndexForMeeting === meetingProposals.length - 1
           ? remainingShares
           : Math.max(1, Math.floor(remainingShares / remainingProposals));
 
-      const voteSeed = copycat.int(`position-vote-${positionId}-${proposalId}`, {
-        min: 0,
-        max: 999,
-      });
+      const voteSeed = copycat.int(
+        `position-vote-${positionId}-${proposalId}`,
+        {
+          min: 0,
+          max: 999,
+        }
+      );
 
-      if (proposalIndexForMeeting !== meetingProposals.length - 1 && sharesVoting > 1) {
+      if (
+        proposalIndexForMeeting !== meetingProposals.length - 1 &&
+        sharesVoting > 1
+      ) {
         const variance = (voteSeed % 3) - 1;
-        const maxReduce = Math.max(1, remainingShares - (remainingProposals - 1));
+        const maxReduce = Math.max(
+          1,
+          remainingShares - (remainingProposals - 1)
+        );
         sharesVoting = clamp(sharesVoting + variance, 1, maxReduce);
       }
 
@@ -3682,7 +4019,7 @@ const main = async () => {
       }
 
       const voteId = copycat.uuid(
-        `vote-${totalVotes}-${positionId.substring(0, 8)}-${proposalIndexForMeeting}`,
+        `vote-${totalVotes}-${positionId.substring(0, 8)}-${proposalIndexForMeeting}`
       );
 
       sqlStatements.push(
@@ -3693,14 +4030,14 @@ const main = async () => {
           `${sqlValue(proposalId)}, ` +
           `${sqlValue(vote)}, ` +
           `${sqlValue(sharesVoting.toString())}, ` +
-          `${sqlValue(createdAt)});`,
+          `${sqlValue(createdAt)});`
       );
       totalVotes++;
     });
   });
 
   sqlStatements.push(
-    `-- Generated ${totalVotes} position votes for ${positionIds.length} positions`,
+    `-- Generated ${totalVotes} position votes for ${positionIds.length} positions`
   );
 
   appendFocPositionVotesClonedFromWen(sqlStatements);
@@ -3746,7 +4083,9 @@ const main = async () => {
   // Skip generating mock DSM documents - only use actual files from /data directory
   // The actualDocuments array above will handle real files
 
-  sqlStatements.push(`-- Skipped generating mock DSM documents - using actual files only`);
+  sqlStatements.push(
+    `-- Skipped generating mock DSM documents - using actual files only`
+  );
 
   // Skip generating fake proxy documents - seed-documents.ts handles real files
   sqlStatements.push("");
@@ -3772,7 +4111,10 @@ const main = async () => {
     const numComments = 1 + (index % 3);
     for (let c = 0; c < numComments; c++) {
       const userId = userIds[index % userIds.length];
-      const user = seedConfig.users.issuerUsers[index % seedConfig.users.issuerUsers.length];
+      const user =
+        seedConfig.users.issuerUsers[
+          index % seedConfig.users.issuerUsers.length
+        ];
       const comment = commentTemplates[(index + c) % commentTemplates.length];
 
       sqlStatements.push(
@@ -3786,8 +4128,8 @@ const main = async () => {
           `${sqlValue(
             DateTime.now()
               .minus({ days: c * 2 + 1 })
-              .toISO(),
-          )});`,
+              .toISO()
+          )});`
       );
     }
   });
@@ -3815,7 +4157,7 @@ const main = async () => {
           `${sqlValue("Electronic")}, ` +
           `true, ` +
           `${sqlValue(createdAt)}, ` +
-          `${sqlValue(createdAt)});`,
+          `${sqlValue(createdAt)});`
       );
     }
   });
@@ -3830,7 +4172,9 @@ const main = async () => {
   sqlStatements.push("");
 
   // Generate tabulation reports for COMPLETE meetings using CSV summary data when available
-  sqlStatements.push("-- Insert tabulation_report data for COMPLETE meetings using CSV summaries");
+  sqlStatements.push(
+    "-- Insert tabulation_report data for COMPLETE meetings using CSV summaries"
+  );
 
   // Helper function to get company data by ticker
   const getCompanyDataByTicker = (ticker: string) => {
@@ -3955,7 +4299,7 @@ VALUES (
         votedSubtotalShares: nonDtcSummary.votedSubtotalShares,
         grandTotalShareholders: nonDtcSummary.grandTotalShareholders,
         grandTotalShares: nonDtcSummary.grandTotalShares,
-      }),
+      })
     )}::jsonb,
     ${sqlValue(
       JSON.stringify({
@@ -3963,9 +4307,10 @@ VALUES (
         unvotedShares: dtcSummary.unvotedShares,
         votedShareholders: dtcSummary.votedParticipants,
         votedShares: dtcSummary.votedShares,
-        grandTotalShareholders: dtcSummary.unvotedParticipants + dtcSummary.votedParticipants,
+        grandTotalShareholders:
+          dtcSummary.unvotedParticipants + dtcSummary.votedParticipants,
         grandTotalShares: dtcSummary.unvotedShares + dtcSummary.votedShares,
-      }),
+      })
     )}::jsonb,
     ${sqlValue(
       JSON.stringify({
@@ -3973,7 +4318,7 @@ VALUES (
         dtcUnvotedShares: dtcSummary.unvotedShares,
         nonDtcVotedShares: nonDtcSummary.votedSubtotalShares,
         nonDtcUnvotedShares: nonDtcSummary.unvotedShares,
-      }),
+      })
     )}::jsonb,
     (
         SELECT jsonb_build_object(
@@ -4196,7 +4541,8 @@ SELECT
   // Gather all 2026 annual meetings and check if they are within the distribution window
   seedConfig.clients.forEach((client) => {
     const ticker = client.ticker.toUpperCase();
-    const meeting2026 = real2026Meetings[ticker as keyof typeof real2026Meetings];
+    const meeting2026 =
+      real2026Meetings[ticker as keyof typeof real2026Meetings];
     if (!meeting2026) return;
 
     const meetingDate = DateTime.fromISO(meeting2026.meetingDate);
@@ -4207,7 +4553,10 @@ SELECT
 
     // Find the meeting ID for this client's 2026 annual meeting
     const meetingId = meetingIds.find(
-      (id) => id.includes(ticker.toLowerCase()) && id.includes("2026") && id.includes("annual"),
+      (id) =>
+        id.includes(ticker.toLowerCase()) &&
+        id.includes("2026") &&
+        id.includes("annual")
     );
     if (!meetingId) return;
 
@@ -4215,7 +4564,9 @@ SELECT
 
     // Seed 3 past mock deliveries for the last 3 days
     for (let daysAgo = 1; daysAgo <= 3; daysAgo++) {
-      const sentAt = today.minus({ days: daysAgo }).set({ hour: 8, minute: 0, second: 0 });
+      const sentAt = today
+        .minus({ days: daysAgo })
+        .set({ hour: 8, minute: 0, second: 0 });
       const notifId = copycat.uuid(`tabulation-dist-${meetingId}-${daysAgo}`);
       const daysUntil = Math.ceil(meetingDate.diff(sentAt, "days").days);
 
@@ -4231,7 +4582,7 @@ SELECT
           `${sqlValue(meetingId)}, ` +
           `${sqlValue(`/${ticker}/meeting/${meetingId}/tabulation`)}, ` +
           `${sqlValue(sentAt.toISO())}, ` +
-          `${sqlValue(daysAgo > 1 ? sentAt.plus({ hours: 2 }).toISO() : null)});`,
+          `${sqlValue(daysAgo > 1 ? sentAt.plus({ hours: 2 }).toISO() : null)});`
       );
     }
   });
@@ -4270,7 +4621,9 @@ SELECT
  * @param sqlStatements - Seed SQL accumulator the statements are pushed onto
  */
 function appendHolderEnrichment(sqlStatements: string[]): void {
-  sqlStatements.push("-- 002-tabulation-enhancements: holder population + geography enrichment");
+  sqlStatements.push(
+    "-- 002-tabulation-enhancements: holder population + geography enrichment"
+  );
 
   // NOBO positions for every client (gated by the runtime `nobo` feature flag),
   // cloned per meeting metadata. 40 unvoted beneficial NOBO holders per

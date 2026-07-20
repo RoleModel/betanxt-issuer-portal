@@ -48,7 +48,9 @@ export function transformDSMConfig(dbConfig: DSMConfigRow): DSMConfig {
     inspectorName: nullToUndefined(dbConfig.inspector_name),
     inspectorEmail: nullToUndefined(dbConfig.inspector_email),
     speakerListDocId: nullToUndefined(dbConfig.speaker_list_doc_id),
-    guestLinkRegistrationDocId: nullToUndefined(dbConfig.guest_link_registration_doc_id),
+    guestLinkRegistrationDocId: nullToUndefined(
+      dbConfig.guest_link_registration_doc_id
+    ),
     createdAt: nullToUndefined(dbConfig.created_at),
     updatedAt: nullToUndefined(dbConfig.updated_at),
   };
@@ -57,7 +59,7 @@ export function transformDSMConfig(dbConfig: DSMConfigRow): DSMConfig {
 // Transform camelCase API fields to snake_case database fields
 export function transformToDSMConfigInsert(
   config: Partial<DSMConfig>,
-  meetingId: string,
+  meetingId: string
 ): DSMConfigInsert {
   return {
     id: config.id || randomUUID(),
@@ -85,7 +87,9 @@ export function transformToDSMConfigInsert(
   };
 }
 
-export async function getDSMConfig(meetingId: string): Promise<ApiResponse<DSMConfig>> {
+export async function getDSMConfig(
+  meetingId: string
+): Promise<ApiResponse<DSMConfig>> {
   try {
     const { data, error } = await supabase
       .from("dsm_config")
@@ -119,7 +123,8 @@ export async function getDSMConfig(meetingId: string): Promise<ApiResponse<DSMCo
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch DSM config",
+        message:
+          error instanceof Error ? error.message : "Failed to fetch DSM config",
       },
     };
   }
@@ -127,7 +132,7 @@ export async function getDSMConfig(meetingId: string): Promise<ApiResponse<DSMCo
 
 export async function createOrUpdateDSMConfig(
   meetingId: string,
-  config: Partial<DSMConfig>,
+  config: Partial<DSMConfig>
 ): Promise<ApiResponse<DSMConfig>> {
   try {
     const dbRecord = transformToDSMConfigInsert(config, meetingId);
@@ -152,7 +157,8 @@ export async function createOrUpdateDSMConfig(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to save DSM config",
+        message:
+          error instanceof Error ? error.message : "Failed to save DSM config",
       },
     };
   }
@@ -160,7 +166,7 @@ export async function createOrUpdateDSMConfig(
 
 export async function updateDSMConfig(
   meetingId: string,
-  config: Partial<DSMConfig>,
+  config: Partial<DSMConfig>
 ): Promise<ApiResponse<DSMConfig>> {
   try {
     const dbRecord = transformToDSMConfigInsert(config, meetingId);
@@ -184,7 +190,10 @@ export async function updateDSMConfig(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to update DSM config",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to update DSM config",
       },
     };
   }

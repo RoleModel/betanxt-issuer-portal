@@ -16,7 +16,9 @@ import { useMemo, useState } from "react";
 import type { NoboPosition } from "@/hooks/useNoboPositions";
 
 import NoWrapTableCell from "@/components/ui/NoWrapTableCell";
-import SortableHeaderCell, { useSortableTable } from "@/components/ui/SortableHeaderCell";
+import SortableHeaderCell, {
+  useSortableTable,
+} from "@/components/ui/SortableHeaderCell";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 
 interface NoboPositionsTableProps {
@@ -39,17 +41,24 @@ const formatNumber = (value: number): string => value.toLocaleString("en-US");
  * size changes. Missing states render as an em dash, and an empty state row
  * is shown when no positions exist for the meeting.
  */
-export function NoboPositionsTable({ positions, loading = false }: NoboPositionsTableProps) {
+export function NoboPositionsTable({
+  positions,
+  loading = false,
+}: NoboPositionsTableProps) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { sortColumn, sortDirection, handleSort, sortData } = useSortableTable<NoboPosition>();
+  const { sortColumn, sortDirection, handleSort, sortData } =
+    useSortableTable<NoboPosition>();
 
-  const sortedPositions = useMemo(() => sortData(positions), [positions, sortData]);
+  const sortedPositions = useMemo(
+    () => sortData(positions),
+    [positions, sortData]
+  );
 
   const paginatedPositions = sortedPositions.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
+    page * rowsPerPage + rowsPerPage
   );
 
   return (
@@ -98,17 +107,21 @@ export function NoboPositionsTable({ positions, loading = false }: NoboPositions
             {loading ? (
               Array.from({ length: rowsPerPage }).map((_, rowIndex) => (
                 <TableRow key={rowIndex}>
-                  {Array.from({ length: COLUMN_COUNT }).map((_, columnIndex) => (
-                    <NoWrapTableCell key={columnIndex}>
-                      <Skeleton />
-                    </NoWrapTableCell>
-                  ))}
+                  {Array.from({ length: COLUMN_COUNT }).map(
+                    (_, columnIndex) => (
+                      <NoWrapTableCell key={columnIndex}>
+                        <Skeleton />
+                      </NoWrapTableCell>
+                    )
+                  )}
                 </TableRow>
               ))
             ) : paginatedPositions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={COLUMN_COUNT} align="center">
-                  <Box sx={{ py: 4, color: "text.secondary", typography: "body3" }}>
+                  <Box
+                    sx={{ py: 4, color: "text.secondary", typography: "body3" }}
+                  >
                     No NOBO positions found for this meeting
                   </Box>
                 </TableCell>
@@ -119,9 +132,13 @@ export function NoboPositionsTable({ positions, loading = false }: NoboPositions
                   key={position.id || `${position.accountNumber}-${index}`}
                   sx={{ "&:hover": { backgroundColor: "action.hover" } }}
                 >
-                  <NoWrapTableCell sx={{ width: 220 }}>{position.holderName}</NoWrapTableCell>
+                  <NoWrapTableCell sx={{ width: 220 }}>
+                    {position.holderName}
+                  </NoWrapTableCell>
                   <NoWrapTableCell>{position.accountNumber}</NoWrapTableCell>
-                  <NoWrapTableCell align="right">{formatNumber(position.shares)}</NoWrapTableCell>
+                  <NoWrapTableCell align="right">
+                    {formatNumber(position.shares)}
+                  </NoWrapTableCell>
                   <NoWrapTableCell>{position.state ?? "—"}</NoWrapTableCell>
                 </TableRow>
               ))

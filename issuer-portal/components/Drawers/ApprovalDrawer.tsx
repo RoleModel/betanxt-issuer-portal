@@ -88,15 +88,20 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   const [numPages, setNumPages] = useState(1);
   const [showHistory, setShowHistory] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [documentHistory, setDocumentHistory] = useState<DocumentHistoryEntryUI[]>([]);
+  const [documentHistory, setDocumentHistory] = useState<
+    DocumentHistoryEntryUI[]
+  >([]);
   const [comments, setComments] = useState<CommentWithUser[]>([]);
-  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(
+    null
+  );
   const [comment, setComment] = useState("");
   const [showCommentField, setShowCommentField] = useState(false);
 
   // Get current user from NextAuth
   const { data: session } = useSession();
-  const { getCommentsForDocument, addCommentToDocument, getDocumentHistory } = useDocuments();
+  const { getCommentsForDocument, addCommentToDocument, getDocumentHistory } =
+    useDocuments();
 
   // Reset state when drawer opens/closes
   React.useEffect(() => {
@@ -119,7 +124,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
       if (open && currentDocumentId) {
         try {
           // Load comments for the document
-          const fetchedComments = await getCommentsForDocument(currentDocumentId);
+          const fetchedComments =
+            await getCommentsForDocument(currentDocumentId);
           // Map comments with safe fallbacks but preserve typing
           const transformedComments: CommentWithUser[] = fetchedComments.map(
             (c: DocumentComment) => ({
@@ -130,7 +136,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               last_name: c.last_name,
               created_at: c.created_at,
               users: c.users ?? { avatar: null },
-            }),
+            })
           );
           setComments(transformedComments);
 
@@ -140,7 +146,7 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               action: h.event_type,
               userName: h.user,
               timestamp: h.timestamp,
-            }),
+            })
           );
           setDocumentHistory(transformedHistory);
         } catch (err) {
@@ -191,7 +197,9 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
     setShowCommentField(true);
     // Smooth scroll to bottom when comment field appears
     setTimeout(() => {
-      const commentsContainer = document.querySelector("[data-comments-container]");
+      const commentsContainer = document.querySelector(
+        "[data-comments-container]"
+      );
       if (commentsContainer) {
         commentsContainer.scrollTo({
           top: commentsContainer.scrollHeight,
@@ -221,7 +229,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
     try {
       // Extract user info from session
       const firstName = (session?.user?.name ?? "").split(" ")[0] || "User";
-      const lastName = (session?.user?.name ?? "").split(" ").slice(1).join(" ") || "";
+      const lastName =
+        (session?.user?.name ?? "").split(" ").slice(1).join(" ") || "";
       const userId = session?.user?.email ?? session?.user?.id ?? "unknown";
 
       // Use hook to add comment
@@ -237,7 +246,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
         comment: comment.trim(),
         user: session?.user?.email ?? session?.user?.name ?? "Current User",
         first_name: (session?.user?.name ?? "").split(" ")[0] || "User",
-        last_name: (session?.user?.name ?? "").split(" ").slice(1).join(" ") || "",
+        last_name:
+          (session?.user?.name ?? "").split(" ").slice(1).join(" ") || "",
         created_at: new Date().toISOString(),
         users: null,
       };
@@ -259,7 +269,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diffInHours = Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInHours =
+      Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
       return (
@@ -383,22 +394,38 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           </IconButton>
         </Box>
         <Tooltip title="View in Fullscreen">
-          <IconButton size="small" onClick={handleFullscreen} sx={{ color: "white" }}>
+          <IconButton
+            size="small"
+            onClick={handleFullscreen}
+            sx={{ color: "white" }}
+          >
             <OpenInFullOutlinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Comments">
-          <IconButton size="small" onClick={handleComments} sx={{ color: "white" }}>
+          <IconButton
+            size="small"
+            onClick={handleComments}
+            sx={{ color: "white" }}
+          >
             <CommentIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="History">
-          <IconButton size="small" onClick={handleHistory} sx={{ color: "white" }}>
+          <IconButton
+            size="small"
+            onClick={handleHistory}
+            sx={{ color: "white" }}
+          >
             <HistoryOulinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Download">
-          <IconButton size="small" onClick={handleDownload} sx={{ color: "white" }}>
+          <IconButton
+            size="small"
+            onClick={handleDownload}
+            sx={{ color: "white" }}
+          >
             <DownloadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -476,20 +503,31 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                 // Regular URL - extract extension from filename
                 const urlWithoutQuery = fileUrl?.split("?")[0] ?? "";
                 fileExtension = urlWithoutQuery.split(".").pop()?.toLowerCase();
-                isPdf = fileExtension === "pdf" || fileUrl?.includes("/test-pdf");
+                isPdf =
+                  fileExtension === "pdf" || fileUrl?.includes("/test-pdf");
               }
-              const isOfficeDoc = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(
-                fileExtension ?? "",
+              const isOfficeDoc = [
+                "doc",
+                "docx",
+                "xls",
+                "xlsx",
+                "ppt",
+                "pptx",
+              ].includes(fileExtension ?? "");
+              const isAudio = ["m4a", "mp3", "wav", "aac"].includes(
+                fileExtension ?? ""
               );
-              const isAudio = ["m4a", "mp3", "wav", "aac"].includes(fileExtension ?? "");
-              const isVideo = ["mp4", "webm", "ogg"].includes(fileExtension ?? "");
+              const isVideo = ["mp4", "webm", "ogg"].includes(
+                fileExtension ?? ""
+              );
 
               if (isPdf) {
                 // Convert relative storage paths to full Supabase URLs
                 let pdfUrl = fileUrl;
                 if (fileUrl?.startsWith("/storage/v1/object/public/")) {
                   const supabaseUrl =
-                    process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
+                    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                    "http://127.0.0.1:54321";
                   pdfUrl = `${supabaseUrl}${fileUrl}`;
                 }
 
@@ -525,7 +563,11 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                       <Typography variant="h6" gutterBottom>
                         {title ?? "Excel Spreadsheet"}
                       </Typography>
-                      <Typography variant="body3" color="text.secondary" paragraph>
+                      <Typography
+                        variant="body3"
+                        color="text.secondary"
+                        paragraph
+                      >
                         Download to view this Excel file.
                       </Typography>
                       <Button
@@ -549,16 +591,27 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                 } else {
                   // Use react-doc-viewer for Word and PowerPoint docs
                   return (
-                    <OfficeDocumentViewer url={fileUrl} title={title} fileType={fileExtension} />
+                    <OfficeDocumentViewer
+                      url={fileUrl}
+                      title={title}
+                      fileType={fileExtension}
+                    />
                   );
                 }
               } else if (isAudio) {
                 return (
                   <Box sx={{ p: 2, width: "100%" }}>
-                    <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
+                    <Typography
+                      variant="h6"
+                      sx={{ mb: 2, textAlign: "center" }}
+                    >
                       {title}
                     </Typography>
-                    <ReactAudioPlayer src={fileUrl} controls style={{ width: "100%" }} />
+                    <ReactAudioPlayer
+                      src={fileUrl}
+                      controls
+                      style={{ width: "100%" }}
+                    />
                     <Typography
                       variant="caption"
                       color="text.secondary"
@@ -571,7 +624,10 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               } else if (isVideo) {
                 return (
                   <Box sx={{ p: 2, width: "100%" }}>
-                    <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
+                    <Typography
+                      variant="h6"
+                      sx={{ mb: 2, textAlign: "center" }}
+                    >
                       {title}
                     </Typography>
                     <Box
@@ -653,7 +709,12 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                 borderTop: `1px solid ${theme.vars.palette.divider}`,
               })}
             >
-              <Button variant="contained" size="large" color="success" onClick={onApprove}>
+              <Button
+                variant="contained"
+                size="large"
+                color="success"
+                onClick={onApprove}
+              >
                 Approve Document
               </Button>
             </Box>
@@ -688,7 +749,11 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           }}
         >
           <Typography variant="body3">Document History</Typography>
-          <IconButton size="small" onClick={handleHistory} sx={{ color: "inherit" }}>
+          <IconButton
+            size="small"
+            onClick={handleHistory}
+            sx={{ color: "inherit" }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
@@ -742,11 +807,18 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
           }}
         >
           <Typography variant="body3">Comments</Typography>
-          <IconButton size="small" onClick={handleComments} sx={{ color: "inherit" }}>
+          <IconButton
+            size="small"
+            onClick={handleComments}
+            sx={{ color: "inherit" }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
-        <Box sx={{ p: 1, flex: 1, overflow: "auto", height: "100%" }} data-comments-container>
+        <Box
+          sx={{ p: 1, flex: 1, overflow: "auto", height: "100%" }}
+          data-comments-container
+        >
           <List>
             {comments.length > 0 ? (
               comments.map((commentItem) => (
@@ -757,7 +829,8 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                       sx={{
                         width: 40,
                         height: 40,
-                        backgroundColor: (theme) => theme.vars.palette.secondary.main,
+                        backgroundColor: (theme) =>
+                          theme.vars.palette.secondary.main,
                         borderRadius: 1,
                       }}
                     />
@@ -772,10 +845,18 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
                           alignItems: "center",
                         }}
                       >
-                        <Typography component="span" variant="body3" fontWeight={500}>
+                        <Typography
+                          component="span"
+                          variant="body3"
+                          fontWeight={500}
+                        >
                           {`${commentItem.first_name} ${commentItem.last_name}`}
                         </Typography>
-                        <Typography component="span" variant="body3" color="text.secondary">
+                        <Typography
+                          component="span"
+                          variant="body3"
+                          color="text.secondary"
+                        >
                           {formatTimestamp(commentItem.created_at)}
                         </Typography>
                       </Box>
@@ -788,7 +869,11 @@ const ApprovalDrawer: React.FC<ApprovalDrawerProps> = ({
               <ListItem>
                 <ListItemText
                   primary={
-                    <Typography variant="body3" color="text.secondary" align="center">
+                    <Typography
+                      variant="body3"
+                      color="text.secondary"
+                      align="center"
+                    >
                       No comments yet
                     </Typography>
                   }

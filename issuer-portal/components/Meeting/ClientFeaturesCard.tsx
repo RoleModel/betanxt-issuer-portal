@@ -1,13 +1,25 @@
 "use client";
 
-import { Alert, Card, CardContent, CardHeader, Chip, CircularProgress, Stack } from "@mui/material";
+import {
+  Alert,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  CircularProgress,
+  Stack,
+} from "@mui/material";
 import { useSession } from "next-auth/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useSWRConfig } from "swr";
 
 import { useClient } from "@/contexts/ClientContext";
 import buildApiClient from "@/domain-models/apiClient";
-import { ALL_FEATURE_KEYS, type ClientFeatureKey, DEFAULT_FEATURE_KEYS } from "@/hooks/useClients";
+import {
+  ALL_FEATURE_KEYS,
+  type ClientFeatureKey,
+  DEFAULT_FEATURE_KEYS,
+} from "@/hooks/useClients";
 import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { FEATURE_KEYS, FEATURE_LABELS } from "@/utils/clientFeatures";
 
@@ -34,7 +46,8 @@ export function ClientFeaturesCard({ clientTicker }: ClientFeaturesCardProps) {
   // The event manager lives outside [clientTicker] routes, so pass the
   // meeting's ticker explicitly for per-client flag targeting.
   const { flags } = useFeatureFlags(clientTicker);
-  const isCSM = session?.user?.type === "CSM" || session?.user?.type === "ADMIN";
+  const isCSM =
+    session?.user?.type === "CSM" || session?.user?.type === "ADMIN";
 
   // The NOBO chip is gated behind the Vercel `enable-nobo` flag — when the
   // flag is off, CSMs cannot toggle NOBO per client at all.
@@ -43,10 +56,11 @@ export function ClientFeaturesCard({ clientTicker }: ClientFeaturesCardProps) {
       flags.enableNobo
         ? ALL_FEATURE_KEYS
         : ALL_FEATURE_KEYS.filter((feature) => feature !== FEATURE_KEYS.nobo),
-    [flags.enableNobo],
+    [flags.enableNobo]
   );
 
-  const [enabledFeatures, setEnabledFeatures] = useState<ClientFeatureKey[]>(DEFAULT_FEATURE_KEYS);
+  const [enabledFeatures, setEnabledFeatures] =
+    useState<ClientFeatureKey[]>(DEFAULT_FEATURE_KEYS);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -88,9 +102,13 @@ export function ClientFeaturesCard({ clientTicker }: ClientFeaturesCardProps) {
           // without waiting for the SWR re-fetch round-trip.
           updateCurrentClientFeatures(next);
           // Also invalidate the SWR cache so any re-mount gets fresh server data.
-          void mutate((key) => Array.isArray(key) && key[0] === "/clients", undefined, {
-            revalidate: true,
-          });
+          void mutate(
+            (key) => Array.isArray(key) && key[0] === "/clients",
+            undefined,
+            {
+              revalidate: true,
+            }
+          );
           setSaveSuccess(true);
           setTimeout(() => setSaveSuccess(false), 2000);
         }
@@ -101,7 +119,7 @@ export function ClientFeaturesCard({ clientTicker }: ClientFeaturesCardProps) {
         setSaving(false);
       }
     },
-    [enabledFeatures, clientTicker, mutate, saving, updateCurrentClientFeatures],
+    [enabledFeatures, clientTicker, mutate, saving, updateCurrentClientFeatures]
   );
 
   if (!isCSM) return null;
@@ -122,7 +140,9 @@ export function ClientFeaturesCard({ clientTicker }: ClientFeaturesCardProps) {
                 key={feature}
                 label={FEATURE_LABELS[feature]}
                 onClick={() => void handleChipClick(feature)}
-                onDelete={isEnabled ? () => void handleChipClick(feature) : undefined}
+                onDelete={
+                  isEnabled ? () => void handleChipClick(feature) : undefined
+                }
                 color={isEnabled ? "primary" : "default"}
                 variant={isEnabled ? "filled" : "outlined"}
                 disabled={saving}

@@ -30,7 +30,10 @@ import { useMeeting } from "@/contexts/MeetingContext";
 import { useReports } from "@/hooks/useReports";
 import { getBrowserSupabase } from "@/lib/browserSupabase";
 import { exportBrokerBreakoutPdf } from "@/utils/brokerBreakoutReport";
-import { exportMockReportPdf, exportMockReportXls } from "@/utils/mockMeetingReports";
+import {
+  exportMockReportPdf,
+  exportMockReportXls,
+} from "@/utils/mockMeetingReports";
 
 interface ReportItem {
   /** Stable key used for React lists and the report-selection dropdown value. */
@@ -73,7 +76,11 @@ const MOCK_REPORTS: ReportItem[] = [
   { id: "ballot-comments", name: "Ballot Comments", isMock: true },
   { id: "change-of-address", name: "Change of Address Report", isMock: true },
   { id: "meeting-attendance", name: "Meeting Attendance", isMock: true },
-  { id: "vote-by-source-day", name: "Vote Report by Source and Day", isMock: true },
+  {
+    id: "vote-by-source-day",
+    name: "Vote Report by Source and Day",
+    isMock: true,
+  },
   {
     id: "paper-election-stats",
     name: "Paper Election Statistics by Source and Day",
@@ -84,7 +91,11 @@ const MOCK_REPORTS: ReportItem[] = [
     name: "Paper Elections Detailed Report",
     isMock: true,
   },
-  { id: "dtc-participant-vote", name: "DTC/CDS Participant Vote Report", isMock: true },
+  {
+    id: "dtc-participant-vote",
+    name: "DTC/CDS Participant Vote Report",
+    isMock: true,
+  },
   {
     id: "registered-accounts-voted",
     name: "Registered Accounts Voted Report",
@@ -149,7 +160,9 @@ const MOCK_REPORTS: ReportItem[] = [
  * @returns The qualified report name
  */
 function fullReportName(report: ReportItem): string {
-  return report.groupLabel ? `${report.groupLabel} - ${report.name}` : report.name;
+  return report.groupLabel
+    ? `${report.groupLabel} - ${report.name}`
+    : report.name;
 }
 
 /**
@@ -163,9 +176,15 @@ function fullReportName(report: ReportItem): string {
  * browser. Downloads are serialized — all buttons disable while one is in
  * flight (002-tabulation-enhancements).
  */
-export default function DownloadReportsTable({ meetingId }: { meetingId: string }) {
+export default function DownloadReportsTable({
+  meetingId,
+}: {
+  meetingId: string;
+}) {
   const [reports, setReports] = useState<ReportItem[]>([]);
-  const [selectedReportId, setSelectedReportId] = useState<string>(BROKER_BREAKOUT_REPORT.id);
+  const [selectedReportId, setSelectedReportId] = useState<string>(
+    BROKER_BREAKOUT_REPORT.id
+  );
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
@@ -211,11 +230,13 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
 
   const downloadableReports = useMemo(
     () => reports.filter((report) => !report.isHeader),
-    [reports],
+    [reports]
   );
 
   const downloadStorageReport = async (path: string, fileName: string) => {
-    const { data, error } = await supabase.storage.from("documents").download(path);
+    const { data, error } = await supabase.storage
+      .from("documents")
+      .download(path);
 
     if (error) {
       console.error("Error downloading report:", error);
@@ -246,7 +267,10 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
     try {
       if (report.isBrokerBreakout) {
         await exportBrokerBreakoutPdf({
-          companyName: currentClient?.company_name ?? currentClient?.short_name ?? "Company",
+          companyName:
+            currentClient?.company_name ??
+            currentClient?.short_name ??
+            "Company",
           clientTicker: currentClient?.ticker,
           meetingType: currentMeeting?.meetingType,
           meetingDate: currentMeeting?.meetingDate,
@@ -259,7 +283,10 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
         const mockOptions = {
           reportName: fullReportName(report),
           meetingId,
-          companyName: currentClient?.company_name ?? currentClient?.short_name ?? "Company",
+          companyName:
+            currentClient?.company_name ??
+            currentClient?.short_name ??
+            "Company",
           clientTicker: currentClient?.ticker,
           meetingType: currentMeeting?.meetingType,
           meetingDate: currentMeeting?.meetingDate,
@@ -274,7 +301,8 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
       }
 
       if (report.path) {
-        const path = format === "pdf" ? report.path.replace(".xls", ".pdf") : report.path;
+        const path =
+          format === "pdf" ? report.path.replace(".xls", ".pdf") : report.path;
         await downloadStorageReport(path, `${report.name}.${format}`);
       }
     } catch (error) {
@@ -289,7 +317,9 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
   };
 
   const handleSelectedReportDownload = async () => {
-    const selectedReport = downloadableReports.find((report) => report.id === selectedReportId);
+    const selectedReport = downloadableReports.find(
+      (report) => report.id === selectedReportId
+    );
     if (!selectedReport) return;
     await handleDownload(selectedReport, "pdf");
   };
@@ -298,7 +328,9 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
     <Card>
       <CardHeader title="Download Meeting Reports" />
       <CardContent sx={{ p: 0 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, px: 2, pb: 2 }}>
+        <Box
+          sx={{ display: "flex", alignItems: "center", gap: 2, px: 2, pb: 2 }}
+        >
           <FormControl size="small" sx={{ flex: 1, minWidth: 240 }}>
             <InputLabel id="report-select-label">Report</InputLabel>
             <Select
@@ -318,7 +350,9 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
           <Button
             variant="contained"
             startIcon={<FileDownloadOutlinedIcon />}
-            disabled={downloadingId !== null || downloadableReports.length === 0}
+            disabled={
+              downloadingId !== null || downloadableReports.length === 0
+            }
             onClick={() => void handleSelectedReportDownload()}
           >
             Download
@@ -326,7 +360,9 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
         </Box>
         <TableContainer>
           <Table size="small" stickyHeader>
-            <SROnlyTableCaption>List of available meeting reports for download</SROnlyTableCaption>
+            <SROnlyTableCaption>
+              List of available meeting reports for download
+            </SROnlyTableCaption>
             <TableHead>
               <TableRow>
                 <TableCell>Report Name</TableCell>
@@ -342,7 +378,8 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
                         ? { pl: 4 }
                         : report.isHeader
                           ? {
-                              backgroundColor: "var(--mui-palette-tableHeaderRow-restingFill)",
+                              backgroundColor:
+                                "var(--mui-palette-tableHeaderRow-restingFill)",
                             }
                           : undefined
                     }
@@ -360,13 +397,17 @@ export default function DownloadReportsTable({ meetingId }: { meetingId: string 
                     sx={
                       report.isHeader
                         ? {
-                            backgroundColor: "var(--mui-palette-tableHeaderRow-restingFill)",
+                            backgroundColor:
+                              "var(--mui-palette-tableHeaderRow-restingFill)",
                           }
                         : undefined
                     }
                   >
                     {!report.isHeader && (
-                      <Box component="span" sx={{ display: "inline-flex", gap: 1 }}>
+                      <Box
+                        component="span"
+                        sx={{ display: "inline-flex", gap: 1 }}
+                      >
                         <IconButton
                           aria-label={`Download ${fullReportName(report)} as PDF`}
                           title={`Download ${fullReportName(report)} as PDF`}

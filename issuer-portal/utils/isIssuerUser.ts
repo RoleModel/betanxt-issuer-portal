@@ -21,7 +21,9 @@ function normalizeRole(role: string | undefined): string | undefined {
 /** Mock issuer credentials in auth.ts — used when JWT type is missing or stale. */
 const ISSUER_USERNAMES = new Set(["tim", "mike", "lisa", "david", "jenny"]);
 
-export function isIssuerUser(user: IssuerSessionUser | null | undefined): boolean {
+export function isIssuerUser(
+  user: IssuerSessionUser | null | undefined
+): boolean {
   if (!user) {
     return (
       process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" &&
@@ -48,7 +50,9 @@ export function isIssuerUser(user: IssuerSessionUser | null | undefined): boolea
   return false;
 }
 
-export function canUserSwitchClients(user: IssuerSessionUser | null | undefined): boolean {
+export function canUserSwitchClients(
+  user: IssuerSessionUser | null | undefined
+): boolean {
   if (isIssuerUser(user)) return false;
 
   const role = normalizeRole(user?.type);

@@ -29,8 +29,13 @@ interface DocumentsTableProps {
   page: number;
   rowsPerPage: number;
   emptyRows: number;
-  onPageChange: (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => void;
-  onRowsPerPageChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onPageChange: (
+    _event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => void;
+  onRowsPerPageChange: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   onOpenDocument?: (doc: Document) => void;
 }
 
@@ -58,7 +63,10 @@ export default function DocumentsTable(props: DocumentsTableProps) {
         </TableHead>
         <TableBody>
           {(rowsPerPage > 0
-            ? documents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            ? documents.slice(
+                page * rowsPerPage,
+                page * rowsPerPage + rowsPerPage
+              )
             : documents
           ).map((doc) => (
             <TableRow key={doc.id}>
@@ -66,14 +74,22 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <DocumentThumbnail
                     filePath={doc.filePath}
-                    onClick={doc.filePath ? () => onOpenDocument?.(doc) : undefined}
+                    onClick={
+                      doc.filePath ? () => onOpenDocument?.(doc) : undefined
+                    }
                   />
-                  <Typography variant="body3">{doc.title ?? "Untitled Document"}</Typography>
+                  <Typography variant="body3">
+                    {doc.title ?? "Untitled Document"}
+                  </Typography>
                 </Box>
               </TableCell>
               <TableCell size="small">
                 <Box>
-                  <Typography variant="caption" display="block" color="text.secondary">
+                  <Typography
+                    variant="caption"
+                    display="block"
+                    color="text.secondary"
+                  >
                     {doc.updatedAt
                       ? new Date(doc.updatedAt).toLocaleDateString("en-US", {
                           month: "short",

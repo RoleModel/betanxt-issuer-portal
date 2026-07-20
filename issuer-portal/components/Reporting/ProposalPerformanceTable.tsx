@@ -47,13 +47,13 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
 
   const handleChangePage = (
     _event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number,
+    newPage: number
   ) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -72,7 +72,15 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
       let bValue: string | number = b[orderBy];
 
       // Handle numeric sorting for values with % or numbers
-      if (["totalPresented", "averageSupport", "min", "max", "percentPassed"].includes(orderBy)) {
+      if (
+        [
+          "totalPresented",
+          "averageSupport",
+          "min",
+          "max",
+          "percentPassed",
+        ].includes(orderBy)
+      ) {
         aValue = parseInt(aValue.replace("%", ""));
         bValue = parseInt(bValue.replace("%", ""));
       }
@@ -155,7 +163,10 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
             </TableHead>
             <TableBody>
               {(rowsPerPage > 0
-                ? sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                ? sortedData.slice(
+                    page * rowsPerPage,
+                    page * rowsPerPage + rowsPerPage
+                  )
                 : sortedData
               ).map((row, index) => (
                 <TableRow key={index} hover>

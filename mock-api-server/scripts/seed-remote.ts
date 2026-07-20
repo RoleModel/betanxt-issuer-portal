@@ -8,7 +8,8 @@ import pg from "pg";
 config({ path: ".env.local" });
 
 const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://vfgjzlcakdrpsbzuqklz.supabase.co";
+  process.env.NEXT_PUBLIC_SUPABASE_URL ??
+  "https://vfgjzlcakdrpsbzuqklz.supabase.co";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD ?? "ZgnAkgxVLYDcf9gj";
 

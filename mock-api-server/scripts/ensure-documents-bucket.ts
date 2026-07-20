@@ -28,15 +28,21 @@ async function main() {
     return;
   }
 
-  const { data: created, error: createErr } = await admin.storage.createBucket("documents", {
-    public: true,
-  });
+  const { data: created, error: createErr } = await admin.storage.createBucket(
+    "documents",
+    {
+      public: true,
+    }
+  );
   if (createErr) {
     console.error("Failed to create documents bucket:", createErr.message);
     process.exit(1);
   }
 
-  console.warn("[ensure-documents-bucket] Created documents bucket:", created?.name);
+  console.warn(
+    "[ensure-documents-bucket] Created documents bucket:",
+    created?.name
+  );
 }
 
 main().catch((e) => {

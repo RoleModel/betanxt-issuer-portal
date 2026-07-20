@@ -16,7 +16,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { searchParams } = new URL(request.url);
     const typeParam = searchParams.get("type") || undefined;
     const type: "ADMIN" | "ISSUER" | "RELATIONSHIP_MANAGER" | undefined =
-      typeParam && ["ADMIN", "ISSUER", "RELATIONSHIP_MANAGER"].includes(typeParam)
+      typeParam &&
+      ["ADMIN", "ISSUER", "RELATIONSHIP_MANAGER"].includes(typeParam)
         ? (typeParam as "ADMIN" | "ISSUER" | "RELATIONSHIP_MANAGER")
         : undefined;
     const accountId = searchParams.get("accountId") || undefined;
@@ -26,7 +27,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -39,8 +43,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "listUsers",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -48,14 +52,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["CreateUserRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["CreateUserRequest"];
 
     // Use existing domain model function
     const { data, error } = await createUser(body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       );
     }
 
@@ -68,8 +76,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "createUser",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

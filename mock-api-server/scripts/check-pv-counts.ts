@@ -27,7 +27,7 @@ async function run() {
   `);
   for (const row of r.rows) {
     console.log(
-      `${Number(row.proposal_number).toFixed(2).padEnd(6)} | rows=${row.row_count} | total=${Number(row.total_shares).toLocaleString().padStart(12)} | ${row.votes}`,
+      `${Number(row.proposal_number).toFixed(2).padEnd(6)} | rows=${row.row_count} | total=${Number(row.total_shares).toLocaleString().padStart(12)} | ${row.votes}`
     );
   }
 

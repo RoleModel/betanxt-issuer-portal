@@ -101,7 +101,9 @@ const Notification = ({
                 width: 20,
                 height: 20,
                 color: (theme) =>
-                  isUnread ? theme.vars.palette.success.main : theme.vars.palette.complete,
+                  isUnread
+                    ? theme.vars.palette.success.main
+                    : theme.vars.palette.complete,
               }}
             />
           ) : (

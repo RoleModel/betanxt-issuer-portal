@@ -32,7 +32,10 @@ interface PositionsTableProps {
   loading?: boolean;
 }
 
-export default function PositionsTable({ positions, loading = false }: PositionsTableProps) {
+export default function PositionsTable({
+  positions,
+  loading = false,
+}: PositionsTableProps) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -40,11 +43,14 @@ export default function PositionsTable({ positions, loading = false }: Positions
   const { sortColumn, sortDirection, handleSort, sortData } =
     useSortableTable<TabulationPosition>();
 
-  const sortedPositions = useMemo(() => sortData(positions), [positions, sortData]);
+  const sortedPositions = useMemo(
+    () => sortData(positions),
+    [positions, sortData]
+  );
 
   const paginatedPositions = sortedPositions.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
+    page * rowsPerPage + rowsPerPage
   );
 
   const toggleRowExpansion = (index: number) => {
@@ -77,7 +83,9 @@ export default function PositionsTable({ positions, loading = false }: Positions
     if (!date) return "";
 
     try {
-      const sanitizedDate = date.includes(" 12:00AM") ? date.replace(" 12:00AM", "") : date;
+      const sanitizedDate = date.includes(" 12:00AM")
+        ? date.replace(" 12:00AM", "")
+        : date;
       const parsedDate = new Date(sanitizedDate);
 
       if (Number.isNaN(parsedDate.getTime())) {
@@ -207,7 +215,11 @@ export default function PositionsTable({ positions, loading = false }: Positions
             ) : paginatedPositions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={11} align="center">
-                  <Typography variant="body3" color="text.secondary" sx={{ py: 4 }}>
+                  <Typography
+                    variant="body3"
+                    color="text.secondary"
+                    sx={{ py: 4 }}
+                  >
                     No positions found
                   </Typography>
                 </TableCell>
@@ -219,18 +231,34 @@ export default function PositionsTable({ positions, loading = false }: Positions
 
                 return (
                   <React.Fragment key={`${position.accountNumber}-${rowKey}`}>
-                    <TableRow sx={{ "&:hover": { backgroundColor: "action.hover" } }}>
+                    <TableRow
+                      sx={{ "&:hover": { backgroundColor: "action.hover" } }}
+                    >
                       <NoWrapTableCell>{position.cusip}</NoWrapTableCell>
-                      <NoWrapTableCell>{formatAccountType(position.accountType)}</NoWrapTableCell>
+                      <NoWrapTableCell>
+                        {formatAccountType(position.accountType)}
+                      </NoWrapTableCell>
                       <NoWrapTableCell>{position.setKey}</NoWrapTableCell>
-                      <NoWrapTableCell sx={{ width: 180 }}>{position.name}</NoWrapTableCell>
+                      <NoWrapTableCell sx={{ width: 180 }}>
+                        {position.name}
+                      </NoWrapTableCell>
                       <TableCell
                         onClick={() => toggleRowExpansion(rowKey)}
                         sx={{ cursor: "pointer", minWidth: 220 }}
                       >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <IconButton aria-label="expand row" size="small" color="primary">
-                            {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <IconButton
+                            aria-label="expand row"
+                            size="small"
+                            color="primary"
+                          >
+                            {isExpanded ? (
+                              <KeyboardArrowUpIcon />
+                            ) : (
+                              <KeyboardArrowDownIcon />
+                            )}
                           </IconButton>
                           <Box
                             sx={{
@@ -252,7 +280,9 @@ export default function PositionsTable({ positions, loading = false }: Positions
                         {formatNumber(position.sharesVoted)}
                       </NoWrapTableCell>
                       <NoWrapTableCell>{position.source}</NoWrapTableCell>
-                      <NoWrapTableCell>{formatDate(position.dateVoted)}</NoWrapTableCell>
+                      <NoWrapTableCell>
+                        {formatDate(position.dateVoted)}
+                      </NoWrapTableCell>
                       <TableCell align="right">
                         {position.sentBy === "EMAIL" ? (
                           <MailOutlineIcon fontSize="small" />
@@ -264,7 +294,11 @@ export default function PositionsTable({ positions, loading = false }: Positions
                     {isExpanded && (
                       <TableRow>
                         <TableCell sx={{ pb: 0, pt: 0 }} colSpan={11}>
-                          <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                          <Collapse
+                            in={isExpanded}
+                            timeout="auto"
+                            unmountOnExit
+                          >
                             <Box
                               sx={{
                                 my: 2,
@@ -273,36 +307,60 @@ export default function PositionsTable({ positions, loading = false }: Positions
                                 border: 1,
                                 borderColor: "divider",
                                 borderRadius: 1,
-                                backgroundColor: "var(--mui-palette-Datagrid-defaultFill)",
+                                backgroundColor:
+                                  "var(--mui-palette-Datagrid-defaultFill)",
                               }}
                             >
                               <Grid container spacing={2}>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     CUSIP:
                                   </Typography>
-                                  <Typography variant="body2">{position.cusip}</Typography>
+                                  <Typography variant="body2">
+                                    {position.cusip}
+                                  </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     Account Name:
                                   </Typography>
-                                  <Typography variant="body2">{position.name}</Typography>
+                                  <Typography variant="body2">
+                                    {position.name}
+                                  </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     Set Key:
                                   </Typography>
-                                  <Typography variant="body2">{position.setKey}</Typography>
+                                  <Typography variant="body2">
+                                    {position.setKey}
+                                  </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     Account Number:
                                   </Typography>
-                                  <Typography variant="body2">{position.accountNumber}</Typography>
+                                  <Typography variant="body2">
+                                    {position.accountNumber}
+                                  </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     Account Type:
                                   </Typography>
                                   <Typography variant="body2">
@@ -310,7 +368,10 @@ export default function PositionsTable({ positions, loading = false }: Positions
                                   </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     Account Email:
                                   </Typography>
                                   <Typography variant="body2">
@@ -318,19 +379,32 @@ export default function PositionsTable({ positions, loading = false }: Positions
                                   </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     Control Number:
                                   </Typography>
-                                  <Typography variant="body2">{position.controlNumber}</Typography>
+                                  <Typography variant="body2">
+                                    {position.controlNumber}
+                                  </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     Last Vote Method:
                                   </Typography>
-                                  <Typography variant="body2">{position.source || ""}</Typography>
+                                  <Typography variant="body2">
+                                    {position.source || ""}
+                                  </Typography>
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
                                     Last Voted Date:
                                   </Typography>
                                   <Typography variant="body2">

@@ -39,7 +39,7 @@ export type UnifiedStatus =
 const getStatusDisplayText = (
   status: string | null,
   reviewCount?: number,
-  totalReviews?: number,
+  totalReviews?: number
 ): string => {
   if (status == null) return "Not Uploaded";
 
@@ -178,35 +178,45 @@ const getStatusStyles = (status: string | null): SxProps<Theme> => {
   // Make comparison case-insensitive
   const lowerDisplayText = displayText.toLowerCase();
 
-  if (successStatuses.some((status) => status.toLowerCase() === lowerDisplayText)) {
+  if (
+    successStatuses.some((status) => status.toLowerCase() === lowerDisplayText)
+  ) {
     return {
       backgroundColor: (theme) => theme.vars.palette.success.main,
       color: (theme) => theme.vars.palette.success.contrastText,
     };
   }
 
-  if (warningStatuses.some((status) => status.toLowerCase() === lowerDisplayText)) {
+  if (
+    warningStatuses.some((status) => status.toLowerCase() === lowerDisplayText)
+  ) {
     return {
       backgroundColor: "#EBB322",
       color: (theme) => theme.vars.palette.common.black,
     };
   }
 
-  if (errorStatuses.some((status) => status.toLowerCase() === lowerDisplayText)) {
+  if (
+    errorStatuses.some((status) => status.toLowerCase() === lowerDisplayText)
+  ) {
     return {
       backgroundColor: (theme) => theme.vars.palette.error.dark,
       color: (theme) => theme.vars.palette.error.contrastText,
     };
   }
 
-  if (infoStatuses.some((status) => status.toLowerCase() === lowerDisplayText)) {
+  if (
+    infoStatuses.some((status) => status.toLowerCase() === lowerDisplayText)
+  ) {
     return {
       backgroundColor: (theme) => theme.vars.palette.info.main,
       color: (theme) => theme.vars.palette.info.contrastText,
     };
   }
 
-  if (neutralStatuses.some((status) => status.toLowerCase() === lowerDisplayText)) {
+  if (
+    neutralStatuses.some((status) => status.toLowerCase() === lowerDisplayText)
+  ) {
     return {
       backgroundColor: (theme) => theme.vars.palette.action.selected,
       color: (theme) => theme.vars.palette.text.secondary,

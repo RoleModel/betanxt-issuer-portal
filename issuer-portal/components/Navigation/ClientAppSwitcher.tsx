@@ -79,7 +79,10 @@ function EventSwitchButton({ userType }: { userType: string }) {
         continue;
       }
       // Prefer ACTIVE over COMPLETE
-      if (existing.meetingStatus !== "ACTIVE" && row.meetingStatus === "ACTIVE") {
+      if (
+        existing.meetingStatus !== "ACTIVE" &&
+        row.meetingStatus === "ACTIVE"
+      ) {
         byTicker.set(row.clientTicker, row);
         continue;
       }
@@ -91,10 +94,14 @@ function EventSwitchButton({ userType }: { userType: string }) {
       }
     }
 
-    const all = [...byTicker.values()].sort((a, b) => a.event.localeCompare(b.event));
+    const all = [...byTicker.values()].sort((a, b) =>
+      a.event.localeCompare(b.event)
+    );
     // CSM: only show assigned clients in the list — the Autocomplete handles covering others
     if (isCsm && assignedTickers) {
-      return all.filter((opt) => assignedTickers.has(opt.clientTicker.toUpperCase()));
+      return all.filter((opt) =>
+        assignedTickers.has(opt.clientTicker.toUpperCase())
+      );
     }
     return all;
   }, [events, isCsm, assignedTickers]);
@@ -106,7 +113,9 @@ function EventSwitchButton({ userType }: { userType: string }) {
     if (!match) return null;
     const [, matchedTicker, urlMeetingId] = match;
     return (
-      events.find((e) => e.clientTicker === matchedTicker && e.meetingId === urlMeetingId) ?? null
+      events.find(
+        (e) => e.clientTicker === matchedTicker && e.meetingId === urlMeetingId
+      ) ?? null
     );
   }, [isOnMeetingPage, pathname, events]);
 
@@ -122,7 +131,11 @@ function EventSwitchButton({ userType }: { userType: string }) {
   const displayName = useMemo(() => {
     if (currentClientOption) return currentClientOption.event;
     if (isCsm && currentClient) {
-      return currentClient.company_name ?? currentClient.short_name ?? currentClient.ticker;
+      return (
+        currentClient.company_name ??
+        currentClient.short_name ??
+        currentClient.ticker
+      );
     }
     return USER_TYPE_BRAND_LABELS[userType] ?? "Select Client";
   }, [currentClientOption, userType, isCsm, currentClient]);
@@ -137,7 +150,10 @@ function EventSwitchButton({ userType }: { userType: string }) {
 
     if (currentClient) {
       return {
-        name: currentClient.short_name ?? currentClient.company_name ?? currentClient.ticker,
+        name:
+          currentClient.short_name ??
+          currentClient.company_name ??
+          currentClient.ticker,
         ticker: currentClient.ticker,
       };
     }
@@ -150,7 +166,9 @@ function EventSwitchButton({ userType }: { userType: string }) {
   // rather than assignedTickers directly, avoiding any case/format mismatch.
   const isCovering = useMemo(() => {
     if (!isCsm || !urlTicker || !assignedTickers) return false;
-    return !clientOptions.some((opt) => opt.clientTicker.toUpperCase() === urlTicker.toUpperCase());
+    return !clientOptions.some(
+      (opt) => opt.clientTicker.toUpperCase() === urlTicker.toUpperCase()
+    );
   }, [isCsm, urlTicker, assignedTickers, clientOptions]);
 
   // CSM needs the switcher on /events (backup client search); others show brand only there
@@ -176,7 +194,9 @@ function EventSwitchButton({ userType }: { userType: string }) {
       return;
     }
 
-    const matchingEvent = clientOptions.find((row) => row.clientTicker === client.ticker);
+    const matchingEvent = clientOptions.find(
+      (row) => row.clientTicker === client.ticker
+    );
     if (matchingEvent) {
       handleEventSelect(matchingEvent);
       return;
@@ -186,12 +206,15 @@ function EventSwitchButton({ userType }: { userType: string }) {
   };
 
   const handleEventSelect = (row: EventRow) => {
-    const routePrefix = row.meetingStatus === "ACTIVE" ? "meeting" : "past-meeting";
+    const routePrefix =
+      row.meetingStatus === "ACTIVE" ? "meeting" : "past-meeting";
     const meetingRoot = `/${row.clientTicker}/${routePrefix}/${row.meetingId}`;
 
     // Case 1: Currently on a meeting sub-page (/TICKER/(past-)meeting/ID/subpage).
     // Preserve the sub-page for the new client's meeting.
-    const meetingMatch = /^\/[^/]+\/(?:past-)?meeting\/[^/]+(.*)$/.exec(pathname);
+    const meetingMatch = /^\/[^/]+\/(?:past-)?meeting\/[^/]+(.*)$/.exec(
+      pathname
+    );
     if (meetingMatch) {
       const subPage = meetingMatch[1] ?? "";
       router.push(`${meetingRoot}${subPage}`);
@@ -277,7 +300,8 @@ function EventSwitchButton({ userType }: { userType: string }) {
           paper: {
             sx: {
               backgroundColor: (theme) =>
-                theme.vars?.palette?.appSwitcher?.background || theme.palette.primary.main,
+                theme.vars?.palette?.appSwitcher?.background ||
+                theme.palette.primary.main,
               color: (theme) => theme.palette.common.white,
               minWidth: isCsm ? 280 : 200,
               overflow: isCsm ? "visible" : undefined,
@@ -305,7 +329,9 @@ function EventSwitchButton({ userType }: { userType: string }) {
                 }}
               >
                 <Autocomplete<Client>
-                  options={allClients.filter((c) => !assignedTickers?.has(c.ticker.toUpperCase()))}
+                  options={allClients.filter(
+                    (c) => !assignedTickers?.has(c.ticker.toUpperCase())
+                  )}
                   getOptionLabel={(option) =>
                     option.company_name ?? option.short_name ?? option.ticker
                   }
@@ -313,7 +339,9 @@ function EventSwitchButton({ userType }: { userType: string }) {
                   onInputChange={(_, value) => setCsmInputValue(value)}
                   value={null}
                   onChange={(_, client) => handleCsmClientSelect(client)}
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value.id
+                  }
                   size="small"
                   slotProps={{
                     popper: {
@@ -322,10 +350,13 @@ function EventSwitchButton({ userType }: { userType: string }) {
                     },
                     paper: {
                       sx: {
-                        background: (theme) => theme.vars?.palette?.secondary?.main,
-                        color: (theme) => theme.vars?.palette?.secondary?.contrastText,
+                        background: (theme) =>
+                          theme.vars?.palette?.secondary?.main,
+                        color: (theme) =>
+                          theme.vars?.palette?.secondary?.contrastText,
                         "& .MuiAutocomplete-noOptions": {
-                          color: (theme) => theme.vars?.palette?.appSwitcher?.contrastText,
+                          color: (theme) =>
+                            theme.vars?.palette?.appSwitcher?.contrastText,
                           fontSize: (theme) => theme.typography.body3.fontSize,
                         },
                       },
@@ -341,9 +372,14 @@ function EventSwitchButton({ userType }: { userType: string }) {
                       sx={(theme) => ({
                         "& .MuiInputBase-root": {
                           color: "inherit",
-                          backgroundColor: theme.vars.palette.appSwitcher?.background,
-                          "& fieldset": { borderColor: theme.vars.palette.grey[700] },
-                          "&:hover fieldset": { borderColor: "rgba(255,255,255,0.5)" },
+                          backgroundColor:
+                            theme.vars.palette.appSwitcher?.background,
+                          "& fieldset": {
+                            borderColor: theme.vars.palette.grey[700],
+                          },
+                          "&:hover fieldset": {
+                            borderColor: "rgba(255,255,255,0.5)",
+                          },
                           "&.Mui-focused fieldset": {
                             borderColor: "rgba(255,255,255,0.8)",
                           },
@@ -369,10 +405,12 @@ function EventSwitchButton({ userType }: { userType: string }) {
             selected={row.clientTicker === currentClientOption?.clientTicker}
             sx={{
               "&:hover": {
-                backgroundColor: (theme) => theme.vars.palette.appSwitcher?.hover,
+                backgroundColor: (theme) =>
+                  theme.vars.palette.appSwitcher?.hover,
               },
               "&.Mui-selected": {
-                backgroundColor: (theme) => theme.vars.palette.appSwitcher?.hover,
+                backgroundColor: (theme) =>
+                  theme.vars.palette.appSwitcher?.hover,
               },
             }}
           >
@@ -391,11 +429,15 @@ function IssuerClientLabel() {
   const issuerTicker = session?.user?.client_ticker ?? undefined;
   const issuerClient =
     issuerTicker && currentClient?.ticker !== issuerTicker
-      ? (availableClients.find((client) => client.ticker === issuerTicker) ?? currentClient)
+      ? (availableClients.find((client) => client.ticker === issuerTicker) ??
+        currentClient)
       : currentClient;
 
   const displayName =
-    issuerClient?.company_name ?? issuerClient?.short_name ?? issuerTicker ?? "Issuer Portal";
+    issuerClient?.company_name ??
+    issuerClient?.short_name ??
+    issuerTicker ??
+    "Issuer Portal";
 
   return (
     <Typography
@@ -430,7 +472,9 @@ function SwitchButton() {
   }
 
   const isEventUser =
-    userType === "PARENT_CLIENT" || userType === "SOLICITOR" || userType === "CSM";
+    userType === "PARENT_CLIENT" ||
+    userType === "SOLICITOR" ||
+    userType === "CSM";
   const canSwitchClients = canUserSwitchClients(sessionUser);
 
   // PARENT_CLIENT / SOLICITOR users get a special event-based switcher
@@ -503,7 +547,8 @@ function SwitchButton() {
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: (theme) => theme.vars?.palette?.appSwitcher?.background,
+              backgroundColor: (theme) =>
+                theme.vars?.palette?.appSwitcher?.background,
               color: (theme) => theme.palette.common.white,
               minWidth: 200,
             },
@@ -517,17 +562,21 @@ function SwitchButton() {
             selected={client.id === currentClient?.id}
             sx={{
               "&:hover": {
-                backgroundColor: (theme) => theme.vars.palette.appSwitcher?.hover,
+                backgroundColor: (theme) =>
+                  theme.vars.palette.appSwitcher?.hover,
               },
               "&.Mui-selected": {
-                backgroundColor: (theme) => theme.vars.palette.appSwitcher?.hover,
+                backgroundColor: (theme) =>
+                  theme.vars.palette.appSwitcher?.hover,
               },
             }}
           >
             {client.company_name || client.short_name}
           </MenuItem>
         ))}
-        {availableClients.length === 0 && <MenuItem disabled>No clients available</MenuItem>}
+        {availableClients.length === 0 && (
+          <MenuItem disabled>No clients available</MenuItem>
+        )}
       </Menu>
     </>
   );

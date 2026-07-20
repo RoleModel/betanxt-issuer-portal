@@ -85,7 +85,9 @@ export interface UpdateTaskRequest {
 /**
  * Check if a given object implements the UpdateTaskRequest interface.
  */
-export function instanceOfUpdateTaskRequest(value: object): value is UpdateTaskRequest {
+export function instanceOfUpdateTaskRequest(
+  value: object
+): value is UpdateTaskRequest {
   return true;
 }
 
@@ -95,7 +97,7 @@ export function UpdateTaskRequestFromJSON(json: any): UpdateTaskRequest {
 
 export function UpdateTaskRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): UpdateTaskRequest {
   if (json == null) {
     return json;
@@ -104,7 +106,8 @@ export function UpdateTaskRequestFromJSONTyped(
     title: json["title"] == null ? undefined : json["title"],
     description: json["description"] == null ? undefined : json["description"],
     type: json["type"] == null ? undefined : json["type"],
-    status: json["status"] == null ? undefined : TaskStatusFromJSON(json["status"]),
+    status:
+      json["status"] == null ? undefined : TaskStatusFromJSON(json["status"]),
     phaseNumber: json["phaseNumber"] == null ? undefined : json["phaseNumber"],
     dueDate: json["dueDate"] == null ? undefined : new Date(json["dueDate"]),
     owner: json["owner"] == null ? undefined : json["owner"],
@@ -119,7 +122,7 @@ export function UpdateTaskRequestToJSON(json: any): UpdateTaskRequest {
 
 export function UpdateTaskRequestToJSONTyped(
   value?: UpdateTaskRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -131,7 +134,10 @@ export function UpdateTaskRequestToJSONTyped(
     type: value["type"],
     status: TaskStatusToJSON(value["status"]),
     phaseNumber: value["phaseNumber"],
-    dueDate: value["dueDate"] == null ? undefined : value["dueDate"].toISOString().substring(0, 10),
+    dueDate:
+      value["dueDate"] == null
+        ? undefined
+        : value["dueDate"].toISOString().substring(0, 10),
     owner: value["owner"],
     documentId: value["documentId"],
     links: value["links"],

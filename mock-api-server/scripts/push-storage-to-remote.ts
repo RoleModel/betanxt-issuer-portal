@@ -12,11 +12,14 @@ const localServiceKey =
 
 // Remote Supabase (production)
 const remoteUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://vfgjzlcakdrpsbzuqklz.supabase.co";
+  process.env.NEXT_PUBLIC_SUPABASE_URL ??
+  "https://vfgjzlcakdrpsbzuqklz.supabase.co";
 const remoteServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 if (!remoteServiceKey) {
-  console.error("❌ SUPABASE_SERVICE_ROLE_KEY environment variable is required");
+  console.error(
+    "❌ SUPABASE_SERVICE_ROLE_KEY environment variable is required"
+  );
   process.exit(1);
 }
 
@@ -48,10 +51,15 @@ async function pushStorageToRemote() {
     });
 
     if (updateError) {
-      console.log("⚠️  Could not update bucket MIME types via RPC:", updateError.message);
+      console.log(
+        "⚠️  Could not update bucket MIME types via RPC:",
+        updateError.message
+      );
     }
   } catch {
-    console.log("⚠️  Skipping bucket MIME type update (RPC not available on remote)");
+    console.log(
+      "⚠️  Skipping bucket MIME type update (RPC not available on remote)"
+    );
   }
 
   // Get all files from local storage using storage API
@@ -120,9 +128,8 @@ async function pushStorageToRemote() {
 
     try {
       // Download file from local storage
-      const { data: fileData, error: downloadError } = await localSupabase.storage
-        .from("documents")
-        .download(filePath);
+      const { data: fileData, error: downloadError } =
+        await localSupabase.storage.from("documents").download(filePath);
 
       if (downloadError) {
         console.error(`   ❌ Failed to download: ${downloadError.message}`);
@@ -152,7 +159,8 @@ async function pushStorageToRemote() {
         .from("documents")
         .upload(filePath, buffer, {
           contentType:
-            (file.metadata?.mimeType || file.metadata?.mimetype) ?? "application/octet-stream",
+            (file.metadata?.mimeType || file.metadata?.mimetype) ??
+            "application/octet-stream",
           upsert: false,
         });
 
@@ -164,7 +172,9 @@ async function pushStorageToRemote() {
         successCount++;
       }
     } catch (error) {
-      console.error(`   ❌ Error: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `   ❌ Error: ${error instanceof Error ? error.message : String(error)}`
+      );
       errorCount++;
     }
   }

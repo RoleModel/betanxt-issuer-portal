@@ -91,7 +91,10 @@ export function DSMConfigFromJSON(json: any): DSMConfig {
   return DSMConfigFromJSONTyped(json, false);
 }
 
-export function DSMConfigFromJSONTyped(json: any, ignoreDiscriminator: boolean): DSMConfig {
+export function DSMConfigFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): DSMConfig {
   if (json == null) {
     return json;
   }
@@ -100,12 +103,17 @@ export function DSMConfigFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
     liveQa: json["liveQa"] == null ? undefined : json["liveQa"],
     audioOnly: json["audioOnly"] == null ? undefined : json["audioOnly"],
-    meetingRecording: json["meetingRecording"] == null ? undefined : json["meetingRecording"],
-    staticSlideDocId: json["staticSlideDocId"] == null ? undefined : json["staticSlideDocId"],
-    displayDocsDocId: json["displayDocsDocId"] == null ? undefined : json["displayDocsDocId"],
+    meetingRecording:
+      json["meetingRecording"] == null ? undefined : json["meetingRecording"],
+    staticSlideDocId:
+      json["staticSlideDocId"] == null ? undefined : json["staticSlideDocId"],
+    displayDocsDocId:
+      json["displayDocsDocId"] == null ? undefined : json["displayDocsDocId"],
     isConfirmed: json["isConfirmed"] == null ? undefined : json["isConfirmed"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
   };
 }
 
@@ -115,7 +123,7 @@ export function DSMConfigToJSON(json: any): DSMConfig {
 
 export function DSMConfigToJSONTyped(
   value?: DSMConfig | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -130,7 +138,9 @@ export function DSMConfigToJSONTyped(
     staticSlideDocId: value["staticSlideDocId"],
     displayDocsDocId: value["displayDocsDocId"],
     isConfirmed: value["isConfirmed"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
   };
 }

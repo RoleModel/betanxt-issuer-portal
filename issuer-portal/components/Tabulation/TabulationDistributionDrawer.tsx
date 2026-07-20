@@ -56,7 +56,7 @@ function formatDateTime(iso: string | null | undefined): string {
 
 function computeNextScheduled(
   meetingDate: string | null | undefined,
-  startOffsetDays: number,
+  startOffsetDays: number
 ): string | null {
   if (!meetingDate) return null;
   const meeting = new Date(meetingDate);
@@ -81,23 +81,29 @@ export function TabulationDistributionDrawer({
 }: TabulationDistributionDrawerProps) {
   const { data: session } = useSession();
   const { flags } = useFeatureFlags(clientTicker ?? undefined);
-  const isCSM = session?.user?.type === "CSM" || session?.user?.type === "ADMIN";
+  const isCSM =
+    session?.user?.type === "CSM" || session?.user?.type === "ADMIN";
   const [open, setOpen] = useState(false);
-  const [distribution, setDistribution] = useState<TabulationDistribution>(() => ({
-    enabled: false,
-    startOffsetDays: 15,
-    recipients: [],
-    lastSentAt: null,
-    nextScheduledAt: null,
-    ...initialDistribution,
-  }));
+  const [distribution, setDistribution] = useState<TabulationDistribution>(
+    () => ({
+      enabled: false,
+      startOffsetDays: 15,
+      recipients: [],
+      lastSentAt: null,
+      nextScheduledAt: null,
+      ...initialDistribution,
+    })
+  );
   const [emailInput, setEmailInput] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [sendingNotif, setSendingNotif] = useState(false);
-  const [notifResult, setNotifResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [notifResult, setNotifResult] = useState<{
+    ok: boolean;
+    message: string;
+  } | null>(null);
 
   const { fetchNotifications } = useNotifications();
 
@@ -120,8 +126,14 @@ export function TabulationDistributionDrawer({
       setSaveError(null);
       setSaveSuccess(false);
       try {
-        const computed = computeNextScheduled(meetingDate, next.startOffsetDays ?? 15);
-        const payload: TabulationDistribution = { ...next, nextScheduledAt: computed };
+        const computed = computeNextScheduled(
+          meetingDate,
+          next.startOffsetDays ?? 15
+        );
+        const payload: TabulationDistribution = {
+          ...next,
+          nextScheduledAt: computed,
+        };
         const apiClient = await buildApiClient();
         const { error } = await apiClient.PUT("/meetings/{meetingId}", {
           params: { path: { meetingId } },
@@ -140,21 +152,26 @@ export function TabulationDistributionDrawer({
         setSaving(false);
       }
     },
-    [meetingId, meetingDate],
+    [meetingId, meetingDate]
   );
 
   const handleGenerateNotification = useCallback(async () => {
     setSendingNotif(true);
     setNotifResult(null);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+      const apiBase =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
       const params = new URLSearchParams({ force: "true", meetingId });
       if (session?.user?.id) params.set("userId", session.user.id);
-      if (session?.user?.username) params.set("username", session.user.username);
-      const res = await fetch(`${apiBase}/cron/tabulation-distribute?${params.toString()}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      if (session?.user?.username)
+        params.set("username", session.user.username);
+      const res = await fetch(
+        `${apiBase}/cron/tabulation-distribute?${params.toString()}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       const json = (await res.json()) as {
         ok?: boolean;
         processed?: number;
@@ -170,7 +187,10 @@ export function TabulationDistributionDrawer({
       if (res.ok && json.ok) {
         const thisResult = json.results?.find((r) => r.meetingId === meetingId);
         if (thisResult?.skipped) {
-          setNotifResult({ ok: false, message: `Skipped: ${thisResult.skipped}` });
+          setNotifResult({
+            ok: false,
+            message: `Skipped: ${thisResult.skipped}`,
+          });
         } else {
           const notifCount = thisResult?.notificationsCreated ?? 0;
           const emailCount = thisResult?.emailsSent ?? 0;
@@ -198,7 +218,13 @@ export function TabulationDistributionDrawer({
       setSendingNotif(false);
       setTimeout(() => setNotifResult(null), 8000);
     }
-  }, [meetingId, clientTicker, fetchNotifications, session?.user?.id, session?.user?.username]);
+  }, [
+    meetingId,
+    clientTicker,
+    fetchNotifications,
+    session?.user?.id,
+    session?.user?.username,
+  ]);
 
   const handleToggleEnabled = useCallback(() => {
     const next = { ...distribution, enabled: !distribution.enabled };
@@ -248,10 +274,13 @@ export function TabulationDistributionDrawer({
       setDistribution(next);
       void persistDistribution(next);
     },
-    [distribution, persistDistribution],
+    [distribution, persistDistribution]
   );
 
-  const computedNext = computeNextScheduled(meetingDate, distribution.startOffsetDays ?? 15);
+  const computedNext = computeNextScheduled(
+    meetingDate,
+    distribution.startOffsetDays ?? 15
+  );
   const isActive = distribution.enabled && !!computedNext;
   const recipientCount = (distribution.recipients ?? []).length;
 
@@ -294,9 +323,10 @@ export function TabulationDistributionDrawer({
 
         <Box sx={{ flex: 1, overflowY: "auto", p: 3 }}>
           <Typography variant="body2" color="text.secondary" mb={3}>
-            Sends the daily tabulation report to configured recipients during the window before the
-            meeting date. Add at least one recipient email below, then enable auto-distribution.
-            Reports are delivered each day at 8&nbsp;AM and can be triggered manually at any time.
+            Sends the daily tabulation report to configured recipients during
+            the window before the meeting date. Add at least one recipient email
+            below, then enable auto-distribution. Reports are delivered each day
+            at 8&nbsp;AM and can be triggered manually at any time.
           </Typography>
 
           {saveError && (
@@ -330,7 +360,12 @@ export function TabulationDistributionDrawer({
                 />
                 {saving && <CircularProgress size={14} />}
                 {isActive && (
-                  <Chip label="Active" color="success" size="small" variant="outlined" />
+                  <Chip
+                    label="Active"
+                    color="success"
+                    size="small"
+                    variant="outlined"
+                  />
                 )}
               </Stack>
             </Box>
@@ -389,7 +424,11 @@ export function TabulationDistributionDrawer({
                         <IconButton
                           size="small"
                           onClick={handleAddEmail}
-                          disabled={saving || !distribution.enabled || !emailInput.trim()}
+                          disabled={
+                            saving ||
+                            !distribution.enabled ||
+                            !emailInput.trim()
+                          }
                           aria-label="Add recipient"
                         >
                           <AddIcon fontSize="small" />
@@ -413,7 +452,12 @@ export function TabulationDistributionDrawer({
                         label={email}
                         size="small"
                         onDelete={() => handleRemoveEmail(email)}
-                        deleteIcon={<DeleteIcon fontSize="small" aria-label={`Remove ${email}`} />}
+                        deleteIcon={
+                          <DeleteIcon
+                            fontSize="small"
+                            aria-label={`Remove ${email}`}
+                          />
+                        }
                         disabled={saving || !distribution.enabled}
                       />
                     ))}
@@ -434,24 +478,35 @@ export function TabulationDistributionDrawer({
                   <Typography variant="body2" color="text.secondary">
                     Last sent
                   </Typography>
-                  <Typography variant="body2">{formatDateTime(distribution.lastSentAt)}</Typography>
+                  <Typography variant="body2">
+                    {formatDateTime(distribution.lastSentAt)}
+                  </Typography>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="body2" color="text.secondary">
                     Next (computed)
                   </Typography>
-                  <Typography variant="body2" color={isActive ? "text.primary" : "text.disabled"}>
-                    {distribution.enabled ? formatDateTime(computedNext) : "Disabled"}
+                  <Typography
+                    variant="body2"
+                    color={isActive ? "text.primary" : "text.disabled"}
+                  >
+                    {distribution.enabled
+                      ? formatDateTime(computedNext)
+                      : "Disabled"}
                   </Typography>
                 </Stack>
               </Stack>
             </Box>
 
             {isActive && recipientCount > 0 && (
-              <Alert severity="info" icon={<NotificationsActiveIcon fontSize="small" />}>
+              <Alert
+                severity="info"
+                icon={<NotificationsActiveIcon fontSize="small" />}
+              >
                 A report will be sent to{" "}
-                <strong>{(distribution.recipients ?? []).join(", ")}</strong> daily starting{" "}
-                {distribution.startOffsetDays ?? 15} days before the meeting.
+                <strong>{(distribution.recipients ?? []).join(", ")}</strong>{" "}
+                daily starting {distribution.startOffsetDays ?? 15} days before
+                the meeting.
               </Alert>
             )}
 
@@ -475,17 +530,30 @@ export function TabulationDistributionDrawer({
                 {sendingNotif ? "Running…" : "Send distribution"}
               </Button>
               {!distribution.enabled && !saving && (
-                <Typography variant="caption" color="text.disabled" display="block" mt={0.5}>
+                <Typography
+                  variant="caption"
+                  color="text.disabled"
+                  display="block"
+                  mt={0.5}
+                >
                   Enable auto-distribution above to trigger
                 </Typography>
               )}
               {saving && (
-                <Typography variant="caption" color="text.disabled" display="block" mt={0.5}>
+                <Typography
+                  variant="caption"
+                  color="text.disabled"
+                  display="block"
+                  mt={0.5}
+                >
                   Saving settings…
                 </Typography>
               )}
               {notifResult && (
-                <Alert severity={notifResult.ok ? "success" : "error"} sx={{ mt: 1.5 }}>
+                <Alert
+                  severity={notifResult.ok ? "success" : "error"}
+                  sx={{ mt: 1.5 }}
+                >
                   {notifResult.message}
                 </Alert>
               )}

@@ -33,7 +33,9 @@ export function getCurrentPhase(meeting: Meeting): MeetingPhase | null {
 export function getNextPhase(meeting: Meeting): MeetingPhase | null {
   if (!meeting.phases) return null;
 
-  const upcomingPhases = meeting.phases.filter((phase) => phase.status === "upcoming");
+  const upcomingPhases = meeting.phases.filter(
+    (phase) => phase.status === "upcoming"
+  );
   return upcomingPhases[0] || null;
 }
 
@@ -57,7 +59,9 @@ export function isMeetingCompleted(meeting: Meeting): boolean {
 export function getMeetingProgress(meeting: Meeting): number {
   if (!meeting.phases || meeting.phases.length === 0) return 0;
 
-  const completedPhases = meeting.phases.filter((phase) => phase.status === "completed").length;
+  const completedPhases = meeting.phases.filter(
+    (phase) => phase.status === "completed"
+  ).length;
   return Math.round((completedPhases / meeting.phases.length) * 100);
 }
 
@@ -83,7 +87,9 @@ export function formatMeetingDate(dateString?: string): string {
 /**
  * Get meeting status color for UI
  */
-export function getMeetingStatusColor(status?: string): "success" | "warning" | "error" | "info" {
+export function getMeetingStatusColor(
+  status?: string
+): "success" | "warning" | "error" | "info" {
   switch (status) {
     case "ACTIVE":
       return "success";

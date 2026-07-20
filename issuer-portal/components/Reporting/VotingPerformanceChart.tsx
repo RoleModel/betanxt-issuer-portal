@@ -60,9 +60,12 @@ export default function VotingPerformanceChart({
         const apiClient = await buildApiClient();
 
         // Fetch positions for this meeting to calculate share range performance
-        const { data: positionsData, error } = await apiClient.GET("/positions", {
-          params: { query: { meetingId } },
-        });
+        const { data: positionsData, error } = await apiClient.GET(
+          "/positions",
+          {
+            params: { query: { meetingId } },
+          }
+        );
 
         if (error) {
           console.error("Failed to fetch voting performance data:", error);
@@ -96,20 +99,25 @@ export default function VotingPerformanceChart({
             // Calculate statistics for this range
             const totalPositions = rangePositions.length;
             const totalShares = rangePositions.reduce(
-              (sum: number, pos: Record<string, unknown>) => sum + (Number(pos.shares) || 0),
-              0,
+              (sum: number, pos: Record<string, unknown>) =>
+                sum + (Number(pos.shares) || 0),
+              0
             );
-            const votedPositions = rangePositions.filter((pos: Record<string, unknown>) => {
-              return pos.voteStatus === "Voted";
-            });
+            const votedPositions = rangePositions.filter(
+              (pos: Record<string, unknown>) => {
+                return pos.voteStatus === "Voted";
+              }
+            );
             const votedShares = votedPositions.reduce(
               (sum: number, pos: Record<string, unknown>) => {
                 return sum + (Number(pos.sharesVoted) || 0);
               },
-              0,
+              0
             );
             const percentVoted =
-              totalShares > 0 ? Math.round((votedShares / totalShares) * 100) : 0;
+              totalShares > 0
+                ? Math.round((votedShares / totalShares) * 100)
+                : 0;
 
             return {
               range: rangeInfo.label,
@@ -133,13 +141,22 @@ export default function VotingPerformanceChart({
   }, [meetingId]);
 
   if (loading) {
-    return <SkeletonChart title="Voting Performance By Share Range" height={345} showLegend />;
+    return (
+      <SkeletonChart
+        title="Voting Performance By Share Range"
+        height={345}
+        showLegend
+      />
+    );
   }
 
   if (data.length === 0) {
     return (
       <Card>
-        <CardHeader title="Voting Performance By Share Range" subheader={subheader} />
+        <CardHeader
+          title="Voting Performance By Share Range"
+          subheader={subheader}
+        />
         <CardContent>
           <EmptyState
             title="No voting performance data available"
@@ -179,7 +196,10 @@ export default function VotingPerformanceChart({
 
   return (
     <Card sx={{ height: "100%" }}>
-      <CardHeader title="Voting Performance By Share Range" subheader={subheader} />
+      <CardHeader
+        title="Voting Performance By Share Range"
+        subheader={subheader}
+      />
       <CardContent>
         <ChartDataProvider
           series={[

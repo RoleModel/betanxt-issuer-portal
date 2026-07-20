@@ -49,8 +49,15 @@ import { useDocuments } from "@/hooks/useDocuments";
 import { usePhases } from "@/hooks/usePhases";
 import { useTasks } from "@/hooks/useTasks";
 import { getBrowserSupabase } from "@/lib/browserSupabase";
-import { handleFormDownload, handleFormSign } from "@/utils/broadridgeFormHandler";
-import { calculateDaysUntil, formatDaysUntil, friendlyDate } from "@/utils/dateUtils";
+import {
+  handleFormDownload,
+  handleFormSign,
+} from "@/utils/broadridgeFormHandler";
+import {
+  calculateDaysUntil,
+  formatDaysUntil,
+  friendlyDate,
+} from "@/utils/dateUtils";
 import {
   handleFormDownload as handlePlanFormDownload,
   handleFormSign as handlePlanFormSign,
@@ -112,12 +119,15 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   }
 
   const currentMeeting = meetingContextValue?.currentMeeting ?? null;
-  const tasks = React.useMemo(() => meetingContextValue?.tasks ?? [], [meetingContextValue?.tasks]);
+  const tasks = React.useMemo(
+    () => meetingContextValue?.tasks ?? [],
+    [meetingContextValue?.tasks]
+  );
   const tasksLoading = meetingContextValue?.tasksLoading ?? false;
   const refreshMeetingData = meetingContextValue?.refreshMeetingData;
   const meetingKeyDates = React.useMemo(
     () => meetingContextValue?.keyDates ?? [],
-    [meetingContextValue?.keyDates],
+    [meetingContextValue?.keyDates]
   );
   const setCurrentMeeting = meetingContextValue?.setCurrentMeeting;
 
@@ -127,24 +137,36 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
   // Tasks and documents hooks
   const { updateTaskById, refetch } = useTasks(currentMeeting?.id);
-  const { createNewDocument, addDocumentHistory, getDocumentsByMeeting, uploadDocument } =
-    useDocuments();
+  const {
+    createNewDocument,
+    addDocumentHistory,
+    getDocumentsByMeeting,
+    uploadDocument,
+  } = useDocuments();
 
   // Mobile detection
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   // Get phases using the proper hook
-  const { phases, loading: phaseLoading, error: phaseError } = usePhases(currentMeeting?.id);
+  const {
+    phases,
+    loading: phaseLoading,
+    error: phaseError,
+  } = usePhases(currentMeeting?.id);
 
   // Get client data for form generation
   const params = useParams();
   const clientTicker = params?.clientTicker as string;
 
   const { clients } = useClients();
-  const currentClient = clients.find((client) => client.ticker === clientTicker);
+  const currentClient = clients.find(
+    (client) => client.ticker === clientTicker
+  );
 
-  const [currentView, setCurrentView] = useState<"overview" | "upload">("overview");
+  const [currentView, setCurrentView] = useState<"overview" | "upload">(
+    "overview"
+  );
 
   // Determine current phase from MeetingContext, fallback to prop, then 1
   const currentPhaseNumber = React.useMemo(() => {
@@ -185,18 +207,25 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   } = useDrawerDocuments();
 
   const [uploadTaskTitle, setUploadTaskTitle] = useState("");
-  const [currentTaskForUpload, setCurrentTaskForUpload] = useState<Task | null>(null);
+  const [currentTaskForUpload, setCurrentTaskForUpload] = useState<Task | null>(
+    null
+  );
   const [isSubmittingUpload, setIsSubmittingUpload] = useState(false);
   const [mobileUploadOpen, setMobileUploadOpen] = useState(false);
-  const [currentTaskForDocument, setCurrentTaskForDocument] = useState<Task | null>(null);
+  const [currentTaskForDocument, setCurrentTaskForDocument] =
+    useState<Task | null>(null);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   // Context menu states
-  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenuPosition | null>(
+    null
+  );
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [TaskEditDialogOpen, setTaskEditDialogOpen] = useState(false);
-  const [tasksWithSignedDocs, setTasksWithSignedDocs] = useState<Set<string>>(new Set());
+  const [tasksWithSignedDocs, setTasksWithSignedDocs] = useState<Set<string>>(
+    new Set()
+  );
 
   // Initialize phase completion hook
   const { checkAndCompletePhase } = usePhaseCompletion({
@@ -207,17 +236,20 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
   // Get theme and phase color using theme palette
   const phaseColor = theme.vars.palette.phase[currentPhaseNumber - 1].main;
-  const phaseContrast = theme.vars.palette.phase[currentPhaseNumber - 1].contrastText;
+  const phaseContrast =
+    theme.vars.palette.phase[currentPhaseNumber - 1].contrastText;
 
   // Find the current phase data
-  const currentPhaseData = phases.find((p) => p.orderIndex === currentPhaseNumber);
+  const currentPhaseData = phases.find(
+    (p) => p.orderIndex === currentPhaseNumber
+  );
   const phaseTitle = currentPhaseData?.name ?? `Phase ${currentPhaseNumber}`;
 
   // Filter tasks for the current phase from context and cast to TaskWithLinks
   // Memoize filtered tasks for performance
   const phaseTasks = useMemo(
     () => tasks.filter((task) => task.phaseNumber === currentPhaseNumber),
-    [tasks, currentPhaseNumber],
+    [tasks, currentPhaseNumber]
   );
 
   // Check for signed documents for all phase tasks (moved outside useEffect for reuse)
@@ -231,7 +263,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
       phaseTasks.forEach((task) => {
         const matchingDocs = meetingDocuments.filter(
-          (doc) => doc.taskId === (task.taskId ?? task.id) && doc.type === "signed-form",
+          (doc) =>
+            doc.taskId === (task.taskId ?? task.id) &&
+            doc.type === "signed-form"
         );
 
         if (matchingDocs.length > 0) {
@@ -262,13 +296,18 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   // Get key dates for current phase from MeetingContext
   const keyDates: KeyDate[] = React.useMemo(() => {
     // Check if phase data has key dates
-    if (currentPhaseData?.keyDates && Object.keys(currentPhaseData.keyDates).length > 0) {
+    if (
+      currentPhaseData?.keyDates &&
+      Object.keys(currentPhaseData.keyDates).length > 0
+    ) {
       // If phase has specific key dates in the phase data, use those
       const result = Object.entries(currentPhaseData.keyDates)
         .filter(([, value]) => value)
         .map(([key, value]) => ({
           id: key,
-          title: key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase()),
+          title: key
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase()),
           phaseNumber: currentPhaseNumber,
           date: value!,
         }));
@@ -314,7 +353,11 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   const urls: PhaseUrl[] = [];
 
   const handleUploadSubmit = async () => {
-    if (!currentTaskForUpload || !currentMeeting?.id || uploadFiles.length === 0) {
+    if (
+      !currentTaskForUpload ||
+      !currentMeeting?.id ||
+      uploadFiles.length === 0
+    ) {
       return;
     }
 
@@ -326,8 +369,10 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         // Update file status to uploading
         setUploadFiles((prev) =>
           prev.map((f) =>
-            f.id === uploadFile.id ? { ...f, status: "uploading" as const, progress: 0 } : f,
-          ),
+            f.id === uploadFile.id
+              ? { ...f, status: "uploading" as const, progress: 0 }
+              : f
+          )
         );
 
         const documentType = getDocumentTypeFromTask(currentTaskForUpload);
@@ -336,7 +381,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           documentType,
           currentMeeting.id,
           uploadFile.file.name,
-          currentTaskForUpload.id,
+          currentTaskForUpload.id
         );
 
         if (uploadPath === null) {
@@ -345,8 +390,8 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             prev.map((f) =>
               f.id === uploadFile.id
                 ? { ...f, status: "error" as const, error: "Upload failed" }
-                : f,
-            ),
+                : f
+            )
           );
           throw new Error(`Failed to upload file: ${uploadFile.file.name}`);
         }
@@ -354,8 +399,10 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         // Mark file as complete
         setUploadFiles((prev) =>
           prev.map((f) =>
-            f.id === uploadFile.id ? { ...f, status: "complete" as const, progress: 100 } : f,
-          ),
+            f.id === uploadFile.id
+              ? { ...f, status: "complete" as const, progress: 100 }
+              : f
+          )
         );
       }
 
@@ -385,9 +432,11 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
           const allTasks = tasks;
           const completedTasks = allTasks.filter((t) =>
-            completedStatuses.includes(t.status ?? ""),
+            completedStatuses.includes(t.status ?? "")
           ).length;
-          const overallCompletion = Math.round((completedTasks / allTasks.length) * 100);
+          const overallCompletion = Math.round(
+            (completedTasks / allTasks.length) * 100
+          );
 
           await client.PUT("/meetings/{meetingId}", {
             params: {
@@ -503,7 +552,10 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       let newStatus: components["schemas"]["TaskStatus"] = "COMPLETE";
       const taskTitle = task.title?.toLowerCase() ?? "";
 
-      if (taskTitle.includes("broadridge") || taskTitle.includes("ics access")) {
+      if (
+        taskTitle.includes("broadridge") ||
+        taskTitle.includes("ics access")
+      ) {
         newStatus = "PENDING_AUTHORIZATION";
       } else if (taskTitle.includes("transfer agent")) {
         newStatus = "SUBMITTED_AWAITING_RECORD_DATE";
@@ -516,7 +568,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       if (task.meetingId) {
         const meetingDocuments = await getDocumentsByMeeting(task.meetingId);
         existingSignedDocument = meetingDocuments.find(
-          (doc) => doc.taskId === (task.taskId ?? task.id) && doc.type === "signed-form",
+          (doc) =>
+            doc.taskId === (task.taskId ?? task.id) &&
+            doc.type === "signed-form"
         );
       }
 
@@ -532,7 +586,10 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         };
 
         if (task.meetingId) {
-          const newDocument = await createNewDocument(task.meetingId, documentData);
+          const newDocument = await createNewDocument(
+            task.meetingId,
+            documentData
+          );
           if (newDocument?.id) {
             await addDocumentHistory(newDocument.id, "UPDATED");
           }
@@ -570,9 +627,11 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
           const allTasks = tasks;
           const completedTasks = allTasks.filter((t) =>
-            completedStatuses.includes(t.status ?? ""),
+            completedStatuses.includes(t.status ?? "")
           ).length;
-          const overallCompletion = Math.round((completedTasks / allTasks.length) * 100);
+          const overallCompletion = Math.round(
+            (completedTasks / allTasks.length) * 100
+          );
 
           await client.PUT("/meetings/{meetingId}", {
             params: {
@@ -618,7 +677,8 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       // Create client data inside the handler to ensure latest meeting data (following TaskDrawer pattern)
       const clientData = currentClient
         ? {
-            issuerName: currentClient.company_name ?? currentClient.short_name ?? "",
+            issuerName:
+              currentClient.company_name ?? currentClient.short_name ?? "",
             cusipNumber: currentMeeting?.cusip ?? undefined,
             contactName: currentClient.primary_contact ?? "",
             email: currentClient.primary_contact_email ?? "",
@@ -631,7 +691,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         "[PhaseDrawer] handleTaskLinkClick clientData:",
         clientData,
         "currentClient:",
-        currentClient,
+        currentClient
       );
 
       // Check which type of form task this is
@@ -644,20 +704,27 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             // Generic signature link with URL - open for viewing only (no signature areas)
             setDocumentUrl(link.url);
             setDocumentTitle(taskTitle);
-            setCurrentDocumentId(`doc-${Date.now()}-${link.url.replace(/[^a-zA-Z0-9]/g, "-")}`);
+            setCurrentDocumentId(
+              `doc-${Date.now()}-${link.url.replace(/[^a-zA-Z0-9]/g, "-")}`
+            );
             setSignatureAreas([]); // No signature areas for generic links
             setDocumentViewerOpen(true);
           } else if (link.label === "View Form") {
             // View signed form document
             if (task?.meetingId && task?.id) {
               try {
-                const meetingDocuments = await getDocumentsByMeeting(task.meetingId);
+                const meetingDocuments = await getDocumentsByMeeting(
+                  task.meetingId
+                );
                 const signedDoc = meetingDocuments.find(
-                  (doc) => doc.taskId === (task.taskId ?? task.id) && doc.type === "signed-form",
+                  (doc) =>
+                    doc.taskId === (task.taskId ?? task.id) &&
+                    doc.type === "signed-form"
                 );
 
                 if (signedDoc?.filePath) {
-                  const { getStoragePublicUrl } = await import("@/utils/documentUtils");
+                  const { getStoragePublicUrl } =
+                    await import("@/utils/documentUtils");
                   const documentUrl = getStoragePublicUrl(signedDoc.filePath);
 
                   setDocumentUrl(documentUrl);
@@ -734,12 +801,16 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       setCurrentDocumentId,
       setSignatureAreas,
       setDocumentViewerOpen,
-    ],
+    ]
   );
 
   const handleTaskApprovalClick = useCallback(
     (task: Task) => {
-      if (task.type === "approve" && Array.isArray(task.links) && task.links[0]) {
+      if (
+        task.type === "approve" &&
+        Array.isArray(task.links) &&
+        task.links[0]
+      ) {
         const firstLink = task.links[0] as { url?: string };
         if (firstLink.url) {
           setApprovalDocumentUrl(firstLink.url);
@@ -748,7 +819,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         }
       }
     },
-    [setApprovalDocumentUrl, setApprovalTitle, setApprovalDrawerOpen],
+    [setApprovalDocumentUrl, setApprovalTitle, setApprovalDrawerOpen]
   );
 
   const handleBackToOverview = () => {
@@ -784,14 +855,17 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   }, [handleApprovalDrawerClose]);
 
   // Context menu handlers - memoized for performance
-  const handleTaskRightClick = useCallback((event: React.MouseEvent, task: Task) => {
-    event.preventDefault();
-    setSelectedTask(task);
-    setContextMenu({
-      x: event.clientX,
-      y: event.clientY,
-    });
-  }, []);
+  const handleTaskRightClick = useCallback(
+    (event: React.MouseEvent, task: Task) => {
+      event.preventDefault();
+      setSelectedTask(task);
+      setContextMenu({
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    []
+  );
 
   const handleContextMenuClose = useCallback(() => {
     setContextMenu(null);
@@ -832,7 +906,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
       onPhaseChange?.(next);
     },
-    [currentPhaseNumber, currentMeeting, setCurrentMeeting, onPhaseChange],
+    [currentPhaseNumber, currentMeeting, setCurrentMeeting, onPhaseChange]
   );
 
   const renderMobileUploadDrawer = () => (
@@ -880,7 +954,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         >
           <Puller />
         </StyledBox>
-        <StyledBox sx={{ height: "100%", overflow: "hidden" }}>{renderUploadContent()}</StyledBox>
+        <StyledBox sx={{ height: "100%", overflow: "hidden" }}>
+          {renderUploadContent()}
+        </StyledBox>
       </SwipeableDrawer>
     </>
   );
@@ -974,7 +1050,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           disabled={uploadFiles.length === 0 || isSubmittingUpload}
           onClick={handleUploadSubmit}
         >
-          {isSubmittingUpload ? "Submitting..." : `Submit File${uploadFiles.length > 1 ? "s" : ""}`}
+          {isSubmittingUpload
+            ? "Submitting..."
+            : `Submit File${uploadFiles.length > 1 ? "s" : ""}`}
         </Button>
       </Box>
     </Stack>
@@ -1048,8 +1126,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             {/* Key Dates */}
             {keyDates.length > 0 && (
               <>
-                <Typography variant="body3" fontWeight={500} sx={{ fontSize: "14px" }}>
-                  {currentPhaseNumber === 7 ? "Tabulation Reports" : "Key Dates"}
+                <Typography
+                  variant="body3"
+                  fontWeight={500}
+                  sx={{ fontSize: "14px" }}
+                >
+                  {currentPhaseNumber === 7
+                    ? "Tabulation Reports"
+                    : "Key Dates"}
                 </Typography>
 
                 {keyDates.map((keyDate: KeyDate) => (
@@ -1063,14 +1147,22 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     })}
                   >
                     <CardContent sx={{ p: 2 }}>
-                      <Typography variant="caption" sx={{ color: "#CCE5FF", fontWeight: 500 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#CCE5FF", fontWeight: 500 }}
+                      >
                         {friendlyDate(keyDate.date ?? "")}
                       </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 700, my: 0.5 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 700, my: 0.5 }}
+                      >
                         {keyDate.title}
                       </Typography>
                       <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
-                        {formatDaysUntil(calculateDaysUntil(keyDate.date ?? ""))}
+                        {formatDaysUntil(
+                          calculateDaysUntil(keyDate.date ?? "")
+                        )}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -1083,10 +1175,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     color="text.secondary"
                     sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    The Broker Search distribution signals the start of Phase 2 in your proxy
-                    meeting project. The search ensures all necessary parties are aware of the
-                    upcoming record date. Additionally, BetaNXT is now fully authorized to receive
-                    all pertinent files related to shareholder mailings and tabulations.
+                    The Broker Search distribution signals the start of Phase 2
+                    in your proxy meeting project. The search ensures all
+                    necessary parties are aware of the upcoming record date.
+                    Additionally, BetaNXT is now fully authorized to receive all
+                    pertinent files related to shareholder mailings and
+                    tabulations.
                   </Typography>
                 )}
                 {currentPhaseNumber === 4 && (
@@ -1095,12 +1189,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     color="text.secondary"
                     sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    Once the Record Date is reached, we will need to collect the required files
-                    listed below. Final print quantities can only be confirmed after all files are
-                    securely uploaded to our system. Typically, these tasks take approximately 3–4
-                    business days to complete. The urgency of these tasks will depend on the
-                    proximity to your Mailing Date. As that date approaches, you may experience an
-                    increased need for timely responses and actions.
+                    Once the Record Date is reached, we will need to collect the
+                    required files listed below. Final print quantities can only
+                    be confirmed after all files are securely uploaded to our
+                    system. Typically, these tasks take approximately 3–4
+                    business days to complete. The urgency of these tasks will
+                    depend on the proximity to your Mailing Date. As that date
+                    approaches, you may experience an increased need for timely
+                    responses and actions.
                   </Typography>
                 )}
                 {currentPhaseNumber === 5 && (
@@ -1109,10 +1205,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     color="text.secondary"
                     sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    As your mailing date approaches, you will notice an increase in automated emails
-                    from broker intermediary firms as we update their portal. You may disregard
-                    these emails, regardless of their frequency. We have direct access to their
-                    systems and already possess the information they are providing to you.
+                    As your mailing date approaches, you will notice an increase
+                    in automated emails from broker intermediary firms as we
+                    update their portal. You may disregard these emails,
+                    regardless of their frequency. We have direct access to
+                    their systems and already possess the information they are
+                    providing to you.
                   </Typography>
                 )}
                 {/* Phase-specific description after key dates */}
@@ -1122,11 +1220,13 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     color="text.secondary"
                     sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    Once the mailing process is finalized, mailing affidavits will be delivered
-                    shortly thereafter for your legal and record-keeping purposes. Please note,
-                    mailing affidavits are not provided for beneficial holder distributions;
-                    however, we proactively confirm that these beneficial mailings have been
-                    completed by the relevant intermediaries according to applicable guidelines.
+                    Once the mailing process is finalized, mailing affidavits
+                    will be delivered shortly thereafter for your legal and
+                    record-keeping purposes. Please note, mailing affidavits are
+                    not provided for beneficial holder distributions; however,
+                    we proactively confirm that these beneficial mailings have
+                    been completed by the relevant intermediaries according to
+                    applicable guidelines.
                   </Typography>
                 )}
                 {currentPhaseNumber === 7 && (
@@ -1135,9 +1235,10 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     color="text.secondary"
                     sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                   >
-                    Tabulation reports will be sent to you daily beginning 10-15 days prior to your
-                    meeting. Please keep in mind you can always log in to our online portal to view
-                    real-time results on demand.
+                    Tabulation reports will be sent to you daily beginning 10-15
+                    days prior to your meeting. Please keep in mind you can
+                    always log in to our online portal to view real-time results
+                    on demand.
                   </Typography>
                 )}
               </>
@@ -1147,19 +1248,26 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             <Stack spacing={2}>
               {phaseTasks.map((task) => {
                 const isCompleted = task.status === "COMPLETE";
-                const hasSignedDoc = task.id ? tasksWithSignedDocs.has(task.id) : false;
+                const hasSignedDoc = task.id
+                  ? tasksWithSignedDocs.has(task.id)
+                  : false;
 
                 // Modify task links if signed document exists
                 const modifiedTask: Task =
                   hasSignedDoc && task.links && Array.isArray(task.links)
                     ? {
                         ...task,
-                        links: (task.links as TaskLink[]).map((link: TaskLink) => {
-                          if (link.action === "signature" && link.label === "Sign Form") {
-                            return { ...link, label: "View Form" };
+                        links: (task.links as TaskLink[]).map(
+                          (link: TaskLink) => {
+                            if (
+                              link.action === "signature" &&
+                              link.label === "Sign Form"
+                            ) {
+                              return { ...link, label: "View Form" };
+                            }
+                            return link;
                           }
-                          return link;
-                        }) as unknown as Record<string, unknown>,
+                        ) as unknown as Record<string, unknown>,
                       }
                     : task;
 
@@ -1171,10 +1279,14 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     isCompleted={isCompleted}
                     onContextMenu={(e) => handleTaskRightClick(e, task)}
                     onClick={
-                      task.type === "approve" ? () => handleTaskApprovalClick(task) : undefined
+                      task.type === "approve"
+                        ? () => handleTaskApprovalClick(task)
+                        : undefined
                     }
                     onStatusUpdate={handleTaskUpdated}
-                    onLinkClick={(link, taskTitle) => handleTaskLinkClick(link, taskTitle, task)}
+                    onLinkClick={(link, taskTitle) =>
+                      handleTaskLinkClick(link, taskTitle, task)
+                    }
                   />
                 );
               })}
@@ -1197,7 +1309,11 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                       {urlItem.description}
                     </Typography>
                     {urlItem.url && (
-                      <Link href={urlItem.url} target="_blank" rel="noopener noreferrer">
+                      <Link
+                        href={urlItem.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         {urlItem.url}
                       </Link>
                     )}
@@ -1211,10 +1327,11 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                 color="text.secondary"
                 sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
               >
-                IMPORTANT: As master tabulator, we do our due diligence to make sure that the shares
-                we&apos;ve received from your transfer agent match the total outstanding shares
-                presented in your proxy statement. Once you have that final number please provide it
-                to your BetaNXT contact at your earliest convenience.
+                IMPORTANT: As master tabulator, we do our due diligence to make
+                sure that the shares we&apos;ve received from your transfer
+                agent match the total outstanding shares presented in your proxy
+                statement. Once you have that final number please provide it to
+                your BetaNXT contact at your earliest convenience.
               </Typography>
             )}
             {currentPhaseNumber === 6 && (
@@ -1227,8 +1344,9 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                   color="text.secondary"
                   sx={{ mt: 1, fontSize: "14px", lineHeight: 1.6 }}
                 >
-                  IMPORTANT: Confirmed company representatives should have access to BetaNXT&apos;s
-                  Online Voting Portal (MIC) to view real-time voting and other reports.
+                  IMPORTANT: Confirmed company representatives should have
+                  access to BetaNXT&apos;s Online Voting Portal (MIC) to view
+                  real-time voting and other reports.
                 </Typography>
                 <Link
                   href="https://www.mediantonline.com/mic/login"
@@ -1288,7 +1406,10 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         }}
       >
         {/* Overview Content */}
-        <Box className="overview-content" sx={{ height: "100%", width: isMobile ? "100%" : 600 }}>
+        <Box
+          className="overview-content"
+          sx={{ height: "100%", width: isMobile ? "100%" : 600 }}
+        >
           {renderOverviewSection()}
         </Box>
 
@@ -1326,7 +1447,8 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           currentTaskForDocument
             ? {
                 id: currentTaskForDocument.id ?? "",
-                task_id: currentTaskForDocument.taskId ?? currentTaskForDocument.id,
+                task_id:
+                  currentTaskForDocument.taskId ?? currentTaskForDocument.id,
                 title: currentTaskForDocument.title ?? "Document",
                 type: currentTaskForDocument.type,
                 meeting_id: currentTaskForDocument.meetingId,

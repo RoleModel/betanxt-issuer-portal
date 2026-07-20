@@ -2428,10 +2428,7 @@ paths:
       operationId: runTabulationDistribute
       summary: Run daily tabulation report distribution
       description: >
-        Finds all meetings with auto-distribution enabled and within their delivery window,
-        creates in-app notifications for every user associated with the meeting, and sends
-        emails to configured recipients. Intended to be called by a daily cron job at 8 AM,
-        but can also be triggered manually from the distribution settings drawer.
+        Finds all meetings with auto-distribution enabled and within their delivery window, creates in-app notifications for every user associated with the meeting, and sends emails to configured recipients. Intended to be called by a daily cron job at 8 AM, but can also be triggered manually from the distribution settings drawer.
       tags: [Cron]
       responses:
         "200":
@@ -2647,7 +2644,15 @@ components:
               - agenda
               - nobo
           description: Feature modules enabled for this client. "nobo" is present when Engage functionality is active.
-          example: ["documents", "mailing", "tabulation", "reports", "fileTransfer", "agenda"]
+          example:
+            [
+              "documents",
+              "mailing",
+              "tabulation",
+              "reports",
+              "fileTransfer",
+              "agenda",
+            ]
         createdAt:
           type: string
           format: date-time
@@ -3514,9 +3519,19 @@ components:
           type: array
           items:
             type: string
-            enum: [documents, mailing, tabulation, reports, fileTransfer, agenda, nobo]
+            enum:
+              [
+                documents,
+                mailing,
+                tabulation,
+                reports,
+                fileTransfer,
+                agenda,
+                nobo,
+              ]
           description: Feature modules enabled for this client
-          default: [documents, mailing, tabulation, reports, fileTransfer, agenda]
+          default:
+            [documents, mailing, tabulation, reports, fileTransfer, agenda]
 
     UpdateClientRequest:
       type: object
@@ -3984,7 +3999,8 @@ components:
 
     CreatePositionRequest:
       type: object
-      required: [meetingId, cusip, accountType, setKey, name, voteStatus, shares]
+      required:
+        [meetingId, cusip, accountType, setKey, name, voteStatus, shares]
       properties:
         meetingId:
           type: string

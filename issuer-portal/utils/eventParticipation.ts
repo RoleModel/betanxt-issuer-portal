@@ -1,5 +1,7 @@
 /** Deterministic demo participation % in the 60–75% range for a meeting id. */
-export function generateSeededEventParticipationPercent(meetingId: string): number {
+export function generateSeededEventParticipationPercent(
+  meetingId: string
+): number {
   const meetingIdHash = (meetingId ?? "")
     .split("")
     .reduce((acc, char) => acc + char.charCodeAt(0), 0);

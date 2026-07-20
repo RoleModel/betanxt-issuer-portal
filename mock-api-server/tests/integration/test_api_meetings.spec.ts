@@ -36,8 +36,12 @@ test.describe("Meeting API Endpoints", () => {
     }
   });
 
-  test("GET /api/meetings with status filter should work", async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/meetings?status=ACTIVE`);
+  test("GET /api/meetings with status filter should work", async ({
+    request,
+  }) => {
+    const response = await request.get(
+      `${API_BASE_URL}/meetings?status=ACTIVE`
+    );
 
     expect(response.status()).toBe(200);
 
@@ -51,7 +55,9 @@ test.describe("Meeting API Endpoints", () => {
   });
 
   test("GET /api/meetings with pagination should work", async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/meetings?page=1&limit=5`);
+    const response = await request.get(
+      `${API_BASE_URL}/meetings?page=1&limit=5`
+    );
 
     expect(response.status()).toBe(200);
 
@@ -68,7 +74,9 @@ test.describe("Meeting API Endpoints", () => {
     expect(data.pagination.limit).toBe(5);
   });
 
-  test("GET /api/meetings/{id} should return specific meeting", async ({ request }) => {
+  test("GET /api/meetings/{id} should return specific meeting", async ({
+    request,
+  }) => {
     // First get a meeting ID
     const listResponse = await request.get(`${API_BASE_URL}/meetings?limit=1`);
     const listData = await listResponse.json();
@@ -77,7 +85,9 @@ test.describe("Meeting API Endpoints", () => {
       const meetingId = listData.meetings[0].id;
 
       // Now fetch specific meeting
-      const response = await request.get(`${API_BASE_URL}/meetings/${meetingId}`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/${meetingId}`
+      );
 
       expect(response.status()).toBe(200);
 

@@ -62,7 +62,9 @@ export interface UpdatePhaseRequest {
 /**
  * Check if a given object implements the UpdatePhaseRequest interface.
  */
-export function instanceOfUpdatePhaseRequest(value: object): value is UpdatePhaseRequest {
+export function instanceOfUpdatePhaseRequest(
+  value: object
+): value is UpdatePhaseRequest {
   return true;
 }
 
@@ -72,7 +74,7 @@ export function UpdatePhaseRequestFromJSON(json: any): UpdatePhaseRequest {
 
 export function UpdatePhaseRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): UpdatePhaseRequest {
   if (json == null) {
     return json;
@@ -80,9 +82,12 @@ export function UpdatePhaseRequestFromJSONTyped(
   return {
     name: json["name"] == null ? undefined : json["name"],
     orderIndex: json["orderIndex"] == null ? undefined : json["orderIndex"],
-    status: json["status"] == null ? undefined : PhaseStatusFromJSON(json["status"]),
+    status:
+      json["status"] == null ? undefined : PhaseStatusFromJSON(json["status"]),
     keyDates:
-      json["keyDates"] == null ? undefined : UpdatePhaseRequestKeyDatesFromJSON(json["keyDates"]),
+      json["keyDates"] == null
+        ? undefined
+        : UpdatePhaseRequestKeyDatesFromJSON(json["keyDates"]),
   };
 }
 
@@ -92,7 +97,7 @@ export function UpdatePhaseRequestToJSON(json: any): UpdatePhaseRequest {
 
 export function UpdatePhaseRequestToJSONTyped(
   value?: UpdatePhaseRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

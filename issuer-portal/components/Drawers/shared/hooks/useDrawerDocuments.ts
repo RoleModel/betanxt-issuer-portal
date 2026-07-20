@@ -72,7 +72,7 @@ export interface UseDrawerDocumentsReturn {
   // PDF form handlers
   handlePdfStateChange: (
     formFields: Record<string, string>,
-    signatures: Record<string, string>,
+    signatures: Record<string, string>
   ) => void;
 }
 
@@ -126,14 +126,17 @@ export const useDrawerDocuments = (): UseDrawerDocumentsReturn => {
     setHasUnsupportedFiles(false);
   }, []);
 
-  const handleFileRejections = useCallback((fileRejections: FileRejection[]) => {
-    const hasUnsupportedType = fileRejections.some((rejection) =>
-      rejection.errors.some((error) => error.code === "file-invalid-type"),
-    );
-    if (hasUnsupportedType) {
-      setHasUnsupportedFiles(true);
-    }
-  }, []);
+  const handleFileRejections = useCallback(
+    (fileRejections: FileRejection[]) => {
+      const hasUnsupportedType = fileRejections.some((rejection) =>
+        rejection.errors.some((error) => error.code === "file-invalid-type")
+      );
+      if (hasUnsupportedType) {
+        setHasUnsupportedFiles(true);
+      }
+    },
+    []
+  );
 
   const handleFileRemove = useCallback((fileId: string) => {
     setUploadFiles((prev) => prev.filter((file) => file.id !== fileId));
@@ -145,10 +148,13 @@ export const useDrawerDocuments = (): UseDrawerDocumentsReturn => {
 
   // PDF form handlers
   const handlePdfStateChange = useCallback(
-    (formFields: Record<string, string>, signatures: Record<string, string>) => {
+    (
+      formFields: Record<string, string>,
+      signatures: Record<string, string>
+    ) => {
       setPdfFormState({ formFields, signatures });
     },
-    [],
+    []
   );
 
   return {

@@ -14,7 +14,8 @@ const industryTrends = [
     externalLink: true,
   },
   {
-    title: "Shareholder Activism Reaches Record Highs Despite Lower Success Rates",
+    title:
+      "Shareholder Activism Reaches Record Highs Despite Lower Success Rates",
     content:
       "The 2024 proxy season witnessed a record 411 shareholder activism campaigns in the Russell 3000, nearly doubling from 206 in 2021. However, activist success rates dropped to 38% in 2024 from 56% in 2023, marking the lowest since 2021. First-time activists now outpace major activists in campaign launches.",
     url: "https://corpgov.law.harvard.edu/2025/06/18/shareholder-activism-developments-in-the-2025-proxy-season/",
@@ -24,7 +25,8 @@ const industryTrends = [
     externalLink: true,
   },
   {
-    title: "Digital Transformation in Proxy Voting: Rise of Pass-Through Technology",
+    title:
+      "Digital Transformation in Proxy Voting: Rise of Pass-Through Technology",
     content:
       "Technology is revolutionizing proxy voting with blockchain, AI, and big data analytics. Pass-through voting is emerging as a key trend, giving investors a voice in how asset managers vote underlying equities. Retail investor participation reached 29.8% in 2024, the highest in nine years.",
     url: "https://www.proxymity.io/views/decoding-proxy-season/",
@@ -54,7 +56,8 @@ const industryTrends = [
     externalLink: true,
   },
   {
-    title: "AI and Responsible Technology: The Next Frontier in Proxy Proposals",
+    title:
+      "AI and Responsible Technology: The Next Frontier in Proxy Proposals",
     content:
       "Responsible artificial intelligence is emerging as a key theme on corporate proxy ballots. AI-related proposals received strong support at major tech companies including Netflix (43.3%), Apple (37.5%), and Warner Brothers Discovery (24%) during the 2024 season, signaling growing investor concern about AI governance.",
     url: "https://www.iss-corporate.com/resources/blog/pro-esg-shareholder-proposals-regaining-momentum-in-2024/",

@@ -73,10 +73,16 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
 
         // Check if the first row contains header information in the data
         const firstRow = jsonData[0];
-        const firstRowValues = Object.values(firstRow).map((v) => String(v).toLowerCase());
+        const firstRowValues = Object.values(firstRow).map((v) =>
+          String(v).toLowerCase()
+        );
 
         // If first row contains "first name", "last name", etc., it's a header row
-        if (firstRowValues.some((v) => v.includes("first name") || v.includes("email"))) {
+        if (
+          firstRowValues.some(
+            (v) => v.includes("first name") || v.includes("email")
+          )
+        ) {
           const range = XLSX.utils.decode_range(firstSheet["!ref"] ?? "A1");
 
           // Find the row that contains the actual headers by checking each row
@@ -85,8 +91,10 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
             const rowValues = [];
             for (let C = range.s.c; C <= range.e.c; ++C) {
               const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-              const cell = firstSheet[cellAddress] as XLSX.CellObject | undefined;
-              if (cell?.v !== undefined) rowValues.push(String(cell.v).toLowerCase());
+              const cell = firstSheet[cellAddress] as
+                XLSX.CellObject | undefined;
+              if (cell?.v !== undefined)
+                rowValues.push(String(cell.v).toLowerCase());
             }
             // Check if this row has "first name", "last name", and "email"
             if (
@@ -102,8 +110,12 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
             // Get headers from the header row
             const headers: string[] = [];
             for (let C = range.s.c; C <= range.e.c; ++C) {
-              const cellAddress = XLSX.utils.encode_cell({ r: headerRowIndex, c: C });
-              const cell = firstSheet[cellAddress] as XLSX.CellObject | undefined;
+              const cellAddress = XLSX.utils.encode_cell({
+                r: headerRowIndex,
+                c: C,
+              });
+              const cell = firstSheet[cellAddress] as
+                XLSX.CellObject | undefined;
               headers.push(cell?.v !== undefined ? String(cell.v) : "");
             }
 
@@ -114,7 +126,8 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
               let hasData = false;
               for (let C = range.s.c; C <= range.e.c; ++C) {
                 const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                const cell = firstSheet[cellAddress] as XLSX.CellObject | undefined;
+                const cell = firstSheet[cellAddress] as
+                  XLSX.CellObject | undefined;
                 row[headers[C]] = cell?.v !== undefined ? cell.v : "";
                 if (cell?.v !== undefined) hasData = true;
               }
@@ -131,7 +144,8 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
             const firstName = row["First Name"] ?? "";
             const lastName = row["Last Name"] ?? "";
             const emailAddress = row["Email Address"] ?? "";
-            const registrationQuestions = row["Registration (Pre-Meeting) Questions"] ?? "";
+            const registrationQuestions =
+              row["Registration (Pre-Meeting) Questions"] ?? "";
             const minutesAttendedMeeting =
               typeof row["Minutes Attended Meeting"] === "number"
                 ? row["Minutes Attended Meeting"]
@@ -151,7 +165,9 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
 
             // Only add optional fields if they have values
             if (registrationQuestions) {
-              parsedAttendee.registrationQuestions = String(registrationQuestions);
+              parsedAttendee.registrationQuestions = String(
+                registrationQuestions
+              );
             }
 
             if (minutesAttendedMeeting) {
@@ -168,15 +184,17 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
           reject(
             new Error(
               `No valid rows found. Expected columns: "First Name", "Last Name", "Email Address". ` +
-                `Found columns: ${availableColumns}`,
-            ),
+                `Found columns: ${availableColumns}`
+            )
           );
           return;
         }
 
         resolve(mappedData);
       } catch (error) {
-        reject(error instanceof Error ? error : new Error("Failed to parse file"));
+        reject(
+          error instanceof Error ? error : new Error("Failed to parse file")
+        );
       }
     };
 
@@ -190,9 +208,8 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
 
 export default function GuestsPage() {
   const { currentMeeting } = useMeeting();
-  const { attendees, error, isLoading, uploadAttendees } = useDigitalShareholderMeeting(
-    currentMeeting?.id,
-  );
+  const { attendees, error, isLoading, uploadAttendees } =
+    useDigitalShareholderMeeting(currentMeeting?.id);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -220,10 +237,12 @@ export default function GuestsPage() {
         setUploadDialogOpen(false);
       } catch (error) {
         console.error("Upload error:", error);
-        setUploadError(error instanceof Error ? error.message : "Failed to upload file");
+        setUploadError(
+          error instanceof Error ? error.message : "Failed to upload file"
+        );
       }
     },
-    [currentMeeting?.id],
+    [currentMeeting?.id]
   );
 
   const handleConfirmUpload = useCallback(async () => {
@@ -241,7 +260,9 @@ export default function GuestsPage() {
       }, 3000);
     } catch (error) {
       console.error("Upload error:", error);
-      setUploadError(error instanceof Error ? error.message : "Failed to upload file");
+      setUploadError(
+        error instanceof Error ? error.message : "Failed to upload file"
+      );
     }
   }, [previewData, uploadAttendees]);
 
@@ -313,34 +334,40 @@ export default function GuestsPage() {
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "background.default" }}>
-                  <TableCell sx={{ fontWeight: 600 }}>Registrant Type</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>
+                    Registrant Type
+                  </TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {attendees.map((attendee: DigitalShareholderMeetingAttendee) => (
-                  <TableRow key={attendee.id}>
-                    <TableCell>
-                      <Chip
-                        label={attendee.registrantType}
-                        color={getRegistrantTypeColor(attendee.registrantType)}
-                        variant="outlined"
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body3">
-                        {attendee.firstName} {attendee.lastName}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body3" color="text.secondary">
-                        {attendee.emailAddress}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {attendees.map(
+                  (attendee: DigitalShareholderMeetingAttendee) => (
+                    <TableRow key={attendee.id}>
+                      <TableCell>
+                        <Chip
+                          label={attendee.registrantType}
+                          color={getRegistrantTypeColor(
+                            attendee.registrantType
+                          )}
+                          variant="outlined"
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body3">
+                          {attendee.firstName} {attendee.lastName}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body3" color="text.secondary">
+                          {attendee.emailAddress}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -360,7 +387,11 @@ export default function GuestsPage() {
       />
 
       {uploadError && (
-        <Alert severity="error" sx={{ mt: 2 }} onClose={() => setUploadError(null)}>
+        <Alert
+          severity="error"
+          sx={{ mt: 2 }}
+          onClose={() => setUploadError(null)}
+        >
           {uploadError}
         </Alert>
       )}
@@ -371,8 +402,15 @@ export default function GuestsPage() {
         </Alert>
       )}
 
-      <Dialog open={previewDialogOpen} onClose={handleCancelPreview} maxWidth="lg" fullWidth>
-        <DialogTitle>Confirm Upload - {previewData?.length ?? 0} Attendees</DialogTitle>
+      <Dialog
+        open={previewDialogOpen}
+        onClose={handleCancelPreview}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          Confirm Upload - {previewData?.length ?? 0} Attendees
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ overflowX: "auto" }}>
             <Table>

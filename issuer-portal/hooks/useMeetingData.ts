@@ -35,7 +35,8 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
 
   return {
     id: asString(record.id) || "",
-    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || "unvoted",
+    voteStatus:
+      asString(record.voteStatus) || asString(record.vote_status) || "unvoted",
     shares: Number(record.shares) || 0,
     sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
     votingSource:
@@ -55,10 +56,15 @@ function normalizeProposal(proposal: unknown): NormalizedProposal | null {
 
   return {
     id: asString(record.id) || "",
-    proposalNumber: asString(record.proposalNumber) || asString(record.proposal_number) || "",
-    proposalType: asString(record.proposalType) || asString(record.proposal_type) || "",
+    proposalNumber:
+      asString(record.proposalNumber) || asString(record.proposal_number) || "",
+    proposalType:
+      asString(record.proposalType) || asString(record.proposal_type) || "",
     recommendation: asString(record.recommendation) || undefined,
-    directorName: asString(record.directorName) || asString(record.director_name) || undefined,
+    directorName:
+      asString(record.directorName) ||
+      asString(record.director_name) ||
+      undefined,
   };
 }
 
@@ -98,7 +104,10 @@ export interface UseMeetingDataResult {
   refetch: () => void;
 }
 
-const pickString = (obj: Record<string, unknown>, keys: string[]): string | undefined => {
+const pickString = (
+  obj: Record<string, unknown>,
+  keys: string[]
+): string | undefined => {
   for (const key of keys) {
     const value = asString(obj[key]);
     if (value !== null && value !== undefined) return value;
@@ -108,7 +117,10 @@ const pickString = (obj: Record<string, unknown>, keys: string[]): string | unde
   return undefined;
 };
 
-const pickNumber = (obj: Record<string, unknown>, keys: string[]): number | undefined => {
+const pickNumber = (
+  obj: Record<string, unknown>,
+  keys: string[]
+): number | undefined => {
   for (const key of keys) {
     const value = obj[key];
     if (typeof value === "number" && Number.isFinite(value)) {
@@ -145,13 +157,16 @@ const normalizePhase = (raw: unknown): Phase | null => {
     startDate: pickString(kdRec, ["startDate", "start_date"]) ?? null,
     endDate: pickString(kdRec, ["endDate", "end_date"]) ?? null,
     dueDate: pickString(kdRec, ["dueDate", "due_date"]) ?? null,
-    completionDate: pickString(kdRec, ["completionDate", "completion_date"]) ?? null,
+    completionDate:
+      pickString(kdRec, ["completionDate", "completion_date"]) ?? null,
     recordDate: pickString(kdRec, ["recordDate", "record_date"]) ?? null,
     mailingDate: pickString(kdRec, ["mailingDate", "mailing_date"]) ?? null,
     meetingDate: pickString(kdRec, ["meetingDate", "meeting_date"]) ?? null,
-    preFilingDate: pickString(kdRec, ["preFilingDate", "pre_filing_date"]) ?? null,
+    preFilingDate:
+      pickString(kdRec, ["preFilingDate", "pre_filing_date"]) ?? null,
     filingDate: pickString(kdRec, ["filingDate", "filing_date"]) ?? null,
-    brokerSearchDate: pickString(kdRec, ["brokerSearchDate", "broker_search_date"]) ?? null,
+    brokerSearchDate:
+      pickString(kdRec, ["brokerSearchDate", "broker_search_date"]) ?? null,
   };
 
   const createdAt = pickString(rec, ["createdAt", "created_at"]) ?? null;
@@ -189,7 +204,9 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
   const phases: Phase[] = [];
   const { data: phasesData, error: phasesError } = phasesResult;
   if (!phasesError && phasesData) {
-    const items: unknown[] = Array.isArray(phasesData) ? (phasesData as unknown[]) : [];
+    const items: unknown[] = Array.isArray(phasesData)
+      ? (phasesData as unknown[])
+      : [];
     for (const item of items) {
       const normalized = normalizePhase(item);
       if (normalized) phases.push(normalized);
@@ -218,18 +235,30 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
 
     // Calculate voting summary
     const totalPositions = positions.length;
-    const positionsVoted = positions.filter((position) => position.voteStatus === "VOTED").length;
-    const totalShares = positions.reduce((sum, position) => sum + position.shares, 0);
+    const positionsVoted = positions.filter(
+      (position) => position.voteStatus === "VOTED"
+    ).length;
+    const totalShares = positions.reduce(
+      (sum, position) => sum + position.shares,
+      0
+    );
     const sharesVoted = positions
       .filter((position) => position.voteStatus === "VOTED")
       .reduce((sum, position) => sum + position.sharesVoted, 0);
 
-    const percentageVoted = totalShares > 0 ? (sharesVoted / totalShares) * 100 : 0;
+    const percentageVoted =
+      totalShares > 0 ? (sharesVoted / totalShares) * 100 : 0;
 
     // Count voting methods
-    const webVotes = positions.filter((position) => position.votingSource === "WEB").length;
-    const paperVotes = positions.filter((position) => position.votingSource === "PRINT").length;
-    const phoneVotes = positions.filter((position) => position.votingSource === "IVR").length;
+    const webVotes = positions.filter(
+      (position) => position.votingSource === "WEB"
+    ).length;
+    const paperVotes = positions.filter(
+      (position) => position.votingSource === "PRINT"
+    ).length;
+    const phoneVotes = positions.filter(
+      (position) => position.votingSource === "IVR"
+    ).length;
 
     votingSummary = {
       totalSharesVoted: sharesVoted,
@@ -258,7 +287,10 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
       .map((proposal) => {
         // Mock voting results - in real implementation, fetch from voting endpoints
         const mockVotingResults = {
-          for: { shares: Math.floor(Math.random() * sharesVoted * 0.7), percentage: 0 },
+          for: {
+            shares: Math.floor(Math.random() * sharesVoted * 0.7),
+            percentage: 0,
+          },
           against: {
             shares: Math.floor(Math.random() * sharesVoted * 0.2),
             percentage: 0,
@@ -275,7 +307,8 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
           mockVotingResults.abstain.shares;
 
         if (totalVoted > 0) {
-          mockVotingResults.for.percentage = (mockVotingResults.for.shares / totalVoted) * 100;
+          mockVotingResults.for.percentage =
+            (mockVotingResults.for.shares / totalVoted) * 100;
           mockVotingResults.against.percentage =
             (mockVotingResults.against.shares / totalVoted) * 100;
           mockVotingResults.abstain.percentage =
@@ -311,21 +344,30 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
   };
 };
 
-export const useMeetingData = (meetingId?: string, meeting?: Meeting): UseMeetingDataResult => {
+export const useMeetingData = (
+  meetingId?: string,
+  meeting?: Meeting
+): UseMeetingDataResult => {
   const swrKey = meetingId ? `/meeting-data/${meetingId}` : null;
 
-  const { data, error, isLoading, mutate } = useSWR(swrKey, () => fetchMeetingData(meetingId!), {
-    revalidateOnFocus: false,
-    revalidateOnMount: true,
-    revalidateOnReconnect: true,
-    refreshInterval: 30000,
-    dedupingInterval: 10000,
-    errorRetryCount: 2,
-    keepPreviousData: true,
-  });
+  const { data, error, isLoading, mutate } = useSWR(
+    swrKey,
+    () => fetchMeetingData(meetingId!),
+    {
+      revalidateOnFocus: false,
+      revalidateOnMount: true,
+      revalidateOnReconnect: true,
+      refreshInterval: 30000,
+      dedupingInterval: 10000,
+      errorRetryCount: 2,
+      keepPreviousData: true,
+    }
+  );
 
   return {
-    data: data ? { ...data, meeting } : { phases: [], proposals: [], votingSummary: null, meeting },
+    data: data
+      ? { ...data, meeting }
+      : { phases: [], proposals: [], votingSummary: null, meeting },
     loading: isLoading,
     error: error ? error.message : null,
     refetch: () => void mutate(),

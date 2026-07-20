@@ -58,9 +58,10 @@ const ProfilePage = () => {
     }
   }, [session]);
 
-  const handleInputChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [field]: event.target.value }));
-  };
+  const handleInputChange =
+    (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: event.target.value }));
+    };
 
   const handleToggleEdit = () => {
     if (isEditing) {
@@ -94,7 +95,11 @@ const ProfilePage = () => {
     // The session will be updated by the modal as well
   };
   return (
-    <Container maxWidth="md" className="profile-container" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
+    <Container
+      maxWidth="md"
+      className="profile-container"
+      sx={{ mt: 4, mb: 4, flexGrow: 1 }}
+    >
       <Card>
         <CardHeader
           title={`${formData.firstName} ${formData.lastName}`}

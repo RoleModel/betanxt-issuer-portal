@@ -53,23 +53,34 @@ const BreakpointIndicatorComponent: React.FC = () => {
         fontFamily: "monospace",
       }}
     >
-      <Typography variant="caption" sx={{ fontWeight: "bold", display: "block" }}>
+      <Typography
+        variant="caption"
+        sx={{ fontWeight: "bold", display: "block" }}
+      >
         Breakpoint: {currentBreakpoint.toUpperCase()}
       </Typography>
       <Typography variant="caption" sx={{ fontSize: "10px", opacity: 0.8 }}>
         {breakpointValues[currentBreakpoint as keyof typeof breakpointValues]}
       </Typography>
-      <Typography variant="caption" sx={{ fontSize: "10px", opacity: 0.6, display: "block" }}>
+      <Typography
+        variant="caption"
+        sx={{ fontSize: "10px", opacity: 0.6, display: "block" }}
+      >
         Window:{" "}
-        {typeof window !== "undefined" ? `${window.innerWidth}x${window.innerHeight}` : "N/A"}
+        {typeof window !== "undefined"
+          ? `${window.innerWidth}x${window.innerHeight}`
+          : "N/A"}
       </Typography>
     </Box>
   );
 };
 
 // Create dynamic wrapper with SSR disabled to prevent hydration mismatches
-export const BreakpointIndicator = dynamic(() => Promise.resolve(BreakpointIndicatorComponent), {
-  ssr: false,
-});
+export const BreakpointIndicator = dynamic(
+  () => Promise.resolve(BreakpointIndicatorComponent),
+  {
+    ssr: false,
+  }
+);
 
 export default BreakpointIndicator;

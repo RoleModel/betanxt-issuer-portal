@@ -1,7 +1,13 @@
 "use client";
 
 import { Delete as DeleteIcon } from "@mui/icons-material";
-import { Divider, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
+import {
+  Divider,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+} from "@mui/material";
 import React from "react";
 
 export interface ContextMenuPosition {
@@ -36,7 +42,9 @@ export const TaskContextMenu: React.FC<TaskContextMenuProps> = ({
       open={open}
       onClose={onClose}
       anchorReference="anchorPosition"
-      anchorPosition={position ? { top: position.y, left: position.x } : undefined}
+      anchorPosition={
+        position ? { top: position.y, left: position.x } : undefined
+      }
       slotProps={{
         paper: {
           sx: {

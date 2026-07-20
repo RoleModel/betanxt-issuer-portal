@@ -96,14 +96,16 @@ async function run() {
              updated_at = NOW()
          WHERE meeting_id = $4 AND name = $5
          RETURNING id, name, shares, shares_voted`,
-        [pos.sharesVoted, pos.source, pos.dateVoted, MEETING_ID, pos.name],
+        [pos.sharesVoted, pos.source, pos.dateVoted, MEETING_ID, pos.name]
       );
       if (res.rowCount === 0) {
         console.warn(`  ⚠️  No position found for: ${pos.name}`);
       } else {
         const row = res.rows[0];
         totalVotedShares += Number(row.shares_voted);
-        console.log(`  ✓ ${row.name}: ${Number(row.shares_voted).toLocaleString()} shares voted`);
+        console.log(
+          `  ✓ ${row.name}: ${Number(row.shares_voted).toLocaleString()} shares voted`
+        );
       }
     }
     console.log(`  Total voted shares: ${totalVotedShares.toLocaleString()}`);
@@ -113,7 +115,7 @@ async function run() {
       `SELECT id, proposal_number, proposal_type FROM proposal
        WHERE meeting_id = $1
        ORDER BY proposal_number`,
-      [MEETING_ID],
+      [MEETING_ID]
     );
     const proposals = proposalsRes.rows;
     console.log(`\n📋 Found ${proposals.length} proposals`);
@@ -127,7 +129,7 @@ async function run() {
          WHERE meeting_id = $1
            AND name = ANY($2::text[])
        )`,
-      [MEETING_ID, VOTED_POSITIONS.map((p) => p.name)],
+      [MEETING_ID, VOTED_POSITIONS.map((p) => p.name)]
     );
     console.log(`  Deleted ${delRes.rowCount} existing records`);
 
@@ -136,7 +138,7 @@ async function run() {
       `SELECT id, name, shares_voted FROM position
        WHERE meeting_id = $1 AND vote_status = 'Voted'
        ORDER BY shares_voted DESC`,
-      [MEETING_ID],
+      [MEETING_ID]
     );
     const votedPositions = posRes.rows;
 
@@ -148,7 +150,8 @@ async function run() {
       const sharesVoted = Number(position.shares_voted);
 
       for (const proposal of proposals) {
-        const isShareholderProposal = proposal.proposal_type === "Shareholder Proposal";
+        const isShareholderProposal =
+          proposal.proposal_type === "Shareholder Proposal";
         let vote: string;
 
         if (isShareholderProposal) {
@@ -160,7 +163,7 @@ async function run() {
         await client.query(
           `INSERT INTO position_vote (id, position_id, proposal_id, vote, shares_voting, created_at)
            VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())`,
-          [position.id, proposal.id, vote, sharesVoted.toString()],
+          [position.id, proposal.id, vote, sharesVoted.toString()]
         );
         voteCount++;
       }
@@ -176,7 +179,8 @@ async function run() {
     const totalSharesEligible = 190466246;
 
     for (const proposal of proposals) {
-      const isShareholderProposal = proposal.proposal_type === "Shareholder Proposal";
+      const isShareholderProposal =
+        proposal.proposal_type === "Shareholder Proposal";
 
       const totalVotesFor = isShareholderProposal ? 0 : totalVotedShares;
       const totalVotesAgainst = isShareholderProposal ? institutionalShares : 0;
@@ -211,10 +215,10 @@ async function run() {
           abstainPct.toFixed(4),
           participationRate.toFixed(4),
           proposal.id,
-        ],
+        ]
       );
       console.log(
-        `  ✓ Proposal ${Number(proposal.proposal_number).toFixed(2)}: FOR=${totalVotesFor.toLocaleString()}, AGAINST=${totalVotesAgainst.toLocaleString()}, ABSTAIN=${totalVotesAbstain.toLocaleString()}`,
+        `  ✓ Proposal ${Number(proposal.proposal_number).toFixed(2)}: FOR=${totalVotesFor.toLocaleString()}, AGAINST=${totalVotesAgainst.toLocaleString()}, ABSTAIN=${totalVotesAbstain.toLocaleString()}`
       );
     }
 
@@ -233,7 +237,7 @@ async function run() {
           votedShares: totalVotedShares,
         }),
         MEETING_ID,
-      ],
+      ]
     );
     console.log("\n✅ Updated tabulation_report positions_voted");
 
@@ -242,10 +246,10 @@ async function run() {
     console.log(`   Positions voted:    ${votedPositions.length}`);
     console.log(`   Shares voted:       ${totalVotedShares.toLocaleString()}`);
     console.log(
-      `   Shares not voted:   ${(totalSharesEligible - totalVotedShares).toLocaleString()}`,
+      `   Shares not voted:   ${(totalSharesEligible - totalVotedShares).toLocaleString()}`
     );
     console.log(
-      `   % Voted:            ${((totalVotedShares / totalSharesEligible) * 100).toFixed(2)}%`,
+      `   % Voted:            ${((totalVotedShares / totalSharesEligible) * 100).toFixed(2)}%`
     );
     console.log(`   position_vote rows: ${voteCount}`);
   } catch (err) {

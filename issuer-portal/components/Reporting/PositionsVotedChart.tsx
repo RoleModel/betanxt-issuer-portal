@@ -44,7 +44,9 @@ interface DonutChartProps {
 function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
   return (
     <Box>
-      <Box sx={{ position: "relative", display: "flex", justifyContent: "center" }}>
+      <Box
+        sx={{ position: "relative", display: "flex", justifyContent: "center" }}
+      >
         <PieChart
           series={[
             {
@@ -96,7 +98,9 @@ export default function PositionsVotedChart({
   // the first set whenever nothing is selected yet or the previous selection
   // belongs to another meeting, so the chart is populated on first load and
   // after event switches.
-  const effectiveSetKey = setKeys.includes(selectedSetKey) ? selectedSetKey : (setKeys[0] ?? "");
+  const effectiveSetKey = setKeys.includes(selectedSetKey)
+    ? selectedSetKey
+    : (setKeys[0] ?? "");
 
   const selectedData =
     effectiveSetKey && data[effectiveSetKey]
@@ -107,13 +111,19 @@ export default function PositionsVotedChart({
         };
 
   // Calculate totals and percentages
-  const totalRegistered = selectedData.registered.voted + selectedData.registered.notVoted;
-  const totalBeneficial = selectedData.beneficial.voted + selectedData.beneficial.notVoted;
+  const totalRegistered =
+    selectedData.registered.voted + selectedData.registered.notVoted;
+  const totalBeneficial =
+    selectedData.beneficial.voted + selectedData.beneficial.notVoted;
 
   const registeredVotedPercentage =
-    totalRegistered > 0 ? (selectedData.registered.voted / totalRegistered) * 100 : 0;
+    totalRegistered > 0
+      ? (selectedData.registered.voted / totalRegistered) * 100
+      : 0;
   const beneficialVotedPercentage =
-    totalBeneficial > 0 ? (selectedData.beneficial.voted / totalBeneficial) * 100 : 0;
+    totalBeneficial > 0
+      ? (selectedData.beneficial.voted / totalBeneficial) * 100
+      : 0;
 
   const registeredData = [
     {

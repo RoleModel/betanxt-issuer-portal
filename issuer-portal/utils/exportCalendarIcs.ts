@@ -74,7 +74,9 @@ export function exportCalendarToIcs(options: IcsExportOptions): void {
     if (!dtstart) return;
 
     lines.push("BEGIN:VEVENT");
-    lines.push(`UID:${generateUid("keydate", keyDate.id || String(Math.random()))}`);
+    lines.push(
+      `UID:${generateUid("keydate", keyDate.id || String(Math.random()))}`
+    );
     lines.push(`DTSTAMP:${now}`);
     lines.push(`DTSTART;VALUE=DATE:${dtstart.split("T")[0]}`);
     lines.push(`SUMMARY:${escapeIcsText(keyDate.title)}`);

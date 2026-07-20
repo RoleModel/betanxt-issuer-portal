@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardHeader, MenuItem, TextField } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  MenuItem,
+  TextField,
+} from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import React, { useState } from "react";
 
@@ -43,7 +49,9 @@ export default function BrokerVotingChart({
   // Reset selectedProposalId when meetingId changes or when current selection is invalid
   React.useEffect(() => {
     if (proposals.length > 0) {
-      const currentProposalExists = proposals.some((p) => p.id === selectedProposalId);
+      const currentProposalExists = proposals.some(
+        (p) => p.id === selectedProposalId
+      );
       if (!currentProposalExists) {
         setSelectedProposalId(proposals[0].id);
       }
@@ -86,7 +94,13 @@ export default function BrokerVotingChart({
 
   // Early return for loading state - like other charts on the page
   if (loading) {
-    return <SkeletonChart title="Broker Voting by Proposal" height={350} showLegend />;
+    return (
+      <SkeletonChart
+        title="Broker Voting by Proposal"
+        height={350}
+        showLegend
+      />
+    );
   }
 
   return (

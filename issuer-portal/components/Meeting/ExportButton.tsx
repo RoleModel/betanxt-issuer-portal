@@ -1,6 +1,11 @@
 "use client";
 
-import { Download, FileDownload, PictureAsPdf, TableChart } from "@mui/icons-material";
+import {
+  Download,
+  FileDownload,
+  PictureAsPdf,
+  TableChart,
+} from "@mui/icons-material";
 import {
   Button,
   CircularProgress,
@@ -15,7 +20,8 @@ import type { components } from "@/domain-models/generated-schema";
 
 import { type ExportOptions, exportAttendees } from "@/utils/attendeeExport";
 
-type DigitalShareholderMeeting = components["schemas"]["DigitalShareholderMeeting"];
+type DigitalShareholderMeeting =
+  components["schemas"]["DigitalShareholderMeeting"];
 
 interface ExportButtonProps {
   attendees: DigitalShareholderMeeting[];
@@ -112,19 +118,28 @@ export function ExportButton({
           <ListItemIcon>
             <FileDownload fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Export as CSV" secondary="Excel compatible, 5KB" />
+          <ListItemText
+            primary="Export as CSV"
+            secondary="Excel compatible, 5KB"
+          />
         </MenuItem>
         <MenuItem onClick={() => handleExport("excel")}>
           <ListItemIcon>
             <TableChart fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Export as Excel" secondary="Microsoft Excel format" />
+          <ListItemText
+            primary="Export as Excel"
+            secondary="Microsoft Excel format"
+          />
         </MenuItem>
         <MenuItem onClick={() => handleExport("pdf")}>
           <ListItemIcon>
             <PictureAsPdf fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Export as PDF" secondary="Print-ready document" />
+          <ListItemText
+            primary="Export as PDF"
+            secondary="Print-ready document"
+          />
         </MenuItem>
       </Menu>
     </>

@@ -11,13 +11,19 @@ export interface ChartDataContextValue {
   yAxis?: AxisConfig[];
 }
 
-const ChartDataContext = createContext<ChartDataContextValue | undefined>(undefined);
+const ChartDataContext = createContext<ChartDataContextValue | undefined>(
+  undefined
+);
 
 export const ChartDataProvider: React.FC<{
   value: ChartDataContextValue;
   children: React.ReactNode;
 }> = ({ value, children }) => {
-  return <ChartDataContext.Provider value={value}>{children}</ChartDataContext.Provider>;
+  return (
+    <ChartDataContext.Provider value={value}>
+      {children}
+    </ChartDataContext.Provider>
+  );
 };
 
 export const useChartData = (): ChartDataContextValue => {

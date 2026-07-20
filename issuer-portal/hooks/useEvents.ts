@@ -52,10 +52,13 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     ? "Annual Meeting"
     : "Special Meeting";
 
-  const meetingStatus: "ACTIVE" | "COMPLETE" = status === "ACTIVE" ? "ACTIVE" : "COMPLETE";
+  const meetingStatus: "ACTIVE" | "COMPLETE" =
+    status === "ACTIVE" ? "ACTIVE" : "COMPLETE";
 
   const mailingStatus = asString(meeting.mailingStatus) ?? null;
-  const quorumRequirement = asNumber(meeting.quorumRequirement ?? meeting.quorum_requirement);
+  const quorumRequirement = asNumber(
+    meeting.quorumRequirement ?? meeting.quorum_requirement
+  );
 
   return {
     id,
@@ -98,7 +101,11 @@ export function useEvents(): UseEventsResult {
     if (issuerTicker) return [issuerTicker];
 
     return undefined;
-  }, [isUnrestrictedRole, session?.user?.clientTickers, session?.user?.client_ticker]);
+  }, [
+    isUnrestrictedRole,
+    session?.user?.clientTickers,
+    session?.user?.client_ticker,
+  ]);
 
   const eventsFetcher = async (): Promise<EventRow[]> => {
     if (!bypassAuth && !session) return [];
@@ -119,7 +126,9 @@ export function useEvents(): UseEventsResult {
       const dataRecord = asRecord(data);
       if (!dataRecord) break;
 
-      const meetings = Array.isArray(dataRecord.meetings) ? dataRecord.meetings : [];
+      const meetings = Array.isArray(dataRecord.meetings)
+        ? dataRecord.meetings
+        : [];
 
       for (const meeting of meetings) {
         const record = asRecord(meeting);
@@ -130,7 +139,10 @@ export function useEvents(): UseEventsResult {
       }
 
       const paginationRecord = asRecord(dataRecord.pagination);
-      const totalCount = typeof paginationRecord?.total === "number" ? paginationRecord.total : 0;
+      const totalCount =
+        typeof paginationRecord?.total === "number"
+          ? paginationRecord.total
+          : 0;
 
       if (meetings.length < PAGE_SIZE || allEvents.length >= totalCount) break;
       page++;
@@ -144,10 +156,14 @@ export function useEvents(): UseEventsResult {
     error,
     isLoading,
     mutate,
-  } = useSWR(session || bypassAuth ? ["/events-list", session?.user?.id] : null, eventsFetcher, {
-    ...clientsSWRConfig,
-    dedupingInterval: 120000,
-  });
+  } = useSWR(
+    session || bypassAuth ? ["/events-list", session?.user?.id] : null,
+    eventsFetcher,
+    {
+      ...clientsSWRConfig,
+      dedupingInterval: 120000,
+    }
+  );
 
   // Filter is applied outside the fetcher so it is always reactive to the current session.
   // This prevents stale cached data (fetched before clientTickers was hydrated) from leaking

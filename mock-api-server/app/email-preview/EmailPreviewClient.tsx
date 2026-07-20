@@ -7,7 +7,10 @@ type SendStatus = "idle" | "sending" | "success" | "error";
 
 const TEMPLATES: { key: TemplateKey; label: string }[] = [
   { key: "tabulation-daily-report", label: "Daily Tabulation Report" },
-  { key: "document-update-notification", label: "Document Update Notification" },
+  {
+    key: "document-update-notification",
+    label: "Document Update Notification",
+  },
 ];
 
 const TABULATION_FIXTURE = {
@@ -21,7 +24,8 @@ const TABULATION_FIXTURE = {
   totalSharesVoted: 6_842_000,
   quorumRequired: 50,
   quorumMet: true,
-  viewTabulationUrl: "http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/tabulation",
+  viewTabulationUrl:
+    "http://localhost:3000/WEN/meeting/wen-annual-meeting-2026/tabulation",
   portalBaseUrl: "http://localhost:3000",
   proposals: [
     {
@@ -68,18 +72,23 @@ const DOCUMENT_FIXTURE = {
   issuerAccountName: "Sample Issuer Account",
   documentName: "Proxy Notice",
   uploaderName: "Sarah Chen",
-  documentDescription: "Sarah Chen has uploaded the first draft of the Proxy Notice.",
+  documentDescription:
+    "Sarah Chen has uploaded the first draft of the Proxy Notice.",
   uploadDate: "2026-06-02T12:00:00.000Z",
   viewDocumentUrl: "http://localhost:3000/documents/preview",
   portalBaseUrl: "http://localhost:3000",
 };
 
 function getFixture(template: TemplateKey): unknown {
-  return template === "tabulation-daily-report" ? TABULATION_FIXTURE : DOCUMENT_FIXTURE;
+  return template === "tabulation-daily-report"
+    ? TABULATION_FIXTURE
+    : DOCUMENT_FIXTURE;
 }
 
 export function EmailPreviewClient() {
-  const [template, setTemplate] = useState<TemplateKey>("tabulation-daily-report");
+  const [template, setTemplate] = useState<TemplateKey>(
+    "tabulation-daily-report"
+  );
   const [html, setHtml] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -149,7 +158,7 @@ export function EmailPreviewClient() {
       setSendMessage(
         isNoop
           ? "No SMTP/Resend credentials — email not delivered. Check server logs for the rendered HTML file."
-          : `Sent ✓  (id: ${id})`,
+          : `Sent ✓  (id: ${id})`
       );
     } catch (err) {
       setSendStatus("error");
@@ -162,12 +171,17 @@ export function EmailPreviewClient() {
   }
 
   const statusColor =
-    sendStatus === "success" ? "#15803D" : sendStatus === "error" ? "#DC2626" : "#6B7280";
+    sendStatus === "success"
+      ? "#15803D"
+      : sendStatus === "error"
+        ? "#DC2626"
+        : "#6B7280";
 
   return (
     <div
       style={{
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        fontFamily:
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         backgroundColor: "#F3F4F6",
         minHeight: "100vh",
       }}
@@ -185,7 +199,14 @@ export function EmailPreviewClient() {
         }}
       >
         {/* Left: title + template switcher */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
+            flexWrap: "wrap",
+          }}
+        >
           <span
             style={{
               color: "rgba(255,255,255,0.9)",
@@ -211,8 +232,12 @@ export function EmailPreviewClient() {
                     template === t.key
                       ? "1.5px solid rgba(255,255,255,0.9)"
                       : "1.5px solid rgba(255,255,255,0.25)",
-                  backgroundColor: template === t.key ? "rgba(255,255,255,0.15)" : "transparent",
-                  color: template === t.key ? "#FFFFFF" : "rgba(255,255,255,0.6)",
+                  backgroundColor:
+                    template === t.key
+                      ? "rgba(255,255,255,0.15)"
+                      : "transparent",
+                  color:
+                    template === t.key ? "#FFFFFF" : "rgba(255,255,255,0.6)",
                   fontSize: "12px",
                   fontWeight: "500",
                   cursor: "pointer",
@@ -233,7 +258,9 @@ export function EmailPreviewClient() {
             type="email"
             placeholder="recipient@example.com"
             value={toEmail}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setToEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setToEmail(e.target.value)
+            }
             onKeyDown={handleKeyDown}
             style={{
               padding: "6px 12px",
@@ -326,7 +353,9 @@ export function EmailPreviewClient() {
             </div>
           )}
           {previewError && (
-            <div style={{ padding: "24px", color: "#DC2626", fontSize: "14px" }}>
+            <div
+              style={{ padding: "24px", color: "#DC2626", fontSize: "14px" }}
+            >
               Error: {previewError}
             </div>
           )}
@@ -334,7 +363,12 @@ export function EmailPreviewClient() {
             <iframe
               srcDoc={html}
               title="Email preview"
-              style={{ width: "100%", height: "920px", border: "none", display: "block" }}
+              style={{
+                width: "100%",
+                height: "920px",
+                border: "none",
+                display: "block",
+              }}
             />
           )}
         </div>

@@ -21,7 +21,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -34,8 +37,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "listClients",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -43,14 +46,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["CreateClientRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["CreateClientRequest"];
 
     // Use existing domain model function
     const { data, error } = await createClient(body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       );
     }
 
@@ -63,8 +70,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "createClient",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

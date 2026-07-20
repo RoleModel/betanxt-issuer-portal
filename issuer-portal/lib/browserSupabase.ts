@@ -15,12 +15,14 @@ export function getBrowserSupabase(): SupabaseClient {
 
   if (!url || !anon) {
     console.warn(
-      "[browserSupabase] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Returning disabled client.",
+      "[browserSupabase] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. Returning disabled client."
     );
     // Create a tiny proxy that surfaces clearer errors when used
     return new Proxy({} as SupabaseClient, {
       get() {
-        throw new Error("Supabase client not configured in browser – missing env vars.");
+        throw new Error(
+          "Supabase client not configured in browser – missing env vars."
+        );
       },
     });
   }

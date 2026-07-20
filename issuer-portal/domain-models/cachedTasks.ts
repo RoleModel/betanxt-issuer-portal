@@ -17,5 +17,5 @@ async function fetchTasks(meetingId: string): Promise<Task[]> {
 export const getTasksCached = cacheFn(
   fetchTasks,
   (meetingId: string) => [CACHE_TAGS.TASKS_BY_MEETING(meetingId)],
-  { revalidate: 60 },
+  { revalidate: 60 }
 );

@@ -30,7 +30,9 @@ export default function ProductsContent() {
         description:
           "Connect with trusted proxy solicitors to increase shareholder participation and improve vote outcomes. Whether you are managing a routine proposal or navigating a high-stakes campaign, Engage helps you reach the right shareholders, with the right message, at the right time.",
         actionText: "Learn More",
-        icon: <ChecklistDocumentIconIcon accentColor="#ebb322" fontSize="3xl" />,
+        icon: (
+          <ChecklistDocumentIconIcon accentColor="#ebb322" fontSize="3xl" />
+        ),
         variant: "primary" as const,
         brandFont: true,
         href: "/products/engage",
@@ -56,7 +58,7 @@ export default function ProductsContent() {
         href: "/products/digital-shareholder-meetings",
       },
     ],
-    [],
+    []
   );
 
   return (

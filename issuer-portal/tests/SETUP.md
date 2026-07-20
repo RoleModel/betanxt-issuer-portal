@@ -18,8 +18,7 @@ Before running the notification tests, ensure you have:
    npm run seed
    ```
 
-3. **Environment variables configured:**
-   Create `.env.local` in both `issuer-portal` and `mock-api-server` directories with:
+3. **Environment variables configured:** Create `.env.local` in both `issuer-portal` and `mock-api-server` directories with:
    ```
    NEXT_PUBLIC_BYPASS_AUTH=true
    NEXT_PUBLIC_API_BASE_URL=http://localhost:3001/api
@@ -85,8 +84,7 @@ The seed data creates notifications for test users:
 
 ## Debugging Tips
 
-1. **Take screenshots on failure:**
-   Add to your test:
+1. **Take screenshots on failure:** Add to your test:
 
    ```typescript
    await page.screenshot({ path: "test-failure.png" });

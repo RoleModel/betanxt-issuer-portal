@@ -1,9 +1,6 @@
 # Feature Specification: Tabulation, Reporting & Data Visualization Enhancements
 
-**Feature Branch**: `002-tabulation-enhancements`
-**Created**: 2026-06-11
-**Status**: Draft
-**Input**: User description: "Tabulation Enhancements — clarify Registered Holder labeling on Voting Activity chart; redesign Shares Voted chart to be proposal-driven with a proposal selector; remove redundant Total Votes section. Reporting Enhancements — ensure legacy report parity, add Broker Breakout Report, modernize report design, expand Reporting Tab analytics. Data Visualization Improvements — replace Early/Late quorum segmentation with a timeline-based visualization across mailing milestones; add geographic heat map for shareholder count and shares held by location with Registered/Plan default and optional NOBO. NOBO Tab — optional Engage-gated module showing NOBO positional data with future reports/visualizations."
+**Feature Branch**: `002-tabulation-enhancements` **Created**: 2026-06-11 **Status**: Draft **Input**: User description: "Tabulation Enhancements — clarify Registered Holder labeling on Voting Activity chart; redesign Shares Voted chart to be proposal-driven with a proposal selector; remove redundant Total Votes section. Reporting Enhancements — ensure legacy report parity, add Broker Breakout Report, modernize report design, expand Reporting Tab analytics. Data Visualization Improvements — replace Early/Late quorum segmentation with a timeline-based visualization across mailing milestones; add geographic heat map for shareholder count and shares held by location with Registered/Plan default and optional NOBO. NOBO Tab — optional Engage-gated module showing NOBO positional data with future reports/visualizations."
 
 ## Execution Flow (main)
 

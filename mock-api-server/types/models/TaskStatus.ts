@@ -44,7 +44,10 @@ export function TaskStatusFromJSON(json: any): TaskStatus {
   return TaskStatusFromJSONTyped(json, false);
 }
 
-export function TaskStatusFromJSONTyped(json: any, ignoreDiscriminator: boolean): TaskStatus {
+export function TaskStatusFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): TaskStatus {
   return json as TaskStatus;
 }
 
@@ -52,6 +55,9 @@ export function TaskStatusToJSON(value?: TaskStatus | null): any {
   return value as any;
 }
 
-export function TaskStatusToJSONTyped(value: any, ignoreDiscriminator: boolean): TaskStatus {
+export function TaskStatusToJSONTyped(
+  value: any,
+  ignoreDiscriminator: boolean
+): TaskStatus {
   return value as TaskStatus;
 }

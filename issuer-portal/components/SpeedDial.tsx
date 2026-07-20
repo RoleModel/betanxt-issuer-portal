@@ -25,27 +25,29 @@ interface IssuerSpeedDialProps {
   onAssistantClick?: () => void;
 }
 
-export const StyledSpeedDial = styled(SpeedDial)<SpeedDialProps>(({ theme }) => ({
-  position: "absolute",
-  bottom: 0,
-  right: "24px",
-  zIndex: 2500,
-  alignItems: "end",
-  "& .MuiSpeedDial-actions": {
-    marginLeft: theme.spacing(6.25),
-    "& .MuiButtonBase-root": {
-      color: theme.vars.palette.primary.contrastText,
-      width: "fit-content",
-      alignSelf: "flex-end",
-      padding: `${theme.spacing(1)} ${theme.spacing(2)}`,
-      borderRadius: 20,
-      marginRight: 0,
-      "& .MuiBox-root": {
-        alignItems: "center",
+export const StyledSpeedDial = styled(SpeedDial)<SpeedDialProps>(
+  ({ theme }) => ({
+    position: "absolute",
+    bottom: 0,
+    right: "24px",
+    zIndex: 2500,
+    alignItems: "end",
+    "& .MuiSpeedDial-actions": {
+      marginLeft: theme.spacing(6.25),
+      "& .MuiButtonBase-root": {
+        color: theme.vars.palette.primary.contrastText,
+        width: "fit-content",
+        alignSelf: "flex-end",
+        padding: `${theme.spacing(1)} ${theme.spacing(2)}`,
+        borderRadius: 20,
+        marginRight: 0,
+        "& .MuiBox-root": {
+          alignItems: "center",
+        },
       },
     },
-  },
-}));
+  })
+);
 
 export default function IssuerSpeedDial({
   ariaLabel = "Issuer Support Tools",
@@ -154,7 +156,9 @@ export default function IssuerSpeedDial({
                     backgroundColor: "primary.dark",
                   },
                 },
-                children: <Typography variant="body3">{action.name}</Typography>,
+                children: (
+                  <Typography variant="body3">{action.name}</Typography>
+                ),
               },
             }}
           />

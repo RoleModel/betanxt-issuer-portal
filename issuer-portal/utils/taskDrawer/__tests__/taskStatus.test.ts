@@ -10,22 +10,30 @@ import {
 describe("taskStatus utils", () => {
   describe("determineTaskStatus", () => {
     it("returns PENDING_AUTHORIZATION for broadridge tasks", () => {
-      expect(determineTaskStatus("Submit Broadridge Form")).toBe("PENDING_AUTHORIZATION");
-      expect(determineTaskStatus("ICS Access Request")).toBe("PENDING_AUTHORIZATION");
+      expect(determineTaskStatus("Submit Broadridge Form")).toBe(
+        "PENDING_AUTHORIZATION"
+      );
+      expect(determineTaskStatus("ICS Access Request")).toBe(
+        "PENDING_AUTHORIZATION"
+      );
     });
 
     it("returns SUBMITTED_AWAITING_RECORD_DATE for transfer agent tasks", () => {
       expect(determineTaskStatus("Transfer Agent Request Form")).toBe(
-        "SUBMITTED_AWAITING_RECORD_DATE",
+        "SUBMITTED_AWAITING_RECORD_DATE"
       );
     });
 
     it("returns SUBMITTED_AWAITING_RECORD_DATE for plan file request tasks", () => {
-      expect(determineTaskStatus("Plan File Request Form")).toBe("SUBMITTED_AWAITING_RECORD_DATE");
+      expect(determineTaskStatus("Plan File Request Form")).toBe(
+        "SUBMITTED_AWAITING_RECORD_DATE"
+      );
     });
 
     it("returns PENDING_AUTHORIZATION for proxy statement tasks", () => {
-      expect(determineTaskStatus("Review Proxy Statement Draft")).toBe("PENDING_AUTHORIZATION");
+      expect(determineTaskStatus("Review Proxy Statement Draft")).toBe(
+        "PENDING_AUTHORIZATION"
+      );
     });
 
     it("returns PENDING_AUTHORIZATION as default", () => {
@@ -47,7 +55,9 @@ describe("taskStatus utils", () => {
     });
 
     it("returns true for SUBMITTED_AWAITING_RECORD_DATE", () => {
-      expect(hasSignedDocumentStatus("SUBMITTED_AWAITING_RECORD_DATE")).toBe(true);
+      expect(hasSignedDocumentStatus("SUBMITTED_AWAITING_RECORD_DATE")).toBe(
+        true
+      );
     });
 
     it("returns true for WAITING_FOR_FORM_RETURN", () => {
@@ -70,17 +80,27 @@ describe("taskStatus utils", () => {
 
   describe("getTaskActionButtonLabel", () => {
     it('returns "View Form" for form tasks with signed document', () => {
-      expect(getTaskActionButtonLabel("Submit Broadridge Form", true)).toBe("View Form");
-      expect(getTaskActionButtonLabel("Plan File Request Form", true)).toBe("View Form");
+      expect(getTaskActionButtonLabel("Submit Broadridge Form", true)).toBe(
+        "View Form"
+      );
+      expect(getTaskActionButtonLabel("Plan File Request Form", true)).toBe(
+        "View Form"
+      );
     });
 
     it('returns "View Document" for non-form tasks with signed document', () => {
-      expect(getTaskActionButtonLabel("Upload Supporting Document", true)).toBe("View Document");
+      expect(getTaskActionButtonLabel("Upload Supporting Document", true)).toBe(
+        "View Document"
+      );
     });
 
     it('returns "Sign Form" when no signed document exists', () => {
-      expect(getTaskActionButtonLabel("Submit Broadridge Form", false)).toBe("Sign Form");
-      expect(getTaskActionButtonLabel("Upload Document", false)).toBe("Sign Form");
+      expect(getTaskActionButtonLabel("Submit Broadridge Form", false)).toBe(
+        "Sign Form"
+      );
+      expect(getTaskActionButtonLabel("Upload Document", false)).toBe(
+        "Sign Form"
+      );
     });
   });
 
@@ -101,7 +121,11 @@ describe("taskStatus utils", () => {
     });
 
     it("rounds to nearest integer", () => {
-      const tasks = [{ status: "COMPLETE" }, { status: "INCOMPLETE" }, { status: "INCOMPLETE" }];
+      const tasks = [
+        { status: "COMPLETE" },
+        { status: "INCOMPLETE" },
+        { status: "INCOMPLETE" },
+      ];
       // 1 out of 3 = 33.33... rounds to 33
       expect(calculateOverallCompletion(tasks)).toBe(33);
     });

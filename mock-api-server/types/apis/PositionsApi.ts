@@ -10,7 +10,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type { CreatePositionRequest, Position, UpdatePositionRequest } from "../models/index";
+import type {
+  CreatePositionRequest,
+  Position,
+  UpdatePositionRequest,
+} from "../models/index";
 
 import {
   CreatePositionRequestFromJSON,
@@ -54,12 +58,12 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async createPositionRaw(
     requestParameters: CreatePositionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Position>> {
     if (requestParameters["createPositionRequest"] == null) {
       throw new runtime.RequiredError(
         "createPositionRequest",
-        'Required parameter "createPositionRequest" was null or undefined when calling createPosition().',
+        'Required parameter "createPositionRequest" was null or undefined when calling createPosition().'
       );
     }
 
@@ -86,12 +90,16 @@ export class PositionsApi extends runtime.BaseAPI {
         method: "POST",
         headers: headerParameters,
         query: queryParameters,
-        body: CreatePositionRequestToJSON(requestParameters["createPositionRequest"]),
+        body: CreatePositionRequestToJSON(
+          requestParameters["createPositionRequest"]
+        ),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => PositionFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PositionFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -99,9 +107,12 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async createPosition(
     requestParameters: CreatePositionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Position> {
-    const response = await this.createPositionRaw(requestParameters, initOverrides);
+    const response = await this.createPositionRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -110,12 +121,12 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async getPositionByIdRaw(
     requestParameters: GetPositionByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Position>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling getPositionById().',
+        'Required parameter "id" was null or undefined when calling getPositionById().'
       );
     }
 
@@ -133,7 +144,10 @@ export class PositionsApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/positions/{id}`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -142,10 +156,12 @@ export class PositionsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => PositionFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PositionFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -153,9 +169,12 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async getPositionById(
     requestParameters: GetPositionByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Position> {
-    const response = await this.getPositionByIdRaw(requestParameters, initOverrides);
+    const response = await this.getPositionByIdRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -165,7 +184,7 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async listPositionsRaw(
     requestParameters: ListPositionsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Array<Position>>> {
     const queryParameters: any = {};
 
@@ -217,10 +236,12 @@ export class PositionsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PositionFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      jsonValue.map(PositionFromJSON)
+    );
   }
 
   /**
@@ -229,9 +250,12 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async listPositions(
     requestParameters: ListPositionsRequest = {},
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Array<Position>> {
-    const response = await this.listPositionsRaw(requestParameters, initOverrides);
+    const response = await this.listPositionsRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -240,19 +264,19 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async updatePositionRaw(
     requestParameters: UpdatePositionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Position>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling updatePosition().',
+        'Required parameter "id" was null or undefined when calling updatePosition().'
       );
     }
 
     if (requestParameters["updatePositionRequest"] == null) {
       throw new runtime.RequiredError(
         "updatePositionRequest",
-        'Required parameter "updatePositionRequest" was null or undefined when calling updatePosition().',
+        'Required parameter "updatePositionRequest" was null or undefined when calling updatePosition().'
       );
     }
 
@@ -272,7 +296,10 @@ export class PositionsApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/positions/{id}`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -280,12 +307,16 @@ export class PositionsApi extends runtime.BaseAPI {
         method: "PUT",
         headers: headerParameters,
         query: queryParameters,
-        body: UpdatePositionRequestToJSON(requestParameters["updatePositionRequest"]),
+        body: UpdatePositionRequestToJSON(
+          requestParameters["updatePositionRequest"]
+        ),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => PositionFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PositionFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -293,9 +324,12 @@ export class PositionsApi extends runtime.BaseAPI {
    */
   async updatePosition(
     requestParameters: UpdatePositionOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Position> {
-    const response = await this.updatePositionRaw(requestParameters, initOverrides);
+    const response = await this.updatePositionRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 }

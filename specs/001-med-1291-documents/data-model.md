@@ -50,59 +50,59 @@ ReadinessStatus: { NOT_READY, PARTIAL, READY }
 
 ### form_documents
 
-| Field                | Type        | Notes                                            |
-| -------------------- | ----------- | ------------------------------------------------ |
-| id                   | uuid        | PK                                               |
-| meeting_id           | uuid        | FK meetings(id)                                  |
-| type                 | FormType    | unique(meeting_id,type)                          |
-| state                | FormState   |                                                  |
-| generated_version_id | uuid        | FK document_versions(id)                         |
-| executed_version_id  | uuid        | FK document_versions(id) nullable until executed |
-| created_at           | timestamptz |                                                  |
-| updated_at           | timestamptz |                                                  |
+| Field | Type | Notes |
+| --- | --- | --- |
+| id | uuid | PK |
+| meeting_id | uuid | FK meetings(id) |
+| type | FormType | unique(meeting_id,type) |
+| state | FormState |  |
+| generated_version_id | uuid | FK document_versions(id) |
+| executed_version_id | uuid | FK document_versions(id) nullable until executed |
+| created_at | timestamptz |  |
+| updated_at | timestamptz |  |
 
 ### proxy_materials
 
-| Field               | Type               | Notes                                          |
-| ------------------- | ------------------ | ---------------------------------------------- |
-| id                  | uuid               | PK                                             |
-| meeting_id          | uuid               | FK meetings(id)                                |
-| type                | ProxyMaterialType  | unique(meeting_id,type)                        |
-| state               | ProxyMaterialState |                                                |
-| latest_version_id   | uuid               | FK document_versions(id) nullable until upload |
-| approved_version_id | uuid               | FK document_versions(id) nullable              |
-| created_at          | timestamptz        |                                                |
-| updated_at          | timestamptz        |                                                |
+| Field | Type | Notes |
+| --- | --- | --- |
+| id | uuid | PK |
+| meeting_id | uuid | FK meetings(id) |
+| type | ProxyMaterialType | unique(meeting_id,type) |
+| state | ProxyMaterialState |  |
+| latest_version_id | uuid | FK document_versions(id) nullable until upload |
+| approved_version_id | uuid | FK document_versions(id) nullable |
+| created_at | timestamptz |  |
+| updated_at | timestamptz |  |
 
 ### supporting_documents
 
-| Field             | Type                   | Notes                                          |
-| ----------------- | ---------------------- | ---------------------------------------------- |
-| id                | uuid                   | PK                                             |
-| meeting_id        | uuid                   | FK meetings(id)                                |
-| type              | SupportingDocumentType | unique(meeting_id,type)                        |
-| is_required       | boolean                | default false                                  |
-| state             | SupportingState        |                                                |
-| latest_version_id | uuid                   | FK document_versions(id) nullable until upload |
-| created_at        | timestamptz            |                                                |
-| updated_at        | timestamptz            |                                                |
+| Field | Type | Notes |
+| --- | --- | --- |
+| id | uuid | PK |
+| meeting_id | uuid | FK meetings(id) |
+| type | SupportingDocumentType | unique(meeting_id,type) |
+| is_required | boolean | default false |
+| state | SupportingState |  |
+| latest_version_id | uuid | FK document_versions(id) nullable until upload |
+| created_at | timestamptz |  |
+| updated_at | timestamptz |  |
 
 ### document_versions
 
-| Field          | Type         | Notes                                                                  |
-| -------------- | ------------ | ---------------------------------------------------------------------- |
-| id             | uuid         | PK                                                                     |
-| parent_kind    | DocumentKind | {FORM,PROXY,SUPPORTING}                                                |
-| parent_id      | uuid         | FK to appropriate parent                                               |
-| version_number | integer      | Starts at 1 per parent                                                 |
-| filename       | text         | original client filename                                               |
-| mime_type      | text         | validated                                                              |
-| byte_size      | integer      | limit enforced per type                                                |
-| storage_path   | text         | Supabase storage key                                                   |
-| hash_sha256    | text         | Base64 digest                                                          |
-| status         | text         | For FORMs echo parent state; for PROXY derived; for SUPPORTING derived |
-| created_by     | uuid         | user id                                                                |
-| created_at     | timestamptz  |                                                                        |
+| Field | Type | Notes |
+| --- | --- | --- |
+| id | uuid | PK |
+| parent_kind | DocumentKind | {FORM,PROXY,SUPPORTING} |
+| parent_id | uuid | FK to appropriate parent |
+| version_number | integer | Starts at 1 per parent |
+| filename | text | original client filename |
+| mime_type | text | validated |
+| byte_size | integer | limit enforced per type |
+| storage_path | text | Supabase storage key |
+| hash_sha256 | text | Base64 digest |
+| status | text | For FORMs echo parent state; for PROXY derived; for SUPPORTING derived |
+| created_by | uuid | user id |
+| created_at | timestamptz |  |
 
 ### approval_records
 

@@ -96,53 +96,66 @@ export interface TabulationReportNonDtcVoteStatus {
  * Check if a given object implements the TabulationReportNonDtcVoteStatus interface.
  */
 export function instanceOfTabulationReportNonDtcVoteStatus(
-  value: object,
+  value: object
 ): value is TabulationReportNonDtcVoteStatus {
   return true;
 }
 
 export function TabulationReportNonDtcVoteStatusFromJSON(
-  json: any,
+  json: any
 ): TabulationReportNonDtcVoteStatus {
   return TabulationReportNonDtcVoteStatusFromJSONTyped(json, false);
 }
 
 export function TabulationReportNonDtcVoteStatusFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): TabulationReportNonDtcVoteStatus {
   if (json == null) {
     return json;
   }
   return {
     unvotedShareholders:
-      json["unvotedShareholders"] == null ? undefined : json["unvotedShareholders"],
-    unvotedShares: json["unvotedShares"] == null ? undefined : json["unvotedShares"],
-    printShareholders: json["printShareholders"] == null ? undefined : json["printShareholders"],
+      json["unvotedShareholders"] == null
+        ? undefined
+        : json["unvotedShareholders"],
+    unvotedShares:
+      json["unvotedShares"] == null ? undefined : json["unvotedShares"],
+    printShareholders:
+      json["printShareholders"] == null ? undefined : json["printShareholders"],
     printShares: json["printShares"] == null ? undefined : json["printShares"],
-    ivrShareholders: json["ivrShareholders"] == null ? undefined : json["ivrShareholders"],
+    ivrShareholders:
+      json["ivrShareholders"] == null ? undefined : json["ivrShareholders"],
     ivrShares: json["ivrShares"] == null ? undefined : json["ivrShares"],
-    webShareholders: json["webShareholders"] == null ? undefined : json["webShareholders"],
+    webShareholders:
+      json["webShareholders"] == null ? undefined : json["webShareholders"],
     webShares: json["webShares"] == null ? undefined : json["webShares"],
     votedSubtotalShareholders:
-      json["votedSubtotalShareholders"] == null ? undefined : json["votedSubtotalShareholders"],
+      json["votedSubtotalShareholders"] == null
+        ? undefined
+        : json["votedSubtotalShareholders"],
     votedSubtotalShares:
-      json["votedSubtotalShares"] == null ? undefined : json["votedSubtotalShares"],
+      json["votedSubtotalShares"] == null
+        ? undefined
+        : json["votedSubtotalShares"],
     grandTotalShareholders:
-      json["grandTotalShareholders"] == null ? undefined : json["grandTotalShareholders"],
-    grandTotalShares: json["grandTotalShares"] == null ? undefined : json["grandTotalShares"],
+      json["grandTotalShareholders"] == null
+        ? undefined
+        : json["grandTotalShareholders"],
+    grandTotalShares:
+      json["grandTotalShares"] == null ? undefined : json["grandTotalShares"],
   };
 }
 
 export function TabulationReportNonDtcVoteStatusToJSON(
-  json: any,
+  json: any
 ): TabulationReportNonDtcVoteStatus {
   return TabulationReportNonDtcVoteStatusToJSONTyped(json, false);
 }
 
 export function TabulationReportNonDtcVoteStatusToJSONTyped(
   value?: TabulationReportNonDtcVoteStatus | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

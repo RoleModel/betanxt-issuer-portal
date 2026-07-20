@@ -48,37 +48,45 @@ export interface UpdatePhaseRequestKeyDates {
  * Check if a given object implements the UpdatePhaseRequestKeyDates interface.
  */
 export function instanceOfUpdatePhaseRequestKeyDates(
-  value: object,
+  value: object
 ): value is UpdatePhaseRequestKeyDates {
   return true;
 }
 
-export function UpdatePhaseRequestKeyDatesFromJSON(json: any): UpdatePhaseRequestKeyDates {
+export function UpdatePhaseRequestKeyDatesFromJSON(
+  json: any
+): UpdatePhaseRequestKeyDates {
   return UpdatePhaseRequestKeyDatesFromJSONTyped(json, false);
 }
 
 export function UpdatePhaseRequestKeyDatesFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): UpdatePhaseRequestKeyDates {
   if (json == null) {
     return json;
   }
   return {
-    startDate: json["startDate"] == null ? undefined : new Date(json["startDate"]),
+    startDate:
+      json["startDate"] == null ? undefined : new Date(json["startDate"]),
     endDate: json["endDate"] == null ? undefined : new Date(json["endDate"]),
     dueDate: json["dueDate"] == null ? undefined : new Date(json["dueDate"]),
-    completionDate: json["completionDate"] == null ? undefined : new Date(json["completionDate"]),
+    completionDate:
+      json["completionDate"] == null
+        ? undefined
+        : new Date(json["completionDate"]),
   };
 }
 
-export function UpdatePhaseRequestKeyDatesToJSON(json: any): UpdatePhaseRequestKeyDates {
+export function UpdatePhaseRequestKeyDatesToJSON(
+  json: any
+): UpdatePhaseRequestKeyDates {
   return UpdatePhaseRequestKeyDatesToJSONTyped(json, false);
 }
 
 export function UpdatePhaseRequestKeyDatesToJSONTyped(
   value?: UpdatePhaseRequestKeyDates | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -86,9 +94,17 @@ export function UpdatePhaseRequestKeyDatesToJSONTyped(
 
   return {
     startDate:
-      value["startDate"] == null ? undefined : value["startDate"].toISOString().substring(0, 10),
-    endDate: value["endDate"] == null ? undefined : value["endDate"].toISOString().substring(0, 10),
-    dueDate: value["dueDate"] == null ? undefined : value["dueDate"].toISOString().substring(0, 10),
+      value["startDate"] == null
+        ? undefined
+        : value["startDate"].toISOString().substring(0, 10),
+    endDate:
+      value["endDate"] == null
+        ? undefined
+        : value["endDate"].toISOString().substring(0, 10),
+    dueDate:
+      value["dueDate"] == null
+        ? undefined
+        : value["dueDate"].toISOString().substring(0, 10),
     completionDate:
       value["completionDate"] == null
         ? undefined

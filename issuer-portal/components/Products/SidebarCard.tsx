@@ -1,6 +1,12 @@
 import type { CardProps } from "@mui/material";
 
-import { Button, Card, CardContent, CardHeader, Typography } from "@mui/material";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+} from "@mui/material";
 
 interface SidebarCardProps extends CardProps {
   title: string;
@@ -11,7 +17,15 @@ interface SidebarCardProps extends CardProps {
 }
 
 export const SidebarCard = (props: SidebarCardProps) => {
-  const { children, title, sx: sxProps, button, buttonText, onClick, icon } = props;
+  const {
+    children,
+    title,
+    sx: sxProps,
+    button,
+    buttonText,
+    onClick,
+    icon,
+  } = props;
   return (
     <Card
       sx={{

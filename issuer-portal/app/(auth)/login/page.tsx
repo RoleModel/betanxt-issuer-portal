@@ -67,7 +67,12 @@ const LoginPage = () => {
           </CardMedia>
 
           <form onSubmit={handleSubmit}>
-            <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 3 }}>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              align="center"
+              sx={{ mb: 3 }}
+            >
               Welcome to the BetaNXT Issuer Portal
             </Typography>
             <CardContent>

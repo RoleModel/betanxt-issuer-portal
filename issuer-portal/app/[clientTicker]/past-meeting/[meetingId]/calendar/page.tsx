@@ -14,7 +14,7 @@ const CalendarView = dynamic(
   {
     ssr: false,
     loading: () => null,
-  },
+  }
 );
 
 export default function CalendarPage() {
@@ -37,5 +37,10 @@ export default function CalendarPage() {
       }
     : undefined;
 
-  return <CalendarView meeting={meetingForCalendar} onFullscreenChange={setIsFullscreen} />;
+  return (
+    <CalendarView
+      meeting={meetingForCalendar}
+      onFullscreenChange={setIsFullscreen}
+    />
+  );
 }

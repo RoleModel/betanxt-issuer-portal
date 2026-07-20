@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Notifications API - Client Filtering", () => {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api";
+  const API_BASE =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api";
 
   test("filters notifications by ticker - WEN only returns WEN notifications", async ({
     request,
@@ -37,9 +38,15 @@ test.describe("Notifications API - Client Filtering", () => {
     }
   });
 
-  test("different tickers return different notification sets", async ({ request }) => {
-    const wenResponse = await request.get(`${API_BASE}/notifications?ticker=WEN`);
-    const paycResponse = await request.get(`${API_BASE}/notifications?ticker=PAYC`);
+  test("different tickers return different notification sets", async ({
+    request,
+  }) => {
+    const wenResponse = await request.get(
+      `${API_BASE}/notifications?ticker=WEN`
+    );
+    const paycResponse = await request.get(
+      `${API_BASE}/notifications?ticker=PAYC`
+    );
 
     const wenNotifications = await wenResponse.json();
     const paycNotifications = await paycResponse.json();
@@ -55,7 +62,9 @@ test.describe("Notifications API - Client Filtering", () => {
 
   test("filters notifications by specific meetingId", async ({ request }) => {
     const meetingId = "wen-annual-meeting-2025";
-    const response = await request.get(`${API_BASE}/notifications?meetingId=${meetingId}`);
+    const response = await request.get(
+      `${API_BASE}/notifications?meetingId=${meetingId}`
+    );
     expect(response.ok()).toBeTruthy();
 
     const notifications = await response.json();
@@ -68,8 +77,12 @@ test.describe("Notifications API - Client Filtering", () => {
     }
   });
 
-  test("returns empty array for ticker with no meetings", async ({ request }) => {
-    const response = await request.get(`${API_BASE}/notifications?ticker=NONEXISTENT`);
+  test("returns empty array for ticker with no meetings", async ({
+    request,
+  }) => {
+    const response = await request.get(
+      `${API_BASE}/notifications?ticker=NONEXISTENT`
+    );
     expect(response.ok()).toBeTruthy();
 
     const notifications = await response.json();

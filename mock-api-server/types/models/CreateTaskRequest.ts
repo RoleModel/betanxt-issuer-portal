@@ -83,10 +83,13 @@ export interface CreateTaskRequest {
 /**
  * Check if a given object implements the CreateTaskRequest interface.
  */
-export function instanceOfCreateTaskRequest(value: object): value is CreateTaskRequest {
+export function instanceOfCreateTaskRequest(
+  value: object
+): value is CreateTaskRequest {
   if (!("taskId" in value) || value["taskId"] === undefined) return false;
   if (!("phaseId" in value) || value["phaseId"] === undefined) return false;
-  if (!("phaseNumber" in value) || value["phaseNumber"] === undefined) return false;
+  if (!("phaseNumber" in value) || value["phaseNumber"] === undefined)
+    return false;
   if (!("title" in value) || value["title"] === undefined) return false;
   if (!("type" in value) || value["type"] === undefined) return false;
   if (!("owner" in value) || value["owner"] === undefined) return false;
@@ -99,7 +102,7 @@ export function CreateTaskRequestFromJSON(json: any): CreateTaskRequest {
 
 export function CreateTaskRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CreateTaskRequest {
   if (json == null) {
     return json;
@@ -124,7 +127,7 @@ export function CreateTaskRequestToJSON(json: any): CreateTaskRequest {
 
 export function CreateTaskRequestToJSONTyped(
   value?: CreateTaskRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -137,7 +140,10 @@ export function CreateTaskRequestToJSONTyped(
     title: value["title"],
     description: value["description"],
     type: value["type"],
-    dueDate: value["dueDate"] == null ? undefined : value["dueDate"].toISOString().substring(0, 10),
+    dueDate:
+      value["dueDate"] == null
+        ? undefined
+        : value["dueDate"].toISOString().substring(0, 10),
     owner: value["owner"],
     documentId: value["documentId"],
     links: value["links"],

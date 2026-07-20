@@ -31,13 +31,13 @@ export default function AgendaTable(_props: AgendaTableProps) {
   const getVoteOptions = (
     proposalType?: string,
     proposalNumber?: string,
-    directorName?: string,
+    directorName?: string
   ) => {
     return getVotingOptionsDisplay(
       proposalType,
       proposalNumber,
       currentMeeting?.ticker,
-      directorName,
+      directorName
     );
   };
 
@@ -55,11 +55,17 @@ export default function AgendaTable(_props: AgendaTableProps) {
         <Table>
           <TableHead>
             <TableRow sx={{ backgroundColor: "background.default" }}>
-              <TableCell sx={{ fontWeight: 600, fontSize: "0.875rem" }}>Proposals</TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: "0.875rem", width: "120px" }}>
+              <TableCell sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
+                Proposals
+              </TableCell>
+              <TableCell
+                sx={{ fontWeight: 600, fontSize: "0.875rem", width: "120px" }}
+              >
                 Management Recommendation
               </TableCell>
-              <TableCell sx={{ fontWeight: 600, fontSize: "0.875rem", width: "300px" }}>
+              <TableCell
+                sx={{ fontWeight: 600, fontSize: "0.875rem", width: "300px" }}
+              >
                 Vote Options
               </TableCell>
             </TableRow>
@@ -70,7 +76,9 @@ export default function AgendaTable(_props: AgendaTableProps) {
                 {/* Count director proposals for the header */}
                 {(() => {
                   const directorProposals = proposals.filter(
-                    (p) => p.proposalNumber.toString().startsWith("1.") && p.directorName,
+                    (p) =>
+                      p.proposalNumber.toString().startsWith("1.") &&
+                      p.directorName
                   );
                   const hasDirectorElections = directorProposals.length > 0;
 
@@ -88,8 +96,9 @@ export default function AgendaTable(_props: AgendaTableProps) {
                             }}
                           >
                             <Typography fontWeight={600}>
-                              1. Election of the {directorProposals.length} directors named in the
-                              accompanying Proxy Statement
+                              1. Election of the {directorProposals.length}{" "}
+                              directors named in the accompanying Proxy
+                              Statement
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -99,7 +108,10 @@ export default function AgendaTable(_props: AgendaTableProps) {
                       {proposals
                         .filter((proposal) => {
                           // If we have director sub-proposals (1.01, 1.02, etc), don't show proposal 1
-                          if (hasDirectorElections && proposal.proposalNumber.toString() === "1") {
+                          if (
+                            hasDirectorElections &&
+                            proposal.proposalNumber.toString() === "1"
+                          ) {
                             return false;
                           }
                           return true;
@@ -120,14 +132,19 @@ export default function AgendaTable(_props: AgendaTableProps) {
                                   alignItems="center"
                                   gap={0.5}
                                   sx={{
-                                    pl: proposal.proposalNumber.toString().includes(".") ? 3 : 0,
+                                    pl: proposal.proposalNumber
+                                      .toString()
+                                      .includes(".")
+                                      ? 3
+                                      : 0,
                                   }}
                                 >
                                   <Typography fontWeight={600}>
                                     {proposal.proposalNumber}.
                                   </Typography>
                                   <Typography color="text.primary">
-                                    {proposal.directorName || proposal.proposalTitle}
+                                    {proposal.directorName ||
+                                      proposal.proposalTitle}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -138,11 +155,17 @@ export default function AgendaTable(_props: AgendaTableProps) {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Box sx={{ display: "flex", gap: 1, flexWrap: "nowrap" }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  gap: 1,
+                                  flexWrap: "nowrap",
+                                }}
+                              >
                                 {getVoteOptions(
                                   proposal.proposalType,
                                   proposal.proposalNumber.toString(),
-                                  proposal.directorName,
+                                  proposal.directorName
                                 ).map((option) => (
                                   <Chip
                                     key={option}

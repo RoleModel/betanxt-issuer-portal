@@ -75,7 +75,11 @@ export default function PastMeetingsTable({
     }
   };
 
-  const renderHeaderCell = (label: string, property: keyof PastMeetingData, sortable = true) => {
+  const renderHeaderCell = (
+    label: string,
+    property: keyof PastMeetingData,
+    sortable = true
+  ) => {
     if (!showSorting || !sortable) {
       return <TableCell sx={{ fontWeight: 600, py: 2 }}>{label}</TableCell>;
     }
@@ -144,7 +148,9 @@ export default function PastMeetingsTable({
               {meetings.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                    <Typography color="text.secondary">No past meetings found.</Typography>
+                    <Typography color="text.secondary">
+                      No past meetings found.
+                    </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -167,11 +173,15 @@ export default function PastMeetingsTable({
                     </TableCell>
                     <TableCell size="small">
                       <Typography variant="body3">
-                        {meeting.meetingDate ? formatDate(meeting.meetingDate) : "TBD"}
+                        {meeting.meetingDate
+                          ? formatDate(meeting.meetingDate)
+                          : "TBD"}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ minWidth: 200 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
                         <Box sx={{ flex: 1 }}>
                           <Box
                             sx={{
@@ -180,7 +190,10 @@ export default function PastMeetingsTable({
                               mb: 0.5,
                             }}
                           >
-                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                            <Typography
+                              variant="body3"
+                              sx={{ fontWeight: 600 }}
+                            >
                               {meeting.participationPercent}%
                             </Typography>
                             <Typography variant="body3" color="text.secondary">

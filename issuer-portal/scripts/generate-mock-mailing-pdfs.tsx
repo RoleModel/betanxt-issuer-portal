@@ -25,7 +25,11 @@ import path from "node:path";
 import React from "react";
 
 import { brandConfigs } from "../utils/brandConfig";
-import { type RasterizedLogo, loadHeaderLogoForBrand, loadLogoForBrand } from "./mailing-pdf-logo";
+import {
+  type RasterizedLogo,
+  loadHeaderLogoForBrand,
+  loadLogoForBrand,
+} from "./mailing-pdf-logo";
 
 // Register Roboto font
 Font.register({
@@ -150,7 +154,10 @@ const outRoot = path.join(process.cwd(), "public", "mock-mailings");
 fs.mkdirSync(outRoot, { recursive: true });
 
 /** Faux Intelligent Mail barcode (variable-height vertical bars). */
-const FauxBarcode: React.FC<{ width: number; height: number }> = ({ width, height }) => {
+const FauxBarcode: React.FC<{ width: number; height: number }> = ({
+  width,
+  height,
+}) => {
   const bars = 65;
   const gap = width / bars;
   return (
@@ -169,7 +176,14 @@ const FauxBarcode: React.FC<{ width: number; height: number }> = ({ width, heigh
           barHeight = height * 0.3;
         }
         return (
-          <Rect key={i} x={i * gap} y={y} width={gap * 0.5} height={barHeight} fill="#000000" />
+          <Rect
+            key={i}
+            x={i * gap}
+            y={y}
+            width={gap * 0.5}
+            height={barHeight}
+            fill="#000000"
+          />
         );
       })}
     </Svg>
@@ -186,7 +200,14 @@ const FauxQr: React.FC<{ size: number }> = ({ size }) => {
     for (let col = 0; col < cells; col++) {
       if ((r * 7 + col * 5 + r * col) % 3 === 0) {
         modules.push(
-          <Rect key={`m-${r}-${col}`} x={col * c} y={r * c} width={c} height={c} fill="#000000" />,
+          <Rect
+            key={`m-${r}-${col}`}
+            x={col * c}
+            y={r * c}
+            width={c}
+            height={c}
+            fill="#000000"
+          />
         );
       }
     }
@@ -195,7 +216,13 @@ const FauxQr: React.FC<{ size: number }> = ({ size }) => {
   const finder = (fx: number, fy: number, key: string) => (
     <React.Fragment key={key}>
       <Rect x={fx} y={fy} width={c * 3} height={c * 3} fill="#000000" />
-      <Rect x={fx + c * 0.6} y={fy + c * 0.6} width={c * 1.8} height={c * 1.8} fill="#FFFFFF" />
+      <Rect
+        x={fx + c * 0.6}
+        y={fy + c * 0.6}
+        width={c * 1.8}
+        height={c * 1.8}
+        fill="#FFFFFF"
+      />
       <Rect x={fx + c} y={fy + c} width={c} height={c} fill="#000000" />
     </React.Fragment>
   );
@@ -212,7 +239,10 @@ const FauxQr: React.FC<{ size: number }> = ({ size }) => {
 };
 
 /** Outlined checkbox with an X mark, used in the "Your vote matters!" panel. */
-const CheckboxMark: React.FC<{ size: number; color: string }> = ({ size, color }) => (
+const CheckboxMark: React.FC<{ size: number; color: string }> = ({
+  size,
+  color,
+}) => (
   <Svg width={size} height={size}>
     <Rect
       x={2}
@@ -223,8 +253,22 @@ const CheckboxMark: React.FC<{ size: number; color: string }> = ({ size, color }
       strokeWidth={3.5}
       fill="none"
     />
-    <Line x1={10} y1={10} x2={size - 10} y2={size - 10} stroke={color} strokeWidth={3} />
-    <Line x1={size - 10} y1={10} x2={10} y2={size - 10} stroke={color} strokeWidth={3} />
+    <Line
+      x1={10}
+      y1={10}
+      x2={size - 10}
+      y2={size - 10}
+      stroke={color}
+      strokeWidth={3}
+    />
+    <Line
+      x1={size - 10}
+      y1={10}
+      x2={10}
+      y2={size - 10}
+      stroke={color}
+      strokeWidth={3}
+    />
   </Svg>
 );
 
@@ -235,15 +279,29 @@ interface ContactProps {
   secondary: string;
 }
 
-const Contact: React.FC<ContactProps> = ({ label, value, primary, secondary }) => (
+const Contact: React.FC<ContactProps> = ({
+  label,
+  value,
+  primary,
+  secondary,
+}) => (
   <View style={{ marginBottom: 8 }}>
-    <Text style={{ fontSize: 10, fontWeight: 700, color: primary }}>{label}</Text>
-    <Text style={{ fontSize: 9.5, fontWeight: 700, color: secondary, marginTop: 2 }}>{value}</Text>
+    <Text style={{ fontSize: 10, fontWeight: 700, color: primary }}>
+      {label}
+    </Text>
+    <Text
+      style={{ fontSize: 9.5, fontWeight: 700, color: secondary, marginTop: 2 }}
+    >
+      {value}
+    </Text>
   </View>
 );
 
 /** Page 1 of the proxy mailing: themed Notice of Internet Availability card. */
-const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ client, job }) => {
+const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({
+  client,
+  job,
+}) => {
   const primary = client.primaryColor;
   const secondary = client.secondaryColor;
   const bannerText = contrastText(primary);
@@ -269,7 +327,10 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ c
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <View>
             {logo ? (
-              <PDFImage src={logo.dataUri} style={{ height: 34, width: 34 * logo.aspect }} />
+              <PDFImage
+                src={logo.dataUri}
+                style={{ height: 34, width: 34 * logo.aspect }}
+              />
             ) : (
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <View
@@ -288,7 +349,10 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ c
             )}
             <View style={{ marginTop: 8 }}>
               {client.address.map((line) => (
-                <Text key={line} style={{ fontSize: 8, color: "#5A5A5A", marginBottom: 2 }}>
+                <Text
+                  key={line}
+                  style={{ fontSize: 8, color: "#5A5A5A", marginBottom: 2 }}
+                >
                   {line}
                 </Text>
               ))}
@@ -303,8 +367,16 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ c
         </View>
 
         {/* Important notice line */}
-        <Text style={{ marginTop: 16, textAlign: "center", fontSize: 9.5, color: primary }}>
-          Important Notice Regarding the Availability of Proxy Materials for {client.companyName}
+        <Text
+          style={{
+            marginTop: 16,
+            textAlign: "center",
+            fontSize: 9.5,
+            color: primary,
+          }}
+        >
+          Important Notice Regarding the Availability of Proxy Materials for{" "}
+          {client.companyName}
         </Text>
 
         {/* Banner (solid, full content width) */}
@@ -322,23 +394,49 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ c
         </View>
 
         {/* Meeting details */}
-        <Text style={{ marginTop: 16, textAlign: "center", fontSize: 11, color: primary }}>
+        <Text
+          style={{
+            marginTop: 16,
+            textAlign: "center",
+            fontSize: 11,
+            color: primary,
+          }}
+        >
           {job.meetingDateLine}
         </Text>
-        <Text style={{ marginTop: 5, textAlign: "center", fontSize: 11, color: primary }}>
+        <Text
+          style={{
+            marginTop: 5,
+            textAlign: "center",
+            fontSize: 11,
+            color: primary,
+          }}
+        >
           {job.meetingLocation}
         </Text>
-        <Text style={{ marginTop: 5, textAlign: "center", fontSize: 8.5, color: "#6E6E6E" }}>
+        <Text
+          style={{
+            marginTop: 5,
+            textAlign: "center",
+            fontSize: 8.5,
+            color: "#6E6E6E",
+          }}
+        >
           {job.recordDateLine}
         </Text>
 
         {/* Recipient address + Intelligent Mail barcode */}
         <View style={{ marginTop: 20 }}>
-          {["Voter Name", "186 Fleet Street", "London, NY 12345"].map((line) => (
-            <Text key={line} style={{ fontSize: 9, color: INK, marginBottom: 3 }}>
-              {line}
-            </Text>
-          ))}
+          {["Voter Name", "186 Fleet Street", "London, NY 12345"].map(
+            (line) => (
+              <Text
+                key={line}
+                style={{ fontSize: 9, color: INK, marginBottom: 3 }}
+              >
+                {line}
+              </Text>
+            )
+          )}
           <View style={{ marginTop: 8 }}>
             <FauxBarcode width={150} height={16} />
           </View>
@@ -360,12 +458,18 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ c
               <CheckboxMark size={44} color={secondary} />
             </View>
             <View style={{ marginLeft: 16 }}>
-              <Text style={{ fontSize: 26, fontWeight: 700, color: "#FFFFFF" }}>Your vote</Text>
-              <Text style={{ fontSize: 26, fontWeight: 700, color: "#FFFFFF" }}>matters!</Text>
+              <Text style={{ fontSize: 26, fontWeight: 700, color: "#FFFFFF" }}>
+                Your vote
+              </Text>
+              <Text style={{ fontSize: 26, fontWeight: 700, color: "#FFFFFF" }}>
+                matters!
+              </Text>
               <Text style={{ fontSize: 8, color: "#FFFFFF", marginTop: 6 }}>
                 To order paper materials, use one
               </Text>
-              <Text style={{ fontSize: 8, color: "#FFFFFF" }}>of the following methods:</Text>
+              <Text style={{ fontSize: 8, color: "#FFFFFF" }}>
+                of the following methods:
+              </Text>
             </View>
           </View>
 
@@ -376,7 +480,12 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ c
               primary={primary}
               secondary={secondary}
             />
-            <Contact label="Call:" value={client.phone} primary={primary} secondary={secondary} />
+            <Contact
+              label="Call:"
+              value={client.phone}
+              primary={primary}
+              secondary={secondary}
+            />
             <Contact
               label="Email:"
               value="paper@investorelections.com"
@@ -396,7 +505,9 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ c
                 alignItems: "center",
               }}
             >
-              <Text style={{ fontSize: 12, fontWeight: 700, color: INK }}>8796439-8453</Text>
+              <Text style={{ fontSize: 12, fontWeight: 700, color: INK }}>
+                8796439-8453
+              </Text>
             </View>
             <Text style={{ fontSize: 6.5, color: "#828282", marginTop: 4 }}>
               Have the 12 digit control number located in the box above
@@ -405,8 +516,16 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ c
         </View>
 
         {/* Body copy */}
-        <Text style={{ marginTop: 24, fontSize: 10, fontWeight: 700, color: primary }}>
-          For a convenient way to view proxy materials and VOTE go to www.proxypush.com/
+        <Text
+          style={{
+            marginTop: 24,
+            fontSize: 10,
+            fontWeight: 700,
+            color: primary,
+          }}
+        >
+          For a convenient way to view proxy materials and VOTE go to
+          www.proxypush.com/
           {client.voteSiteCode}
         </Text>
         <View style={{ marginTop: 10 }}>
@@ -415,7 +534,10 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ c
             "This communication presents only an overview of the more complete proxy materials that are available to you on the Internet.",
             "This is not a ballot. You cannot use this notice to vote your shares. We encourage you to access and review all of the important information contained in the proxy materials before voting.",
           ].map((line) => (
-            <Text key={line} style={{ fontSize: 8.5, color: "#3C3C3C", marginBottom: 6 }}>
+            <Text
+              key={line}
+              style={{ fontSize: 8.5, color: "#3C3C3C", marginBottom: 6 }}
+            >
               {line}
             </Text>
           ))}
@@ -464,7 +586,13 @@ const AgendaPage: React.FC<{ client: ClientTheme }> = ({ client }) => {
           paddingHorizontal: 48,
         }}
       >
-        <Text style={{ fontSize: 15, fontWeight: 700, color: contrastText(primary) }}>
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: 700,
+            color: contrastText(primary),
+          }}
+        >
           Full Meeting Agenda
         </Text>
       </View>
@@ -475,7 +603,10 @@ const AgendaPage: React.FC<{ client: ClientTheme }> = ({ client }) => {
           "3. Ratification of Independent Registered Public Accounting Firm",
           "4. Transaction of other business properly brought before the meeting",
         ].map((item) => (
-          <Text key={item} style={{ fontSize: 11, color: INK, marginBottom: 13 }}>
+          <Text
+            key={item}
+            style={{ fontSize: 11, color: INK, marginBottom: 13 }}
+          >
             {item}
           </Text>
         ))}
@@ -485,7 +616,10 @@ const AgendaPage: React.FC<{ client: ClientTheme }> = ({ client }) => {
 };
 
 /** Generic themed-header document layout for non-proxy-card mailings. */
-const GenericPage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ client, job }) => {
+const GenericPage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({
+  client,
+  job,
+}) => {
   const primary = client.primaryColor;
   const secondary = client.secondaryColor;
   const headerText = contrastText(primary);
@@ -505,7 +639,10 @@ const GenericPage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ clien
       >
         {logo ? (
           <>
-            <PDFImage src={logo.dataUri} style={{ height: 40, width: 40 * logo.aspect }} />
+            <PDFImage
+              src={logo.dataUri}
+              style={{ height: 40, width: 40 * logo.aspect }}
+            />
             <Text style={{ fontSize: 10, color: headerText, marginLeft: 14 }}>
               {job.meetingType}
             </Text>
@@ -515,26 +652,40 @@ const GenericPage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ clien
             <Text style={{ fontSize: 16, fontWeight: 700, color: headerText }}>
               {client.companyName}
             </Text>
-            <Text style={{ fontSize: 10, color: headerText, marginTop: 4 }}>{job.meetingType}</Text>
+            <Text style={{ fontSize: 10, color: headerText, marginTop: 4 }}>
+              {job.meetingType}
+            </Text>
           </View>
         )}
       </View>
 
       <View style={{ paddingHorizontal: 56, paddingTop: 36 }}>
         {/* Job title + secondary accent rule */}
-        <Text style={{ fontSize: 14, fontWeight: 700, color: INK }}>{job.jobName}</Text>
-        <View style={{ width: 120, height: 3, backgroundColor: secondary, marginTop: 6 }} />
+        <Text style={{ fontSize: 14, fontWeight: 700, color: INK }}>
+          {job.jobName}
+        </Text>
+        <View
+          style={{
+            width: 120,
+            height: 3,
+            backgroundColor: secondary,
+            marginTop: 6,
+          }}
+        />
 
         {/* Body copy; empty strings act as paragraph breaks */}
         <View style={{ marginTop: 26 }}>
           {(job.body ?? []).map((line, index) =>
             line ? (
-              <Text key={index} style={{ fontSize: 10.5, color: "#373737", marginBottom: 6 }}>
+              <Text
+                key={index}
+                style={{ fontSize: 10.5, color: "#373737", marginBottom: 6 }}
+              >
                 {line}
               </Text>
             ) : (
               <View key={index} style={{ height: 8 }} />
-            ),
+            )
           )}
         </View>
 
@@ -547,7 +698,14 @@ const GenericPage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ clien
             paddingTop: 16,
           }}
         >
-          <Text style={{ fontSize: 9.5, fontWeight: 700, color: primary, marginBottom: 4 }}>
+          <Text
+            style={{
+              fontSize: 9.5,
+              fontWeight: 700,
+              color: primary,
+              marginBottom: 4,
+            }}
+          >
             {job.meetingType}
           </Text>
           <Text style={{ fontSize: 9.5, color: "#5A5A5A", marginBottom: 3 }}>
@@ -556,14 +714,19 @@ const GenericPage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ clien
           <Text style={{ fontSize: 9.5, color: "#5A5A5A", marginBottom: 3 }}>
             {job.meetingLocation}
           </Text>
-          <Text style={{ fontSize: 9.5, color: "#5A5A5A" }}>{job.recordDateLine}</Text>
+          <Text style={{ fontSize: 9.5, color: "#5A5A5A" }}>
+            {job.recordDateLine}
+          </Text>
         </View>
       </View>
     </Page>
   );
 };
 
-const MailingDocument: React.FC<{ client: ClientTheme; job: MailingJob }> = ({ client, job }) => (
+const MailingDocument: React.FC<{ client: ClientTheme; job: MailingJob }> = ({
+  client,
+  job,
+}) => (
   <Document>
     {job.layout === "proxy" ? (
       <>
@@ -590,9 +753,13 @@ async function main() {
     const logo = await loadLogoForBrand(cfg);
     const headerLogo = await loadHeaderLogoForBrand(cfg);
     if (logo) logoHits++;
-    else console.warn(`[mock-mailings] No light logo for ${ticker} (${fullName})`);
+    else
+      console.warn(`[mock-mailings] No light logo for ${ticker} (${fullName})`);
     if (headerLogo) headerLogoHits++;
-    else console.warn(`[mock-mailings] No header logo for ${ticker} (${fullName})`);
+    else
+      console.warn(
+        `[mock-mailings] No header logo for ${ticker} (${fullName})`
+      );
 
     const client: ClientTheme = {
       companyName: cfg.companyName || fullName,
@@ -612,7 +779,7 @@ async function main() {
     for (const job of buildJobs(fullName)) {
       await ReactPDF.renderToFile(
         <MailingDocument client={client} job={job} />,
-        path.join(dir, job.file),
+        path.join(dir, job.file)
       );
       fileCount++;
     }
@@ -620,7 +787,7 @@ async function main() {
   }
 
   console.log(
-    `Done. Generated ${fileCount} PDFs across ${clientCount} clients (${logoHits} light logos, ${headerLogoHits} header logos) in ${outRoot}.`,
+    `Done. Generated ${fileCount} PDFs across ${clientCount} clients (${logoHits} light logos, ${headerLogoHits} header logos) in ${outRoot}.`
   );
 }
 

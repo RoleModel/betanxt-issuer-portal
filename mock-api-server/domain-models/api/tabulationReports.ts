@@ -164,7 +164,9 @@ function toIsoString(value: string): string {
   return Number.isNaN(parsed.getTime()) ? value : parsed.toISOString();
 }
 
-function normalizeBrokerVotingEntries(rawEntries: unknown[]): BrokerVotingEntry[] {
+function normalizeBrokerVotingEntries(
+  rawEntries: unknown[]
+): BrokerVotingEntry[] {
   return rawEntries.reduce<BrokerVotingEntry[]>((entries, entry) => {
     if (!isRecord(entry)) {
       return entries;
@@ -200,42 +202,49 @@ function normalizeBrokerVoting(field: unknown): BrokerVotingByProposal {
     return {};
   }
 
-  return Object.entries(parsed).reduce<BrokerVotingByProposal>((result, [proposalKey, value]) => {
-    if (!Array.isArray(value)) {
-      return result;
-    }
-
-    const entries = normalizeBrokerVotingEntries(value);
-    if (entries.length > 0) {
-      result[proposalKey] = entries;
-    }
-
-    return result;
-  }, {});
-}
-
-function normalizeShareRangePerformance(field: unknown): ShareRangePerformanceEntry[] {
-  return parseJsonField<unknown[]>(field, []).reduce<ShareRangePerformanceEntry[]>(
-    (ranges, entry) => {
-      if (!isRecord(entry)) {
-        return ranges;
+  return Object.entries(parsed).reduce<BrokerVotingByProposal>(
+    (result, [proposalKey, value]) => {
+      if (!Array.isArray(value)) {
+        return result;
       }
 
-      ranges.push({
-        rangeLabel: typeof entry.rangeLabel === "string" ? entry.rangeLabel : "",
-        positionCount: toFiniteNumber(entry.positionCount),
-        totalShares: toFiniteNumber(entry.totalShares),
-        percentVoted: toFiniteNumber(entry.percentVoted),
-      });
+      const entries = normalizeBrokerVotingEntries(value);
+      if (entries.length > 0) {
+        result[proposalKey] = entries;
+      }
 
-      return ranges;
+      return result;
     },
-    [],
+    {}
   );
 }
 
+function normalizeShareRangePerformance(
+  field: unknown
+): ShareRangePerformanceEntry[] {
+  return parseJsonField<unknown[]>(field, []).reduce<
+    ShareRangePerformanceEntry[]
+  >((ranges, entry) => {
+    if (!isRecord(entry)) {
+      return ranges;
+    }
+
+    ranges.push({
+      rangeLabel: typeof entry.rangeLabel === "string" ? entry.rangeLabel : "",
+      positionCount: toFiniteNumber(entry.positionCount),
+      totalShares: toFiniteNumber(entry.totalShares),
+      percentVoted: toFiniteNumber(entry.percentVoted),
+    });
+
+    return ranges;
+  }, []);
+}
+
 function normalizeNonDtcVoteStatus(field: unknown): NonDtcVoteStatus {
-  const status = parseJsonField<Partial<NonDtcVoteStatus>>(field, emptyNonDtcVoteStatus);
+  const status = parseJsonField<Partial<NonDtcVoteStatus>>(
+    field,
+    emptyNonDtcVoteStatus
+  );
 
   return {
     unvotedShareholders: toFiniteNumber(status.unvotedShareholders),
@@ -254,7 +263,10 @@ function normalizeNonDtcVoteStatus(field: unknown): NonDtcVoteStatus {
 }
 
 function normalizeDtcVoteStatus(field: unknown): DtcVoteStatus {
-  const status = parseJsonField<Partial<DtcVoteStatus>>(field, emptyDtcVoteStatus);
+  const status = parseJsonField<Partial<DtcVoteStatus>>(
+    field,
+    emptyDtcVoteStatus
+  );
 
   return {
     unvotedShareholders: toFiniteNumber(status.unvotedShareholders),
@@ -267,7 +279,10 @@ function normalizeDtcVoteStatus(field: unknown): DtcVoteStatus {
 }
 
 function normalizeVoteDistribution(field: unknown): VoteDistribution {
-  const distribution = parseJsonField<Partial<VoteDistribution>>(field, emptyVoteDistribution);
+  const distribution = parseJsonField<Partial<VoteDistribution>>(
+    field,
+    emptyVoteDistribution
+  );
 
   return {
     dtcVotedShares: toFiniteNumber(distribution.dtcVotedShares),
@@ -294,9 +309,11 @@ function normalizePositionsVoted(field: unknown): PositionsVoted {
 }
 
 function normalizeReportTotals(report: TabulationReport): TabulationReport {
-  const expectedPositionTotal = CSV_POSITION_TOTALS_BY_MEETING_ID[report.meetingId];
+  const expectedPositionTotal =
+    CSV_POSITION_TOTALS_BY_MEETING_ID[report.meetingId];
   const statusTotalShares =
-    report.nonDtcVoteStatus.grandTotalShares + report.dtcVoteStatus.grandTotalShares;
+    report.nonDtcVoteStatus.grandTotalShares +
+    report.dtcVoteStatus.grandTotalShares;
 
   const normalizedReport = {
     ...report,
@@ -304,24 +321,29 @@ function normalizeReportTotals(report: TabulationReport): TabulationReport {
       ...report.positionsVoted,
       totalShares: statusTotalShares || report.positionsVoted.totalShares,
       votedShares:
-        report.voteDistribution.dtcVotedShares + report.voteDistribution.nonDtcVotedShares ||
+        report.voteDistribution.dtcVotedShares +
+          report.voteDistribution.nonDtcVotedShares ||
         report.positionsVoted.votedShares,
     },
   };
 
-  if (expectedPositionTotal && expectedPositionTotal > report.positionsVoted.voted) {
+  if (
+    expectedPositionTotal &&
+    expectedPositionTotal > report.positionsVoted.voted
+  ) {
     normalizedReport.positionsVoted.unvoted =
       expectedPositionTotal - normalizedReport.positionsVoted.voted;
   }
 
   normalizedReport.dtcVoteStatus.unvotedShares = Math.max(
-    normalizedReport.dtcVoteStatus.grandTotalShares - normalizedReport.dtcVoteStatus.votedShares,
-    0,
+    normalizedReport.dtcVoteStatus.grandTotalShares -
+      normalizedReport.dtcVoteStatus.votedShares,
+    0
   );
   normalizedReport.nonDtcVoteStatus.unvotedShares = Math.max(
     normalizedReport.nonDtcVoteStatus.grandTotalShares -
       normalizedReport.nonDtcVoteStatus.votedSubtotalShares,
-    0,
+    0
   );
   normalizedReport.voteDistribution = {
     dtcVotedShares: normalizedReport.dtcVoteStatus.votedShares,
@@ -337,20 +359,24 @@ function normalizeReportTotals(report: TabulationReport): TabulationReport {
     normalizedReport.voteDistribution.nonDtcVotedShares;
   normalizedReport.positionsVoted.votedShares = Math.max(
     normalizedReport.positionsVoted.votedShares,
-    derivedVotedShares,
+    derivedVotedShares
   );
 
   return normalizedReport;
 }
 
 // Transform snake_case database fields to camelCase API fields
-function transformTabulationReport(dbReport: TabulationReportRow): TabulationReport {
+function transformTabulationReport(
+  dbReport: TabulationReportRow
+): TabulationReport {
   const report = normalizeReportTotals({
     id: dbReport.id,
     meetingId: dbReport.meeting_id,
     setKeys: dbReport.set_keys || [],
     brokerVoting: normalizeBrokerVoting(dbReport.broker_voting),
-    shareRangePerformance: normalizeShareRangePerformance(dbReport.share_range_performance),
+    shareRangePerformance: normalizeShareRangePerformance(
+      dbReport.share_range_performance
+    ),
     nonDtcVoteStatus: normalizeNonDtcVoteStatus(dbReport.non_dtc_vote_status),
     dtcVoteStatus: normalizeDtcVoteStatus(dbReport.dtc_vote_status),
     voteDistribution: normalizeVoteDistribution(dbReport.vote_distribution),
@@ -369,30 +395,47 @@ function transformTabulationReport(dbReport: TabulationReportRow): TabulationRep
  * Uses meeting.total_shares_outstanding as the authoritative grand total so that
  * CSM edits to that field are respected even when individual position.shares differ.
  */
-export async function refreshTabulationReportFromPositions(meetingId: string): Promise<void> {
-  const [{ data: positions, error: posErr }, { data: meeting }, { data: report }] =
-    await Promise.all([
-      supabase
-        .from("position")
-        .select("shares, shares_voted, vote_status")
-        .eq("meeting_id", meetingId),
-      supabase.from("meeting").select("total_shares_outstanding").eq("id", meetingId).single(),
-      supabase
-        .from("tabulation_report")
-        .select("positions_voted, non_dtc_vote_status, dtc_vote_status, vote_distribution")
-        .eq("meeting_id", meetingId)
-        .single(),
-    ]);
+export async function refreshTabulationReportFromPositions(
+  meetingId: string
+): Promise<void> {
+  const [
+    { data: positions, error: posErr },
+    { data: meeting },
+    { data: report },
+  ] = await Promise.all([
+    supabase
+      .from("position")
+      .select("shares, shares_voted, vote_status")
+      .eq("meeting_id", meetingId),
+    supabase
+      .from("meeting")
+      .select("total_shares_outstanding")
+      .eq("id", meetingId)
+      .single(),
+    supabase
+      .from("tabulation_report")
+      .select(
+        "positions_voted, non_dtc_vote_status, dtc_vote_status, vote_distribution"
+      )
+      .eq("meeting_id", meetingId)
+      .single(),
+  ]);
 
   if (posErr || !positions || !report) return;
 
   const votedPositions = positions.filter((p) => p.vote_status === "Voted");
-  const votedShares = votedPositions.reduce((sum, p) => sum + (p.shares_voted ?? 0), 0);
+  const votedShares = votedPositions.reduce(
+    (sum, p) => sum + (p.shares_voted ?? 0),
+    0
+  );
   const votedCount = votedPositions.length;
   const unvotedCount = positions.length - votedCount;
 
   // Prefer the meeting's explicit totalSharesOutstanding; fall back to sum of position shares
-  const positionSharesSum = positions.reduce((sum, p) => sum + (p.shares ?? 0), 0);
+  const positionSharesSum = positions.reduce(
+    (sum, p) => sum + (p.shares ?? 0),
+    0
+  );
   const grandTotal =
     meeting?.total_shares_outstanding != null
       ? Number(meeting.total_shares_outstanding)
@@ -450,13 +493,18 @@ export async function refreshTabulationReportFromPositions(meetingId: string): P
  */
 export async function syncTabulationReportTotalShares(
   meetingId: string,
-  totalSharesOutstanding: number,
+  totalSharesOutstanding: number
 ): Promise<void> {
   const [{ data: positions }, { data: report }] = await Promise.all([
-    supabase.from("position").select("shares_voted, vote_status").eq("meeting_id", meetingId),
+    supabase
+      .from("position")
+      .select("shares_voted, vote_status")
+      .eq("meeting_id", meetingId),
     supabase
       .from("tabulation_report")
-      .select("positions_voted, non_dtc_vote_status, dtc_vote_status, vote_distribution")
+      .select(
+        "positions_voted, non_dtc_vote_status, dtc_vote_status, vote_distribution"
+      )
       .eq("meeting_id", meetingId)
       .single(),
   ]);
@@ -510,7 +558,7 @@ export async function syncTabulationReportTotalShares(
 }
 
 export async function getTabulationReport(
-  meetingId: string,
+  meetingId: string
 ): Promise<ApiResponse<TabulationReport>> {
   try {
     const { data, error } = await supabase
@@ -543,7 +591,10 @@ export async function getTabulationReport(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch tabulation report",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch tabulation report",
         statusCode: 500,
       },
     };

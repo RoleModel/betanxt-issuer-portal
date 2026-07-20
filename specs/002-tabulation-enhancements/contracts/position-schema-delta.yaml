@@ -8,8 +8,7 @@ Position:
       type: string
       enum: [REGISTERED, PLAN, BENEFICIAL, NOBO]
       description: >
-        Holder population classification. Replaces inference from accountType.
-        REGISTERED maps from legacy accountType "DTC/CDS"; BENEFICIAL from "Non-DTC".
+        Holder population classification. Replaces inference from accountType. REGISTERED maps from legacy accountType "DTC/CDS"; BENEFICIAL from "Non-DTC".
       example: REGISTERED
     state:
       type: string

@@ -134,13 +134,16 @@ export async function listPositions(params?: {
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch positions",
+        message:
+          error instanceof Error ? error.message : "Failed to fetch positions",
       },
     };
   }
 }
 
-export async function createPosition(body: CreatePositionRequest): Promise<ApiResponse<Position>> {
+export async function createPosition(
+  body: CreatePositionRequest
+): Promise<ApiResponse<Position>> {
   try {
     const request = body;
     const { data, error } = await supabase
@@ -175,15 +178,22 @@ export async function createPosition(body: CreatePositionRequest): Promise<ApiRe
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to create position",
+        message:
+          error instanceof Error ? error.message : "Failed to create position",
       },
     };
   }
 }
 
-export async function getPositionById(id: string): Promise<ApiResponse<Position>> {
+export async function getPositionById(
+  id: string
+): Promise<ApiResponse<Position>> {
   try {
-    const { data, error } = await supabase.from("position").select("*").eq("id", id).single();
+    const { data, error } = await supabase
+      .from("position")
+      .select("*")
+      .eq("id", id)
+      .single();
 
     if (error) {
       return {
@@ -197,7 +207,8 @@ export async function getPositionById(id: string): Promise<ApiResponse<Position>
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch position",
+        message:
+          error instanceof Error ? error.message : "Failed to fetch position",
       },
     };
   }
@@ -205,19 +216,24 @@ export async function getPositionById(id: string): Promise<ApiResponse<Position>
 
 export async function updatePosition(
   id: string,
-  body: UpdatePositionRequest,
+  body: UpdatePositionRequest
 ): Promise<ApiResponse<Position>> {
   try {
     const request = body;
     const updateData: Partial<PositionUpdate> = {};
     if (request.name !== undefined) updateData.name = request.name;
-    if (request.accountNumber !== undefined) updateData.account_number = request.accountNumber;
-    if (request.controlNumber !== undefined) updateData.control_number = request.controlNumber;
+    if (request.accountNumber !== undefined)
+      updateData.account_number = request.accountNumber;
+    if (request.controlNumber !== undefined)
+      updateData.control_number = request.controlNumber;
     if (request.shares !== undefined) updateData.shares = request.shares;
-    if (request.sharesVoted !== undefined) updateData.shares_voted = request.sharesVoted;
-    if (request.voteStatus !== undefined) updateData.vote_status = request.voteStatus;
+    if (request.sharesVoted !== undefined)
+      updateData.shares_voted = request.sharesVoted;
+    if (request.voteStatus !== undefined)
+      updateData.vote_status = request.voteStatus;
     if (request.source !== undefined) updateData.source = request.source;
-    if (request.dateVoted !== undefined) updateData.date_voted = request.dateVoted;
+    if (request.dateVoted !== undefined)
+      updateData.date_voted = request.dateVoted;
 
     const { data, error } = await supabase
       .from("position")
@@ -243,7 +259,8 @@ export async function updatePosition(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to update position",
+        message:
+          error instanceof Error ? error.message : "Failed to update position",
       },
     };
   }

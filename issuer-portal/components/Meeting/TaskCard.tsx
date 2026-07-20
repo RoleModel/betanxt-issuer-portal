@@ -19,7 +19,10 @@ import React, { useCallback } from "react";
 import type { Task } from "@/types/api-exports";
 
 import TaskDrawer from "@/components/Drawers/TaskDrawer";
-import { getPhaseColor, getStatusBorderColor } from "@/components/mui-styling/theme";
+import {
+  getPhaseColor,
+  getStatusBorderColor,
+} from "@/components/mui-styling/theme";
 import StatusChip from "@/components/ui/StatusChip";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { usePhases } from "@/hooks/usePhases";
@@ -37,7 +40,13 @@ interface TaskItemProps {
   onClick: (taskId: string) => void;
 }
 
-export function TaskItem({ task, phaseColor, onClick, isClickable, status }: TaskItemProps) {
+export function TaskItem({
+  task,
+  phaseColor,
+  onClick,
+  isClickable,
+  status,
+}: TaskItemProps) {
   const theme = useTheme();
   const isComplete = status === "COMPLETE";
   const borderColor = isComplete
@@ -60,7 +69,9 @@ export function TaskItem({ task, phaseColor, onClick, isClickable, status }: Tas
           xl: "1 / span 4",
         },
         background: (theme) =>
-          isComplete ? theme.vars.palette.background.default : theme.vars.palette.tableCellRow.fill,
+          isComplete
+            ? theme.vars.palette.background.default
+            : theme.vars.palette.tableCellRow.fill,
         borderLeft: `6px solid`,
         borderLeftColor: borderColor,
         borderTop: 0,
@@ -75,7 +86,10 @@ export function TaskItem({ task, phaseColor, onClick, isClickable, status }: Tas
         },
       }}
     >
-      <CardActionArea onClick={() => onClick(task.id ?? "")} disabled={!isClickable}>
+      <CardActionArea
+        onClick={() => onClick(task.id ?? "")}
+        disabled={!isClickable}
+      >
         <CardContent sx={{ p: 1.5 }}>
           <Box
             sx={{
@@ -115,7 +129,13 @@ export function TaskItem({ task, phaseColor, onClick, isClickable, status }: Tas
                 {task.owner}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+              }}
+            >
               <Typography
                 variant="body3"
                 fontWeight={600}
@@ -153,7 +173,8 @@ export default function TaskCard({
   currentPhaseTitle,
   onClick,
 }: TaskCardProps) {
-  const { tasks, tasksLoading, keyDates, currentMeeting, refreshMeetingData } = useMeeting();
+  const { tasks, tasksLoading, keyDates, currentMeeting, refreshMeetingData } =
+    useMeeting();
   const { phases } = usePhases(meetingId ?? currentMeeting?.id ?? "");
 
   // Determine the current phase from meeting data or prop, default to 1
@@ -164,9 +185,13 @@ export default function TaskCard({
       : 1);
 
   // Get the current phase title from phases data
-  const currentPhaseFromData = phases.find((phase) => phase.orderIndex === resolvedCurrentPhase);
+  const currentPhaseFromData = phases.find(
+    (phase) => phase.orderIndex === resolvedCurrentPhase
+  );
   const dynamicPhaseTitle =
-    currentPhaseTitle ?? currentPhaseFromData?.name ?? `Phase ${resolvedCurrentPhase}`;
+    currentPhaseTitle ??
+    currentPhaseFromData?.name ??
+    `Phase ${resolvedCurrentPhase}`;
 
   const displayTasks = tasks.filter((task) => {
     // For Phase 4, include BetaNXT delivery tasks
@@ -196,7 +221,10 @@ export default function TaskCard({
         "Proxy Card",
       ];
 
-      if (task.phaseNumber === 1 && carryOverTitles.includes(task.title ?? "")) {
+      if (
+        task.phaseNumber === 1 &&
+        carryOverTitles.includes(task.title ?? "")
+      ) {
         // Only show if not complete
         const incompleteStatuses = [
           "INCOMPLETE",
@@ -224,7 +252,9 @@ export default function TaskCard({
 
   const router = useRouter();
   const handleViewCalendarClick = () => {
-    router.push(`/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/calendar`);
+    router.push(
+      `/${currentMeeting?.ticker}/meeting/${currentMeeting?.id}/calendar`
+    );
   };
 
   const handleTaskClick = (taskId: string) => {

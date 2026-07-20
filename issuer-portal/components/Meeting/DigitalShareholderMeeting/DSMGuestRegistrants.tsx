@@ -27,11 +27,14 @@ import * as XLSX from "xlsx";
 import type { components } from "@/domain-models/generated-schema";
 
 import FileUploadDialog from "@/components/FileUpload/FileUploadDialog";
-import PreviewDialog, { createTextRenderer } from "@/components/FileUpload/PreviewDialog";
+import PreviewDialog, {
+  createTextRenderer,
+} from "@/components/FileUpload/PreviewDialog";
 
 import { ExportButton } from "./ExportButton";
 
-type DigitalShareholderMeeting = components["schemas"]["DigitalShareholderMeeting"];
+type DigitalShareholderMeeting =
+  components["schemas"]["DigitalShareholderMeeting"];
 type ExcelRow = Record<string, string | number | boolean | Date | undefined>;
 
 interface ParsedGuest {
@@ -48,7 +51,9 @@ interface DSMGuestRegistrantsProps {
 
 export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
   const [guests, setGuests] = useState<DigitalShareholderMeeting[]>([]);
-  const [filteredGuests, setFilteredGuests] = useState<DigitalShareholderMeeting[]>([]);
+  const [filteredGuests, setFilteredGuests] = useState<
+    DigitalShareholderMeeting[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -60,8 +65,11 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
     try {
       setError(null);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`);
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch guest registrants");
       }
@@ -69,12 +77,16 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
       const data = (await response.json()) as DigitalShareholderMeeting[];
 
       // Filter for guests only
-      const guestRegistrants = data.filter((participant) => participant.registrantType === "Guest");
+      const guestRegistrants = data.filter(
+        (participant) => participant.registrantType === "Guest"
+      );
 
       setGuests(guestRegistrants);
       setFilteredGuests(guestRegistrants);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load guest registrants");
+      setError(
+        err instanceof Error ? err.message : "Failed to load guest registrants"
+      );
     }
   }, [meetingId]);
 
@@ -91,7 +103,8 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
 
     const filtered = guests.filter((guest) => {
       const searchLower = searchTerm.toLowerCase();
-      const fullName = `${guest.firstName ?? ""} ${guest.lastName ?? ""}`.toLowerCase();
+      const fullName =
+        `${guest.firstName ?? ""} ${guest.lastName ?? ""}`.toLowerCase();
       const email = (guest.emailAddress ?? "").toLowerCase();
 
       return fullName.includes(searchLower) || email.includes(searchLower);
@@ -183,10 +196,12 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
         setUploadDialogOpen(false);
       } catch (error) {
         console.error("Upload error:", error);
-        setUploadError(error instanceof Error ? error.message : "Failed to upload file");
+        setUploadError(
+          error instanceof Error ? error.message : "Failed to upload file"
+        );
       }
     },
-    [meetingId],
+    [meetingId]
   );
 
   const handleConfirmUpload = useCallback(async () => {
@@ -199,19 +214,24 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
         firstName: guest.firstName,
         lastName: guest.lastName,
         emailAddress: guest.emailAddress,
-        registrationQuestions: `${guest.title ?? ""} - ${guest.department ?? ""}`.trim(),
+        registrationQuestions:
+          `${guest.title ?? ""} - ${guest.department ?? ""}`.trim(),
         minutesAttendedMeeting: 0,
       }));
 
       // Add guests via API (assuming same endpoint as main page)
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(mappedData),
-      });
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(mappedData),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to add guests");
@@ -224,7 +244,9 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
       void fetchGuests();
     } catch (error) {
       console.error("Upload error:", error);
-      setUploadError(error instanceof Error ? error.message : "Failed to upload guests");
+      setUploadError(
+        error instanceof Error ? error.message : "Failed to upload guests"
+      );
     }
   }, [previewData, meetingId, fetchGuests]);
 
@@ -251,7 +273,11 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
         title="Guest Registrants"
         action={
           <Stack direction="row" spacing={1}>
-            <Button variant="outlined" startIcon={<Upload />} onClick={handleUploadClick}>
+            <Button
+              variant="outlined"
+              startIcon={<Upload />}
+              onClick={handleUploadClick}
+            >
               Add Guests
             </Button>
             <ExportButton
@@ -328,14 +354,14 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
                             size="small"
                             onClick={() => {
                               const subject = encodeURIComponent(
-                                "Regarding Your Meeting Registration",
+                                "Regarding Your Meeting Registration"
                               );
                               const body = encodeURIComponent(
-                                `Dear ${guest.firstName} ${guest.lastName},\n\nThank you for registering for our shareholder meeting.\n\nBest regards`,
+                                `Dear ${guest.firstName} ${guest.lastName},\n\nThank you for registering for our shareholder meeting.\n\nBest regards`
                               );
                               window.open(
                                 `mailto:${guest.emailAddress}?subject=${subject}&body=${body}`,
-                                "_blank",
+                                "_blank"
                               );
                             }}
                           >
@@ -364,7 +390,9 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
 
         {filteredGuests.length === 0 && guests.length > 0 && (
           <Box sx={{ textAlign: "center", py: 4 }}>
-            <Typography color="text.secondary">No guests match your search criteria</Typography>
+            <Typography color="text.secondary">
+              No guests match your search criteria
+            </Typography>
           </Box>
         )}
       </CardContent>
@@ -392,7 +420,8 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
           {
             key: "firstName",
             label: "Name",
-            render: (_, row) => createTextRenderer()(`${row.firstName} ${row.lastName}`),
+            render: (_, row) =>
+              createTextRenderer()(`${row.firstName} ${row.lastName}`),
           },
           {
             key: "emailAddress",

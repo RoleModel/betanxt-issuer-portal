@@ -18,7 +18,7 @@ export const usePDFGeneration = () => {
     (
       taskTitle: string,
       signatureDataMap: Map<string, SignatureData>,
-      formFieldValues: Map<string, FormFieldValue>,
+      formFieldValues: Map<string, FormFieldValue>
     ): Blob => {
       const doc = new jsPDF();
 
@@ -83,7 +83,7 @@ export const usePDFGeneration = () => {
 
       return doc.output("blob");
     },
-    [],
+    []
   );
 
   return { generateFilledPDF };

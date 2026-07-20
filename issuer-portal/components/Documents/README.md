@@ -4,9 +4,7 @@ This directory contains components for handling various document workflows in th
 
 > ## Recent Update (Document Repository & Upload Route)
 >
-> A new server-side upload endpoint exists at `/api/documents/types/{documentType}/upload` (App Router, Node runtime).
-> A `DocumentRepository` abstraction now mediates document listing, retrieval, and upload version operations, preferring OpenAPI endpoints and falling back to direct Supabase access.
-> Database metadata tables (`documents`, `document_versions`, `document_history`) have been added via migration with RLS temporarily disabled for frictionless early development. Future hardening will re-enable RLS and define role-based policies.
+> A new server-side upload endpoint exists at `/api/documents/types/{documentType}/upload` (App Router, Node runtime). A `DocumentRepository` abstraction now mediates document listing, retrieval, and upload version operations, preferring OpenAPI endpoints and falling back to direct Supabase access. Database metadata tables (`documents`, `document_versions`, `document_history`) have been added via migration with RLS temporarily disabled for frictionless early development. Future hardening will re-enable RLS and define role-based policies.
 
 ## Quick Start (Current State)
 
@@ -69,8 +67,7 @@ Implementation order of preference:
 
 ## New Upload Route
 
-Path: `/api/documents/types/[documentType]/upload` (POST multipart/form-data)
-Fields:
+Path: `/api/documents/types/[documentType]/upload` (POST multipart/form-data) Fields:
 
 ```
 meetingId: string (required)
@@ -99,14 +96,14 @@ Legacy methods (`uploadDocument`, `uploadDSMDocument`) are still present for bac
 
 ## Future Hardening Roadmap
 
-| Area        | Planned Improvements                                                                  |
-| ----------- | ------------------------------------------------------------------------------------- |
+| Area | Planned Improvements |
+| --- | --- |
 | Persistence | Insert canonical + version rows in upload route; compute hash; optimistic concurrency |
-| RLS         | Enable row level security with meeting membership & role-based policies               |
-| Audit Trail | Automatic history insert trigger for status transitions & version uploads             |
-| Signed URLs | Switch from public bucket to signed URLs after stable UI integration                  |
-| Indexing    | Add partial indexes on (meeting_id, type, status) for dashboard queries               |
-| Cleanup     | Background job to purge orphaned storage objects not referenced by any version        |
+| RLS | Enable row level security with meeting membership & role-based policies |
+| Audit Trail | Automatic history insert trigger for status transitions & version uploads |
+| Signed URLs | Switch from public bucket to signed URLs after stable UI integration |
+| Indexing | Add partial indexes on (meeting_id, type, status) for dashboard queries |
+| Cleanup | Background job to purge orphaned storage objects not referenced by any version |
 
 ## Caching & ISR Integration (New)
 

@@ -56,14 +56,24 @@ export default function MailingPage() {
   return (
     <Container
       maxWidth="xl"
-      sx={{ my: { xs: 2, md: 3 }, display: "flex", flexDirection: "column", gap: 3 }}
+      sx={{
+        my: { xs: 2, md: 3 },
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+      }}
     >
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 12, lg: 9 }}>
           <Stack spacing={2}>
             <Card>
-              <CardHeader title="Primary Mailing Summary" sx={{ paddingBottom: 0 }} />
-              <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <CardHeader
+                title="Primary Mailing Summary"
+                sx={{ paddingBottom: 0 }}
+              />
+              <CardContent
+                sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+              >
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, md: 4 }}>
                     {mailingLoading ? (
@@ -96,7 +106,9 @@ export default function MailingPage() {
                       <FeatureTile
                         height="auto"
                         variant="base"
-                        title={formatNumber(mailingData?.electronicSuppressedPositions)}
+                        title={formatNumber(
+                          mailingData?.electronicSuppressedPositions
+                        )}
                         subtitle="Electronic"
                       />
                     )}
@@ -113,7 +125,9 @@ export default function MailingPage() {
             <MailingTimelineCard
               currentStatus={
                 currentMeeting?.mailingStatus as
-                  | React.ComponentProps<typeof MailingTimelineCard>["currentStatus"]
+                  | React.ComponentProps<
+                      typeof MailingTimelineCard
+                    >["currentStatus"]
                   | undefined
               }
               statusDate={currentMeeting?.updatedAt}
@@ -127,9 +141,16 @@ export default function MailingPage() {
                   paddingBottom: 0,
                 }}
               />
-              <CardContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <CardContent
+                sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+              >
                 <Grid container spacing={2}>
-                  <Stack direction="column" width="100%" useFlexGap={true} spacing={1}>
+                  <Stack
+                    direction="column"
+                    width="100%"
+                    useFlexGap={true}
+                    spacing={1}
+                  >
                     {mailingLoading ? (
                       <Skeleton variant="rounded" height={80} />
                     ) : (

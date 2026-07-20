@@ -49,9 +49,12 @@ export interface CreatePhaseRequest {
 /**
  * Check if a given object implements the CreatePhaseRequest interface.
  */
-export function instanceOfCreatePhaseRequest(value: object): value is CreatePhaseRequest {
+export function instanceOfCreatePhaseRequest(
+  value: object
+): value is CreatePhaseRequest {
   if (!("name" in value) || value["name"] === undefined) return false;
-  if (!("orderIndex" in value) || value["orderIndex"] === undefined) return false;
+  if (!("orderIndex" in value) || value["orderIndex"] === undefined)
+    return false;
   return true;
 }
 
@@ -61,7 +64,7 @@ export function CreatePhaseRequestFromJSON(json: any): CreatePhaseRequest {
 
 export function CreatePhaseRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CreatePhaseRequest {
   if (json == null) {
     return json;
@@ -70,7 +73,9 @@ export function CreatePhaseRequestFromJSONTyped(
     name: json["name"],
     orderIndex: json["orderIndex"],
     keyDates:
-      json["keyDates"] == null ? undefined : CreatePhaseRequestKeyDatesFromJSON(json["keyDates"]),
+      json["keyDates"] == null
+        ? undefined
+        : CreatePhaseRequestKeyDatesFromJSON(json["keyDates"]),
   };
 }
 
@@ -80,7 +85,7 @@ export function CreatePhaseRequestToJSON(json: any): CreatePhaseRequest {
 
 export function CreatePhaseRequestToJSONTyped(
   value?: CreatePhaseRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

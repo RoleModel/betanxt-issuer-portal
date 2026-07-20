@@ -26,7 +26,7 @@ const PUBLIC_LOGOS = path.resolve(__dirname, "../public/logos");
 
 async function downloadDarkAsset(
   format: { src: string; format: string } | null,
-  publicPath: string,
+  publicPath: string
 ): Promise<string | null> {
   if (!format) return null;
   const rel = publicPath.replace(/^\//, "");
@@ -63,13 +63,20 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const base = inferAssetBase(cfg.logoPath, cfg.iconPath, cfg.ticker, company);
+    const base = inferAssetBase(
+      cfg.logoPath,
+      cfg.iconPath,
+      cfg.ticker,
+      company
+    );
     const inBrands = usesBrandsFolder(cfg.logoPath, cfg.iconPath);
 
     const darkFull =
-      pickBestLogo(brand.logos, "logo", "dark") ?? pickBestLogo(brand.logos, "symbol", "dark");
+      pickBestLogo(brand.logos, "logo", "dark") ??
+      pickBestLogo(brand.logos, "symbol", "dark");
     const darkIcon =
-      pickBestLogo(brand.logos, "icon", "dark") ?? pickBestLogo(brand.logos, "symbol", "dark");
+      pickBestLogo(brand.logos, "icon", "dark") ??
+      pickBestLogo(brand.logos, "symbol", "dark");
 
     let headerLogoPath = cfg.headerLogoPath;
     let headerIconPath = cfg.headerIconPath;
@@ -79,7 +86,7 @@ async function main(): Promise<void> {
         base,
         "logo",
         darkFull.format === "svg" ? "svg" : "png",
-        inBrands,
+        inBrands
       );
       const saved = await downloadDarkAsset(darkFull, publicPath);
       if (saved) {
@@ -93,7 +100,7 @@ async function main(): Promise<void> {
         base,
         "icon",
         darkIcon.format === "svg" ? "svg" : "png",
-        inBrands,
+        inBrands
       );
       const saved = await downloadDarkAsset(darkIcon, publicPath);
       if (saved) {

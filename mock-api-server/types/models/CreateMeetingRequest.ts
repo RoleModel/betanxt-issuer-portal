@@ -155,21 +155,37 @@ export interface CreateMeetingRequest {
 /**
  * Check if a given object implements the CreateMeetingRequest interface.
  */
-export function instanceOfCreateMeetingRequest(value: object): value is CreateMeetingRequest {
+export function instanceOfCreateMeetingRequest(
+  value: object
+): value is CreateMeetingRequest {
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("title" in value) || value["title"] === undefined) return false;
   if (!("cusip" in value) || value["cusip"] === undefined) return false;
   if (!("ticker" in value) || value["ticker"] === undefined) return false;
-  if (!("recordDate" in value) || value["recordDate"] === undefined) return false;
-  if (!("mailingDate" in value) || value["mailingDate"] === undefined) return false;
-  if (!("meetingDate" in value) || value["meetingDate"] === undefined) return false;
-  if (!("meetingType" in value) || value["meetingType"] === undefined) return false;
-  if (!("meetingYear" in value) || value["meetingYear"] === undefined) return false;
-  if (!("distributionType" in value) || value["distributionType"] === undefined) return false;
-  if (!("transferAgent" in value) || value["transferAgent"] === undefined) return false;
-  if (!("totalSharesOutstanding" in value) || value["totalSharesOutstanding"] === undefined)
+  if (!("recordDate" in value) || value["recordDate"] === undefined)
     return false;
-  if (!("quorumRequirement" in value) || value["quorumRequirement"] === undefined) return false;
+  if (!("mailingDate" in value) || value["mailingDate"] === undefined)
+    return false;
+  if (!("meetingDate" in value) || value["meetingDate"] === undefined)
+    return false;
+  if (!("meetingType" in value) || value["meetingType"] === undefined)
+    return false;
+  if (!("meetingYear" in value) || value["meetingYear"] === undefined)
+    return false;
+  if (!("distributionType" in value) || value["distributionType"] === undefined)
+    return false;
+  if (!("transferAgent" in value) || value["transferAgent"] === undefined)
+    return false;
+  if (
+    !("totalSharesOutstanding" in value) ||
+    value["totalSharesOutstanding"] === undefined
+  )
+    return false;
+  if (
+    !("quorumRequirement" in value) ||
+    value["quorumRequirement"] === undefined
+  )
+    return false;
   if (!("clientId" in value) || value["clientId"] === undefined) return false;
   return true;
 }
@@ -180,7 +196,7 @@ export function CreateMeetingRequestFromJSON(json: any): CreateMeetingRequest {
 
 export function CreateMeetingRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CreateMeetingRequest {
   if (json == null) {
     return json;
@@ -193,22 +209,31 @@ export function CreateMeetingRequestFromJSONTyped(
     recordDate: new Date(json["recordDate"]),
     mailingDate: new Date(json["mailingDate"]),
     meetingDate: new Date(json["meetingDate"]),
-    cutoffDate: json["cutoffDate"] == null ? undefined : new Date(json["cutoffDate"]),
+    cutoffDate:
+      json["cutoffDate"] == null ? undefined : new Date(json["cutoffDate"]),
     meetingType: json["meetingType"],
     meetingYear: json["meetingYear"],
     distributionType: json["distributionType"],
     transferAgent: json["transferAgent"],
-    employeeStockPlans: json["employeeStockPlans"] == null ? undefined : json["employeeStockPlans"],
-    planAdministrator: json["planAdministrator"] == null ? undefined : json["planAdministrator"],
+    employeeStockPlans:
+      json["employeeStockPlans"] == null
+        ? undefined
+        : json["employeeStockPlans"],
+    planAdministrator:
+      json["planAdministrator"] == null ? undefined : json["planAdministrator"],
     planAdministratorContact:
-      json["planAdministratorContact"] == null ? undefined : json["planAdministratorContact"],
+      json["planAdministratorContact"] == null
+        ? undefined
+        : json["planAdministratorContact"],
     planAdministratorContactEmail:
       json["planAdministratorContactEmail"] == null
         ? undefined
         : json["planAdministratorContactEmail"],
     solicitor: json["solicitor"] == null ? undefined : json["solicitor"],
-    solicitorEmail: json["solicitorEmail"] == null ? undefined : json["solicitorEmail"],
-    ivrDialInNumber: json["ivrDialInNumber"] == null ? undefined : json["ivrDialInNumber"],
+    solicitorEmail:
+      json["solicitorEmail"] == null ? undefined : json["solicitorEmail"],
+    ivrDialInNumber:
+      json["ivrDialInNumber"] == null ? undefined : json["ivrDialInNumber"],
     totalSharesOutstanding: json["totalSharesOutstanding"],
     quorumRequirement: json["quorumRequirement"],
     clientId: json["clientId"],
@@ -221,7 +246,7 @@ export function CreateMeetingRequestToJSON(json: any): CreateMeetingRequest {
 
 export function CreateMeetingRequestToJSONTyped(
   value?: CreateMeetingRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -236,7 +261,9 @@ export function CreateMeetingRequestToJSONTyped(
     mailingDate: value["mailingDate"].toISOString().substring(0, 10),
     meetingDate: value["meetingDate"].toISOString().substring(0, 10),
     cutoffDate:
-      value["cutoffDate"] == null ? undefined : value["cutoffDate"].toISOString().substring(0, 10),
+      value["cutoffDate"] == null
+        ? undefined
+        : value["cutoffDate"].toISOString().substring(0, 10),
     meetingType: value["meetingType"],
     meetingYear: value["meetingYear"],
     distributionType: value["distributionType"],

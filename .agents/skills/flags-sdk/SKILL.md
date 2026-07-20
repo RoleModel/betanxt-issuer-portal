@@ -1,19 +1,7 @@
 ---
 name: flags-sdk
 description: >
-  Guide for feature flags and A/B tests with the Flags SDK (`flags` npm package) and Vercel Flags.
-  Use when: declaring flags with `flag()`, using `vercelAdapter()` or `vercel flags` CLI
-  (add, list, enable, disable, inspect, archive, rm, sdk-keys),
-  setting up providers/adapters (Vercel, Statsig, LaunchDarkly, PostHog, GrowthBook, Hypertune,
-  Edge Config, OpenFeature, Split, Flagsmith, Reflag, Optimizely, or custom adapters),
-  implementing precompute patterns for static pages, setting up `identify`/`dedupe`,
-  integrating Flags Explorer/Toolbar,
-  working with flags in Next.js (App Router, Pages Router, Middleware) or SvelteKit,
-  writing custom adapters, or encrypting/decrypting flag values.
-  Triggers: feature flags, A/B testing, experimentation, flags SDK, flag adapters, precompute,
-  Flags Explorer, feature gates, flag overrides, Vercel Flags, vercel flags CLI, vercel flags add,
-  vercel flags list, vercel flags enable, vercel flags disable,
-  `flags/next`, `flags/sveltekit`, `flags/react`, `@flags-sdk/*`.
+  Guide for feature flags and A/B tests with the Flags SDK (`flags` npm package) and Vercel Flags. Use when: declaring flags with `flag()`, using `vercelAdapter()` or `vercel flags` CLI (add, list, enable, disable, inspect, archive, rm, sdk-keys), setting up providers/adapters (Vercel, Statsig, LaunchDarkly, PostHog, GrowthBook, Hypertune, Edge Config, OpenFeature, Split, Flagsmith, Reflag, Optimizely, or custom adapters), implementing precompute patterns for static pages, setting up `identify`/`dedupe`, integrating Flags Explorer/Toolbar, working with flags in Next.js (App Router, Pages Router, Middleware) or SvelteKit, writing custom adapters, or encrypting/decrypting flag values. Triggers: feature flags, A/B testing, experimentation, flags SDK, flag adapters, precompute, Flags Explorer, feature gates, flag overrides, Vercel Flags, vercel flags CLI, vercel flags add, vercel flags list, vercel flags enable, vercel flags disable, `flags/next`, `flags/sveltekit`, `flags/react`, `@flags-sdk/*`.
 ---
 
 # Flags SDK
@@ -118,8 +106,7 @@ Check the project state to adapt commands and decide which steps you can skip:
 6. **Set up the Vercel Toolbar** (if not already present):
    - Run `pnpm i @vercel/toolbar`
    - Wrap `next.config.ts` with the toolbar plugin
-   - Render `<VercelToolbar />` in the root layout
-     See [references/nextjs.md — Toolbar Setup](references/nextjs.md#toolbar-setup) for the full code.
+   - Render `<VercelToolbar />` in the root layout See [references/nextjs.md — Toolbar Setup](references/nextjs.md#toolbar-setup) for the full code.
 
 7. **Set up Flags Explorer** (if not already present): Create `app/.well-known/vercel/flags/route.ts` — see the [Flags Explorer setup](#flags-explorer-setup) section below.
 
@@ -168,10 +155,12 @@ interface Entities {
   user?: { id: string };
 }
 
-const identify = dedupe(({ cookies }: { cookies: ReadonlyRequestCookies }): Entities => {
-  const userId = cookies.get("user-id")?.value;
-  return { user: userId ? { id: userId } : undefined };
-});
+const identify = dedupe(
+  ({ cookies }: { cookies: ReadonlyRequestCookies }): Entities => {
+    const userId = cookies.get("user-id")?.value;
+    return { user: userId ? { id: userId } : undefined };
+  }
+);
 
 export const dashboardFlag = flag<boolean, Entities>({
   key: "new-dashboard",
@@ -202,16 +191,16 @@ See [references/providers.md](references/providers.md) for all supported adapter
 
 ### Key parameters
 
-| Parameter      | Type                               | Description                                           |
-| -------------- | ---------------------------------- | ----------------------------------------------------- |
-| `key`          | `string`                           | Unique flag identifier                                |
-| `decide`       | `function`                         | Resolves the flag value                               |
-| `defaultValue` | `any`                              | Fallback if `decide` returns undefined or throws      |
-| `description`  | `string`                           | Shown in Flags Explorer                               |
-| `origin`       | `string`                           | URL to manage the flag in provider dashboard          |
-| `options`      | `{ label?: string, value: any }[]` | Possible values, used for precompute + Flags Explorer |
-| `adapter`      | `Adapter`                          | Provider adapter implementing `decide` and `origin`   |
-| `identify`     | `function`                         | Returns evaluation context (entities) for `decide`    |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `key` | `string` | Unique flag identifier |
+| `decide` | `function` | Resolves the flag value |
+| `defaultValue` | `any` | Fallback if `decide` returns undefined or throws |
+| `description` | `string` | Shown in Flags Explorer |
+| `origin` | `string` | URL to manage the flag in provider dashboard |
+| `options` | `{ label?: string, value: any }[]` | Possible values, used for precompute + Flags Explorer |
+| `adapter` | `Adapter` | Provider adapter implementing `decide` and `origin` |
+| `identify` | `function` | Returns evaluation context (entities) for `decide` |
 
 ## Dedupe
 

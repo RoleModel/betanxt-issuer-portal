@@ -3,13 +3,18 @@ import type { NodeResult, RelatedNode } from "axe-core";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-import { createViolationSummary, groupViolationsByRule } from "../../utils/accessibilityUtils";
+import {
+  createViolationSummary,
+  groupViolationsByRule,
+} from "../../utils/accessibilityUtils";
 import { extractWcagCriteria } from "../../utils/wcagMapping";
 
 const BASE_URL = "http://localhost:3000";
 
 // Define test URLs directly (we know these from sitemap)
-const knownUrls = ["http://localhost:3000/WEN/meeting/wen-special-meeting-2026/dashboard/1"];
+const knownUrls = [
+  "http://localhost:3000/WEN/meeting/wen-special-meeting-2026/dashboard/1",
+];
 
 // Only run on chromium to avoid browser multiplication issues
 test.describe("Pages Accessibility Tests", () => {
@@ -55,16 +60,20 @@ test.describe("Pages Accessibility Tests", () => {
       // Convert violations to a readable format for the error message
       const allIssues = [
         ...accessibilityScanResults.violations.map(
-          (v) => `VIOLATION: ${v.description} (${v.impact})`,
+          (v) => `VIOLATION: ${v.description} (${v.impact})`
         ),
         ...accessibilityScanResults.incomplete
           .filter((i) => i.impact === "critical" || i.impact === "serious")
-          .map((i) => `INCOMPLETE: ${i.description} (${i.impact ?? "unknown"})`),
+          .map(
+            (i) => `INCOMPLETE: ${i.description} (${i.impact ?? "unknown"})`
+          ),
       ];
 
       // Generate detailed violation data using utility functions
       const violationData = {
-        groupedByRule: JSON.parse(groupViolationsByRule(accessibilityScanResults)),
+        groupedByRule: JSON.parse(
+          groupViolationsByRule(accessibilityScanResults)
+        ),
         summary: JSON.parse(createViolationSummary(accessibilityScanResults)),
       };
 
@@ -72,7 +81,7 @@ test.describe("Pages Accessibility Tests", () => {
       const detailedViolations = [
         ...accessibilityScanResults.violations,
         ...accessibilityScanResults.incomplete.filter(
-          (i) => i.impact === "critical" || i.impact === "serious",
+          (i) => i.impact === "critical" || i.impact === "serious"
         ),
       ].map((violation) => ({
         impact: violation.impact?.toUpperCase() || "UNKNOWN",
@@ -84,9 +93,12 @@ test.describe("Pages Accessibility Tests", () => {
         tags: violation.tags,
         wcag: extractWcagCriteria(violation.tags),
         elements: violation.nodes.map((node: NodeResult) => ({
-          target: Array.isArray(node.target) ? node.target.join(" ") : String(node.target),
+          target: Array.isArray(node.target)
+            ? node.target.join(" ")
+            : String(node.target),
           html: node.html ?? "HTML not available",
-          failureSummary: node.failureSummary ?? "No specific failure details available",
+          failureSummary:
+            node.failureSummary ?? "No specific failure details available",
           relatedNodes: [...node.any, ...node.all, ...node.none].flatMap(
             (checkResult) =>
               checkResult.relatedNodes?.map((relatedNode: RelatedNode) => ({
@@ -95,7 +107,7 @@ test.describe("Pages Accessibility Tests", () => {
                   : String(relatedNode.target),
                 html: relatedNode.html ?? "HTML not available",
                 failureSummary: "Related node - no failure summary available",
-              })) || [],
+              })) || []
           ),
         })),
       }));
@@ -105,20 +117,21 @@ test.describe("Pages Accessibility Tests", () => {
       } else {
         // Show WCAG criteria summary
         const wcagCriteriaSummary = new Map<string, string[]>();
-        [...accessibilityScanResults.violations, ...accessibilityScanResults.incomplete].forEach(
-          (issue) => {
-            const wcagCriteria = extractWcagCriteria(issue.tags);
-            if (wcagCriteria !== "No WCAG criteria mapped") {
-              const criteria = wcagCriteria.split(", ");
-              criteria.forEach((criterion) => {
-                if (!wcagCriteriaSummary.has(criterion)) {
-                  wcagCriteriaSummary.set(criterion, []);
-                }
-                wcagCriteriaSummary.get(criterion)!.push(issue.id);
-              });
-            }
-          },
-        );
+        [
+          ...accessibilityScanResults.violations,
+          ...accessibilityScanResults.incomplete,
+        ].forEach((issue) => {
+          const wcagCriteria = extractWcagCriteria(issue.tags);
+          if (wcagCriteria !== "No WCAG criteria mapped") {
+            const criteria = wcagCriteria.split(", ");
+            criteria.forEach((criterion) => {
+              if (!wcagCriteriaSummary.has(criterion)) {
+                wcagCriteriaSummary.set(criterion, []);
+              }
+              wcagCriteriaSummary.get(criterion)!.push(issue.id);
+            });
+          }
+        });
       }
 
       // Process passed elements for the reporter
@@ -142,7 +155,7 @@ test.describe("Pages Accessibility Tests", () => {
           violationData,
           elementsTested: accessibilityScanResults.passes.reduce(
             (sum, rule) => sum + rule.nodes.length,
-            0,
+            0
           ),
           testDuration: Date.now() - startTime,
         }),
@@ -152,7 +165,7 @@ test.describe("Pages Accessibility Tests", () => {
       // Fail test if any accessibility issues found - but data is already saved above
       expect(
         allIssues,
-        `Found ${allIssues.length} accessibility issues on ${path}:\n${allIssues.join("\n")}`,
+        `Found ${allIssues.length} accessibility issues on ${path}:\n${allIssues.join("\n")}`
       ).toHaveLength(0);
     });
   }

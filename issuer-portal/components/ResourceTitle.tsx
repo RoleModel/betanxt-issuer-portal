@@ -86,7 +86,7 @@ const PDFPreview = dynamic(
   {
     loading: () => <CircularProgress size={20} />,
     ssr: false,
-  },
+  }
 );
 
 const ResourceTitle: React.FC<ResourceTitleProps> = ({
@@ -117,7 +117,8 @@ const ResourceTitle: React.FC<ResourceTitleProps> = ({
           flexDirection: "column",
           borderRadius: 1,
           backgroundColor: (theme) => theme.vars.palette.background.default,
-          transition: (theme) => theme.transitions.create(["transform", "background-color"]),
+          transition: (theme) =>
+            theme.transitions.create(["transform", "background-color"]),
           "&:hover": {
             transform: "translateY(-1px)",
             backgroundColor: (theme) => theme.vars.palette.background.paper,

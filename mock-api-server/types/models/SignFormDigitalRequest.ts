@@ -47,19 +47,24 @@ export interface SignFormDigitalRequest {
 /**
  * Check if a given object implements the SignFormDigitalRequest interface.
  */
-export function instanceOfSignFormDigitalRequest(value: object): value is SignFormDigitalRequest {
+export function instanceOfSignFormDigitalRequest(
+  value: object
+): value is SignFormDigitalRequest {
   if (!("meetingId" in value) || value["meetingId"] === undefined) return false;
-  if (!("signerUserId" in value) || value["signerUserId"] === undefined) return false;
+  if (!("signerUserId" in value) || value["signerUserId"] === undefined)
+    return false;
   return true;
 }
 
-export function SignFormDigitalRequestFromJSON(json: any): SignFormDigitalRequest {
+export function SignFormDigitalRequestFromJSON(
+  json: any
+): SignFormDigitalRequest {
   return SignFormDigitalRequestFromJSONTyped(json, false);
 }
 
 export function SignFormDigitalRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): SignFormDigitalRequest {
   if (json == null) {
     return json;
@@ -67,18 +72,22 @@ export function SignFormDigitalRequestFromJSONTyped(
   return {
     meetingId: json["meetingId"],
     signerUserId: json["signerUserId"],
-    signatureReason: json["signatureReason"] == null ? undefined : json["signatureReason"],
-    replaceExisting: json["replaceExisting"] == null ? undefined : json["replaceExisting"],
+    signatureReason:
+      json["signatureReason"] == null ? undefined : json["signatureReason"],
+    replaceExisting:
+      json["replaceExisting"] == null ? undefined : json["replaceExisting"],
   };
 }
 
-export function SignFormDigitalRequestToJSON(json: any): SignFormDigitalRequest {
+export function SignFormDigitalRequestToJSON(
+  json: any
+): SignFormDigitalRequest {
   return SignFormDigitalRequestToJSONTyped(json, false);
 }
 
 export function SignFormDigitalRequestToJSONTyped(
   value?: SignFormDigitalRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

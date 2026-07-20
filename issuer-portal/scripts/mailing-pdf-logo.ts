@@ -13,7 +13,9 @@ function publicFile(relPath: string): string {
   return path.join(process.cwd(), "public", relPath.replace(/^\//, ""));
 }
 
-async function rasterizeLogoFile(filePath: string): Promise<RasterizedLogo | null> {
+async function rasterizeLogoFile(
+  filePath: string
+): Promise<RasterizedLogo | null> {
   if (!fs.existsSync(filePath)) return null;
 
   try {
@@ -75,7 +77,9 @@ function collectHeaderCandidates(cfg: BrandConfig): string[] {
 }
 
 /** Logos for light/white backgrounds (default Brandfetch light-theme assets). */
-export async function loadLogoForBrand(cfg: BrandConfig): Promise<RasterizedLogo | null> {
+export async function loadLogoForBrand(
+  cfg: BrandConfig
+): Promise<RasterizedLogo | null> {
   for (const rel of collectLightCandidates(cfg)) {
     const loaded = await rasterizeLogoFile(publicFile(rel));
     if (loaded) return loaded;
@@ -84,7 +88,9 @@ export async function loadLogoForBrand(cfg: BrandConfig): Promise<RasterizedLogo
 }
 
 /** Light logos for dark/primary-colored PDF headers (Brandfetch dark-theme assets). */
-export async function loadHeaderLogoForBrand(cfg: BrandConfig): Promise<RasterizedLogo | null> {
+export async function loadHeaderLogoForBrand(
+  cfg: BrandConfig
+): Promise<RasterizedLogo | null> {
   for (const rel of collectHeaderCandidates(cfg)) {
     const loaded = await rasterizeLogoFile(publicFile(rel));
     if (loaded) return loaded;

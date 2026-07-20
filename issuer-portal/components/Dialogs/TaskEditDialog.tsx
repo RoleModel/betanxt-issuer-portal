@@ -2,7 +2,11 @@
 
 import type { FileRejection } from "react-dropzone";
 
-import { Add as AddIcon, Close as CloseIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import {
+  Add as AddIcon,
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+} from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -133,9 +137,21 @@ const statusOptions: TaskStatus[] = [
   "N/A",
 ];
 
-const typeOptions: TaskType[] = ["upload", "signature", "external", "authorize", "approve"];
+const typeOptions: TaskType[] = [
+  "upload",
+  "signature",
+  "external",
+  "authorize",
+  "approve",
+];
 
-const actionOptions: LinkAction[] = ["download", "upload", "sign", "authorize", "external"];
+const actionOptions: LinkAction[] = [
+  "download",
+  "upload",
+  "sign",
+  "authorize",
+  "external",
+];
 
 export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   open,
@@ -209,7 +225,9 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     if (!task || !enableLinkEditing || !task.links) return [];
 
     // Convert links object to array if needed
-    const linksArray = Array.isArray(task.links) ? task.links : Object.values(task.links);
+    const linksArray = Array.isArray(task.links)
+      ? task.links
+      : Object.values(task.links);
 
     if (!Array.isArray(linksArray) || linksArray.length === 0) return [];
 
@@ -271,9 +289,16 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     setLinks((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  const handleLinkChange = useCallback((index: number, field: keyof TaskLink, value: string) => {
-    setLinks((prev) => prev.map((link, i) => (i === index ? { ...link, [field]: value } : link)));
-  }, []);
+  const handleLinkChange = useCallback(
+    (index: number, field: keyof TaskLink, value: string) => {
+      setLinks((prev) =>
+        prev.map((link, i) =>
+          i === index ? { ...link, [field]: value } : link
+        )
+      );
+    },
+    []
+  );
 
   // Handle file upload with BNFileDropzone
   const handleFilesSelected = useCallback(
@@ -312,24 +337,33 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
         setUploadingFile(false);
       }
     },
-    [task, loadAvailableDocuments, createNewDocument],
+    [task, loadAvailableDocuments, createNewDocument]
   );
 
   // Handle file upload rejections
-  const handleFileRejections = useCallback((fileRejections: FileRejection[]) => {
-    if (fileRejections.length > 0) {
-      const rejection = fileRejections[0];
-      if (rejection.errors?.some((e: FileRejectionError) => e.code === "file-too-large")) {
-        setError("File is too large. Please upload a file smaller than 5MB.");
-      } else if (
-        rejection.errors?.some((e: FileRejectionError) => e.code === "file-invalid-type")
-      ) {
-        setError("Invalid file type. Please upload a PDF file.");
-      } else {
-        setError("File upload failed. Please try again.");
+  const handleFileRejections = useCallback(
+    (fileRejections: FileRejection[]) => {
+      if (fileRejections.length > 0) {
+        const rejection = fileRejections[0];
+        if (
+          rejection.errors?.some(
+            (e: FileRejectionError) => e.code === "file-too-large"
+          )
+        ) {
+          setError("File is too large. Please upload a file smaller than 5MB.");
+        } else if (
+          rejection.errors?.some(
+            (e: FileRejectionError) => e.code === "file-invalid-type"
+          )
+        ) {
+          setError("Invalid file type. Please upload a PDF file.");
+        } else {
+          setError("File upload failed. Please try again.");
+        }
       }
-    }
-  }, []);
+    },
+    []
+  );
 
   const handleSave = async () => {
     if (!task) return;
@@ -382,7 +416,12 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
       onClose();
     } catch (err) {
       let errorMessage = "Failed to update task";
-      if (err && typeof err === "object" && "message" in err && typeof err.message === "string") {
+      if (
+        err &&
+        typeof err === "object" &&
+        "message" in err &&
+        typeof err.message === "string"
+      ) {
         errorMessage = err.message;
       } else if (err instanceof Error) {
         errorMessage = err.message;
@@ -412,7 +451,12 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     return (
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
         <DialogContent>
-          <Box display="flex" justifyContent="center" alignItems="center" py={4}>
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            py={4}
+          >
             <Typography>Loading...</Typography>
           </Box>
         </DialogContent>
@@ -421,11 +465,21 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth keepMounted={false}>
+    <Dialog
+      open={open}
+      onClose={handleCancel}
+      maxWidth="sm"
+      fullWidth
+      keepMounted={false}
+    >
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           Edit Task
-          <IconButton onClick={handleCancel} size="small" sx={{ color: "text.secondary" }}>
+          <IconButton
+            onClick={handleCancel}
+            size="small"
+            sx={{ color: "text.secondary" }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
@@ -552,7 +606,10 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
           {/* Document Management Section - Only show for signature tasks */}
           {formData.type === "signature" && (
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 500, mb: 2 }}>
+              <Typography
+                variant="h6"
+                sx={{ fontSize: "16px", fontWeight: 500, mb: 2 }}
+              >
                 Document
               </Typography>
 
@@ -586,7 +643,9 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
               {selectedDocumentId && (
                 <Box sx={{ mb: 2 }}>
                   {(() => {
-                    const selectedDoc = availableDocuments.find((d) => d.id === selectedDocumentId);
+                    const selectedDoc = availableDocuments.find(
+                      (d) => d.id === selectedDocumentId
+                    );
                     if (!selectedDoc) return null;
 
                     return (
@@ -595,7 +654,8 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                           <strong>{selectedDoc.title}</strong>
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          File: {selectedDoc.filePath ?? "N/A"} • Type: {selectedDoc.type}
+                          File: {selectedDoc.filePath ?? "N/A"} • Type:{" "}
+                          {selectedDoc.type}
                         </Typography>
                         <br />
                         <Typography variant="caption" color="text.secondary">
@@ -632,11 +692,23 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
           {/* Conditional Link Editing Section */}
           {enableLinkEditing && (
             <Box sx={{ mt: 3 }}>
-              <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 500 }}>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{ mb: 2 }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "16px", fontWeight: 500 }}
+                >
                   Links
                 </Typography>
-                <Button startIcon={<AddIcon />} onClick={handleAddLink} variant="text">
+                <Button
+                  startIcon={<AddIcon />}
+                  onClick={handleAddLink}
+                  variant="text"
+                >
                   Add Link
                 </Button>
               </Box>
@@ -656,25 +728,38 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                               <TextField
                                 label="Link Label"
                                 value={link.label}
-                                onChange={(e) => handleLinkChange(index, "label", e.target.value)}
+                                onChange={(e) =>
+                                  handleLinkChange(
+                                    index,
+                                    "label",
+                                    e.target.value
+                                  )
+                                }
                                 size="small"
                                 fullWidth
                                 required
                               />
                               <FormControl size="small" sx={{ minWidth: 120 }}>
-                                <InputLabel id="action-label">Action</InputLabel>
+                                <InputLabel id="action-label">
+                                  Action
+                                </InputLabel>
                                 <Select
                                   labelId="action-label"
                                   size="small"
                                   value={link.action ?? ""}
                                   label="Action"
                                   onChange={(e) =>
-                                    handleLinkChange(index, "action", e.target.value)
+                                    handleLinkChange(
+                                      index,
+                                      "action",
+                                      e.target.value
+                                    )
                                   }
                                 >
                                   {actionOptions.map((action) => (
                                     <MenuItem key={action} value={action}>
-                                      {action.charAt(0).toUpperCase() + action.slice(1)}
+                                      {action.charAt(0).toUpperCase() +
+                                        action.slice(1)}
                                     </MenuItem>
                                   ))}
                                 </Select>
@@ -683,7 +768,9 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
                             <TextField
                               label="URL (optional)"
                               value={link.url ?? ""}
-                              onChange={(e) => handleLinkChange(index, "url", e.target.value)}
+                              onChange={(e) =>
+                                handleLinkChange(index, "url", e.target.value)
+                              }
                               size="small"
                               fullWidth
                               placeholder="https://..."

@@ -25,7 +25,10 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 
-import type { TabulationFilters, TabulationPosition } from "@/hooks/useTabulationInsights";
+import type {
+  TabulationFilters,
+  TabulationPosition,
+} from "@/hooks/useTabulationInsights";
 import type { ProposalVoting } from "@/types/phases";
 
 import VotingTabulationTable from "@/components/Meeting/VotingTabulationTable";
@@ -175,7 +178,11 @@ export default function ProposalDetailsCard({
       </Button>
       {selectedTab === 1 ? (
         <>
-          <ButtonGroup variant="outlined" color="primary" disabled={isExporting}>
+          <ButtonGroup
+            variant="outlined"
+            color="primary"
+            disabled={isExporting}
+          >
             <Button
               size="large"
               onClick={() => void handleExportPdf()}
@@ -188,8 +195,14 @@ export default function ProposalDetailsCard({
               <ArrowDropDownIcon />
             </Button>
           </ButtonGroup>
-          <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose}>
-            <MenuItem onClick={() => void handleExportPdf()}>Export as PDF</MenuItem>
+          <Menu
+            anchorEl={menuAnchorEl}
+            open={Boolean(menuAnchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={() => void handleExportPdf()}>
+              Export as PDF
+            </MenuItem>
             <MenuItem onClick={handleExportXlsx}>Export as Excel</MenuItem>
           </Menu>
         </>
@@ -247,7 +260,8 @@ export default function ProposalDetailsCard({
                 onChange={(event) =>
                   onFiltersChange({
                     ...filters,
-                    holderType: event.target.value as TabulationFilters["holderType"],
+                    holderType: event.target
+                      .value as TabulationFilters["holderType"],
                   })
                 }
                 size="small"
@@ -404,7 +418,10 @@ export default function ProposalDetailsCard({
           <Button variant="outlined" onClick={resetFilters}>
             Clear Filters
           </Button>
-          <Button variant="contained" onClick={() => setFilterDialogOpen(false)}>
+          <Button
+            variant="contained"
+            onClick={() => setFilterDialogOpen(false)}
+          >
             Filter
           </Button>
         </DialogActions>

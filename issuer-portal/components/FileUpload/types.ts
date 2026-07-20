@@ -74,4 +74,11 @@ export interface FilePreviewProps {
 }
 
 export const DEFAULT_MAX_SIZE = 5 * 1024 * 1024; // 5MB
-export const DEFAULT_ACCEPTED_TYPES = [".doc", ".docx", ".pdf", ".ppt", ".csv", ".pptx"];
+export const DEFAULT_ACCEPTED_TYPES = [
+  ".doc",
+  ".docx",
+  ".pdf",
+  ".ppt",
+  ".csv",
+  ".pptx",
+];

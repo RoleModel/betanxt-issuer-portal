@@ -39,3 +39,5 @@ mock-api-server/.DS_Store
 .playwright-cli/
 mock-api-server/.DS_Store
 docs/Proxy Card Design Client.pdf
+mock-api-server/playwright-report/*
+issuer-portal/playwright-upload-test.pdf

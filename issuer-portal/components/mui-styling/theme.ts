@@ -314,7 +314,7 @@ const STATUS_COLORS: {
 export const getStatusBorderColor = (
   status: string | null | undefined,
   phaseColor: string,
-  theme: Theme,
+  theme: Theme
 ) => {
   if (!status) {
     return phaseColor;
@@ -340,17 +340,26 @@ const getClientBranding = (ticker?: string) => {
     const branding = clientBranding[0];
     return {
       ...branding,
-      primaryContrastText: getContrastRatio(branding.primaryColor, "#fff") > 4.5 ? "#fff" : "#111",
+      primaryContrastText:
+        getContrastRatio(branding.primaryColor, "#fff") > 4.5 ? "#fff" : "#111",
       secondaryContrastText:
-        getContrastRatio(branding.secondaryColor, "#fff") > 4.5 ? "#fff" : "#111",
+        getContrastRatio(branding.secondaryColor, "#fff") > 4.5
+          ? "#fff"
+          : "#111",
       tertiaryContrastText:
-        getContrastRatio(branding.tertiaryColor, "#fff") > 4.5 ? "#fff" : "#111",
+        getContrastRatio(branding.tertiaryColor, "#fff") > 4.5
+          ? "#fff"
+          : "#111",
     };
   }
 
   const branding = clientBranding.find(
-    (b: { ticker: string; primaryColor: string; secondaryColor: string; tertiaryColor: string }) =>
-      b.ticker.toLowerCase() === ticker.toLowerCase(),
+    (b: {
+      ticker: string;
+      primaryColor: string;
+      secondaryColor: string;
+      tertiaryColor: string;
+    }) => b.ticker.toLowerCase() === ticker.toLowerCase()
   );
 
   // Fall back to brandConfig colors for the 50+ companies not in the hardcoded list
@@ -366,11 +375,17 @@ const getClientBranding = (ticker?: string) => {
       return {
         ...fallbackBranding,
         primaryContrastText:
-          getContrastRatio(fallbackBranding.primaryColor, "#fff") > 4.5 ? "#fff" : "#111",
+          getContrastRatio(fallbackBranding.primaryColor, "#fff") > 4.5
+            ? "#fff"
+            : "#111",
         secondaryContrastText:
-          getContrastRatio(fallbackBranding.secondaryColor, "#fff") > 4.5 ? "#fff" : "#111",
+          getContrastRatio(fallbackBranding.secondaryColor, "#fff") > 4.5
+            ? "#fff"
+            : "#111",
         tertiaryContrastText:
-          getContrastRatio(fallbackBranding.tertiaryColor, "#fff") > 4.5 ? "#fff" : "#111",
+          getContrastRatio(fallbackBranding.tertiaryColor, "#fff") > 4.5
+            ? "#fff"
+            : "#111",
       };
     }
   }
@@ -380,11 +395,17 @@ const getClientBranding = (ticker?: string) => {
   return {
     ...selectedBranding,
     primaryContrastText:
-      getContrastRatio(selectedBranding.primaryColor, "#fff") > 4.5 ? "#fff" : "#111",
+      getContrastRatio(selectedBranding.primaryColor, "#fff") > 4.5
+        ? "#fff"
+        : "#111",
     secondaryContrastText:
-      getContrastRatio(selectedBranding.secondaryColor, "#fff") > 4.5 ? "#fff" : "#111",
+      getContrastRatio(selectedBranding.secondaryColor, "#fff") > 4.5
+        ? "#fff"
+        : "#111",
     tertiaryContrastText:
-      getContrastRatio(selectedBranding.tertiaryColor, "#fff") > 4.5 ? "#fff" : "#111",
+      getContrastRatio(selectedBranding.tertiaryColor, "#fff") > 4.5
+        ? "#fff"
+        : "#111",
   };
 };
 
@@ -799,7 +820,8 @@ export const createClientTheme = (ticker?: string) => {
               lineHeight: theme.typography.caption.lineHeight,
             },
             "& .MuiTableFooter-root": {
-              backgroundColor: theme.vars?.palette.dataGridPagination.backgroundFill,
+              backgroundColor:
+                theme.vars?.palette.dataGridPagination.backgroundFill,
               ...theme.typography.caption,
               "& .MuiTableCell-root": {
                 ...theme.typography.caption,
@@ -838,9 +860,10 @@ export const createClientTheme = (ticker?: string) => {
             "& .MuiInputLabel-outlined.Mui-focused": {
               color: theme.vars.palette.primary.main,
             },
-            "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: theme.vars.palette.primary.main,
-            },
+            "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+              {
+                borderColor: theme.vars.palette.primary.main,
+              },
           }),
         },
       },

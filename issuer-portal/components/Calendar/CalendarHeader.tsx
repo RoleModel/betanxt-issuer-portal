@@ -108,7 +108,9 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
   onExportPdf,
 }) => {
   const [searchExpanded, setSearchExpanded] = useState(false);
-  const [shareMenuAnchor, setShareMenuAnchor] = useState<null | HTMLElement>(null);
+  const [shareMenuAnchor, setShareMenuAnchor] = useState<null | HTMLElement>(
+    null
+  );
   const shareMenuOpen = Boolean(shareMenuAnchor);
 
   const handleSearchToggle = () => {
@@ -173,9 +175,17 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
           </Typography>
         </Box>
 
-        <Box display="flex" flex="1" justifyContent="flex-end" alignItems="center" gap={1.5}>
+        <Box
+          display="flex"
+          flex="1"
+          justifyContent="flex-end"
+          alignItems="center"
+          gap={1.5}
+        >
           {/* Search */}
-          <Box sx={{ position: "relative", display: "flex", alignItems: "center" }}>
+          <Box
+            sx={{ position: "relative", display: "flex", alignItems: "center" }}
+          >
             <IconButton
               onClick={handleSearchToggle}
               aria-label={searchExpanded ? "Close search" : "Open search"}
@@ -183,7 +193,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 color: (theme) => theme.vars?.palette?.common.white,
                 p: 1,
                 "&:hover": {
-                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                  background: (theme) =>
+                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -228,7 +239,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                   width: 250,
                   ml: 1,
                   "& .MuiOutlinedInput-root": {
-                    backgroundColor: (theme) => theme.vars?.palette?.appSwitcher?.background,
+                    backgroundColor: (theme) =>
+                      theme.vars?.palette?.appSwitcher?.background,
                     color: (theme) => theme.vars?.palette?.common.white,
                     fontSize: "0.875rem",
                     height: 40,
@@ -240,7 +252,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                       borderColor: "rgba(255,255,255,0.5)",
                     },
                     "&.Mui-focused fieldset": {
-                      borderColor: (theme) => theme.vars?.palette?.primary.light,
+                      borderColor: (theme) =>
+                        theme.vars?.palette?.primary.light,
                       borderWidth: 2,
                     },
                   },
@@ -303,7 +316,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 alignItems: "center",
                 justifyContent: "center",
                 "&:hover": {
-                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                  background: (theme) =>
+                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -327,7 +341,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 alignItems: "center",
                 justifyContent: "center",
                 "&:hover": {
-                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                  background: (theme) =>
+                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >
@@ -348,7 +363,8 @@ export const CalendarHeader: React.FC<CalendarHeaderPropsInternal> = ({
                 alignItems: "center",
                 justifyContent: "center",
                 "&:hover": {
-                  background: (theme) => `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
+                  background: (theme) =>
+                    `rgba(${theme.vars?.palette?.primary.lightChannel} / 0.2)`,
                 },
               }}
             >

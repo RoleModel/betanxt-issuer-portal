@@ -54,14 +54,16 @@ export class UserRoutes {
     ];
 
     // Check if the route requires permissions (standard routes)
-    const requiredPermissions = Object.entries(routePermissions).find(([route]) =>
-      pathname.startsWith(route),
+    const requiredPermissions = Object.entries(routePermissions).find(
+      ([route]) => pathname.startsWith(route)
     )?.[1];
 
     // If no standard route match, check ticker-based route patterns
     let tickerPermissions: string[] | undefined;
     if (!requiredPermissions) {
-      const matchingTickerRoute = tickerRoutePatterns.find(({ pattern }) => pattern.test(pathname));
+      const matchingTickerRoute = tickerRoutePatterns.find(({ pattern }) =>
+        pattern.test(pathname)
+      );
       tickerPermissions = matchingTickerRoute?.permissions;
     }
 
@@ -74,7 +76,7 @@ export class UserRoutes {
 
     // Check if user has all required permissions
     const permissionChecks = await Promise.all(
-      permissions.map((permission) => allowedTo(permission as Permission)),
+      permissions.map((permission) => allowedTo(permission as Permission))
     );
     return permissionChecks.every(Boolean);
   }

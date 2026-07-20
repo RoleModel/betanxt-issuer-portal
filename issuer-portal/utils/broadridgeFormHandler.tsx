@@ -32,7 +32,7 @@ interface FormHandlerProps {
   onDocumentOpen: (
     documentUrl: string,
     documentId: string,
-    signatureAreas: SignatureArea[],
+    signatureAreas: SignatureArea[]
   ) => void;
   clientData?: ClientData;
 }
@@ -45,7 +45,10 @@ export const handleFormDownload = async (clientData?: ClientData) => {
   downloadLink.click();
 };
 
-export const handleFormSign = async ({ onDocumentOpen, clientData }: FormHandlerProps) => {
+export const handleFormSign = async ({
+  onDocumentOpen,
+  clientData,
+}: FormHandlerProps) => {
   try {
     // Generate the PDF form
     const pdfDataUri = await generatePDFForm(clientData);

@@ -49,17 +49,21 @@ export interface UpdateDocumentRequest {
 /**
  * Check if a given object implements the UpdateDocumentRequest interface.
  */
-export function instanceOfUpdateDocumentRequest(value: object): value is UpdateDocumentRequest {
+export function instanceOfUpdateDocumentRequest(
+  value: object
+): value is UpdateDocumentRequest {
   return true;
 }
 
-export function UpdateDocumentRequestFromJSON(json: any): UpdateDocumentRequest {
+export function UpdateDocumentRequestFromJSON(
+  json: any
+): UpdateDocumentRequest {
   return UpdateDocumentRequestFromJSONTyped(json, false);
 }
 
 export function UpdateDocumentRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): UpdateDocumentRequest {
   if (json == null) {
     return json;
@@ -67,7 +71,10 @@ export function UpdateDocumentRequestFromJSONTyped(
   return {
     title: json["title"] == null ? undefined : json["title"],
     description: json["description"] == null ? undefined : json["description"],
-    status: json["status"] == null ? undefined : DocumentStatusFromJSON(json["status"]),
+    status:
+      json["status"] == null
+        ? undefined
+        : DocumentStatusFromJSON(json["status"]),
   };
 }
 
@@ -77,7 +84,7 @@ export function UpdateDocumentRequestToJSON(json: any): UpdateDocumentRequest {
 
 export function UpdateDocumentRequestToJSONTyped(
   value?: UpdateDocumentRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

@@ -91,11 +91,11 @@ Adjust patterns centrally in `issuer-portal/utils/supabaseStorage.ts` if needed.
 
 ## 10. Troubleshooting
 
-| Symptom               | Likely Cause                    | Fix                                                          |
-| --------------------- | ------------------------------- | ------------------------------------------------------------ |
-| 403 on storage upload | Missing policy or wrong bucket  | Verify migration applied & policies present in `pg_policies` |
-| Bucket not found      | Migration skipped               | Run `npm run setup:storage`                                  |
-| RLS insert failures   | Document table policies missing | Add / adjust RLS policies in upcoming DB migration           |
+| Symptom | Likely Cause | Fix |
+| --- | --- | --- |
+| 403 on storage upload | Missing policy or wrong bucket | Verify migration applied & policies present in `pg_policies` |
+| Bucket not found | Migration skipped | Run `npm run setup:storage` |
+| RLS insert failures | Document table policies missing | Add / adjust RLS policies in upcoming DB migration |
 
 ## 11. Remote Dev Sync
 

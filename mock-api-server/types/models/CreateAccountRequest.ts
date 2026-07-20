@@ -41,9 +41,12 @@ export interface CreateAccountRequest {
 /**
  * Check if a given object implements the CreateAccountRequest interface.
  */
-export function instanceOfCreateAccountRequest(value: object): value is CreateAccountRequest {
+export function instanceOfCreateAccountRequest(
+  value: object
+): value is CreateAccountRequest {
   if (!("name" in value) || value["name"] === undefined) return false;
-  if (!("primaryContact" in value) || value["primaryContact"] === undefined) return false;
+  if (!("primaryContact" in value) || value["primaryContact"] === undefined)
+    return false;
   if (!("clientId" in value) || value["clientId"] === undefined) return false;
   return true;
 }
@@ -54,7 +57,7 @@ export function CreateAccountRequestFromJSON(json: any): CreateAccountRequest {
 
 export function CreateAccountRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CreateAccountRequest {
   if (json == null) {
     return json;
@@ -72,7 +75,7 @@ export function CreateAccountRequestToJSON(json: any): CreateAccountRequest {
 
 export function CreateAccountRequestToJSONTyped(
   value?: CreateAccountRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

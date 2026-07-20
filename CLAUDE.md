@@ -4,13 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Project**: BetaNXT Issuer Portal - Proxy Voting & Shareholder Meeting Management System
-**Architecture**: Turborepo monorepo with Next.js 15+ applications
-**Language**: TypeScript 5.x with React 19+
-**Database**: PostgreSQL with Supabase (local development)
-**Authentication**: NextAuth.js v5 (beta) with role-based access control
-**UI Framework**: MUI 7.3+ with @rolemodel/betanxt-design-system
-**Testing**: Playwright for E2E testing
+**Project**: BetaNXT Issuer Portal - Proxy Voting & Shareholder Meeting Management System **Architecture**: Turborepo monorepo with Next.js 15+ applications **Language**: TypeScript 5.x with React 19+ **Database**: PostgreSQL with Supabase (local development) **Authentication**: NextAuth.js v5 (beta) with role-based access control **UI Framework**: MUI 7.3+ with @rolemodel/betanxt-design-system **Testing**: Playwright for E2E testing
 
 ## Monorepo Structure
 
@@ -349,9 +343,7 @@ import "./styles.css";
 
 ---
 
-**Node Version**: 24.0.0+ (enforced via engines)
-**Package Manager**: pnpm 11.5.1
-**Last Updated**: June 2, 2026
+**Node Version**: 24.0.0+ (enforced via engines) **Package Manager**: pnpm 11.5.1 **Last Updated**: June 2, 2026
 
 - Do not use 'any' type assertions. This can cause unintended bugs within our system because any could be anything, the Typescript type checker won't type check the code when any is involved. You could end up in a situation where you expected a number for customer balance calculation, and instead got something completely different, at the very least providing an unreliable experience to users of the system or could be worse.
 - **CRITICAL** Do not use ANY type inferences.

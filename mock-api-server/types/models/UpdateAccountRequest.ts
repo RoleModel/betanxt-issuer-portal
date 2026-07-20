@@ -41,7 +41,9 @@ export interface UpdateAccountRequest {
 /**
  * Check if a given object implements the UpdateAccountRequest interface.
  */
-export function instanceOfUpdateAccountRequest(value: object): value is UpdateAccountRequest {
+export function instanceOfUpdateAccountRequest(
+  value: object
+): value is UpdateAccountRequest {
   return true;
 }
 
@@ -51,14 +53,15 @@ export function UpdateAccountRequestFromJSON(json: any): UpdateAccountRequest {
 
 export function UpdateAccountRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): UpdateAccountRequest {
   if (json == null) {
     return json;
   }
   return {
     name: json["name"] == null ? undefined : json["name"],
-    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
+    primaryContact:
+      json["primaryContact"] == null ? undefined : json["primaryContact"],
     clientId: json["clientId"] == null ? undefined : json["clientId"],
   };
 }
@@ -69,7 +72,7 @@ export function UpdateAccountRequestToJSON(json: any): UpdateAccountRequest {
 
 export function UpdateAccountRequestToJSONTyped(
   value?: UpdateAccountRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

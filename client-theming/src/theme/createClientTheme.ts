@@ -10,7 +10,12 @@
  * @module theme/createClientTheme
  */
 
-import type { PaletteMode, PaletteOptions, Theme, ThemeOptions } from "@mui/material/styles";
+import type {
+  PaletteMode,
+  PaletteOptions,
+  Theme,
+  ThemeOptions,
+} from "@mui/material/styles";
 
 import { createTheme, darken, lighten } from "@mui/material/styles";
 
@@ -51,7 +56,9 @@ const FALLBACK_COLORS: Required<BrandColors> = {
 
 /** Type guard: is this input a {@link BrandConfig}? */
 function isBrandConfig(input: ClientThemeInput): input is BrandConfig {
-  return typeof input === "object" && "companyName" in input && "domain" in input;
+  return (
+    typeof input === "object" && "companyName" in input && "domain" in input
+  );
 }
 
 /**
@@ -60,7 +67,9 @@ function isBrandConfig(input: ClientThemeInput): input is BrandConfig {
  * @param input - Colors, a brand config, or a ticker string.
  * @returns Resolved primary/secondary/tertiary colors (never partial).
  */
-export function resolveBrandColors(input: ClientThemeInput): Required<BrandColors> {
+export function resolveBrandColors(
+  input: ClientThemeInput
+): Required<BrandColors> {
   if (typeof input === "string") {
     const config = getBrandConfigByTicker(input);
     if (!config) return { ...FALLBACK_COLORS };
@@ -82,7 +91,8 @@ export function resolveBrandColors(input: ClientThemeInput): Required<BrandColor
   return {
     primaryColor: input.primaryColor,
     secondaryColor: input.secondaryColor ?? input.primaryColor,
-    tertiaryColor: input.tertiaryColor ?? input.secondaryColor ?? input.primaryColor,
+    tertiaryColor:
+      input.tertiaryColor ?? input.secondaryColor ?? input.primaryColor,
   };
 }
 
@@ -95,7 +105,10 @@ export function resolveBrandColors(input: ClientThemeInput): Required<BrandColor
  * @param mode - `"light"` or `"dark"`.
  * @returns Palette options for the requested mode.
  */
-function buildClientPalette(colors: Required<BrandColors>, mode: PaletteMode): PaletteOptions {
+function buildClientPalette(
+  colors: Required<BrandColors>,
+  mode: PaletteMode
+): PaletteOptions {
   return {
     mode,
     primary: {
@@ -123,7 +136,9 @@ function buildClientPalette(colors: Required<BrandColors>, mode: PaletteMode): P
  * @param input - Colors, a brand config, or a ticker string.
  * @returns Theme options with `colorSchemes.light` and `colorSchemes.dark`.
  */
-export function createClientThemeOptions(input: ClientThemeInput): ThemeOptions {
+export function createClientThemeOptions(
+  input: ClientThemeInput
+): ThemeOptions {
   const colors = resolveBrandColors(input);
   return {
     cssVariables: { colorSchemeSelector: "class" },
@@ -158,7 +173,12 @@ export function createClientThemeOptions(input: ClientThemeInput): ThemeOptions 
  * const branded = createClientTheme(brandConfig, { typography: { fontFamily: "Inter" } });
  * ```
  */
-export function createClientTheme(input: ClientThemeInput, baseOptions?: ThemeOptions): Theme {
+export function createClientTheme(
+  input: ClientThemeInput,
+  baseOptions?: ThemeOptions
+): Theme {
   const clientOptions = createClientThemeOptions(input);
-  return baseOptions ? createTheme(baseOptions, clientOptions) : createTheme(clientOptions);
+  return baseOptions
+    ? createTheme(baseOptions, clientOptions)
+    : createTheme(clientOptions);
 }

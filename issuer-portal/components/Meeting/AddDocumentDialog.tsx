@@ -68,8 +68,11 @@ export function AddDocumentDialog({
   const fetchDSMDocuments = async () => {
     try {
       setIsLoading(true);
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`);
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/documents`
+      );
 
       if (response.ok) {
         const documents = await response.json();
@@ -77,7 +80,8 @@ export function AddDocumentDialog({
 
         const dsmDocs = documents.filter(
           (_doc: DSMDocument) =>
-            _doc.title?.includes("DSM") || _doc.title?.includes("Digital Shareholder Meeting"),
+            _doc.title?.includes("DSM") ||
+            _doc.title?.includes("Digital Shareholder Meeting")
         );
         setDsmDocuments(dsmDocs);
         setIsUploadMode(dsmDocs.length === 0);
@@ -109,7 +113,9 @@ export function AddDocumentDialog({
 
   const handleAssignExistingDocument = () => {
     if (selectedDocumentId) {
-      const selectedDoc = dsmDocuments.find((doc) => doc.id === selectedDocumentId);
+      const selectedDoc = dsmDocuments.find(
+        (doc) => doc.id === selectedDocumentId
+      );
       if (selectedDoc) {
         onDocumentAdded(selectedDoc.title, selectedDoc.status ?? "uploaded");
         handleClose();
@@ -124,17 +130,21 @@ export function AddDocumentDialog({
       // Simulate upload process
       const file = uploadFiles[0];
       setUploadFiles((prev) =>
-        prev.map((f) => (f.id === file.id ? { ...f, status: "uploading", progress: 0 } : f)),
+        prev.map((f) =>
+          f.id === file.id ? { ...f, status: "uploading", progress: 0 } : f
+        )
       );
 
       // Simulate progress
       for (let progress = 0; progress <= 100; progress += 20) {
         await new Promise((resolve) => setTimeout(resolve, 200));
-        setUploadFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, progress } : f)));
+        setUploadFiles((prev) =>
+          prev.map((f) => (f.id === file.id ? { ...f, progress } : f))
+        );
       }
 
       setUploadFiles((prev) =>
-        prev.map((f) => (f.id === file.id ? { ...f, status: "complete" } : f)),
+        prev.map((f) => (f.id === file.id ? { ...f, status: "complete" } : f))
       );
 
       // Add document to participant
@@ -147,8 +157,10 @@ export function AddDocumentDialog({
       console.error("Upload failed:", error);
       setUploadFiles((prev) =>
         prev.map((f) =>
-          f.id === uploadFiles[0].id ? { ...f, status: "error", error: "Upload failed" } : f,
-        ),
+          f.id === uploadFiles[0].id
+            ? { ...f, status: "error", error: "Upload failed" }
+            : f
+        )
       );
     }
   };
@@ -221,7 +233,11 @@ export function AddDocumentDialog({
               Or upload a new document:
             </Typography>
 
-            <Button variant="outlined" onClick={() => setIsUploadMode(true)} fullWidth>
+            <Button
+              variant="outlined"
+              onClick={() => setIsUploadMode(true)}
+              fullWidth
+            >
               Upload New Document
             </Button>
           </Box>
@@ -235,7 +251,10 @@ export function AddDocumentDialog({
           <Button
             onClick={handleUploadNewDocument}
             variant="contained"
-            disabled={uploadFiles.length === 0 || uploadFiles.some((f) => f.status === "uploading")}
+            disabled={
+              uploadFiles.length === 0 ||
+              uploadFiles.some((f) => f.status === "uploading")
+            }
           >
             Upload & Assign
           </Button>

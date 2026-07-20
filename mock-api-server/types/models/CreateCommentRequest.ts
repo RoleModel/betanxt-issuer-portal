@@ -29,7 +29,9 @@ export interface CreateCommentRequest {
 /**
  * Check if a given object implements the CreateCommentRequest interface.
  */
-export function instanceOfCreateCommentRequest(value: object): value is CreateCommentRequest {
+export function instanceOfCreateCommentRequest(
+  value: object
+): value is CreateCommentRequest {
   if (!("comment" in value) || value["comment"] === undefined) return false;
   return true;
 }
@@ -40,7 +42,7 @@ export function CreateCommentRequestFromJSON(json: any): CreateCommentRequest {
 
 export function CreateCommentRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CreateCommentRequest {
   if (json == null) {
     return json;
@@ -56,7 +58,7 @@ export function CreateCommentRequestToJSON(json: any): CreateCommentRequest {
 
 export function CreateCommentRequestToJSONTyped(
   value?: CreateCommentRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

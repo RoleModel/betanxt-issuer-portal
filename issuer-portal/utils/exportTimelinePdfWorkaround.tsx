@@ -12,7 +12,13 @@ interface ExportOptions {
 
 // Direct PDF generation without print dialog
 export async function exportTimelineToPdf(options: ExportOptions) {
-  const { tasks, keyDates, meetingTitle, selectedPhase = "all", clientTicker } = options;
+  const {
+    tasks,
+    keyDates,
+    meetingTitle,
+    selectedPhase = "all",
+    clientTicker,
+  } = options;
 
   try {
     // Use jsPDF for direct PDF generation
@@ -24,7 +30,14 @@ export async function exportTimelineToPdf(options: ExportOptions) {
     });
 
     // Generate PDF content
-    generatePdfContent(pdf, tasks, keyDates, meetingTitle, selectedPhase, clientTicker);
+    generatePdfContent(
+      pdf,
+      tasks,
+      keyDates,
+      meetingTitle,
+      selectedPhase,
+      clientTicker
+    );
 
     // Download the PDF directly
     const fileName = `${meetingTitle.replace(/\s+/g, "_")}_Timeline_${
@@ -44,7 +57,7 @@ function generatePdfContent(
   keyDates: KeyDate[],
   meetingTitle: string,
   selectedPhase: number | "all",
-  clientTicker?: string,
+  clientTicker?: string
 ) {
   // Filter data based on phase
   let filteredTasks = tasks;
@@ -60,7 +73,9 @@ function generatePdfContent(
 
   for (let phase = 1; phase <= 8; phase++) {
     const phaseTasks = filteredTasks.filter((t) => t.phaseNumber === phase);
-    const phaseKeyDates = filteredKeyDates.filter((k) => k.phaseNumber === phase);
+    const phaseKeyDates = filteredKeyDates.filter(
+      (k) => k.phaseNumber === phase
+    );
     if (phaseTasks.length > 0 || phaseKeyDates.length > 0) {
       phaseGroups.set(phase, { tasks: phaseTasks, keyDates: phaseKeyDates });
     }
@@ -196,7 +211,7 @@ function generatePdfContent(
                   <div class="task-date">${formatDate(keyDate.date)}</div>
                 </div>
               </div>
-            `,
+            `
               )
               .join("")}
             ${items.tasks
@@ -208,12 +223,12 @@ function generatePdfContent(
                   <div class="task-date">${formatDate(task.dueDate)}</div>
                 </div>
               </div>
-            `,
+            `
               )
               .join("")}
           </div>
         </div>
-      `,
+      `
         )
         .join("")}
     </body>

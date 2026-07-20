@@ -1,6 +1,10 @@
 "use client";
 
-import { FileDownloadOutlined, PictureAsPdf, TableChart } from "@mui/icons-material";
+import {
+  FileDownloadOutlined,
+  PictureAsPdf,
+  TableChart,
+} from "@mui/icons-material";
 import {
   Button,
   CircularProgress,
@@ -15,7 +19,8 @@ import type { components } from "@/domain-models/generated-schema";
 
 import { type ExportOptions, exportAttendees } from "@/utils/attendeeExport";
 
-type DigitalShareholderMeeting = components["schemas"]["DigitalShareholderMeeting"];
+type DigitalShareholderMeeting =
+  components["schemas"]["DigitalShareholderMeeting"];
 
 interface ExportButtonProps {
   attendees: DigitalShareholderMeeting[];
@@ -69,7 +74,12 @@ export function ExportButton({
 
   if (attendees.length === 0) {
     return (
-      <Button variant={variant} size={size} disabled startIcon={<FileDownloadOutlined />}>
+      <Button
+        variant={variant}
+        size={size}
+        disabled
+        startIcon={<FileDownloadOutlined />}
+      >
         Export (No Attendees)
       </Button>
     );
@@ -82,7 +92,13 @@ export function ExportButton({
         size={size}
         disabled={disabled || isExporting}
         onClick={handleClick}
-        startIcon={isExporting ? <CircularProgress size={16} /> : <FileDownloadOutlined />}
+        startIcon={
+          isExporting ? (
+            <CircularProgress size={16} />
+          ) : (
+            <FileDownloadOutlined />
+          )
+        }
         aria-controls={open ? "export-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
@@ -112,19 +128,28 @@ export function ExportButton({
           <ListItemIcon>
             <FileDownloadOutlined fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Export as CSV" secondary="Excel compatible, 5KB" />
+          <ListItemText
+            primary="Export as CSV"
+            secondary="Excel compatible, 5KB"
+          />
         </MenuItem>
         <MenuItem onClick={() => handleExport("excel")}>
           <ListItemIcon>
             <TableChart fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Export as Excel" secondary="Microsoft Excel format" />
+          <ListItemText
+            primary="Export as Excel"
+            secondary="Microsoft Excel format"
+          />
         </MenuItem>
         <MenuItem onClick={() => handleExport("pdf")}>
           <ListItemIcon>
             <PictureAsPdf fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Export as PDF" secondary="Print-ready document" />
+          <ListItemText
+            primary="Export as PDF"
+            secondary="Print-ready document"
+          />
         </MenuItem>
       </Menu>
     </>

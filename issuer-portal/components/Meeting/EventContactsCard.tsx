@@ -45,13 +45,19 @@ interface EventContactsCardProps {
   onUpdate?: () => void;
 }
 
-const EventContactsCard: React.FC<EventContactsCardProps> = ({ className, meeting, onUpdate }) => {
+const EventContactsCard: React.FC<EventContactsCardProps> = ({
+  className,
+  meeting,
+  onUpdate,
+}) => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [transferAgentConfirmation, setTransferAgentConfirmation] = useState("");
+  const [transferAgentConfirmation, setTransferAgentConfirmation] =
+    useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Show "Not yet confirmed" if we have a transfer agent value but it hasn't been confirmed
-  const showTransferAgentAsUnconfirmed = meeting?.transferAgent && !meeting?.transferAgentConfirmed;
+  const showTransferAgentAsUnconfirmed =
+    meeting?.transferAgent && !meeting?.transferAgentConfirmed;
 
   const contacts: ContactInfo[] = meeting
     ? [
@@ -127,8 +133,13 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({ className, meetin
       <CardHeader title={"Event Contacts"} />
       <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
         <Table>
-          <SROnlyTableCaption>Transfer Agent and Plan Administrator Information</SROnlyTableCaption>
-          <TableHead aria-hidden="false" sx={{ visibility: "hidden", display: "none" }}>
+          <SROnlyTableCaption>
+            Transfer Agent and Plan Administrator Information
+          </SROnlyTableCaption>
+          <TableHead
+            aria-hidden="false"
+            sx={{ visibility: "hidden", display: "none" }}
+          >
             <TableRow>
               <TableCell>Role</TableCell>
               <TableCell align="right">Contact</TableCell>
@@ -155,8 +166,10 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({ className, meetin
                             size="small"
                             sx={{
                               fontSize: "0.75rem",
-                              backgroundColor: (theme) => theme.palette.error.dark,
-                              color: (theme) => theme.palette.error.contrastText,
+                              backgroundColor: (theme) =>
+                                theme.palette.error.dark,
+                              color: (theme) =>
+                                theme.palette.error.contrastText,
                             }}
                           />
                         ) : (
@@ -164,18 +177,21 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({ className, meetin
                         )}
                       </Box>
                       {contact.email && (
-                        <Link href={`mailto:${contact.email}`}>{contact.email}</Link>
+                        <Link href={`mailto:${contact.email}`}>
+                          {contact.email}
+                        </Link>
                       )}
                     </Box>
-                    {contact.role === "Transfer Agent" && contact.isPlaceholder && (
-                      <Button
-                        variant="text"
-                        onClick={handleConfirmClick}
-                        sx={{ minWidth: "fit-content", flexShrink: 0 }}
-                      >
-                        Confirm
-                      </Button>
-                    )}
+                    {contact.role === "Transfer Agent" &&
+                      contact.isPlaceholder && (
+                        <Button
+                          variant="text"
+                          onClick={handleConfirmClick}
+                          sx={{ minWidth: "fit-content", flexShrink: 0 }}
+                        >
+                          Confirm
+                        </Button>
+                      )}
                   </Box>
                 </TableCell>
               </TableRow>
@@ -185,7 +201,12 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({ className, meetin
       </CardContent>
 
       {/* Transfer Agent Confirmation Dialog */}
-      <Dialog open={confirmDialogOpen} onClose={handleDialogClose} maxWidth="sm" fullWidth>
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={handleDialogClose}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Confirm Transfer Agent</DialogTitle>
         <DialogContent>
           <TextField
@@ -200,7 +221,11 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({ className, meetin
           />
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={handleDialogClose} disabled={isSubmitting}>
+          <Button
+            variant="outlined"
+            onClick={handleDialogClose}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
           <Button

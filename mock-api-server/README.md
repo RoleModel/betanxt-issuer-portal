@@ -2,17 +2,17 @@
 
 ## Test User Credentials
 
-| Username     | Password       | Type          | Description                                                  |
-| ------------ | -------------- | ------------- | ------------------------------------------------------------ |
-| `dev.user`   | `ju$Ky8Ad1#%g` | ADMIN         | Development admin - access to all clients                    |
-| `test.user`  | `9yUDDftg@Lh!` | ADMIN         | Test admin                                                   |
-| `mike`       | `password`     | ISSUER        | Wendy's (WEN) issuer user                                    |
-| `lisa`       | `password`     | ISSUER        | Paycom (PAYC) issuer user                                    |
-| `david`      | `password`     | ISSUER        | Woodward (WWD) issuer user                                   |
-| `jenny`      | `password`     | ISSUER        | Enliven (ELVN) issuer user                                   |
-| `dfin.admin` | `DfinP@ss1`    | PARENT_CLIENT | DFIN parent client - events overview dashboard               |
-| `morrow`     | `MrwSdl@1`     | SOLICITOR     | Morrow & Co. solicitor - events overview dashboard           |
-| `csm.user`   | `CsmP@ss1`     | CSM           | Client Service Manager - events overview with mailing status |
+| Username | Password | Type | Description |
+| --- | --- | --- | --- |
+| `dev.user` | `ju$Ky8Ad1#%g` | ADMIN | Development admin - access to all clients |
+| `test.user` | `9yUDDftg@Lh!` | ADMIN | Test admin |
+| `mike` | `password` | ISSUER | Wendy's (WEN) issuer user |
+| `lisa` | `password` | ISSUER | Paycom (PAYC) issuer user |
+| `david` | `password` | ISSUER | Woodward (WWD) issuer user |
+| `jenny` | `password` | ISSUER | Enliven (ELVN) issuer user |
+| `dfin.admin` | `DfinP@ss1` | PARENT_CLIENT | DFIN parent client - events overview dashboard |
+| `morrow` | `MrwSdl@1` | SOLICITOR | Morrow & Co. solicitor - events overview dashboard |
+| `csm.user` | `CsmP@ss1` | CSM | Client Service Manager - events overview with mailing status |
 
 ## Overview
 
@@ -146,8 +146,13 @@ function transformTask(dbTask: any): Task {
   };
 }
 
-export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>> {
-  const { data, error } = await supabase.from("task").select("*").eq("meeting_id", meetingId);
+export async function listTasks(
+  meetingId: string
+): Promise<ApiResponse<Task[]>> {
+  const { data, error } = await supabase
+    .from("task")
+    .select("*")
+    .eq("meeting_id", meetingId);
 
   if (error) {
     return { error: { message: error.message, statusCode: 500 } };
@@ -174,7 +179,7 @@ import { listTasks } from "@/domain-models/api/tasks";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ meetingId: string }> },
+  { params }: { params: Promise<{ meetingId: string }> }
 ): Promise<NextResponse> {
   const { meetingId } = await params;
   const { data, error } = await listTasks(meetingId);
@@ -377,10 +382,10 @@ The main send endpoint is `POST /api/emails/send`. It is intentionally disabled 
 
 ### Templates
 
-| Template key                   | Component                               | Purpose                                                      |
-| ------------------------------ | --------------------------------------- | ------------------------------------------------------------ |
+| Template key | Component | Purpose |
+| --- | --- | --- |
 | `document-update-notification` | `emails/DocumentUpdateNotification.tsx` | Notifies an issuer account when a workflow document changes. |
-| `tabulation-daily-report`      | `emails/TabulationReportEmail.tsx`      | Sends a daily tabulation progress summary before a meeting.  |
+| `tabulation-daily-report` | `emails/TabulationReportEmail.tsx` | Sends a daily tabulation progress summary before a meeting. |
 
 Each template has:
 
@@ -418,11 +423,11 @@ This opens the React Email preview app on `http://localhost:3030`.
 
 The provider is selected in `lib/email/EmailService.ts`.
 
-| Mode     | Required environment variables                                    | Behavior                                                                  |
-| -------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `noop`   | None                                                              | Local fallback. Renders HTML to a temp file and logs a preview URL.       |
-| `resend` | `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, `EMAIL_FROM`           | Sends with Resend using rendered HTML and plain-text output.              |
-| `smtp`   | `EMAIL_PROVIDER=smtp`, `EMAIL_SMTP_HOST`, SMTP auth, `EMAIL_FROM` | Sends with Nodemailer and verifies the SMTP connection on initialization. |
+| Mode | Required environment variables | Behavior |
+| --- | --- | --- |
+| `noop` | None | Local fallback. Renders HTML to a temp file and logs a preview URL. |
+| `resend` | `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, `EMAIL_FROM` | Sends with Resend using rendered HTML and plain-text output. |
+| `smtp` | `EMAIL_PROVIDER=smtp`, `EMAIL_SMTP_HOST`, SMTP auth, `EMAIL_FROM` | Sends with Nodemailer and verifies the SMTP connection on initialization. |
 
 Example `.env.local` for SMTP/Gmail:
 
@@ -753,9 +758,14 @@ type ApiResponse<T> = {
 };
 
 // Usage in domain models
-export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>> {
+export async function listTasks(
+  meetingId: string
+): Promise<ApiResponse<Task[]>> {
   try {
-    const { data, error } = await supabase.from("task").select("*").eq("meeting_id", meetingId);
+    const { data, error } = await supabase
+      .from("task")
+      .select("*")
+      .eq("meeting_id", meetingId);
 
     if (error) {
       return { error: { message: error.message, statusCode: 500 } };
@@ -851,7 +861,10 @@ function TaskList({ meetingId }: { meetingId: string }) {
 ```typescript
 // Update task with links
 const updateTask = useMutation({
-  mutationFn: async (params: { taskId: string; updates: UpdateTaskRequest }) => {
+  mutationFn: async (params: {
+    taskId: string;
+    updates: UpdateTaskRequest;
+  }) => {
     const { data, error } = await client.PUT("/tasks/{id}", {
       params: { path: { id: params.taskId } },
       body: params.updates,
@@ -871,7 +884,13 @@ updateTask.mutate({
   taskId: "task-123",
   updates: {
     status: "COMPLETE",
-    links: [{ label: "Download Report", action: "download", url: "/reports/final.pdf" }],
+    links: [
+      {
+        label: "Download Report",
+        action: "download",
+        url: "/reports/final.pdf",
+      },
+    ],
   },
 });
 ```
@@ -935,7 +954,9 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Task Management API", () => {
   test("should list tasks with links", async ({ request }) => {
-    const response = await request.get("/api/meetings/wen-annual-meeting-2025/tasks");
+    const response = await request.get(
+      "/api/meetings/wen-annual-meeting-2025/tasks"
+    );
     expect(response.ok()).toBeTruthy();
 
     const tasks = await response.json();
@@ -950,7 +971,9 @@ test.describe("Task Management API", () => {
   test("should update task links", async ({ request }) => {
     const updateResponse = await request.put("/api/tasks/task-123", {
       data: {
-        links: [{ label: "New Link", action: "external", url: "https://example.com" }],
+        links: [
+          { label: "New Link", action: "external", url: "https://example.com" },
+        ],
       },
     });
 
@@ -1018,7 +1041,9 @@ export async function completeTask(taskId: string): Promise<ApiResponse<Task>> {
 
 ```typescript
 // domain-models/api/voting.ts
-export async function castVotes(votes: CastVoteRequest[]): Promise<ApiResponse<PositionVote[]>> {
+export async function castVotes(
+  votes: CastVoteRequest[]
+): Promise<ApiResponse<PositionVote[]>> {
   const { data, error } = await supabase.rpc("cast_votes_transaction", {
     votes_data: votes,
   });
@@ -1045,7 +1070,7 @@ export async function getMeetingWithDetails(meetingId: string) {
       tasks:task(*),
       proposals:proposal(*),
       documents:document(*)
-    `,
+    `
     )
     .eq("id", meetingId)
     .single();
@@ -1094,7 +1119,7 @@ export function withCache<T>(key: string, ttl: number) {
 // Usage
 export const getCachedClients = withCache(
   "clients",
-  5 * 60 * 1000,
+  5 * 60 * 1000
 )(() => supabase.from("clients").select("*"));
 ```
 
@@ -1104,9 +1129,7 @@ export const getCachedClients = withCache(
 
 ### 1. **Task Links Not Appearing**
 
-**Symptoms**: TaskDrawer shows empty links array
-**Cause**: Missing field mapping in domain model transformation
-**Solution**:
+**Symptoms**: TaskDrawer shows empty links array **Cause**: Missing field mapping in domain model transformation **Solution**:
 
 ```typescript
 // Ensure transformTask includes links field
@@ -1120,9 +1143,7 @@ function transformTask(dbTask: any): Task {
 
 ### 2. **Type Mismatches**
 
-**Symptoms**: TypeScript errors with openapi-fetch calls
-**Cause**: Outdated generated types
-**Solution**:
+**Symptoms**: TypeScript errors with openapi-fetch calls **Cause**: Outdated generated types **Solution**:
 
 ```bash
 # Regenerate all types
@@ -1132,9 +1153,7 @@ npm run generate:db-types
 
 ### 3. **Database Connection Errors**
 
-**Symptoms**: Supabase client connection failures
-**Cause**: Environment variables or local Supabase not running
-**Solution**:
+**Symptoms**: Supabase client connection failures **Cause**: Environment variables or local Supabase not running **Solution**:
 
 ```bash
 # Check Supabase status
@@ -1147,9 +1166,7 @@ npx supabase start
 
 ### 4. **Schema Drift**
 
-**Symptoms**: Database and API types out of sync
-**Cause**: Manual schema changes without regeneration
-**Solution**:
+**Symptoms**: Database and API types out of sync **Cause**: Manual schema changes without regeneration **Solution**:
 
 ```bash
 # Full reset workflow

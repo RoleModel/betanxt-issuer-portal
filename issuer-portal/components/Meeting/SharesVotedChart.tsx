@@ -70,18 +70,21 @@ export default function SharesVotedChart({
   loading = false,
   proposalsOverride,
 }: SharesVotedChartProps) {
-  const { proposals: fetchedProposals, loading: votingLoading } = useVotingTabulation(meetingId);
+  const { proposals: fetchedProposals, loading: votingLoading } =
+    useVotingTabulation(meetingId);
   const proposals = proposalsOverride ?? fetchedProposals;
 
   const sortedProposals = useMemo(
     () => [...proposals].sort((a, b) => a.proposalNumber - b.proposalNumber),
-    [proposals],
+    [proposals]
   );
 
   const [selectedProposalId, setSelectedProposalId] = useState<string>("");
 
   const selectedProposal = useMemo(() => {
-    const matched = sortedProposals.find((proposal) => proposal.proposalId === selectedProposalId);
+    const matched = sortedProposals.find(
+      (proposal) => proposal.proposalId === selectedProposalId
+    );
     return matched ?? sortedProposals[0] ?? null;
   }, [selectedProposalId, sortedProposals]);
 
@@ -110,7 +113,10 @@ export default function SharesVotedChart({
     ].filter((item) => item.value > 0);
   }, [selectedProposal]);
 
-  const totalSharesVoted = votingBreakdownData.reduce((sum, item) => sum + item.value, 0);
+  const totalSharesVoted = votingBreakdownData.reduce(
+    (sum, item) => sum + item.value,
+    0
+  );
 
   if (loading || votingLoading) {
     return (
@@ -132,7 +138,9 @@ export default function SharesVotedChart({
       <CardHeader title="Shares Voted" subheader={headerSubtitle} />
       <CardContent>
         <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-          <InputLabel id="shares-voted-proposal-select-label">Proposal</InputLabel>
+          <InputLabel id="shares-voted-proposal-select-label">
+            Proposal
+          </InputLabel>
           <Select
             labelId="shares-voted-proposal-select-label"
             id="shares-voted-proposal-select"

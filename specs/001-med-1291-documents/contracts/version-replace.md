@@ -1,7 +1,6 @@
 # POST /api/documents/{docType}/{versionId}/replace
 
-Purpose: Replace an APPROVED proxy material with a new UPLOADED version (ADMIN only).
-Auth: ADMIN
+Purpose: Replace an APPROVED proxy material with a new UPLOADED version (ADMIN only). Auth: ADMIN
 
 Path Params:
 

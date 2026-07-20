@@ -20,7 +20,9 @@ interface TaskActionsProps {
   checkingSignedDocument: boolean;
   dtccAuthorized: boolean;
   onLinkClick: (link: TaskLink) => void;
-  onDtccAuthorizationChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onDtccAuthorizationChange: (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => void;
   getDocumentsByMeeting: (meetingId: string) => Promise<Document[]>;
   setDocumentUrl: (url: string) => void;
   setCurrentDocumentId: (id: string) => void;
@@ -75,7 +77,7 @@ const TaskActions: React.FC<TaskActionsProps> = ({
         })),
       });
       alert(
-        `No signed document found for this task.\n\nTask: ${task.title}\nStatus: ${task.status}\n\nPlease check the browser console for details.`,
+        `No signed document found for this task.\n\nTask: ${task.title}\nStatus: ${task.status}\n\nPlease check the browser console for details.`
       );
     }
   };
@@ -93,7 +95,11 @@ const TaskActions: React.FC<TaskActionsProps> = ({
           const viewLabel = getTaskActionButtonLabel(task.title ?? "", true);
 
           return (
-            <Link sx={{ cursor: "pointer" }} key={linkIndex} onClick={handleViewSignedDocument}>
+            <Link
+              sx={{ cursor: "pointer" }}
+              key={linkIndex}
+              onClick={handleViewSignedDocument}
+            >
               {viewLabel}
             </Link>
           );
@@ -105,10 +111,15 @@ const TaskActions: React.FC<TaskActionsProps> = ({
         }
 
         // Make sign and download actions clickable even without direct URL
-        const isClickable = link.url || link.action === "signature" || link.action === "download";
+        const isClickable =
+          link.url || link.action === "signature" || link.action === "download";
 
         return isClickable ? (
-          <Link key={linkIndex} onClick={() => onLinkClick(link)} sx={{ cursor: "pointer" }}>
+          <Link
+            key={linkIndex}
+            onClick={() => onLinkClick(link)}
+            sx={{ cursor: "pointer" }}
+          >
             {link.label}
           </Link>
         ) : null;

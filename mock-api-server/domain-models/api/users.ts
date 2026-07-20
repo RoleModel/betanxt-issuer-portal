@@ -10,7 +10,8 @@ import { apiClient } from "../apiClient";
 type User = components["schemas"]["User"];
 type CreateUserRequest = components["schemas"]["CreateUserRequest"];
 type UpdateUserRequest = components["schemas"]["UpdateUserRequest"];
-type CreateAccountUserRequest = components["schemas"]["CreateAccountUserRequest"];
+type CreateAccountUserRequest =
+  components["schemas"]["CreateAccountUserRequest"];
 type Account = components["schemas"]["Account"];
 
 // Helper type for openapi-fetch response
@@ -25,7 +26,7 @@ interface ApiResponse<T> {
 
 export async function listUsers(
   accountId?: string,
-  type?: User["type"],
+  type?: User["type"]
 ): Promise<ApiResponse<User[] | undefined>> {
   const { data, error, response } = await apiClient.GET("/users", {
     params: {
@@ -54,7 +55,9 @@ export async function listUsers(
   };
 }
 
-export async function createUser(body: CreateUserRequest): Promise<ApiResponse<User>> {
+export async function createUser(
+  body: CreateUserRequest
+): Promise<ApiResponse<User>> {
   const { data, error } = await supabase
     .from("user")
     .insert({
@@ -73,7 +76,11 @@ export async function createUser(body: CreateUserRequest): Promise<ApiResponse<U
   const fakeResponse = new Response(null, { status: error ? 400 : 201 });
 
   if (error) {
-    return { data: undefined, error: { message: error.message }, response: fakeResponse };
+    return {
+      data: undefined,
+      error: { message: error.message },
+      response: fakeResponse,
+    };
   }
 
   return {
@@ -116,7 +123,10 @@ export async function getUserById(id: string): Promise<ApiResponse<User>> {
   };
 }
 
-export async function updateUser(id: string, body: UpdateUserRequest): Promise<ApiResponse<User>> {
+export async function updateUser(
+  id: string,
+  body: UpdateUserRequest
+): Promise<ApiResponse<User>> {
   const { data, error, response } = await apiClient.PUT("/users/{id}", {
     params: {
       path: { id },
@@ -168,13 +178,16 @@ export async function deleteUser(id: string): Promise<ApiResponse<void>> {
 }
 
 export async function listAccountUsers(
-  accountId: string,
+  accountId: string
 ): Promise<ApiResponse<User[] | undefined>> {
-  const { data, error, response } = await apiClient.GET("/accounts/{accountId}/users", {
-    params: {
-      path: { accountId },
-    },
-  });
+  const { data, error, response } = await apiClient.GET(
+    "/accounts/{accountId}/users",
+    {
+      params: {
+        path: { accountId },
+      },
+    }
+  );
 
   if (error) {
     return {
@@ -196,14 +209,17 @@ export async function listAccountUsers(
 
 export async function createAccountUser(
   accountId: string,
-  body: CreateAccountUserRequest,
+  body: CreateAccountUserRequest
 ): Promise<ApiResponse<User>> {
-  const { data, error, response } = await apiClient.POST("/accounts/{accountId}/users", {
-    params: {
-      path: { accountId },
-    },
-    body,
-  });
+  const { data, error, response } = await apiClient.POST(
+    "/accounts/{accountId}/users",
+    {
+      params: {
+        path: { accountId },
+      },
+      body,
+    }
+  );
 
   if (error) {
     return {
@@ -224,13 +240,16 @@ export async function createAccountUser(
 }
 
 export async function listUserAccounts(
-  userId: string,
+  userId: string
 ): Promise<ApiResponse<{ accounts?: Account[]; total?: number }>> {
-  const { data, error, response } = await apiClient.GET("/users/{id}/accounts", {
-    params: {
-      path: { id: userId },
-    },
-  });
+  const { data, error, response } = await apiClient.GET(
+    "/users/{id}/accounts",
+    {
+      params: {
+        path: { id: userId },
+      },
+    }
+  );
 
   if (error) {
     return {

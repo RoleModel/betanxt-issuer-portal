@@ -15,7 +15,7 @@
     "test:ui": "playwright test --ui",
     "test:integration": "playwright test --project=integration",
     "test:unit": "playwright test --project=unit",
-    "test:ts": "tsc --noEmit",
+    "test:ts": "pnpm --workspace-root exec tsc --noEmit -p mock-api-server/tsconfig.json",
     "test:e2e": "playwright test --project=e2e",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",

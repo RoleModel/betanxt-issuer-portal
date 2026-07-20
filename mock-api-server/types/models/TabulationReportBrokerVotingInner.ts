@@ -48,20 +48,20 @@ export interface TabulationReportBrokerVotingInner {
  * Check if a given object implements the TabulationReportBrokerVotingInner interface.
  */
 export function instanceOfTabulationReportBrokerVotingInner(
-  value: object,
+  value: object
 ): value is TabulationReportBrokerVotingInner {
   return true;
 }
 
 export function TabulationReportBrokerVotingInnerFromJSON(
-  json: any,
+  json: any
 ): TabulationReportBrokerVotingInner {
   return TabulationReportBrokerVotingInnerFromJSONTyped(json, false);
 }
 
 export function TabulationReportBrokerVotingInnerFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): TabulationReportBrokerVotingInner {
   if (json == null) {
     return json;
@@ -69,20 +69,22 @@ export function TabulationReportBrokerVotingInnerFromJSONTyped(
   return {
     broker: json["broker"] == null ? undefined : json["broker"],
     sharesFor: json["sharesFor"] == null ? undefined : json["sharesFor"],
-    sharesAgainst: json["sharesAgainst"] == null ? undefined : json["sharesAgainst"],
-    sharesAbstain: json["sharesAbstain"] == null ? undefined : json["sharesAbstain"],
+    sharesAgainst:
+      json["sharesAgainst"] == null ? undefined : json["sharesAgainst"],
+    sharesAbstain:
+      json["sharesAbstain"] == null ? undefined : json["sharesAbstain"],
   };
 }
 
 export function TabulationReportBrokerVotingInnerToJSON(
-  json: any,
+  json: any
 ): TabulationReportBrokerVotingInner {
   return TabulationReportBrokerVotingInnerToJSONTyped(json, false);
 }
 
 export function TabulationReportBrokerVotingInnerToJSONTyped(
   value?: TabulationReportBrokerVotingInner | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

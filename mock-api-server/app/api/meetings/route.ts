@@ -16,8 +16,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Extract query parameters
     const { searchParams } = new URL(request.url);
-    const page = searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : undefined;
-    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : undefined;
+    const page = searchParams.get("page")
+      ? parseInt(searchParams.get("page")!, 10)
+      : undefined;
+    const limit = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit")!, 10)
+      : undefined;
     const statusParam = searchParams.get("status") || undefined;
     const status: "ACTIVE" | "COMPLETE" | "ADJOURNED" | undefined =
       statusParam && ["ACTIVE", "COMPLETE", "ADJOURNED"].includes(statusParam)
@@ -41,7 +45,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -54,8 +61,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "listMeetings",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -63,14 +70,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["CreateMeetingRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["CreateMeetingRequest"];
 
     // Use existing domain model function
     const { data, error } = await createMeeting(body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       );
     }
 
@@ -83,8 +94,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "createMeeting",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

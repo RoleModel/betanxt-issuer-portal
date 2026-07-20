@@ -18,7 +18,9 @@ interface Phase4LayoutProps {
 
 function Phase4Layout({ meeting }: Phase4LayoutProps) {
   const materialsDate = meeting?.meetingDate
-    ? new Date(new Date(meeting.meetingDate).getTime() - 48 * 24 * 60 * 60 * 1000)
+    ? new Date(
+        new Date(meeting.meetingDate).getTime() - 48 * 24 * 60 * 60 * 1000
+      )
     : null;
   return (
     <Grid container spacing={{ xs: 2, md: 3 }}>
@@ -30,10 +32,17 @@ function Phase4Layout({ meeting }: Phase4LayoutProps) {
       <Grid size={{ xs: 12, md: 8 }}>
         <MeetingDocuments meetingId={meeting?.id} meeting={meeting} />
       </Grid>
-      <Grid size={{ xs: 12, md: 4 }} display="flex" flexDirection="column" gap={3}>
+      <Grid
+        size={{ xs: 12, md: 4 }}
+        display="flex"
+        flexDirection="column"
+        gap={3}
+      >
         <FeatureTile
           title="Material Quantities Expected By"
-          description={materialsDate ? friendlyDate(materialsDate.toISOString()) : ""}
+          description={
+            materialsDate ? friendlyDate(materialsDate.toISOString()) : ""
+          }
           icon={<CalendarMonthOutlined fontSize="large" color="secondary" />}
         />
         <DocumentHostingCard meeting={meeting} />

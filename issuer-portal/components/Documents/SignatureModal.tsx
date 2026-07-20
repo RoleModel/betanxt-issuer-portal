@@ -74,7 +74,12 @@ interface TabPanelProps {
   value: number;
 }
 
-const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other }) => {
+const TabPanel: React.FC<TabPanelProps> = ({
+  children,
+  value,
+  index,
+  ...other
+}) => {
   return (
     <div
       role="tabpanel"
@@ -116,7 +121,9 @@ interface SignatureMakerWrapperProps {
   onSave?: (signatureData: string) => void;
 }
 
-const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave }) => {
+const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({
+  onSave,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const signatureMakerRef = useRef<SignatureMakerElement | null>(null);
   const [isComponentMounted, setIsComponentMounted] = useState(false);
@@ -154,7 +161,8 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
       setTimeout(() => {
         if (currentContainer) {
           try {
-            const signatureMaker = currentContainer.querySelector("signature-maker");
+            const signatureMaker =
+              currentContainer.querySelector("signature-maker");
             if (signatureMaker) {
               // Clear any observers manually before component cleanup
               const observers = (
@@ -177,7 +185,7 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
   useEffect(() => {
     // Set up event listeners for signature maker events
     const signatureMaker = containerRef.current?.querySelector(
-      "signature-maker",
+      "signature-maker"
     ) as SignatureMakerElement | null;
     if (signatureMaker) {
       signatureMakerRef.current = signatureMaker;
@@ -194,7 +202,9 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({ onSave })
         const canvas = signatureMaker.querySelector("canvas");
         if (canvas && onSave) {
           const canvasElement = canvas;
-          const ctx = canvasElement.getContext("2d", { willReadFrequently: true });
+          const ctx = canvasElement.getContext("2d", {
+            willReadFrequently: true,
+          });
           if (ctx) {
             // Get the canvas data URL
             const dataURL = canvasElement.toDataURL();
@@ -311,7 +321,8 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   onSignatureInsert,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
-  const [signatureData, setSignatureData] = useState<string>(defaultSignatureData);
+  const [signatureData, setSignatureData] =
+    useState<string>(defaultSignatureData);
   const [typedSignature, setTypedSignature] = useState("John Parker");
   const [hasSignature, setHasSignature] = useState(true);
   const [currentFontIndex, setCurrentFontIndex] = useState(0);
@@ -368,12 +379,16 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
         font: currentFont.family,
         fontName: currentFont.name,
       };
-      onSignatureInsert(`data:application/json;base64,${btoa(JSON.stringify(signatureInfo))}`);
+      onSignatureInsert(
+        `data:application/json;base64,${btoa(JSON.stringify(signatureInfo))}`
+      );
     }
     onClose();
   };
 
-  const handleTypedSignatureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTypedSignatureChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const value = event.target.value;
     setTypedSignature(value);
     setHasSignature(value.trim().length > 0);
@@ -386,7 +401,8 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   const currentFont = signatureFonts[currentFontIndex];
 
   const canInsert =
-    (activeTab === 0 && hasSignature) || (activeTab === 1 && typedSignature.trim().length > 0);
+    (activeTab === 0 && hasSignature) ||
+    (activeTab === 1 && typedSignature.trim().length > 0);
 
   return (
     <Dialog
@@ -536,7 +552,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
                       onClick={() => {
                         // Focus on the hidden input for editing
                         const input = document.getElementById(
-                          "typed-signature-input",
+                          "typed-signature-input"
                         ) as HTMLInputElement;
                         input?.focus();
                       }}
@@ -556,7 +572,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
                       }}
                       onClick={() => {
                         const input = document.getElementById(
-                          "typed-signature-input",
+                          "typed-signature-input"
                         ) as HTMLInputElement;
                         input?.focus();
                       }}
@@ -602,7 +618,11 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
           I understand this is a legal representation of my signature.
         </Typography>
 
-        <Button variant="contained" onClick={handleInsert} disabled={!canInsert}>
+        <Button
+          variant="contained"
+          onClick={handleInsert}
+          disabled={!canInsert}
+        >
           Insert
         </Button>
       </DialogActions>

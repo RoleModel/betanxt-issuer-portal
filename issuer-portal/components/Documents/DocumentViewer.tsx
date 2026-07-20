@@ -37,7 +37,13 @@ import {
 } from "@mui/material";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import DraggableSignatureArea from "@/components/Documents/DraggableSignatureArea";
 import { FormFieldArea } from "@/components/Documents/FormFieldArea";
@@ -47,13 +53,19 @@ import { useDocuments } from "@/hooks/useDocuments";
 import { useSignatureAreas } from "@/hooks/useSignatureAreas";
 import { useTasks } from "@/hooks/useTasks";
 import { getStoragePublicUrl, isStorageUrl } from "@/utils/documentUtils";
-import { convertDataUriToPdfBytes, embedSignaturesIntoPDF } from "@/utils/pdfSignatureEmbed";
+import {
+  convertDataUriToPdfBytes,
+  embedSignaturesIntoPDF,
+} from "@/utils/pdfSignatureEmbed";
 
 // Dynamically import SignatureModal to avoid SSR issues
-const SignatureModal = dynamic(() => import("@/components/Documents/SignatureModal"), {
-  ssr: false,
-  loading: () => null,
-});
+const SignatureModal = dynamic(
+  () => import("@/components/Documents/SignatureModal"),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
 
 const PDFViewer = dynamic(() => import("@/components/Documents/PDFViewer"), {
   ssr: false,
@@ -127,14 +139,17 @@ interface DocumentViewerProps {
   taskId?: string;
   documentType?: string;
   isWebsiteView?: boolean;
-  onSignatureRequest?: (pageNumber: number, signatureArea: SignatureArea) => void;
+  onSignatureRequest?: (
+    pageNumber: number,
+    signatureArea: SignatureArea
+  ) => void;
   onSignatureInsert?: (signatureData: string) => void;
   onSubmitSuccess?: () => void;
   onApproveSite?: () => Promise<void>;
   onRequestRevision?: () => void;
   onPdfStateChange?: (
     formFields: Record<string, string>,
-    signatures: Record<string, string>,
+    signatures: Record<string, string>
   ) => void;
 }
 
@@ -142,7 +157,7 @@ const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement<unknown>;
   },
-  ref: React.Ref<unknown>,
+  ref: React.Ref<unknown>
 ) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -152,10 +167,9 @@ interface WebsiteIframeWithErrorHandlingProps {
   title: string;
 }
 
-const WebsiteIframeWithErrorHandling: React.FC<WebsiteIframeWithErrorHandlingProps> = ({
-  url,
-  title,
-}) => {
+const WebsiteIframeWithErrorHandling: React.FC<
+  WebsiteIframeWithErrorHandlingProps
+> = ({ url, title }) => {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -173,11 +187,16 @@ const WebsiteIframeWithErrorHandling: React.FC<WebsiteIframeWithErrorHandlingPro
         setTimeout(() => {
           try {
             // This will throw an error if CORS blocks access, which is expected
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+            const iframeDoc =
+              iframe.contentDocument || iframe.contentWindow?.document;
             if (iframeDoc) {
               const title = iframeDoc.title.toLowerCase();
               // Check for common 404 page indicators
-              if (title.includes("404") || title.includes("not found") || title.includes("error")) {
+              if (
+                title.includes("404") ||
+                title.includes("not found") ||
+                title.includes("error")
+              ) {
                 setHasError(true);
               }
             }
@@ -214,8 +233,8 @@ const WebsiteIframeWithErrorHandling: React.FC<WebsiteIframeWithErrorHandlingPro
           Document Hosting Site Unavailable
         </Typography>
         <Typography variant="body3" color="text.secondary" textAlign="center">
-          The document hosting site could not be loaded. This may be because the site has not been
-          set up yet or is temporarily unavailable.
+          The document hosting site could not be loaded. This may be because the
+          site has not been set up yet or is temporarily unavailable.
         </Typography>
         <Typography variant="body3" color="text.secondary" textAlign="center">
           Please contact your administrator if this issue persists.
@@ -298,10 +317,17 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 }) => {
   // Task-based state management
   const [open, setOpen] = useState(false);
-  const [internalSignatureData, setInternalSignatureData] = useState<string>("");
-  const [signatureDataMap, setSignatureDataMap] = useState<Record<string, string>>({});
-  const [currentSignatureAreaId, setCurrentSignatureAreaId] = useState<string | null>(null);
-  const [formFieldValues, setFormFieldValues] = useState<Record<string, string>>({});
+  const [internalSignatureData, setInternalSignatureData] =
+    useState<string>("");
+  const [signatureDataMap, setSignatureDataMap] = useState<
+    Record<string, string>
+  >({});
+  const [currentSignatureAreaId, setCurrentSignatureAreaId] = useState<
+    string | null
+  >(null);
+  const [formFieldValues, setFormFieldValues] = useState<
+    Record<string, string>
+  >({});
   const [documentData, setDocumentData] = useState<{
     url: string;
     title: string;
@@ -315,8 +341,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const [documentHistory, setDocumentHistory] = useState<
     { event_type: string; user: string; timestamp: string }[]
   >([]);
-  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
-  const [localSignatureAreas, setLocalSignatureAreas] = useState<SignatureArea[]>([]);
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(
+    null
+  );
+  const [localSignatureAreas, setLocalSignatureAreas] = useState<
+    SignatureArea[]
+  >([]);
   const prevSignatureAreasRef = useRef<SignatureArea[]>([]);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [showComments, setShowComments] = useState(true); // Open comments panel by default (can be disabled by hideActivityButtons)
@@ -371,7 +401,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           // Remove duplicates based on id
           const uniqueAreas = document.signature_areas.filter(
             (area: SignatureArea, index: number, self: SignatureArea[]) =>
-              index === self.findIndex((a: SignatureArea) => a.id === area.id),
+              index === self.findIndex((a: SignatureArea) => a.id === area.id)
           );
 
           areas = uniqueAreas.map(
@@ -395,7 +425,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   ? "Click to sign"
                   : (area.signature_type ?? "Click to sign"),
               signed: false,
-            }),
+            })
           );
         } else if (!signatureAreas || signatureAreas.length === 0) {
           // If signatureAreas is explicitly an empty array, we're in view-only mode (no signature areas)
@@ -475,7 +505,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         }
 
         // Only open if we have a valid PDF URL
-        if (documentUrl && (documentUrl.endsWith(".pdf") || documentUrl.includes("/test-pdf"))) {
+        if (
+          documentUrl &&
+          (documentUrl.endsWith(".pdf") || documentUrl.includes("/test-pdf"))
+        ) {
           // Prioritize documentId prop over fetched document ID
           const docId =
             documentId ??
@@ -510,7 +543,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     };
 
     void fetchTaskDocument();
-  }, [task, getTaskDocument, signatureAreas.length, signatureAreas, documentId]);
+  }, [
+    task,
+    getTaskDocument,
+    signatureAreas.length,
+    signatureAreas,
+    documentId,
+  ]);
 
   // Determine which props to use (legacy props take absolute priority when provided)
   const actualOpen = legacyOpen ?? (task ? open : false);
@@ -522,11 +561,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             setOpen(false);
           }
         : undefined),
-    [legacyOnClose, task],
+    [legacyOnClose, task]
   );
   const actualfileUrl = useMemo(
     () => fileUrl ?? (task ? documentData?.url : undefined),
-    [fileUrl, task, documentData?.url],
+    [fileUrl, task, documentData?.url]
   );
   const actualTitle = useMemo(() => {
     const titleValue = title ?? (task ? documentData?.title : undefined);
@@ -547,10 +586,16 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     actualfileUrl?.includes("/test-pdf") ||
     actualfileUrl?.startsWith("data:application/pdf");
 
-  const isOfficeDocument = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(
-    fileExtension ?? "",
-  );
-  const actualSignatureData = signatureData ?? (task ? internalSignatureData : undefined);
+  const isOfficeDocument = [
+    "doc",
+    "docx",
+    "xls",
+    "xlsx",
+    "ppt",
+    "pptx",
+  ].includes(fileExtension ?? "");
+  const actualSignatureData =
+    signatureData ?? (task ? internalSignatureData : undefined);
 
   // Initialize with a stable ID based on available props
   const getStableDocumentId = useCallback(() => {
@@ -600,15 +645,20 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         onSignatureInsert?.(signature);
       }
     },
-    [task, onSignatureInsert],
+    [task, onSignatureInsert]
   );
 
   // Sync signature areas when props change (prioritize legacy props)
   useEffect(() => {
     const areasToUse =
-      signatureAreas.length > 0 ? signatureAreas : (documentData?.signatureAreas ?? []);
+      signatureAreas.length > 0
+        ? signatureAreas
+        : (documentData?.signatureAreas ?? []);
     // Only update if the arrays are actually different
-    if (JSON.stringify(prevSignatureAreasRef.current) !== JSON.stringify(areasToUse)) {
+    if (
+      JSON.stringify(prevSignatureAreasRef.current) !==
+      JSON.stringify(areasToUse)
+    ) {
       setLocalSignatureAreas(areasToUse);
       prevSignatureAreasRef.current = areasToUse;
     }
@@ -620,12 +670,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   // Create a stable document key
   const documentKey = useMemo(
     () => `${actualfileUrl ?? "none"}-${documentId ?? "none"}`,
-    [actualfileUrl, documentId],
+    [actualfileUrl, documentId]
   );
 
   // Reset signature data only when document key actually changes
   useEffect(() => {
-    if (documentKey !== lastDocumentKeyRef.current && documentKey !== "none-none") {
+    if (
+      documentKey !== lastDocumentKeyRef.current &&
+      documentKey !== "none-none"
+    ) {
       // Clear all signature-related state for the new document
       setSignatureDataMap({});
       setFormFieldValues({});
@@ -649,25 +702,36 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         // Update local state - handle both temp area replacement and position updates
         setLocalSignatureAreas((prev) => {
           // If this is a new area ID (from temp area conversion), replace the temp area
-          const tempAreaIndex = prev.findIndex((area) => area.id === "temp-signature-area");
-          const existingAreaIndex = prev.findIndex((area) => area.id === areaId);
+          const tempAreaIndex = prev.findIndex(
+            (area) => area.id === "temp-signature-area"
+          );
+          const existingAreaIndex = prev.findIndex(
+            (area) => area.id === areaId
+          );
 
           if (tempAreaIndex !== -1 && existingAreaIndex === -1) {
             // Replace temp area with new real area
 
             const newAreas = [...prev];
-            newAreas[tempAreaIndex] = { ...newAreas[tempAreaIndex], id: areaId, x, y };
+            newAreas[tempAreaIndex] = {
+              ...newAreas[tempAreaIndex],
+              id: areaId,
+              x,
+              y,
+            };
             return newAreas;
           } else {
             // Update existing area position
-            return prev.map((area) => (area.id === areaId ? { ...area, x, y } : area));
+            return prev.map((area) =>
+              area.id === areaId ? { ...area, x, y } : area
+            );
           }
         });
       } catch {
         // Error in handlePositionUpdate
       }
     },
-    [updateSignatureArea],
+    [updateSignatureArea]
   );
 
   const handleFormFieldChange = useCallback((areaId: string, value: string) => {
@@ -677,7 +741,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     }));
     // Also update the area's value in local state
     setLocalSignatureAreas((prev) =>
-      prev.map((area) => (area.id === areaId ? { ...area, value } : area)),
+      prev.map((area) => (area.id === areaId ? { ...area, value } : area))
     );
   }, []);
 
@@ -689,9 +753,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     const lastState = lastStateRef.current;
 
     const formFieldsChanged =
-      JSON.stringify(currentState.formFieldValues) !== JSON.stringify(lastState.formFieldValues);
+      JSON.stringify(currentState.formFieldValues) !==
+      JSON.stringify(lastState.formFieldValues);
     const signaturesChanged =
-      JSON.stringify(currentState.signatureDataMap) !== JSON.stringify(lastState.signatureDataMap);
+      JSON.stringify(currentState.signatureDataMap) !==
+      JSON.stringify(lastState.signatureDataMap);
 
     if ((formFieldsChanged || signaturesChanged) && onPdfStateChange) {
       onPdfStateChange(formFieldValues, signatureDataMap);
@@ -699,10 +765,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     }
   }, [formFieldValues, signatureDataMap, onPdfStateChange]);
 
-  const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-    setIsLoading(false);
-  }, []);
+  const onDocumentLoadSuccess = useCallback(
+    ({ numPages }: { numPages: number }) => {
+      setNumPages(numPages);
+      setIsLoading(false);
+    },
+    []
+  );
 
   const onDocumentLoadError = useCallback(() => {
     setIsLoading(false);
@@ -734,7 +803,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             event_type: event.event_type,
             user: event.user,
             timestamp: event.timestamp,
-          })),
+          }))
         );
 
         // Load comments using hook
@@ -743,19 +812,28 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           id: comment.id,
           comment: comment.comment,
           user: comment.user,
-          first_name: comment.first_name ?? comment.user?.split("@")[0] ?? "User",
+          first_name:
+            comment.first_name ?? comment.user?.split("@")[0] ?? "User",
           last_name: comment.last_name ?? "",
           created_at: comment.created_at,
           users: comment.users ?? null,
         })) as CommentWithUser[];
         setComments(transformedComments);
       } catch (error) {
-        console.error("[DocumentViewer] Error loading document history/comments:", error);
+        console.error(
+          "[DocumentViewer] Error loading document history/comments:",
+          error
+        );
       }
     };
 
     void loadDocumentHistory();
-  }, [actualOpen, currentDocumentId, getCommentsForDocument, getDocumentHistory]);
+  }, [
+    actualOpen,
+    currentDocumentId,
+    getCommentsForDocument,
+    getDocumentHistory,
+  ]);
 
   const goToPrevPage = useCallback(() => {
     setPageNumber((prev) => Math.max(prev - 1, 1));
@@ -780,7 +858,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       // Open signature modal on top of document viewer
       setSignatureModalOpen(true);
     },
-    [handleTaskSignatureInsert],
+    [handleTaskSignatureInsert]
   );
 
   const handleSignatureModalClose = useCallback(() => {
@@ -804,7 +882,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       setSignatureModalOpen(false);
       setCurrentSignatureAreaId(null);
     },
-    [currentSignatureAreaId, handleTaskSignatureInsert],
+    [currentSignatureAreaId, handleTaskSignatureInsert]
   );
 
   const handleSubmitSignedForm = useCallback(async () => {
@@ -812,16 +890,21 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     try {
       if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
         if (currentDocumentId && uploadDocument) {
-          const file = new File([new Uint8Array([37, 80, 68, 70])], "signed-form.pdf", {
-            type: "application/pdf",
-          });
-          const meetingId = typeof task?.meeting_id === "string" ? task?.meeting_id : undefined;
+          const file = new File(
+            [new Uint8Array([37, 80, 68, 70])],
+            "signed-form.pdf",
+            {
+              type: "application/pdf",
+            }
+          );
+          const meetingId =
+            typeof task?.meeting_id === "string" ? task?.meeting_id : undefined;
           await uploadDocument(
             file,
             `${currentDocumentId}-signed-${Date.now()}`,
             meetingId,
             `${actualTitle?.trim() || task?.title?.trim() || "Document"} - Signed`,
-            task?.id,
+            task?.id
           );
         }
         await handleTaskSubmitSuccess();
@@ -863,11 +946,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
         // Upload the signed document
         if (currentDocumentId && uploadDocument) {
-          const baseTitle = actualTitle?.trim() || task?.title?.trim() || "Document";
+          const baseTitle =
+            actualTitle?.trim() || task?.title?.trim() || "Document";
           const documentTitle = baseTitle.includes(" - Signed")
             ? baseTitle
             : `${baseTitle} - Signed`;
-          const meetingId = typeof task?.meeting_id === "string" ? task?.meeting_id : undefined;
+          const meetingId =
+            typeof task?.meeting_id === "string" ? task?.meeting_id : undefined;
 
           // Preserve form type in documentId (plan-file-request, broadridge-form, etc)
           // Insert -signed- after the form type prefix to maintain document type detection
@@ -877,12 +962,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             // If it starts with a form type (e.g., plan-file-request-123), insert -signed- after first part
             if (
               /^(plan-file-request|broadridge-form|transfer-agent-request)-/.exec(
-                documentIdForUpload,
+                documentIdForUpload
               )
             ) {
               documentIdForUpload = documentIdForUpload.replace(
                 /^([^-]+-[^-]+-[^-]+)/,
-                "$1-signed",
+                "$1-signed"
               );
             } else {
               // Otherwise append -signed- to the end
@@ -895,11 +980,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             documentIdForUpload,
             meetingId,
             documentTitle,
-            task?.id,
+            task?.id
           );
           if (!uploadPath) {
             throw new Error(
-              "Unable to save signed document. Please try again or contact support if the issue persists.",
+              "Unable to save signed document. Please try again or contact support if the issue persists."
             );
           }
         }
@@ -917,7 +1002,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
               event_type: event.event_type,
               user: event.user,
               timestamp: event.timestamp,
-            })),
+            }))
           );
         }
       }
@@ -933,7 +1018,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     } catch (error) {
       // Show error to user
       alert(
-        `Failed to submit signed document: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `Failed to submit signed document: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     } finally {
       setIsSubmitting(false);
@@ -976,7 +1061,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
       // Extract filename from URL or use a default name
       const urlParts = fileUrlToUse.split("/");
-      const fileName = urlParts[urlParts.length - 1] ?? `${actualTitle ?? "document"}.pdf`;
+      const fileName =
+        urlParts[urlParts.length - 1] ?? `${actualTitle ?? "document"}.pdf`;
 
       // Set download attribute with filename
       link.download = fileName.includes(".pdf") ? fileName : `${fileName}.pdf`;
@@ -1013,7 +1099,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diffInHours = Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInHours =
+      Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
       return (
@@ -1035,7 +1122,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     setShowCommentField(true);
     // Smooth scroll to bottom when comment field appears
     setTimeout(() => {
-      const commentsContainer = document.querySelector("[data-comments-container]");
+      const commentsContainer = document.querySelector(
+        "[data-comments-container]"
+      );
       if (commentsContainer) {
         commentsContainer.scrollTo({
           top: commentsContainer.scrollHeight,
@@ -1057,7 +1146,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     try {
       // Extract user information from session
       const userFirstName = (session?.user?.name ?? "").split(" ")[0] ?? "User";
-      const userLastName = (session?.user?.name ?? "").split(" ").slice(1).join(" ") ?? "";
+      const userLastName =
+        (session?.user?.name ?? "").split(" ").slice(1).join(" ") ?? "";
       const userId = session?.user?.email ?? "current-user";
 
       // Save comment using hook with user information
@@ -1085,7 +1175,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       setShowCommentField(false);
     } catch (error) {
       console.error("[DocumentViewer] Error adding comment:", error);
-      alert(`Failed to add comment: ${error instanceof Error ? error.message : "Unknown error"}`);
+      alert(
+        `Failed to add comment: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   };
 
@@ -1096,7 +1188,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
       for (const file of files) {
         // Use hook to upload document
-        const meetingId = typeof task?.meeting_id === "string" ? task?.meeting_id : undefined;
+        const meetingId =
+          typeof task?.meeting_id === "string" ? task?.meeting_id : undefined;
         const result = await uploadDocument(file, currentDocumentId, meetingId);
 
         if (!result) {
@@ -1113,10 +1206,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           event_type: event.event_type,
           user: event.user,
           timestamp: event.timestamp,
-        })),
+        }))
       );
     },
-    [currentDocumentId, uploadDocument, getDocumentHistory, task],
+    [currentDocumentId, uploadDocument, getDocumentHistory, task]
   );
 
   if (!actualOpen) {
@@ -1149,9 +1242,18 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           boxShadow: theme.shadows[10],
         })}
       >
-        <Toolbar sx={{ px: 3, color: (theme) => theme.vars?.palette.common.white }}>
-          <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1, gap: 2 }}>
-            <IconButton edge="start" color="inherit" onClick={actualOnClose} aria-label="close">
+        <Toolbar
+          sx={{ px: 3, color: (theme) => theme.vars?.palette.common.white }}
+        >
+          <Box
+            sx={{ display: "flex", alignItems: "center", flexGrow: 1, gap: 2 }}
+          >
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={actualOnClose}
+              aria-label="close"
+            >
               <CloseIcon />
             </IconButton>
             <Typography
@@ -1181,7 +1283,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 >
                   Request Revision
                 </Button>
-                <Button variant="contained" color="success" onClick={onApproveSite}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={onApproveSite}
+                >
                   Approve Site
                 </Button>
               </>
@@ -1201,7 +1307,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                         color: (theme) => theme.vars.palette.common.white,
                         borderColor: (theme) => theme.vars.palette.common.white,
                         "&:hover": {
-                          borderColor: (theme) => theme.vars.palette.common.white,
+                          borderColor: (theme) =>
+                            theme.vars.palette.common.white,
                           backgroundColor: "rgba(255, 255, 255, 0.1)",
                         },
                       }}
@@ -1255,7 +1362,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                           variant="contained"
                           color="success"
                           onClick={
-                            allFieldsComplete && !isSubmitting ? handleSubmitSignedForm : undefined
+                            allFieldsComplete && !isSubmitting
+                              ? handleSubmitSignedForm
+                              : undefined
                           }
                           startIcon={
                             isSubmitting ? (
@@ -1263,8 +1372,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                             ) : undefined
                           }
                           sx={{
-                            opacity: allFieldsComplete && !isSubmitting ? 1 : 0.65,
-                            cursor: allFieldsComplete && !isSubmitting ? "pointer" : "not-allowed",
+                            opacity:
+                              allFieldsComplete && !isSubmitting ? 1 : 0.65,
+                            cursor:
+                              allFieldsComplete && !isSubmitting
+                                ? "pointer"
+                                : "not-allowed",
                             pointerEvents: "auto",
                             "&:hover": {
                               backgroundColor: (theme) =>
@@ -1285,7 +1398,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             {/* Download Button */}
             {showDownloadButton && !isWebsiteView && isPDF && (
               <Tooltip title="Download PDF">
-                <IconButton color="inherit" onClick={handleDownloadPdf} aria-label="download pdf">
+                <IconButton
+                  color="inherit"
+                  onClick={handleDownloadPdf}
+                  aria-label="download pdf"
+                >
                   <DownloadIcon />
                 </IconButton>
               </Tooltip>
@@ -1309,7 +1426,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 </IconButton>
                 <Typography
                   variant="body3"
-                  sx={{ color: (theme) => theme.vars.palette.common.white, mx: 1 }}
+                  sx={{
+                    color: (theme) => theme.vars.palette.common.white,
+                    mx: 1,
+                  }}
                 >
                   {pageNumber} / {numPages}
                 </Typography>
@@ -1331,14 +1451,22 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
             {!hideActivityButtons && showHistoryButton && (
               <Tooltip title="History">
-                <IconButton color="inherit" aria-label="history" onClick={handleHistory}>
+                <IconButton
+                  color="inherit"
+                  aria-label="history"
+                  onClick={handleHistory}
+                >
                   <HistoryIcon />
                 </IconButton>
               </Tooltip>
             )}
             {!hideActivityButtons && showCommentButton && (
               <Tooltip title="Comments">
-                <IconButton color="inherit" aria-label="comments" onClick={handleComments}>
+                <IconButton
+                  color="inherit"
+                  aria-label="comments"
+                  onClick={handleComments}
+                >
                   <CommentIcon />
                 </IconButton>
               </Tooltip>
@@ -1389,9 +1517,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 <Typography variant="h6" color="text.primary">
                   Document Hosting Site Not Available
                 </Typography>
-                <Typography variant="body3" color="text.secondary" textAlign="center">
-                  The document hosting site has not been set up yet. Please contact your
-                  administrator to configure the hosting site.
+                <Typography
+                  variant="body3"
+                  color="text.secondary"
+                  textAlign="center"
+                >
+                  The document hosting site has not been set up yet. Please
+                  contact your administrator to configure the hosting site.
                 </Typography>
               </Box>
             )
@@ -1448,9 +1580,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                       (() => {
                         // Convert relative storage paths to full Supabase URLs
                         let pdfUrl = actualfileUrl;
-                        if (actualfileUrl.startsWith("/storage/v1/object/public/")) {
+                        if (
+                          actualfileUrl.startsWith("/storage/v1/object/public/")
+                        ) {
                           const supabaseUrl =
-                            process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
+                            process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                            "http://127.0.0.1:54321";
                           pdfUrl = `${supabaseUrl}${actualfileUrl}`;
                         }
 
@@ -1461,8 +1596,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                             width={Math.min(
                               800,
                               typeof window !== "undefined"
-                                ? window.innerWidth - (showComments || showHistory ? 500 : 100)
-                                : 800,
+                                ? window.innerWidth -
+                                    (showComments || showHistory ? 500 : 100)
+                                : 800
                             )}
                             onLoadSuccess={onDocumentLoadSuccess}
                             onLoadError={onDocumentLoadError}
@@ -1486,14 +1622,21 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                           gap: 2,
                         }}
                       >
-                        <Typography variant="h6">Unsupported file type</Typography>
+                        <Typography variant="h6">
+                          Unsupported file type
+                        </Typography>
                         <Typography variant="body3" color="text.secondary">
                           This file type ({fileExtension}) cannot be previewed
                         </Typography>
                       </Box>
                     )
                   ) : (
-                    <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                      minHeight={400}
+                    >
                       <div>No document URL available</div>
                     </Box>
                   )}
@@ -1522,14 +1665,16 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                             area={{
                               ...area,
                               type: fieldType,
-                              value: formFieldValues[area.id] ?? area.value ?? "",
+                              value:
+                                formFieldValues[area.id] ?? area.value ?? "",
                             }}
                             onValueChange={handleFormFieldChange}
                           />
                         );
                       } else {
                         // Render signature area for signatures
-                        const areaSignatureData = signatureDataMap[area.id] ?? actualSignatureData;
+                        const areaSignatureData =
+                          signatureDataMap[area.id] ?? actualSignatureData;
                         return (
                           <DraggableSignatureArea
                             key={area.id}
@@ -1549,177 +1694,206 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         </Box>
 
         {/* Right Side Panel - Only show for PDF documents */}
-        {!isWebsiteView && !hideActivityButtons && (showComments || showHistory) && (
-          <Paper
-            elevation={3}
-            sx={{
-              width: 380,
-              background: "var(--mui-palette-background-paper)",
-              borderLeft: (theme) => `1px solid ${theme.vars?.palette.divider}`,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            {/* Header */}
-            <Box
-              sx={(theme) => ({
+        {!isWebsiteView &&
+          !hideActivityButtons &&
+          (showComments || showHistory) && (
+            <Paper
+              elevation={3}
+              sx={{
+                width: 380,
+                background: "var(--mui-palette-background-paper)",
+                borderLeft: (theme) =>
+                  `1px solid ${theme.vars?.palette.divider}`,
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "start",
-                p: 2,
-                py: 1,
-                background: theme.vars?.palette.appSwitcher.background,
-                color: theme.vars?.palette.appSwitcher.contrastText,
-              })}
+                flexDirection: "column",
+              }}
             >
-              <Typography variant="caption" sx={{ fontWeight: 500 }}>
-                {showComments ? "Comments" : "Document History"}
-              </Typography>
-            </Box>
-
-            {/* Content */}
-            {showComments ? (
-              /* Comments View */
+              {/* Header */}
               <Box
-                sx={{
-                  p: 1,
-                  flex: 1,
-                  overflow: "auto",
+                sx={(theme) => ({
                   display: "flex",
-                  flexDirection: "column",
-                }}
-                data-comments-container
+                  alignItems: "center",
+                  justifyContent: "start",
+                  p: 2,
+                  py: 1,
+                  background: theme.vars?.palette.appSwitcher.background,
+                  color: theme.vars?.palette.appSwitcher.contrastText,
+                })}
               >
-                <List sx={{ flex: 1 }}>
-                  {comments.length > 0 ? (
-                    comments.map((commentItem) => (
-                      <ListItem key={commentItem.id} divider>
-                        <ListItemAvatar>
-                          <Avatar
-                            src={commentItem.users?.avatar ?? undefined}
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              backgroundColor: (theme) => theme.vars.palette.secondary.main,
-                              borderRadius: 1,
-                            }}
+                <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                  {showComments ? "Comments" : "Document History"}
+                </Typography>
+              </Box>
+
+              {/* Content */}
+              {showComments ? (
+                /* Comments View */
+                <Box
+                  sx={{
+                    p: 1,
+                    flex: 1,
+                    overflow: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                  data-comments-container
+                >
+                  <List sx={{ flex: 1 }}>
+                    {comments.length > 0 ? (
+                      comments.map((commentItem) => (
+                        <ListItem key={commentItem.id} divider>
+                          <ListItemAvatar>
+                            <Avatar
+                              src={commentItem.users?.avatar ?? undefined}
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                backgroundColor: (theme) =>
+                                  theme.vars.palette.secondary.main,
+                                borderRadius: 1,
+                              }}
+                            />
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <Box
+                                component="span"
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "start",
+                                }}
+                              >
+                                <Typography
+                                  component="span"
+                                  variant="body3"
+                                  fontWeight={500}
+                                >
+                                  {`${commentItem.first_name} ${commentItem.last_name}`}
+                                </Typography>
+                                <Typography
+                                  component="span"
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  {formatTimestamp(commentItem.created_at)}
+                                </Typography>
+                              </Box>
+                            }
+                            secondary={commentItem.comment}
                           />
-                        </ListItemAvatar>
+                        </ListItem>
+                      ))
+                    ) : (
+                      <ListItem>
                         <ListItemText
                           primary={
-                            <Box
-                              component="span"
-                              sx={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "start",
-                              }}
+                            <Typography
+                              variant="body3"
+                              color="text.secondary"
+                              align="center"
                             >
-                              <Typography component="span" variant="body3" fontWeight={500}>
-                                {`${commentItem.first_name} ${commentItem.last_name}`}
-                              </Typography>
-                              <Typography component="span" variant="caption" color="text.secondary">
-                                {formatTimestamp(commentItem.created_at)}
-                              </Typography>
-                            </Box>
+                              No comments yet
+                            </Typography>
                           }
-                          secondary={commentItem.comment}
                         />
                       </ListItem>
+                    )}
+                  </List>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      p: 2,
+                      borderTop: (theme) =>
+                        `1px solid ${theme.vars?.palette.divider}`,
+                    }}
+                  >
+                    {showCommentField && (
+                      <TextField
+                        label="Add Comment"
+                        aria-label="Add Comment"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        multiline
+                        rows={4}
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        autoFocus
+                      />
+                    )}
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={
+                        showCommentField
+                          ? handleSubmitComment
+                          : handleAddComment
+                      }
+                      sx={{ alignSelf: "flex-end" }}
+                    >
+                      {showCommentField ? "Submit Comment" : "Add Comment"}
+                    </Button>
+                  </Box>
+                </Box>
+              ) : showHistory ? (
+                /* History View */
+                <List sx={{ p: 1, flex: 1 }}>
+                  {documentHistory && documentHistory.length > 0 ? (
+                    documentHistory.map((historyItem, index) => (
+                      <React.Fragment key={index}>
+                        <ListItem dense>
+                          <ListItemIcon>
+                            {historyItem.event_type === "Signed" ? (
+                              <HistoryIcon />
+                            ) : (
+                              <UpdateIcon />
+                            )}
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={historyItem.event_type}
+                            secondary={`${historyItem.user}: ${historyItem.timestamp}`}
+                          />
+                        </ListItem>
+                        {index < documentHistory.length - 1 && <Divider />}
+                      </React.Fragment>
                     ))
                   ) : (
-                    <ListItem>
+                    <ListItem dense>
+                      <ListItemIcon>
+                        <UpdateIcon />
+                      </ListItemIcon>
                       <ListItemText
-                        primary={
-                          <Typography variant="body3" color="text.secondary" align="center">
-                            No comments yet
-                          </Typography>
-                        }
+                        primary="No history available"
+                        secondary="Document history will appear here"
                       />
                     </ListItem>
                   )}
                 </List>
+              ) : (
+                /* Default View - No panel selected */
                 <Box
                   sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
                     p: 2,
-                    borderTop: (theme) => `1px solid ${theme.vars?.palette.divider}`,
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {showCommentField && (
-                    <TextField
-                      label="Add Comment"
-                      aria-label="Add Comment"
-                      variant="outlined"
-                      size="small"
-                      fullWidth
-                      multiline
-                      rows={4}
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      autoFocus
-                    />
-                  )}
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={showCommentField ? handleSubmitComment : handleAddComment}
-                    sx={{ alignSelf: "flex-end" }}
+                  <Typography
+                    variant="body3"
+                    color="text.secondary"
+                    align="center"
                   >
-                    {showCommentField ? "Submit Comment" : "Add Comment"}
-                  </Button>
+                    Click History or Comments to view document information
+                  </Typography>
                 </Box>
-              </Box>
-            ) : showHistory ? (
-              /* History View */
-              <List sx={{ p: 1, flex: 1 }}>
-                {documentHistory && documentHistory.length > 0 ? (
-                  documentHistory.map((historyItem, index) => (
-                    <React.Fragment key={index}>
-                      <ListItem dense>
-                        <ListItemIcon>
-                          {historyItem.event_type === "Signed" ? <HistoryIcon /> : <UpdateIcon />}
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={historyItem.event_type}
-                          secondary={`${historyItem.user}: ${historyItem.timestamp}`}
-                        />
-                      </ListItem>
-                      {index < documentHistory.length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))
-                ) : (
-                  <ListItem dense>
-                    <ListItemIcon>
-                      <UpdateIcon />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary="No history available"
-                      secondary="Document history will appear here"
-                    />
-                  </ListItem>
-                )}
-              </List>
-            ) : (
-              /* Default View - No panel selected */
-              <Box
-                sx={{
-                  p: 2,
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography variant="body3" color="text.secondary" align="center">
-                  Click History or Comments to view document information
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        )}
+              )}
+            </Paper>
+          )}
       </Box>
 
       {/* Signature Modal - Rendered on top of DocumentViewer */}

@@ -60,7 +60,9 @@ const METRIC_DEFINITIONS: MetricDefinition[] = [
   { label: "Canceled", key: "canceledSuppressedPositions" },
 ];
 
-const buildMetricsFromMailing = (mailing: MailingType | null): MailingMetric[] =>
+const buildMetricsFromMailing = (
+  mailing: MailingType | null
+): MailingMetric[] =>
   METRIC_DEFINITIONS.map((def) => {
     if (def.group) return { label: def.label, group: def.group };
     const raw = def.key && mailing ? mailing[def.key] : null;
@@ -117,8 +119,13 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
     <Card variant="outlined" elevation={0}>
       <CardContent sx={{ "&:last-child": { p: 0, overflowX: "auto" } }}>
         <Table size="small" sx={{ width: "100%", border: "none" }}>
-          <SROnlyTableCaption>Mailing job status and breakdown metrics.</SROnlyTableCaption>
-          <TableHead aria-hidden="false" sx={{ visibility: "hidden", display: "none" }}>
+          <SROnlyTableCaption>
+            Mailing job status and breakdown metrics.
+          </SROnlyTableCaption>
+          <TableHead
+            aria-hidden="false"
+            sx={{ visibility: "hidden", display: "none" }}
+          >
             <TableRow>
               <TableCell>Metric</TableCell>
               <TableCell align="right">Value</TableCell>
@@ -152,17 +159,26 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
                 </TableCell>
                 {row.items.map((item, cIdx) => {
                   const displayValue =
-                    item.value === null || item.value === undefined || item.value === ""
+                    item.value === null ||
+                    item.value === undefined ||
+                    item.value === ""
                       ? "0"
                       : item.value;
                   return (
                     <TableCell key={cIdx} sx={{ py: 1, border: "none" }}>
-                      <Typography variant="caption" color="text.secondary" display="block">
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        display="block"
+                      >
                         {item.label}
                       </Typography>
                       <Typography
                         variant="body3"
-                        sx={{ fontWeight: 500, ["fontVariantNumeric"]: "tabularNums" }}
+                        sx={{
+                          fontWeight: 500,
+                          ["fontVariantNumeric"]: "tabularNums",
+                        }}
                       >
                         {displayValue}
                       </Typography>

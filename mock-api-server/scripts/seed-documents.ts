@@ -119,7 +119,11 @@ const documentMappings: Record<string, DocumentTypeMapping> = {
     displayCategory: "dsm",
     status: "APPROVED",
   },
-  "Intro Slide": { type: "Intro Slide", displayCategory: "dsm", status: "APPROVED" },
+  "Intro Slide": {
+    type: "Intro Slide",
+    displayCategory: "dsm",
+    status: "APPROVED",
+  },
   "Annual Meeting": {
     type: "Shareholder Presentation",
     displayCategory: "dsm",
@@ -128,7 +132,11 @@ const documentMappings: Record<string, DocumentTypeMapping> = {
   Guest: { type: "Guest List", displayCategory: "dsm", status: "APPROVED" },
   QA: { type: "Q&A Document", displayCategory: "dsm", status: "APPROVED" },
   "Q&A": { type: "Q&A Document", displayCategory: "dsm", status: "APPROVED" },
-  Procedures: { type: "Meeting Procedures", displayCategory: "dsm", status: "APPROVED" },
+  Procedures: {
+    type: "Meeting Procedures",
+    displayCategory: "dsm",
+    status: "APPROVED",
+  },
   "Attendance Report": {
     type: "Attendance Report",
     displayCategory: "dsm",
@@ -153,7 +161,11 @@ const documentMappings: Record<string, DocumentTypeMapping> = {
   },
 
   // Internal documents - all APPROVED
-  "Data.docx": { type: "Company Data", displayCategory: "internal", status: "APPROVED" },
+  "Data.docx": {
+    type: "Company Data",
+    displayCategory: "internal",
+    status: "APPROVED",
+  },
   "Registered Account": {
     type: "Account Registry",
     displayCategory: "internal",
@@ -221,11 +233,15 @@ async function cleanDocuments() {
   }
 
   // List and delete all files from storage
-  const { data: files } = await supabase.storage.from("documents").list("", { limit: 1000 });
+  const { data: files } = await supabase.storage
+    .from("documents")
+    .list("", { limit: 1000 });
 
   if (files && files.length > 0) {
     const paths = files.map((f) => f.name);
-    const { error: storageError } = await supabase.storage.from("documents").remove(paths);
+    const { error: storageError } = await supabase.storage
+      .from("documents")
+      .remove(paths);
 
     if (storageError) {
       console.error("Failed to clean storage:", storageError);
@@ -241,7 +257,7 @@ async function uploadDocument(
   clientKey: string,
   filename: string,
   filePath: string,
-  fileStats: Stats,
+  fileStats: Stats
 ): Promise<boolean> {
   const client = clientMapping[clientKey as keyof typeof clientMapping];
   if (!client) {
@@ -258,7 +274,17 @@ async function uploadDocument(
   try {
     // Skip non-document files
     const ext = filename.split(".").pop() || "";
-    const supportedExts = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "mp4", "m4a"];
+    const supportedExts = [
+      "pdf",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "ppt",
+      "pptx",
+      "mp4",
+      "m4a",
+    ];
     if (!supportedExts.includes(ext.toLowerCase())) {
       console.log(`   Skipping unsupported file type: ${filename}`);
       return false;
@@ -275,7 +301,9 @@ async function uploadDocument(
     console.log(`   Storage Path: ${storagePath}`);
 
     // Upload to storage
-    console.log(`   Uploading ${(fileStats.size / 1024 / 1024).toFixed(2)}MB file...`);
+    console.log(
+      `   Uploading ${(fileStats.size / 1024 / 1024).toFixed(2)}MB file...`
+    );
     const { data: storageData, error: storageError } = await supabase.storage
       .from("documents")
       .upload(storagePath, fileBuffer, {
@@ -284,15 +312,21 @@ async function uploadDocument(
       });
 
     if (storageError) {
-      console.error(`❌ Storage error for ${filename}: ${storageError.message}`);
+      console.error(
+        `❌ Storage error for ${filename}: ${storageError.message}`
+      );
       console.error(`   Full error:`, storageError);
       return false;
     }
 
-    console.log(`   ✓ Uploaded to storage: ${storageData?.path || storagePath}`);
+    console.log(
+      `   ✓ Uploaded to storage: ${storageData?.path || storagePath}`
+    );
 
     // Get public URL - use relative path for production compatibility
-    const { data: urlData } = supabase.storage.from("documents").getPublicUrl(storagePath);
+    const { data: urlData } = supabase.storage
+      .from("documents")
+      .getPublicUrl(storagePath);
     // Convert to relative URL for production compatibility
     const publicUrl = urlData.publicUrl.replace(/^https?:\/\/[^/]+/, "");
 
@@ -336,7 +370,10 @@ async function uploadDocument(
   }
 }
 
-async function uploadClientDocuments(clientKey: string, sourceDataKey?: string): Promise<number> {
+async function uploadClientDocuments(
+  clientKey: string,
+  sourceDataKey?: string
+): Promise<number> {
   const dataKey = sourceDataKey ?? clientKey;
   const dataDir = join(process.cwd(), "..", "data", dataKey);
 
@@ -364,7 +401,12 @@ async function uploadClientDocuments(clientKey: string, sourceDataKey?: string):
       const fileStats = statSync(filePath);
 
       if (fileStats.isFile()) {
-        const success = await uploadDocument(clientKey, file, filePath, fileStats);
+        const success = await uploadDocument(
+          clientKey,
+          file,
+          filePath,
+          fileStats
+        );
         if (success) uploadCount++;
       }
     }
@@ -380,7 +422,9 @@ async function linkExistingDocuments() {
   console.log("🔗 Linking existing storage files to database...\n");
 
   // Get all files from storage
-  const { data: files, error } = await supabase.storage.from("documents").list("", { limit: 1000 });
+  const { data: files, error } = await supabase.storage
+    .from("documents")
+    .list("", { limit: 1000 });
 
   if (error) {
     console.error("Failed to list storage files:", error);
@@ -407,7 +451,9 @@ async function linkExistingDocuments() {
       status: "APPROVED",
     };
 
-    const { data: urlData } = supabase.storage.from("documents").getPublicUrl(file.name);
+    const { data: urlData } = supabase.storage
+      .from("documents")
+      .getPublicUrl(file.name);
     // Convert to relative URL for production compatibility
     const publicUrl = urlData.publicUrl.replace(/^https?:\/\/[^/]+/, "");
 
@@ -441,7 +487,7 @@ async function main() {
   console.log("🚀 Document Seeding Tool\n");
   console.log(`   Supabase URL: ${supabaseUrl}`);
   console.log(
-    `   Mode: ${shouldLink ? "Link existing" : shouldClean ? "Clean & upload" : "Upload only"}\n`,
+    `   Mode: ${shouldLink ? "Link existing" : shouldClean ? "Clean & upload" : "Upload only"}\n`
   );
 
   // Link existing files if requested
@@ -472,7 +518,9 @@ async function main() {
   console.log(`\n✨ Upload complete! Total documents: ${totalUploaded}`);
 
   // Show summary
-  const { count } = await supabase.from("document").select("*", { count: "exact", head: true });
+  const { count } = await supabase
+    .from("document")
+    .select("*", { count: "exact", head: true });
 
   console.log(`\n📊 Database Summary:`);
   console.log(`   Total documents: ${count}`);

@@ -86,7 +86,9 @@ async function cleanupAllOrphanedRecords() {
         SELECT 1 FROM meeting m WHERE m.id = p.meeting_id
       )
     `);
-    console.log(`   Deleted ${deletePositionsMeeting.rowCount} orphaned records`);
+    console.log(
+      `   Deleted ${deletePositionsMeeting.rowCount} orphaned records`
+    );
     totalDeleted += deletePositionsMeeting.rowCount ?? 0;
 
     // 6. Clean up orphaned proposals (meeting_id -> meeting)
@@ -218,7 +220,9 @@ async function cleanupAllOrphanedRecords() {
         SELECT 1 FROM meeting m WHERE m.id = tr.meeting_id
       )
     `);
-    console.log(`   Deleted ${deleteTabulationReports.rowCount} orphaned records`);
+    console.log(
+      `   Deleted ${deleteTabulationReports.rowCount} orphaned records`
+    );
     totalDeleted += deleteTabulationReports.rowCount ?? 0;
 
     // 17. Clean up orphaned digital_shareholder_meeting (meeting_id -> meeting)

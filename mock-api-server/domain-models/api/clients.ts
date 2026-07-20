@@ -84,8 +84,13 @@ function transformClient(row: ClientRow): Client {
 export async function listClients(
   _page?: number,
   limit?: number,
-  ticker?: string,
-): Promise<ApiResponse<{ clients?: Client[]; pagination?: components["schemas"]["Pagination"] }>> {
+  ticker?: string
+): Promise<
+  ApiResponse<{
+    clients?: Client[];
+    pagination?: components["schemas"]["Pagination"];
+  }>
+> {
   let query = supabase.from("clients").select("*");
 
   if (ticker) query = query.eq("ticker", ticker);
@@ -101,26 +106,41 @@ export async function listClients(
   return { data: { clients } };
 }
 
-export async function createClient(clientData: CreateClientRequest): Promise<ApiResponse<Client>> {
+export async function createClient(
+  clientData: CreateClientRequest
+): Promise<ApiResponse<Client>> {
   const dbInsert: Record<string, unknown> = { id: randomUUID() };
   if (clientData.ticker !== undefined) dbInsert.ticker = clientData.ticker;
-  if (clientData.companyName !== undefined) dbInsert.company_name = clientData.companyName;
-  if (clientData.shortName !== undefined) dbInsert.short_name = clientData.shortName;
-  if (clientData.industry !== undefined) dbInsert.industry = clientData.industry;
-  if (clientData.description !== undefined) dbInsert.description = clientData.description;
+  if (clientData.companyName !== undefined)
+    dbInsert.company_name = clientData.companyName;
+  if (clientData.shortName !== undefined)
+    dbInsert.short_name = clientData.shortName;
+  if (clientData.industry !== undefined)
+    dbInsert.industry = clientData.industry;
+  if (clientData.description !== undefined)
+    dbInsert.description = clientData.description;
   if (clientData.website !== undefined) dbInsert.website = clientData.website;
-  if (clientData.primaryContact !== undefined) dbInsert.primary_contact = clientData.primaryContact;
+  if (clientData.primaryContact !== undefined)
+    dbInsert.primary_contact = clientData.primaryContact;
   if (clientData.primaryContactEmail !== undefined)
     dbInsert.primary_contact_email = clientData.primaryContactEmail;
-  if (clientData.isActive !== undefined) dbInsert.is_active = clientData.isActive;
+  if (clientData.isActive !== undefined)
+    dbInsert.is_active = clientData.isActive;
   if (clientData.logoUrl !== undefined) dbInsert.logo_url = clientData.logoUrl;
-  if (clientData.primaryColor !== undefined) dbInsert.primary_color = clientData.primaryColor;
-  if (clientData.secondaryColor !== undefined) dbInsert.secondary_color = clientData.secondaryColor;
-  if (clientData.createdBy !== undefined) dbInsert.created_by = clientData.createdBy;
+  if (clientData.primaryColor !== undefined)
+    dbInsert.primary_color = clientData.primaryColor;
+  if (clientData.secondaryColor !== undefined)
+    dbInsert.secondary_color = clientData.secondaryColor;
+  if (clientData.createdBy !== undefined)
+    dbInsert.created_by = clientData.createdBy;
   if (clientData.enabledFeatures !== undefined)
     dbInsert.enabled_features = clientData.enabledFeatures;
 
-  const { data, error } = await supabase.from("clients").insert(dbInsert).select().single();
+  const { data, error } = await supabase
+    .from("clients")
+    .insert(dbInsert)
+    .select()
+    .single();
 
   // If new optional columns don't exist yet (migration not applied), retry without them
   if (
@@ -148,8 +168,14 @@ export async function createClient(clientData: CreateClientRequest): Promise<Api
   return { data: transformClient(data as ClientRow) };
 }
 
-export async function getClientByTicker(ticker: string): Promise<ApiResponse<Client>> {
-  const { data, error } = await supabase.from("clients").select("*").eq("ticker", ticker).single();
+export async function getClientByTicker(
+  ticker: string
+): Promise<ApiResponse<Client>> {
+  const { data, error } = await supabase
+    .from("clients")
+    .select("*")
+    .eq("ticker", ticker)
+    .single();
 
   if (error) return { error: { message: error.message, statusCode: 404 } };
 
@@ -158,21 +184,29 @@ export async function getClientByTicker(ticker: string): Promise<ApiResponse<Cli
 
 export async function updateClient(
   ticker: string,
-  clientData: UpdateClientRequest,
+  clientData: UpdateClientRequest
 ): Promise<ApiResponse<Client>> {
   const dbUpdate: Record<string, unknown> = {};
-  if (clientData.companyName !== undefined) dbUpdate.company_name = clientData.companyName;
-  if (clientData.shortName !== undefined) dbUpdate.short_name = clientData.shortName;
-  if (clientData.industry !== undefined) dbUpdate.industry = clientData.industry;
-  if (clientData.description !== undefined) dbUpdate.description = clientData.description;
+  if (clientData.companyName !== undefined)
+    dbUpdate.company_name = clientData.companyName;
+  if (clientData.shortName !== undefined)
+    dbUpdate.short_name = clientData.shortName;
+  if (clientData.industry !== undefined)
+    dbUpdate.industry = clientData.industry;
+  if (clientData.description !== undefined)
+    dbUpdate.description = clientData.description;
   if (clientData.website !== undefined) dbUpdate.website = clientData.website;
-  if (clientData.primaryContact !== undefined) dbUpdate.primary_contact = clientData.primaryContact;
+  if (clientData.primaryContact !== undefined)
+    dbUpdate.primary_contact = clientData.primaryContact;
   if (clientData.primaryContactEmail !== undefined)
     dbUpdate.primary_contact_email = clientData.primaryContactEmail;
-  if (clientData.isActive !== undefined) dbUpdate.is_active = clientData.isActive;
+  if (clientData.isActive !== undefined)
+    dbUpdate.is_active = clientData.isActive;
   if (clientData.logoUrl !== undefined) dbUpdate.logo_url = clientData.logoUrl;
-  if (clientData.primaryColor !== undefined) dbUpdate.primary_color = clientData.primaryColor;
-  if (clientData.secondaryColor !== undefined) dbUpdate.secondary_color = clientData.secondaryColor;
+  if (clientData.primaryColor !== undefined)
+    dbUpdate.primary_color = clientData.primaryColor;
+  if (clientData.secondaryColor !== undefined)
+    dbUpdate.secondary_color = clientData.secondaryColor;
   if (clientData.enabledFeatures !== undefined)
     dbUpdate.enabled_features = clientData.enabledFeatures;
 
@@ -189,7 +223,10 @@ export async function updateClient(
 }
 
 export async function deleteClient(ticker: string): Promise<ApiResponse<void>> {
-  const { error } = await supabase.from("clients").delete().eq("ticker", ticker);
+  const { error } = await supabase
+    .from("clients")
+    .delete()
+    .eq("ticker", ticker);
 
   if (error) return { error: { message: error.message } };
 

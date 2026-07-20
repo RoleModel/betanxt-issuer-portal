@@ -10,9 +10,13 @@ test.describe("Notification System", () => {
     await page.waitForLoadState("networkidle");
 
     // Check if we have quick login buttons (development mode)
-    const quickLoginButton = page.getByRole("button", { name: /Login as Mike/i });
+    const quickLoginButton = page.getByRole("button", {
+      name: /Login as Mike/i,
+    });
 
-    if (await quickLoginButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (
+      await quickLoginButton.isVisible({ timeout: 5000 }).catch(() => false)
+    ) {
       // Use quick login in development
       await quickLoginButton.click();
     } else {
@@ -36,7 +40,9 @@ test.describe("Notification System", () => {
     const notificationButton = await page
       .locator("button")
       .filter({
-        has: page.locator('svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'),
+        has: page.locator(
+          'svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'
+        ),
       })
       .first();
 
@@ -49,14 +55,19 @@ test.describe("Notification System", () => {
     const notificationButton = await page
       .locator("button")
       .filter({
-        has: page.locator('svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'),
+        has: page.locator(
+          'svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'
+        ),
       })
       .first();
 
     await notificationButton.click();
 
     // Wait for popover
-    await page.waitForSelector(".MuiPopover-root", { state: "visible", timeout: 5000 });
+    await page.waitForSelector(".MuiPopover-root", {
+      state: "visible",
+      timeout: 5000,
+    });
 
     // Verify tabs are visible
     await expect(page.getByRole("tab", { name: /Unread/i })).toBeVisible();
@@ -68,7 +79,9 @@ test.describe("Notification System", () => {
     const notificationButton = await page
       .locator("button")
       .filter({
-        has: page.locator('svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'),
+        has: page.locator(
+          'svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'
+        ),
       })
       .first();
 
@@ -91,7 +104,9 @@ test.describe("Notification System", () => {
     const notificationButton = await page
       .locator("button")
       .filter({
-        has: page.locator('svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'),
+        has: page.locator(
+          'svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'
+        ),
       })
       .first();
 
@@ -103,7 +118,9 @@ test.describe("Notification System", () => {
     await expect(firstNotification).toBeVisible();
 
     // Get the notification title for logging
-    const title = await firstNotification.locator("h6, .MuiTypography-h6").textContent();
+    const title = await firstNotification
+      .locator("h6, .MuiTypography-h6")
+      .textContent();
     console.log("Clicking notification:", title);
 
     // Click it
@@ -123,7 +140,9 @@ test.describe("Notification System", () => {
     const notificationButton = await page
       .locator("button")
       .filter({
-        has: page.locator('svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'),
+        has: page.locator(
+          'svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'
+        ),
       })
       .first();
 
@@ -145,7 +164,9 @@ test.describe("Notification System", () => {
     const notificationButton = await page
       .locator("button")
       .filter({
-        has: page.locator('svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'),
+        has: page.locator(
+          'svg path[d*="M12"], [data-testid*="Notification"], .MuiBadge-root'
+        ),
       })
       .first();
 

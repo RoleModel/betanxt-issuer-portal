@@ -27,7 +27,10 @@ export function Footer({ portalBaseUrl }: FooterProps) {
       >
         BetaNXT <br /> 400 Regency Forest Dr #200 <br /> Cary, NC 27518
         <br />
-        <Link href={portalBaseUrl} style={{ color: COLORS.link, textDecoration: "none" }}>
+        <Link
+          href={portalBaseUrl}
+          style={{ color: COLORS.link, textDecoration: "none" }}
+        >
           www.betanxt.com
         </Link>
       </Text>

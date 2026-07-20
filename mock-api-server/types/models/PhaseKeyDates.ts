@@ -55,15 +55,22 @@ export function PhaseKeyDatesFromJSON(json: any): PhaseKeyDates {
   return PhaseKeyDatesFromJSONTyped(json, false);
 }
 
-export function PhaseKeyDatesFromJSONTyped(json: any, ignoreDiscriminator: boolean): PhaseKeyDates {
+export function PhaseKeyDatesFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): PhaseKeyDates {
   if (json == null) {
     return json;
   }
   return {
-    startDate: json["startDate"] == null ? undefined : new Date(json["startDate"]),
+    startDate:
+      json["startDate"] == null ? undefined : new Date(json["startDate"]),
     endDate: json["endDate"] == null ? undefined : new Date(json["endDate"]),
     dueDate: json["dueDate"] == null ? undefined : new Date(json["dueDate"]),
-    completionDate: json["completionDate"] == null ? undefined : new Date(json["completionDate"]),
+    completionDate:
+      json["completionDate"] == null
+        ? undefined
+        : new Date(json["completionDate"]),
   };
 }
 
@@ -73,7 +80,7 @@ export function PhaseKeyDatesToJSON(json: any): PhaseKeyDates {
 
 export function PhaseKeyDatesToJSONTyped(
   value?: PhaseKeyDates | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -85,9 +92,13 @@ export function PhaseKeyDatesToJSONTyped(
         ? null
         : (value["startDate"] as any)?.toISOString().substring(0, 10),
     endDate:
-      value["endDate"] === null ? null : (value["endDate"] as any)?.toISOString().substring(0, 10),
+      value["endDate"] === null
+        ? null
+        : (value["endDate"] as any)?.toISOString().substring(0, 10),
     dueDate:
-      value["dueDate"] === null ? null : (value["dueDate"] as any)?.toISOString().substring(0, 10),
+      value["dueDate"] === null
+        ? null
+        : (value["dueDate"] as any)?.toISOString().substring(0, 10),
     completionDate:
       value["completionDate"] === null
         ? null

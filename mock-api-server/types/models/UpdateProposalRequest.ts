@@ -77,31 +77,46 @@ export interface UpdateProposalRequest {
 /**
  * Check if a given object implements the UpdateProposalRequest interface.
  */
-export function instanceOfUpdateProposalRequest(value: object): value is UpdateProposalRequest {
+export function instanceOfUpdateProposalRequest(
+  value: object
+): value is UpdateProposalRequest {
   return true;
 }
 
-export function UpdateProposalRequestFromJSON(json: any): UpdateProposalRequest {
+export function UpdateProposalRequestFromJSON(
+  json: any
+): UpdateProposalRequest {
   return UpdateProposalRequestFromJSONTyped(json, false);
 }
 
 export function UpdateProposalRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): UpdateProposalRequest {
   if (json == null) {
     return json;
   }
   return {
-    proposalTitle: json["proposalTitle"] == null ? undefined : json["proposalTitle"],
-    proposalType: json["proposalType"] == null ? undefined : json["proposalType"],
-    proposalSubtype: json["proposalSubtype"] == null ? undefined : json["proposalSubtype"],
-    directorName: json["directorName"] == null ? undefined : json["directorName"],
-    directorTermYears: json["directorTermYears"] == null ? undefined : json["directorTermYears"],
-    directorClass: json["directorClass"] == null ? undefined : json["directorClass"],
-    termExpirationYear: json["termExpirationYear"] == null ? undefined : json["termExpirationYear"],
-    frequencyOptions: json["frequencyOptions"] == null ? undefined : json["frequencyOptions"],
-    recommendation: json["recommendation"] == null ? undefined : json["recommendation"],
+    proposalTitle:
+      json["proposalTitle"] == null ? undefined : json["proposalTitle"],
+    proposalType:
+      json["proposalType"] == null ? undefined : json["proposalType"],
+    proposalSubtype:
+      json["proposalSubtype"] == null ? undefined : json["proposalSubtype"],
+    directorName:
+      json["directorName"] == null ? undefined : json["directorName"],
+    directorTermYears:
+      json["directorTermYears"] == null ? undefined : json["directorTermYears"],
+    directorClass:
+      json["directorClass"] == null ? undefined : json["directorClass"],
+    termExpirationYear:
+      json["termExpirationYear"] == null
+        ? undefined
+        : json["termExpirationYear"],
+    frequencyOptions:
+      json["frequencyOptions"] == null ? undefined : json["frequencyOptions"],
+    recommendation:
+      json["recommendation"] == null ? undefined : json["recommendation"],
   };
 }
 
@@ -111,7 +126,7 @@ export function UpdateProposalRequestToJSON(json: any): UpdateProposalRequest {
 
 export function UpdateProposalRequestToJSONTyped(
   value?: UpdateProposalRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

@@ -36,28 +36,43 @@ import SkeletonTable from "@/components/ui/SkeletonTable";
 import { useDocuments } from "@/contexts/DocumentContext";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useVotingTabulation } from "@/hooks/useVotingTabulation";
-import { DOCUMENT_STATUS_VALUES, getDocumentStatusLabel } from "@/utils/documentUtils";
+import {
+  DOCUMENT_STATUS_VALUES,
+  getDocumentStatusLabel,
+} from "@/utils/documentUtils";
 
 type Document = Omit<components["schemas"]["Document"], "status"> & {
   status?: ExtendedDocumentStatus;
 };
 
 // Dynamic imports for heavy document components to enable route-based code splitting
-const ApprovalDrawer = dynamic(() => import("@/components/Drawers/ApprovalDrawer"), {
-  ssr: false,
-});
+const ApprovalDrawer = dynamic(
+  () => import("@/components/Drawers/ApprovalDrawer"),
+  {
+    ssr: false,
+  }
+);
 
-const DocumentViewer = dynamic(() => import("@/components/Documents/DocumentViewer"), {
-  ssr: false,
-});
+const DocumentViewer = dynamic(
+  () => import("@/components/Documents/DocumentViewer"),
+  {
+    ssr: false,
+  }
+);
 
-const FileUploadDialog = dynamic(() => import("@/components/FileUpload/FileUploadDialog"), {
-  ssr: false,
-});
+const FileUploadDialog = dynamic(
+  () => import("@/components/FileUpload/FileUploadDialog"),
+  {
+    ssr: false,
+  }
+);
 
-const VideoPlayerDialog = dynamic(() => import("@/components/Video/VideoPlayerDialog"), {
-  ssr: false,
-});
+const VideoPlayerDialog = dynamic(
+  () => import("@/components/Video/VideoPlayerDialog"),
+  {
+    ssr: false,
+  }
+);
 
 interface DocumentsPageProps {
   params: Promise<{
@@ -112,12 +127,17 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   // ApprovalDrawer state
   const [approvalDrawerOpen, setApprovalDrawerOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null
+  );
 
   // FileUploadDialog state
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [selectedDsmDocument, setSelectedDsmDocument] = useState<Document | null>(null);
-  const [uploadSource, setUploadSource] = useState<"regular" | "dsm">("regular");
+  const [selectedDsmDocument, setSelectedDsmDocument] =
+    useState<Document | null>(null);
+  const [uploadSource, setUploadSource] = useState<"regular" | "dsm">(
+    "regular"
+  );
 
   // DocumentViewer state for fullscreen view
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
@@ -182,13 +202,16 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   }, [activeMeetingId, refreshDocuments]);
 
   // Helper to normalize raw status values from API / placeholders.
-  const normalizeStatus = React.useCallback((raw: unknown): ExtendedDocumentStatus | "UNKNOWN" => {
-    if (!raw || typeof raw !== "string") return "NOT_UPLOADED";
-    if ((DOCUMENT_STATUS_VALUES as readonly string[]).includes(raw))
-      return raw as ExtendedDocumentStatus;
-    if (raw === "NOT_UPLOADED") return "NOT_UPLOADED";
-    return "UNKNOWN";
-  }, []);
+  const normalizeStatus = React.useCallback(
+    (raw: unknown): ExtendedDocumentStatus | "UNKNOWN" => {
+      if (!raw || typeof raw !== "string") return "NOT_UPLOADED";
+      if ((DOCUMENT_STATUS_VALUES as readonly string[]).includes(raw))
+        return raw as ExtendedDocumentStatus;
+      if (raw === "NOT_UPLOADED") return "NOT_UPLOADED";
+      return "UNKNOWN";
+    },
+    []
+  );
 
   // Derive unique normalized statuses present in the dataset.
   const availableStatuses = React.useMemo(() => {
@@ -203,7 +226,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
 
   // Filter documents based on search and selected (normalized) status
   const filteredDocuments = regularDocuments.filter((doc) => {
-    const matchesSearch = doc.title?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
+    const matchesSearch =
+      doc.title?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
     const normalized = normalizeStatus(doc.status);
     const matchesStatus = statusFilter === "All" || normalized === statusFilter;
     return matchesSearch && matchesStatus;
@@ -213,20 +237,25 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filteredDocuments.length) : 0;
+  const emptyRows =
+    page > 0
+      ? Math.max(0, (1 + page) * rowsPerPage - filteredDocuments.length)
+      : 0;
 
   // DSM pagination empty rows
   const dsmEmptyRows =
-    dsmPage > 0 ? Math.max(0, (1 + dsmPage) * dsmRowsPerPage - dsmDocuments.length) : 0;
+    dsmPage > 0
+      ? Math.max(0, (1 + dsmPage) * dsmRowsPerPage - dsmDocuments.length)
+      : 0;
 
   const handleChangePage = (
     _event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number,
+    newPage: number
   ) => {
     setPage(newPage);
   };
   const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -235,13 +264,13 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   // DSM Pagination handlers
   const handleDsmChangePage = (
     _event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number,
+    newPage: number
   ) => {
     setDsmPage(newPage);
   };
 
   const handleDsmChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setDsmRowsPerPage(parseInt(event.target.value, 10));
     setDsmPage(0);
@@ -286,7 +315,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
               const proposalNumber = row["Proposal Number"] ?? row.Number ?? "";
               const proposalTitle = row["Proposal Title"] ?? row.Title ?? "";
               const proposalType = row["Proposal Type"] ?? row.Type ?? "";
-              const proposalSubtype = row["Proposal Subtype"] ?? row.Subtype ?? "";
+              const proposalSubtype =
+                row["Proposal Subtype"] ?? row.Subtype ?? "";
               const directorName = row["Director Name"] ?? row.Director ?? "";
               const recommendation = row.Recommendation ?? "";
 
@@ -336,7 +366,10 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     });
   };
 
-  const handleFilesUpload = async (files: File[], associations?: Record<string, string>) => {
+  const handleFilesUpload = async (
+    files: File[],
+    associations?: Record<string, string>
+  ) => {
     if (!activeMeetingId) {
       throw new Error("No current meeting ID");
     }
@@ -345,7 +378,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     const file = files[0];
     const isExcelOrCsv =
       file &&
-      (file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      (file.type ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
         file.type === "application/vnd.ms-excel" ||
         file.type === "text/csv" ||
         file.name.endsWith(".xlsx") ||
@@ -360,7 +394,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
       setSelectedDsmDocument(null);
     } else {
       // Determine document type based on upload source
-      const documentType = uploadSource === "dsm" ? "dsm-document" : "general-document";
+      const documentType =
+        uploadSource === "dsm" ? "dsm-document" : "general-document";
       // Upload as document
       await uploadDocument(activeMeetingId, files, documentType, associations);
     }
@@ -414,7 +449,13 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   // Show error state
   if (error) {
     return (
-      <Box component="main" display="flex" flexDirection="column" gap={3} sx={{ p: 3 }}>
+      <Box
+        component="main"
+        display="flex"
+        flexDirection="column"
+        gap={3}
+        sx={{ p: 3 }}
+      >
         <Typography color="error">Error: {error}</Typography>
       </Box>
     );
@@ -452,7 +493,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                     aria-label="Watch tutorial"
                     sx={{
                       "&:hover": {
-                        backgroundColor: (theme) => theme.vars.palette.action.hover,
+                        backgroundColor: (theme) =>
+                          theme.vars.palette.action.hover,
                       },
                     }}
                   >
@@ -510,7 +552,8 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
                                 status === "UNKNOWN"
                                   ? "Unknown"
                                   : getDocumentStatusLabel(
-                                      (status as ExtendedDocumentStatus) || "NOT_UPLOADED",
+                                      (status as ExtendedDocumentStatus) ||
+                                        "NOT_UPLOADED"
                                     );
                               return (
                                 <MenuItem key={status} value={status}>

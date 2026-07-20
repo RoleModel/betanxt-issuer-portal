@@ -116,24 +116,30 @@ export type CreatePositionRequestSourceEnum =
 /**
  * Check if a given object implements the CreatePositionRequest interface.
  */
-export function instanceOfCreatePositionRequest(value: object): value is CreatePositionRequest {
+export function instanceOfCreatePositionRequest(
+  value: object
+): value is CreatePositionRequest {
   if (!("meetingId" in value) || value["meetingId"] === undefined) return false;
   if (!("cusip" in value) || value["cusip"] === undefined) return false;
-  if (!("accountType" in value) || value["accountType"] === undefined) return false;
+  if (!("accountType" in value) || value["accountType"] === undefined)
+    return false;
   if (!("setKey" in value) || value["setKey"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
-  if (!("voteStatus" in value) || value["voteStatus"] === undefined) return false;
+  if (!("voteStatus" in value) || value["voteStatus"] === undefined)
+    return false;
   if (!("shares" in value) || value["shares"] === undefined) return false;
   return true;
 }
 
-export function CreatePositionRequestFromJSON(json: any): CreatePositionRequest {
+export function CreatePositionRequestFromJSON(
+  json: any
+): CreatePositionRequest {
   return CreatePositionRequestFromJSONTyped(json, false);
 }
 
 export function CreatePositionRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CreatePositionRequest {
   if (json == null) {
     return json;
@@ -144,8 +150,10 @@ export function CreatePositionRequestFromJSONTyped(
     accountType: json["accountType"],
     setKey: json["setKey"],
     name: json["name"],
-    accountNumber: json["accountNumber"] == null ? undefined : json["accountNumber"],
-    controlNumber: json["controlNumber"] == null ? undefined : json["controlNumber"],
+    accountNumber:
+      json["accountNumber"] == null ? undefined : json["accountNumber"],
+    controlNumber:
+      json["controlNumber"] == null ? undefined : json["controlNumber"],
     voteStatus: json["voteStatus"],
     shares: json["shares"],
     sharesVoted: json["sharesVoted"] == null ? undefined : json["sharesVoted"],
@@ -160,7 +168,7 @@ export function CreatePositionRequestToJSON(json: any): CreatePositionRequest {
 
 export function CreatePositionRequestToJSONTyped(
   value?: CreatePositionRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

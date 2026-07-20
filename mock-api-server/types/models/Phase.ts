@@ -94,7 +94,10 @@ export function PhaseFromJSON(json: any): Phase {
   return PhaseFromJSONTyped(json, false);
 }
 
-export function PhaseFromJSONTyped(json: any, ignoreDiscriminator: boolean): Phase {
+export function PhaseFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Phase {
   if (json == null) {
     return json;
   }
@@ -103,10 +106,16 @@ export function PhaseFromJSONTyped(json: any, ignoreDiscriminator: boolean): Pha
     meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
     name: json["name"] == null ? undefined : json["name"],
     orderIndex: json["orderIndex"] == null ? undefined : json["orderIndex"],
-    status: json["status"] == null ? undefined : PhaseStatusFromJSON(json["status"]),
-    keyDates: json["keyDates"] == null ? undefined : PhaseKeyDatesFromJSON(json["keyDates"]),
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    status:
+      json["status"] == null ? undefined : PhaseStatusFromJSON(json["status"]),
+    keyDates:
+      json["keyDates"] == null
+        ? undefined
+        : PhaseKeyDatesFromJSON(json["keyDates"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
   };
 }
 
@@ -114,7 +123,10 @@ export function PhaseToJSON(json: any): Phase {
   return PhaseToJSONTyped(json, false);
 }
 
-export function PhaseToJSONTyped(value?: Phase | null, ignoreDiscriminator: boolean = false): any {
+export function PhaseToJSONTyped(
+  value?: Phase | null,
+  ignoreDiscriminator: boolean = false
+): any {
   if (value == null) {
     return value;
   }
@@ -126,7 +138,9 @@ export function PhaseToJSONTyped(value?: Phase | null, ignoreDiscriminator: bool
     orderIndex: value["orderIndex"],
     status: PhaseStatusToJSON(value["status"]),
     keyDates: PhaseKeyDatesToJSON(value["keyDates"]),
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
   };
 }

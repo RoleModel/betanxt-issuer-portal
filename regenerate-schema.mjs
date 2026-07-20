@@ -9,7 +9,7 @@ console.log("🔧 Regenerating PostgreSQL schema to fix HTML entity issues...");
 try {
   const { stdout, stderr } = await execAsync(
     "cd /Users/dallas/Development/betanxt-issuer-portal/mock-api-server && npm run generate:postgres-schema",
-    { timeout: 60000 },
+    { timeout: 60000 }
   );
 
   console.log("✅ Schema regeneration completed!");

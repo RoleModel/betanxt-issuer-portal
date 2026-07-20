@@ -55,7 +55,10 @@ export function PaginationFromJSON(json: any): Pagination {
   return PaginationFromJSONTyped(json, false);
 }
 
-export function PaginationFromJSONTyped(json: any, ignoreDiscriminator: boolean): Pagination {
+export function PaginationFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Pagination {
   if (json == null) {
     return json;
   }
@@ -73,7 +76,7 @@ export function PaginationToJSON(json: any): Pagination {
 
 export function PaginationToJSONTyped(
   value?: Pagination | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

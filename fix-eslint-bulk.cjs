@@ -62,7 +62,10 @@ function fixNullishCoalescing(content) {
   let fixed = content;
 
   // Pattern: process.env.VAR || 'default'
-  fixed = fixed.replace(/process\.env\.([A-Z_]+)\s+\|\|\s+(['"`])/g, "process.env.$1 ?? $2");
+  fixed = fixed.replace(
+    /process\.env\.([A-Z_]+)\s+\|\|\s+(['"`])/g,
+    "process.env.$1 ?? $2"
+  );
 
   // Pattern: someVar || 'default' (only for string/number literals)
   fixed = fixed.replace(/(\w+)\s+\|\|\s+(['"`][^'"`]*['"`])/g, "$1 ?? $2");
@@ -143,7 +146,10 @@ function main() {
 
   console.log("\n📊 Final lint status:\n");
   try {
-    execSync("npm run lint 2>&1 | tail -20", { stdio: "inherit", cwd: __dirname });
+    execSync("npm run lint 2>&1 | tail -20", {
+      stdio: "inherit",
+      cwd: __dirname,
+    });
   } catch {
     // Expected if there are still errors
   }

@@ -32,7 +32,7 @@ export function calculateMeetingCompletion(tasks: DbTask[]): number {
   if (tasks.length === 0) return 0;
 
   const completedTasks = tasks.filter((task) =>
-    COMPLETION_STATUSES.includes(task.status as string),
+    COMPLETION_STATUSES.includes(task.status as string)
   ).length;
 
   return Math.round((completedTasks / tasks.length) * 100);
@@ -48,11 +48,14 @@ export async function updateMeetingCompletion(meetingId: string) {
     const client = await buildApiClient();
 
     // Fetch all tasks for the meeting
-    const { data: tasksData, error: tasksError } = await client.GET("/meetings/{meetingId}/tasks", {
-      params: {
-        path: { meetingId },
-      },
-    });
+    const { data: tasksData, error: tasksError } = await client.GET(
+      "/meetings/{meetingId}/tasks",
+      {
+        params: {
+          path: { meetingId },
+        },
+      }
+    );
 
     if (!tasksData) {
       const errorMessage =
@@ -66,18 +69,23 @@ export async function updateMeetingCompletion(meetingId: string) {
     const completion = calculateMeetingCompletion(tasksData);
 
     // Update the meeting's overall completion
-    const { data: updateData, error: updateError } = await client.PUT("/meetings/{meetingId}", {
-      params: {
-        path: { meetingId },
-      },
-      body: {
-        overallCompletion: completion,
-      },
-    });
+    const { data: updateData, error: updateError } = await client.PUT(
+      "/meetings/{meetingId}",
+      {
+        params: {
+          path: { meetingId },
+        },
+        body: {
+          overallCompletion: completion,
+        },
+      }
+    );
 
     if (!updateData) {
       const errorMessage =
-        updateError && typeof updateError === "object" && "message" in updateError
+        updateError &&
+        typeof updateError === "object" &&
+        "message" in updateError
           ? String((updateError as { message: unknown }).message)
           : "Failed to update meeting";
       throw new Error(errorMessage);
@@ -99,11 +107,14 @@ export async function onTaskStatusChange(taskId: string) {
     const client = await buildApiClient();
 
     // Get the task to find its meeting ID
-    const { data: taskData, error: taskError } = await client.GET("/tasks/{id}", {
-      params: {
-        path: { id: taskId },
-      },
-    });
+    const { data: taskData, error: taskError } = await client.GET(
+      "/tasks/{id}",
+      {
+        params: {
+          path: { id: taskId },
+        },
+      }
+    );
 
     if (!taskData) {
       console.error("Error fetching task:", taskError);

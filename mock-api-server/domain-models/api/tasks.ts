@@ -59,7 +59,7 @@ function transformTask(dbTask: TaskRow): Task {
 
 export async function listTasks(
   meetingId: string,
-  opts?: { phaseId?: string; status?: string; owner?: string },
+  opts?: { phaseId?: string; status?: string; owner?: string }
 ): Promise<ApiResponse<Task[]>> {
   try {
     let query = supabase.from("task").select("*").eq("meeting_id", meetingId);
@@ -89,7 +89,8 @@ export async function listTasks(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch tasks",
+        message:
+          error instanceof Error ? error.message : "Failed to fetch tasks",
       },
     };
   }
@@ -97,7 +98,7 @@ export async function listTasks(
 
 export async function createTask(
   meetingId: string,
-  body: CreateTaskRequest,
+  body: CreateTaskRequest
 ): Promise<ApiResponse<Task>> {
   try {
     const request = body;
@@ -133,7 +134,8 @@ export async function createTask(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to create task",
+        message:
+          error instanceof Error ? error.message : "Failed to create task",
       },
     };
   }
@@ -141,7 +143,11 @@ export async function createTask(
 
 export async function getTaskById(id: string): Promise<ApiResponse<Task>> {
   try {
-    const { data, error } = await supabase.from("task").select("*").eq("id", id).single();
+    const { data, error } = await supabase
+      .from("task")
+      .select("*")
+      .eq("id", id)
+      .single();
 
     if (error) {
       return {
@@ -154,25 +160,34 @@ export async function getTaskById(id: string): Promise<ApiResponse<Task>> {
     };
   } catch (error) {
     return {
-      error: { message: error instanceof Error ? error.message : "Failed to fetch task" },
+      error: {
+        message:
+          error instanceof Error ? error.message : "Failed to fetch task",
+      },
     };
   }
 }
 
-export async function updateTask(id: string, body: UpdateTaskRequest): Promise<ApiResponse<Task>> {
+export async function updateTask(
+  id: string,
+  body: UpdateTaskRequest
+): Promise<ApiResponse<Task>> {
   try {
     const request = body;
     const updateData: Partial<TaskUpdate> = {
       updated_at: new Date().toISOString(),
     };
     if (request.title !== undefined) updateData.title = request.title;
-    if (request.description !== undefined) updateData.description = request.description;
+    if (request.description !== undefined)
+      updateData.description = request.description;
     if (request.dueDate !== undefined) updateData.due_date = request.dueDate;
     if (request.owner !== undefined) updateData.owner = request.owner;
     if (request.status !== undefined) updateData.status = request.status;
-    if (request.phaseNumber !== undefined) updateData.phase_number = request.phaseNumber;
+    if (request.phaseNumber !== undefined)
+      updateData.phase_number = request.phaseNumber;
     if (request.type !== undefined) updateData.type = request.type;
-    if (request.documentId !== undefined) updateData.document_id = request.documentId;
+    if (request.documentId !== undefined)
+      updateData.document_id = request.documentId;
     if (request.links !== undefined) updateData.links = request.links ?? null;
 
     const { data, error } = await supabase
@@ -194,13 +209,16 @@ export async function updateTask(id: string, body: UpdateTaskRequest): Promise<A
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to update task",
+        message:
+          error instanceof Error ? error.message : "Failed to update task",
       },
     };
   }
 }
 
 // Helper function for backward compatibility
-export async function listTasksByMeetingId(meetingId: string): Promise<ApiResponse<Task[]>> {
+export async function listTasksByMeetingId(
+  meetingId: string
+): Promise<ApiResponse<Task[]>> {
   return listTasks(meetingId);
 }

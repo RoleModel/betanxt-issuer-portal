@@ -57,10 +57,13 @@ interface ProposalVoteCounts {
   total: number;
 }
 
-async function fetchPositionVotesForMeeting(meetingId: string): Promise<unknown[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+async function fetchPositionVotesForMeeting(
+  meetingId: string
+): Promise<unknown[]> {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
   const response = await fetch(
-    `${baseUrl}/position_votes?meetingId=${encodeURIComponent(meetingId)}&limit=10000`,
+    `${baseUrl}/position_votes?meetingId=${encodeURIComponent(meetingId)}&limit=10000`
   );
 
   if (!response.ok) {
@@ -84,7 +87,8 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
 
   return {
     id: asString(record.id) || "",
-    voteStatus: asString(record.voteStatus) || asString(record.vote_status) || "unvoted",
+    voteStatus:
+      asString(record.voteStatus) || asString(record.vote_status) || "unvoted",
     shares: Number(record.shares) || 0,
     sharesVoted: Number(record.sharesVoted) || Number(record.shares_voted) || 0,
     votingSource:
@@ -92,8 +96,11 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
       asString(record.voting_source) ||
       asString(record.source) ||
       undefined,
-    accountType: asString(record.accountType) || asString(record.account_type) || "",
-    holderCategory: normalizeHolderCategory(record.holderCategory ?? record.holder_category),
+    accountType:
+      asString(record.accountType) || asString(record.account_type) || "",
+    holderCategory: normalizeHolderCategory(
+      record.holderCategory ?? record.holder_category
+    ),
   };
 }
 
@@ -106,22 +113,38 @@ function normalizeProposal(proposal: unknown): NormalizedProposal | null {
 
   return {
     id: asString(record.id) || "",
-    proposalNumber: Number(record.proposalNumber) || Number(record.proposal_number) || 0,
+    proposalNumber:
+      Number(record.proposalNumber) || Number(record.proposal_number) || 0,
     title:
       asString(record.proposalTitle) ||
       asString(record.title) ||
       asString(record.proposal_title) ||
       "",
-    proposalType: asString(record.proposalType) || asString(record.proposal_type) || undefined,
+    proposalType:
+      asString(record.proposalType) ||
+      asString(record.proposal_type) ||
+      undefined,
     recommendation: asString(record.recommendation) || undefined,
-    directorName: asString(record.directorName) || asString(record.director_name) || undefined,
-    totalVotesFor: Number(record.totalVotesFor) || Number(record.total_votes_for) || 0,
-    totalVotesAgainst: Number(record.totalVotesAgainst) || Number(record.total_votes_against) || 0,
-    totalVotesAbstain: Number(record.totalVotesAbstain) || Number(record.total_votes_abstain) || 0,
+    directorName:
+      asString(record.directorName) ||
+      asString(record.director_name) ||
+      undefined,
+    totalVotesFor:
+      Number(record.totalVotesFor) || Number(record.total_votes_for) || 0,
+    totalVotesAgainst:
+      Number(record.totalVotesAgainst) ||
+      Number(record.total_votes_against) ||
+      0,
+    totalVotesAbstain:
+      Number(record.totalVotesAbstain) ||
+      Number(record.total_votes_abstain) ||
+      0,
   };
 }
 
-function normalizePositionVote(positionVote: unknown): NormalizedPositionVote | null {
+function normalizePositionVote(
+  positionVote: unknown
+): NormalizedPositionVote | null {
   if (!positionVote) return null;
 
   const record = asRecord(positionVote);
@@ -134,8 +157,10 @@ function normalizePositionVote(positionVote: unknown): NormalizedPositionVote | 
   }
 
   return {
-    positionId: asString(record.positionId) || asString(record.position_id) || "",
-    proposalId: asString(record.proposalId) || asString(record.proposal_id) || "",
+    positionId:
+      asString(record.positionId) || asString(record.position_id) || "",
+    proposalId:
+      asString(record.proposalId) || asString(record.proposal_id) || "",
     vote: vote as NormalizedPositionVote["vote"],
   };
 }
@@ -173,12 +198,18 @@ const fetchVotingData = async (meetingId: string) => {
           : asArray(asRecord(prevPositionsResult.data)?.positions);
         const prevPositions = prevPositionsRaw
           .map((position) => normalizePosition(position))
-          .filter((position): position is NormalizedPosition => position !== null);
-        const prevTotalShares = prevPositions.reduce((sum, position) => sum + position.shares, 0);
+          .filter(
+            (position): position is NormalizedPosition => position !== null
+          );
+        const prevTotalShares = prevPositions.reduce(
+          (sum, position) => sum + position.shares,
+          0
+        );
         const prevVotedShares = prevPositions
           .filter((position) => position.voteStatus === "Voted")
           .reduce((sum, position) => sum + position.sharesVoted, 0);
-        const prevPercentage = prevTotalShares > 0 ? (prevVotedShares / prevTotalShares) * 100 : 0;
+        const prevPercentage =
+          prevTotalShares > 0 ? (prevVotedShares / prevTotalShares) * 100 : 0;
 
         if (prevTotalShares > 0) {
           previousYearsPercentages.push(Number(prevPercentage.toFixed(2)));
@@ -224,10 +255,16 @@ const fetchVotingData = async (meetingId: string) => {
   const proposalVoteCounts = new Map<string, ProposalVoteCounts>();
   const normalizedVotes = positionVotesRaw
     .map((positionVote) => normalizePositionVote(positionVote))
-    .filter((positionVote): positionVote is NormalizedPositionVote => positionVote !== null);
+    .filter(
+      (positionVote): positionVote is NormalizedPositionVote =>
+        positionVote !== null
+    );
 
   normalizedVotes.forEach((vote) => {
-    if (!proposalIds.has(vote.proposalId) || !positionIdSet.has(vote.positionId)) {
+    if (
+      !proposalIds.has(vote.proposalId) ||
+      !positionIdSet.has(vote.positionId)
+    ) {
       return;
     }
 
@@ -252,13 +289,16 @@ const fetchVotingData = async (meetingId: string) => {
 
   // Calculate voting summary
   const totalPositions = positions.length;
-  const positionsVoted = positions.filter((p) => p.voteStatus === "Voted").length;
+  const positionsVoted = positions.filter(
+    (p) => p.voteStatus === "Voted"
+  ).length;
   const totalShares = positions.reduce((sum, p) => sum + p.shares, 0);
   const sharesVoted = positions
     .filter((p) => p.voteStatus === "Voted")
     .reduce((sum, p) => sum + p.sharesVoted, 0);
 
-  const percentageVoted = totalShares > 0 ? (sharesVoted / totalShares) * 100 : 0;
+  const percentageVoted =
+    totalShares > 0 ? (sharesVoted / totalShares) * 100 : 0;
 
   // Count voting methods
   const webVotes = positions.filter((p) => p.votingSource === "WEB").length;
@@ -267,7 +307,9 @@ const fetchVotingData = async (meetingId: string) => {
 
   // Registered-only voting methods (FR-001/FR-002 — Voting Activity chart)
   const registeredPositions = positions.filter(
-    (p) => isRegisteredOnlyHolder(p.holderCategory, p.accountType) && p.voteStatus === "Voted",
+    (p) =>
+      isRegisteredOnlyHolder(p.holderCategory, p.accountType) &&
+      p.voteStatus === "Voted"
   );
   const registeredVotingMethods: RegisteredVotingMethods = {
     web: registeredPositions.filter((p) => p.votingSource === "WEB").length,
@@ -297,24 +339,29 @@ const fetchVotingData = async (meetingId: string) => {
   const withholdShares = 0; // No withhold in the actual data
 
   // Calculate total shares from actual voting data
-  const totalVotingShares = forShares + againstShares + abstainShares + withholdShares;
+  const totalVotingShares =
+    forShares + againstShares + abstainShares + withholdShares;
 
   const votingBreakdown = {
     for: {
       shares: forShares,
-      percentage: totalVotingShares > 0 ? (forShares / totalVotingShares) * 100 : 0,
+      percentage:
+        totalVotingShares > 0 ? (forShares / totalVotingShares) * 100 : 0,
     },
     against: {
       shares: againstShares,
-      percentage: totalVotingShares > 0 ? (againstShares / totalVotingShares) * 100 : 0,
+      percentage:
+        totalVotingShares > 0 ? (againstShares / totalVotingShares) * 100 : 0,
     },
     abstain: {
       shares: abstainShares,
-      percentage: totalVotingShares > 0 ? (abstainShares / totalVotingShares) * 100 : 0,
+      percentage:
+        totalVotingShares > 0 ? (abstainShares / totalVotingShares) * 100 : 0,
     },
     withhold: {
       shares: withholdShares,
-      percentage: totalVotingShares > 0 ? (withholdShares / totalVotingShares) * 100 : 0,
+      percentage:
+        totalVotingShares > 0 ? (withholdShares / totalVotingShares) * 100 : 0,
     },
   };
 
@@ -340,20 +387,30 @@ const fetchVotingData = async (meetingId: string) => {
     const proposalAgainstShares = proposal.totalVotesAgainst;
     const proposalAbstainShares = proposal.totalVotesAbstain;
 
-    const proposalTotalVoted = proposalForShares + proposalAgainstShares + proposalAbstainShares;
+    const proposalTotalVoted =
+      proposalForShares + proposalAgainstShares + proposalAbstainShares;
 
     const realVotingResults = {
       for: {
         shares: proposalForShares,
-        percentage: proposalTotalVoted > 0 ? (proposalForShares / proposalTotalVoted) * 100 : 0,
+        percentage:
+          proposalTotalVoted > 0
+            ? (proposalForShares / proposalTotalVoted) * 100
+            : 0,
       },
       against: {
         shares: proposalAgainstShares,
-        percentage: proposalTotalVoted > 0 ? (proposalAgainstShares / proposalTotalVoted) * 100 : 0,
+        percentage:
+          proposalTotalVoted > 0
+            ? (proposalAgainstShares / proposalTotalVoted) * 100
+            : 0,
       },
       abstain: {
         shares: proposalAbstainShares,
-        percentage: proposalTotalVoted > 0 ? (proposalAbstainShares / proposalTotalVoted) * 100 : 0,
+        percentage:
+          proposalTotalVoted > 0
+            ? (proposalAbstainShares / proposalTotalVoted) * 100
+            : 0,
       },
     };
 
@@ -408,7 +465,9 @@ const fetchVotingData = async (meetingId: string) => {
   };
 };
 
-export const useVotingTabulation = (meetingId?: string): UseVotingTabulationResult => {
+export const useVotingTabulation = (
+  meetingId?: string
+): UseVotingTabulationResult => {
   const { data, error, isLoading, mutate } = useSWR(
     meetingId ? `/voting/${meetingId}` : null,
     () => fetchVotingData(meetingId!),
@@ -417,7 +476,7 @@ export const useVotingTabulation = (meetingId?: string): UseVotingTabulationResu
       revalidateOnFocus: false,
       keepPreviousData: true,
       dedupingInterval: 2000,
-    },
+    }
   );
 
   const uploadProposals = async (proposals: unknown[]) => {
@@ -438,7 +497,8 @@ export const useVotingTabulation = (meetingId?: string): UseVotingTabulationResu
           proposalNumber: Number(proposalRecord.proposalNumber) || 0,
           proposalTitle: asString(proposalRecord.proposalTitle) || "",
           proposalType: asString(proposalRecord.proposalType) || "",
-          proposalSubtype: asString(proposalRecord.proposalSubtype) || undefined,
+          proposalSubtype:
+            asString(proposalRecord.proposalSubtype) || undefined,
           directorName: asString(proposalRecord.directorName) || undefined,
           recommendation: asString(proposalRecord.recommendation) || "",
         },

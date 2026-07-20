@@ -45,11 +45,17 @@ export function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-export async function fetchBrand(domain: string, apiKey: string): Promise<BrandResponse | null> {
+export async function fetchBrand(
+  domain: string,
+  apiKey: string
+): Promise<BrandResponse | null> {
   try {
-    const response = await fetch(`https://api.brandfetch.io/v2/brands/${domain}`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
+    const response = await fetch(
+      `https://api.brandfetch.io/v2/brands/${domain}`,
+      {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      }
+    );
     if (!response.ok) return null;
     return (await response.json()) as BrandResponse;
   } catch {
@@ -60,10 +66,13 @@ export async function fetchBrand(domain: string, apiKey: string): Promise<BrandR
 export function pickBestLogo(
   logos: BrandLogo[],
   preferredType: string,
-  preferredTheme: string,
+  preferredTheme: string
 ): BrandFormat | null {
-  const themed = logos.filter((l) => l.type === preferredType && l.theme === preferredTheme);
-  const typed = themed.length > 0 ? themed : logos.filter((l) => l.type === preferredType);
+  const themed = logos.filter(
+    (l) => l.type === preferredType && l.theme === preferredTheme
+  );
+  const typed =
+    themed.length > 0 ? themed : logos.filter((l) => l.type === preferredType);
   const candidates = typed.length > 0 ? typed : logos;
 
   if (candidates.length === 0) return null;
@@ -76,7 +85,10 @@ export function pickBestLogo(
   return logo.formats[0] ?? null;
 }
 
-export async function downloadFile(url: string, destPath: string): Promise<boolean> {
+export async function downloadFile(
+  url: string,
+  destPath: string
+): Promise<boolean> {
   try {
     const response = await fetch(url);
     if (!response.ok) return false;
@@ -94,7 +106,7 @@ export function inferAssetBase(
   logoPath: string,
   iconPath: string,
   ticker?: string,
-  companyKey?: string,
+  companyKey?: string
 ): string {
   const assetPath = logoPath || iconPath;
   if (assetPath) {
@@ -116,7 +128,7 @@ export function darkAssetPublicPath(
   base: string,
   kind: "logo" | "icon",
   ext: string,
-  inBrandsFolder: boolean,
+  inBrandsFolder: boolean
 ): string {
   const filename = `${base}_${kind}-dark.${ext}`;
   return inBrandsFolder ? `/logos/brands/${filename}` : `/logos/${filename}`;

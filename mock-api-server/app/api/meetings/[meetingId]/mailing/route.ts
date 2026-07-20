@@ -9,7 +9,10 @@ interface RouteParams {
   params: Promise<{ meetingId: string }>;
 }
 
-export async function GET(_request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
+export async function GET(
+  _request: NextRequest,
+  { params }: RouteParams
+): Promise<NextResponse> {
   try {
     const { meetingId } = await params;
 
@@ -57,8 +60,8 @@ export async function GET(_request: NextRequest, { params }: RouteParams): Promi
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "getMailingStatistics",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

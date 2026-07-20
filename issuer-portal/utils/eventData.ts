@@ -21,6 +21,7 @@ export interface EventRow {
 
 /** Build a meeting URL for an event row */
 export function getMeetingUrl(row: EventRow): string {
-  const routePrefix = row.meetingStatus === "ACTIVE" ? "meeting" : "past-meeting";
+  const routePrefix =
+    row.meetingStatus === "ACTIVE" ? "meeting" : "past-meeting";
   return `/${row.clientTicker}/${routePrefix}/${row.meetingId}`;
 }

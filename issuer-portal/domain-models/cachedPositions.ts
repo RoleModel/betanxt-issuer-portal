@@ -18,5 +18,5 @@ async function fetchPositions(meetingId: string): Promise<Position[]> {
 export const getPositionsCached = cacheFn(
   fetchPositions,
   (meetingId: string) => [CACHE_TAGS.POSITIONS_BY_MEETING(meetingId)],
-  { revalidate: 300 },
+  { revalidate: 300 }
 );

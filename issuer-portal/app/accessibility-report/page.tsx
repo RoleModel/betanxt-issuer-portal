@@ -119,23 +119,33 @@ export default function AccessibilityReportPage() {
   const [results, setResults] = useState<TestResults | null>(null);
   const [viewMode, setViewMode] = useState<"criteria" | "pages">("criteria");
   const [axeRules, setAxeRules] = useState<AxeRule[]>([]);
-  const [expandedRules, setExpandedRules] = useState<Record<string, boolean>>({});
+  const [expandedRules, setExpandedRules] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // Dynamic mapping from axe-core rule IDs to WCAG criteria using axe API
-  const [axeToWcagMapping, setAxeToWcagMapping] = useState<Record<string, string>>({});
+  const [axeToWcagMapping, setAxeToWcagMapping] = useState<
+    Record<string, string>
+  >({});
   const [axeRulesData, setAxeRulesData] = useState<
     Record<string, { description: string; help: string; helpUrl: string }>
   >({});
 
   // Function to get axe-to-WCAG mapping based on loaded axe rules
   const getAxeToWcagMapping = (
-    axeRules: AxeRule[],
+    axeRules: AxeRule[]
   ): {
     mapping: Record<string, string>;
-    rulesData: Record<string, { description: string; help: string; helpUrl: string }>;
+    rulesData: Record<
+      string,
+      { description: string; help: string; helpUrl: string }
+    >;
   } => {
     const mapping: Record<string, string> = {};
-    const rulesData: Record<string, { description: string; help: string; helpUrl: string }> = {};
+    const rulesData: Record<
+      string,
+      { description: string; help: string; helpUrl: string }
+    > = {};
 
     axeRules.forEach((rule) => {
       // Store rule data
@@ -210,7 +220,7 @@ export default function AccessibilityReportPage() {
         "4.1.2": "Name, Role, Value (Level A)",
         "4.1.3": "Status Messages (Level AA 2.1 and 2.2)",
       }) as const,
-    [],
+    []
   );
 
   // WCAG 2.1 specification URL mappings
@@ -268,7 +278,7 @@ export default function AccessibilityReportPage() {
         "4.1.2": "name-role-value",
         "4.1.3": "status-messages",
       }) as const,
-    [],
+    []
   );
 
   // Load accessibility report data
@@ -390,12 +400,12 @@ export default function AccessibilityReportPage() {
 
   const getCriteriaDescription = (
     wcagId: string,
-    violations: CriteriaSummary["violations"],
+    violations: CriteriaSummary["violations"]
   ): string => {
     // For violations, show the specific axe rule description
     if (violations && violations.length > 0) {
       const axeRuleId = Object.keys(axeToWcagMapping).find(
-        (ruleId) => axeToWcagMapping[ruleId] === wcagId,
+        (ruleId) => axeToWcagMapping[ruleId] === wcagId
       );
       if (axeRuleId && axeRulesData[axeRuleId]) {
         return axeRulesData[axeRuleId].help;
@@ -409,7 +419,7 @@ export default function AccessibilityReportPage() {
   // Helper function to check if a WCAG criterion has been tested
   const isCriterionTested = (wcagId: string): boolean => {
     const relevantAxeRules = Object.keys(axeToWcagMapping).filter(
-      (ruleId) => axeToWcagMapping[ruleId] === wcagId,
+      (ruleId) => axeToWcagMapping[ruleId] === wcagId
     );
     return relevantAxeRules.length > 0;
   };
@@ -488,7 +498,9 @@ export default function AccessibilityReportPage() {
               const criteria = criteriaMap.get(wcagId);
               if (criteria) {
                 // Add to passed rules if not already present
-                const existingRule = criteria.passedRules.find((r) => r.rule === passed.rule);
+                const existingRule = criteria.passedRules.find(
+                  (r) => r.rule === passed.rule
+                );
                 if (!existingRule) {
                   criteria.passedRules.push({
                     rule: passed.rule,
@@ -527,7 +539,7 @@ export default function AccessibilityReportPage() {
         return 0;
       });
     },
-    [WCAG_CRITERIA, WCAG_SPEC_URLS, axeToWcagMapping],
+    [WCAG_CRITERIA, WCAG_SPEC_URLS, axeToWcagMapping]
   );
 
   // Function to get color scheme for impact levels
@@ -564,7 +576,9 @@ export default function AccessibilityReportPage() {
   const getImpactDisplayText = (impact: string, description: string) => {
     if (impact.toUpperCase() === "Incomplete") {
       // Clean up the description for Incomplete results
-      const cleanDescription = description.replace(/^Incomplete:\s*/i, "").trim();
+      const cleanDescription = description
+        .replace(/^Incomplete:\s*/i, "")
+        .trim();
       return {
         impact: "Needs Review",
         description: `Review Required: ${cleanDescription}`,
@@ -605,7 +619,11 @@ export default function AccessibilityReportPage() {
         </Typography>
 
         {/* Summary Stats */}
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 4 }}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          sx={{ mb: 4 }}
+        >
           <Card variant="outlined" sx={{ p: 2, flex: 1 }}>
             <Typography variant="h4" color="primary">
               {pages.length}
@@ -623,7 +641,9 @@ export default function AccessibilityReportPage() {
                   : "warning.dark"
               }
             >
-              {pages.length - pages.filter((test: TestResult) => test.violations.length > 0).length}
+              {pages.length -
+                pages.filter((test: TestResult) => test.violations.length > 0)
+                  .length}
             </Typography>
             <Typography variant="body3" color="text.secondary">
               Pages Passed
@@ -638,7 +658,11 @@ export default function AccessibilityReportPage() {
                   : "success.main"
               }
             >
-              {pages.reduce((total: number, test: TestResult) => total + test.violations.length, 0)}
+              {pages.reduce(
+                (total: number, test: TestResult) =>
+                  total + test.violations.length,
+                0
+              )}
             </Typography>
             <Typography variant="body3" color="text.secondary">
               Total Issues
@@ -682,8 +706,8 @@ export default function AccessibilityReportPage() {
                 No Test Results Available
               </Typography>
               <Typography variant="body3" color="text.secondary">
-                Accessibility tests haven&apos;t been run yet or no results were generated. Tests
-                are typically run during the build process.
+                Accessibility tests haven&apos;t been run yet or no results were
+                generated. Tests are typically run during the build process.
               </Typography>
             </Card>
           ) : viewMode === "criteria" ? (
@@ -700,7 +724,10 @@ export default function AccessibilityReportPage() {
                         mb: 1,
                       }}
                     >
-                      <Typography variant="body3" sx={{ fontWeight: 500, flexGrow: 1 }}>
+                      <Typography
+                        variant="body3"
+                        sx={{ fontWeight: 500, flexGrow: 1 }}
+                      >
                         WCAG {criteria.id}:&nbsp;
                         <Link href={criteria.page} target="_blank">
                           {criteria.name}
@@ -712,7 +739,9 @@ export default function AccessibilityReportPage() {
                           size="small"
                           onClick={() => toggleRulesExpanded(criteria.id)}
                         >
-                          {expandedRules[criteria.id] ? "Hide Rules" : "View Rules"}
+                          {expandedRules[criteria.id]
+                            ? "Hide Rules"
+                            : "View Rules"}
                         </Button>
                       )}
                       <Chip
@@ -728,7 +757,8 @@ export default function AccessibilityReportPage() {
                             : criteria.failedPages === 0
                               ? "Pass"
                               : criteria.violations.every(
-                                    (v) => v.impact.toUpperCase() === "Incomplete",
+                                    (v) =>
+                                      v.impact.toUpperCase() === "Incomplete"
                                   )
                                 ? "Needs Review"
                                 : "Fail"
@@ -740,7 +770,8 @@ export default function AccessibilityReportPage() {
                             : criteria.failedPages === 0
                               ? "success"
                               : criteria.violations.every(
-                                    (v) => v.impact.toUpperCase() === "Incomplete",
+                                    (v) =>
+                                      v.impact.toUpperCase() === "Incomplete"
                                   )
                                 ? "info"
                                 : "error"
@@ -749,7 +780,10 @@ export default function AccessibilityReportPage() {
                     </Box>
 
                     {/* Criteria Description */}
-                    {getCriteriaDescription(criteria.id, criteria.violations || []) && (
+                    {getCriteriaDescription(
+                      criteria.id,
+                      criteria.violations || []
+                    ) && (
                       <Typography
                         variant="body3"
                         component="pre"
@@ -761,7 +795,10 @@ export default function AccessibilityReportPage() {
                           fontFamily: "inherit",
                         }}
                       >
-                        {getCriteriaDescription(criteria.id, criteria.violations || [])}
+                        {getCriteriaDescription(
+                          criteria.id,
+                          criteria.violations || []
+                        )}
                       </Typography>
                     )}
 
@@ -769,16 +806,23 @@ export default function AccessibilityReportPage() {
                     {isCriterionTested(criteria.id) && (
                       <Collapse in={expandedRules[criteria.id]}>
                         <Divider sx={{ my: 1 }} />
-                        <Typography variant="body3" gutterBottom sx={{ fontWeight: 500 }}>
+                        <Typography
+                          variant="body3"
+                          gutterBottom
+                          sx={{ fontWeight: 500 }}
+                        >
                           Axe Rules Testing This Criterion:
                         </Typography>
                         <Stack spacing={1}>
                           {Object.keys(axeToWcagMapping)
-                            .filter((ruleId) => axeToWcagMapping[ruleId] === criteria.id)
+                            .filter(
+                              (ruleId) =>
+                                axeToWcagMapping[ruleId] === criteria.id
+                            )
                             .map((ruleId) => {
                               // Check if this rule passed
                               const passedRule = criteria.passedRules.find(
-                                (r) => r.rule === ruleId,
+                                (r) => r.rule === ruleId
                               );
                               const ruleData = axeRulesData[ruleId];
 
@@ -793,7 +837,9 @@ export default function AccessibilityReportPage() {
                                     borderRadius: 1,
                                     bgcolor: "background.default",
                                     border: "1px solid",
-                                    borderColor: passedRule ? "success.main" : "divider",
+                                    borderColor: passedRule
+                                      ? "success.main"
+                                      : "divider",
                                   }}
                                 >
                                   <Box
@@ -806,7 +852,9 @@ export default function AccessibilityReportPage() {
                                     <Typography
                                       variant="body3"
                                       sx={{
-                                        color: passedRule ? "success.dark" : "text.primary",
+                                        color: passedRule
+                                          ? "success.dark"
+                                          : "text.primary",
                                         flex: 1,
                                       }}
                                     >
@@ -844,13 +892,17 @@ export default function AccessibilityReportPage() {
                                       passedRule.html !== undefined) && (
                                       <Box sx={{ mt: 1 }}>
                                         {passedRule.target !== undefined && (
-                                          <Typography variant="body3" sx={{ mb: 0.5 }}>
+                                          <Typography
+                                            variant="body3"
+                                            sx={{ mb: 0.5 }}
+                                          >
                                             <strong>Selector:</strong>{" "}
                                             <code
                                               style={{
                                                 backgroundColor:
                                                   "var(--mui-palette-action-selected)",
-                                                color: "var(--mui-palette-text-primary)",
+                                                color:
+                                                  "var(--mui-palette-text-primary)",
                                                 padding: "2px 4px",
                                                 borderRadius: "3px",
                                                 fontSize: "0.85em",
@@ -865,7 +917,10 @@ export default function AccessibilityReportPage() {
                                         )}
                                         {passedRule.html !== undefined && (
                                           <>
-                                            <Typography variant="body3" sx={{ mb: 0.5 }}>
+                                            <Typography
+                                              variant="body3"
+                                              sx={{ mb: 0.5 }}
+                                            >
                                               <strong>Element HTML:</strong>
                                             </Typography>
                                             <Box
@@ -873,7 +928,8 @@ export default function AccessibilityReportPage() {
                                               sx={{
                                                 backgroundColor:
                                                   "var(--mui-palette-action-selected)",
-                                                color: "var(--mui-palette-text-primary)",
+                                                color:
+                                                  "var(--mui-palette-text-primary)",
                                                 padding: 1,
                                                 borderRadius: 1,
                                                 overflow: "auto",
@@ -900,7 +956,11 @@ export default function AccessibilityReportPage() {
                   {/* Violations Section */}
                   {criteria.violations && criteria.violations.length > 0 ? (
                     <Box>
-                      <Typography variant="body3" fontWeight="500" sx={{ mb: 2 }}>
+                      <Typography
+                        variant="body3"
+                        fontWeight="500"
+                        sx={{ mb: 2 }}
+                      >
                         Violations ({criteria.violations?.length ?? 0}):
                       </Typography>
                       <Stack spacing={2}>
@@ -927,10 +987,15 @@ export default function AccessibilityReportPage() {
                               <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                                 <Chip
                                   label={
-                                    getImpactDisplayText(violation.impact, violation.description)
-                                      .impact
+                                    getImpactDisplayText(
+                                      violation.impact,
+                                      violation.description
+                                    ).impact
                                   }
-                                  color={getImpactColorScheme(violation.impact).chipColor}
+                                  color={
+                                    getImpactColorScheme(violation.impact)
+                                      .chipColor
+                                  }
                                   size="small"
                                 />
                                 <Chip
@@ -942,21 +1007,35 @@ export default function AccessibilityReportPage() {
                                   size="small"
                                 />
                                 {violation.id && (
-                                  <Chip label={violation.id} variant="outlined" size="small" />
+                                  <Chip
+                                    label={violation.id}
+                                    variant="outlined"
+                                    size="small"
+                                  />
                                 )}
                               </Stack>
                             </Box>
 
                             {/* Issue Description */}
-                            <Typography variant="body3" fontWeight="500" sx={{ mb: 1 }}>
+                            <Typography
+                              variant="body3"
+                              fontWeight="500"
+                              sx={{ mb: 1 }}
+                            >
                               {
-                                getImpactDisplayText(violation.impact, violation.description)
-                                  .description
+                                getImpactDisplayText(
+                                  violation.impact,
+                                  violation.description
+                                ).description
                               }
                             </Typography>
 
                             {/* Help Text */}
-                            <Typography variant="body3" color="text.secondary" sx={{ mb: 2 }}>
+                            <Typography
+                              variant="body3"
+                              color="text.secondary"
+                              sx={{ mb: 2 }}
+                            >
                               {violation.help}
                             </Typography>
                             {/* Help URL */}
@@ -974,136 +1053,180 @@ export default function AccessibilityReportPage() {
                             )}
 
                             {/* Element Details */}
-                            {violation.elements && violation.elements.length > 0 && (
-                              <Box
-                                sx={{
-                                  mt: 2,
-                                  mb: 2,
-                                }}
-                              >
-                                {violation.elements.map((element, eIndex) => (
-                                  <Box
-                                    key={eIndex}
-                                    sx={{
-                                      mb: 2,
-                                      p: 2,
-                                      bgcolor: "var(--mui-palette-background-default)",
-                                      color: "var(--mui-palette-common-onBackground)",
-                                      borderRadius: 1,
-                                      border: "1px solid",
-                                      borderColor: "divider",
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="body3"
+                            {violation.elements &&
+                              violation.elements.length > 0 && (
+                                <Box
+                                  sx={{
+                                    mt: 2,
+                                    mb: 2,
+                                  }}
+                                >
+                                  {violation.elements.map((element, eIndex) => (
+                                    <Box
+                                      key={eIndex}
                                       sx={{
-                                        mb: 1,
-                                        color: getImpactColorScheme(violation.impact).textColor,
+                                        mb: 2,
+                                        p: 2,
+                                        bgcolor:
+                                          "var(--mui-palette-background-default)",
+                                        color:
+                                          "var(--mui-palette-common-onBackground)",
+                                        borderRadius: 1,
+                                        border: "1px solid",
+                                        borderColor: "divider",
                                       }}
                                     >
-                                      <strong>
-                                        {getImpactDisplayText(
-                                          violation.impact,
-                                          violation.description,
-                                        ).impact === "Needs Review"
-                                          ? "Review needed:"
-                                          : "How it violates accessibility:"}
-                                      </strong>{" "}
-                                      {element.failureSummary}
-                                    </Typography>
-                                    <Typography variant="body3" sx={{ mb: 1 }}>
-                                      <strong>Selector:</strong>{" "}
-                                      <code
-                                        style={{
-                                          backgroundColor: "var(--mui-palette-action-selected)",
-                                          color: "var(--mui-palette-text-primary)",
-                                          padding: "2px 4px",
-                                          borderRadius: "3px",
-                                          fontSize: "0.85em",
-                                          fontFamily: "monospace",
+                                      <Typography
+                                        variant="body3"
+                                        sx={{
+                                          mb: 1,
+                                          color: getImpactColorScheme(
+                                            violation.impact
+                                          ).textColor,
                                         }}
                                       >
-                                        {Array.isArray(element.target)
-                                          ? element.target.join(", ")
-                                          : element.target}
-                                      </code>
-                                    </Typography>
-                                    <Typography variant="body3" sx={{ mb: 1 }}>
-                                      <strong>HTML:</strong>{" "}
-                                      <code
-                                        style={{
-                                          backgroundColor: "var(--mui-palette-action-selected)",
-                                          color: "var(--mui-palette-text-primary)",
-                                          padding: "2px 4px",
-                                          borderRadius: "3px",
-                                          fontSize: "0.85em",
-                                          fontFamily: "monospace",
-                                        }}
+                                        <strong>
+                                          {getImpactDisplayText(
+                                            violation.impact,
+                                            violation.description
+                                          ).impact === "Needs Review"
+                                            ? "Review needed:"
+                                            : "How it violates accessibility:"}
+                                        </strong>{" "}
+                                        {element.failureSummary}
+                                      </Typography>
+                                      <Typography
+                                        variant="body3"
+                                        sx={{ mb: 1 }}
                                       >
-                                        {Array.isArray(element.html) ? element.html : element.html}
-                                      </code>
-                                    </Typography>
-                                    {element.relatedNodes && element.relatedNodes.length > 0 && (
-                                      <Box sx={{ mt: 1, mb: 1 }}>
-                                        <Typography variant="body3" sx={{ fontWeight: 500 }}>
-                                          Related Nodes ({element.relatedNodes.length}):
-                                        </Typography>
-                                        <Stack spacing={1}>
-                                          {element.relatedNodes.map((node: RelatedNode, rIndex) => (
-                                            <Box key={rIndex} sx={{ pl: 2 }}>
-                                              <Typography variant="body3" sx={{ mb: 0.5 }}>
-                                                <strong>Target:</strong>{" "}
-                                                <code
-                                                  style={{
-                                                    backgroundColor:
-                                                      "var(--mui-palette-action-selected)",
-                                                    color: "var(--mui-palette-text-primary)",
-                                                    padding: "2px 4px",
-                                                    borderRadius: "3px",
-                                                    fontSize: "0.85em",
-                                                    fontFamily: "monospace",
-                                                  }}
-                                                >
-                                                  {Array.isArray(node.target)
-                                                    ? node.target.join(", ")
-                                                    : node.target}
-                                                </code>
-                                              </Typography>
-                                              {node.html && (
-                                                <Box
-                                                  component="pre"
-                                                  sx={{
-                                                    backgroundColor:
-                                                      "var(--mui-palette-action-selected)",
-                                                    color: "var(--mui-palette-text-primary)",
-                                                    padding: 1,
-                                                    borderRadius: 1,
-                                                    overflow: "auto",
-                                                    fontSize: "0.85em",
-                                                    fontFamily: "monospace",
-                                                    whiteSpace: "pre-wrap",
-                                                    wordBreak: "break-all",
-                                                    mt: 0.5,
-                                                  }}
-                                                >
-                                                  {node.html}
-                                                </Box>
+                                        <strong>Selector:</strong>{" "}
+                                        <code
+                                          style={{
+                                            backgroundColor:
+                                              "var(--mui-palette-action-selected)",
+                                            color:
+                                              "var(--mui-palette-text-primary)",
+                                            padding: "2px 4px",
+                                            borderRadius: "3px",
+                                            fontSize: "0.85em",
+                                            fontFamily: "monospace",
+                                          }}
+                                        >
+                                          {Array.isArray(element.target)
+                                            ? element.target.join(", ")
+                                            : element.target}
+                                        </code>
+                                      </Typography>
+                                      <Typography
+                                        variant="body3"
+                                        sx={{ mb: 1 }}
+                                      >
+                                        <strong>HTML:</strong>{" "}
+                                        <code
+                                          style={{
+                                            backgroundColor:
+                                              "var(--mui-palette-action-selected)",
+                                            color:
+                                              "var(--mui-palette-text-primary)",
+                                            padding: "2px 4px",
+                                            borderRadius: "3px",
+                                            fontSize: "0.85em",
+                                            fontFamily: "monospace",
+                                          }}
+                                        >
+                                          {Array.isArray(element.html)
+                                            ? element.html
+                                            : element.html}
+                                        </code>
+                                      </Typography>
+                                      {element.relatedNodes &&
+                                        element.relatedNodes.length > 0 && (
+                                          <Box sx={{ mt: 1, mb: 1 }}>
+                                            <Typography
+                                              variant="body3"
+                                              sx={{ fontWeight: 500 }}
+                                            >
+                                              Related Nodes (
+                                              {element.relatedNodes.length}):
+                                            </Typography>
+                                            <Stack spacing={1}>
+                                              {element.relatedNodes.map(
+                                                (node: RelatedNode, rIndex) => (
+                                                  <Box
+                                                    key={rIndex}
+                                                    sx={{ pl: 2 }}
+                                                  >
+                                                    <Typography
+                                                      variant="body3"
+                                                      sx={{ mb: 0.5 }}
+                                                    >
+                                                      <strong>Target:</strong>{" "}
+                                                      <code
+                                                        style={{
+                                                          backgroundColor:
+                                                            "var(--mui-palette-action-selected)",
+                                                          color:
+                                                            "var(--mui-palette-text-primary)",
+                                                          padding: "2px 4px",
+                                                          borderRadius: "3px",
+                                                          fontSize: "0.85em",
+                                                          fontFamily:
+                                                            "monospace",
+                                                        }}
+                                                      >
+                                                        {Array.isArray(
+                                                          node.target
+                                                        )
+                                                          ? node.target.join(
+                                                              ", "
+                                                            )
+                                                          : node.target}
+                                                      </code>
+                                                    </Typography>
+                                                    {node.html && (
+                                                      <Box
+                                                        component="pre"
+                                                        sx={{
+                                                          backgroundColor:
+                                                            "var(--mui-palette-action-selected)",
+                                                          color:
+                                                            "var(--mui-palette-text-primary)",
+                                                          padding: 1,
+                                                          borderRadius: 1,
+                                                          overflow: "auto",
+                                                          fontSize: "0.85em",
+                                                          fontFamily:
+                                                            "monospace",
+                                                          whiteSpace:
+                                                            "pre-wrap",
+                                                          wordBreak:
+                                                            "break-all",
+                                                          mt: 0.5,
+                                                        }}
+                                                      >
+                                                        {node.html}
+                                                      </Box>
+                                                    )}
+                                                  </Box>
+                                                )
                                               )}
-                                            </Box>
-                                          ))}
-                                        </Stack>
-                                      </Box>
-                                    )}
-                                  </Box>
-                                ))}
-                              </Box>
-                            )}
+                                            </Stack>
+                                          </Box>
+                                        )}
+                                    </Box>
+                                  ))}
+                                </Box>
+                              )}
                           </Box>
                         ))}
                       </Stack>
                     </Box>
                   ) : isCriterionTested(criteria.id) ? (
-                    <Typography variant="body3" color="success.main" sx={{ fontWeight: 500 }}>
+                    <Typography
+                      variant="body3"
+                      color="success.main"
+                      sx={{ fontWeight: 500 }}
+                    >
                       ✓ No accessibility issues found
                     </Typography>
                   ) : (
@@ -1114,7 +1237,9 @@ export default function AccessibilityReportPage() {
                           size="small"
                           onClick={() => toggleRulesExpanded(criteria.id)}
                         >
-                          {expandedRules[criteria.id] ? "Hide Rules" : "View Rules"}
+                          {expandedRules[criteria.id]
+                            ? "Hide Rules"
+                            : "View Rules"}
                         </Button>
                       </CardActions>
                     )
@@ -1143,12 +1268,17 @@ export default function AccessibilityReportPage() {
 
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body3" color="text.secondary">
-                    Elements tested: {test.elementsTested} • Test duration: {test.testDuration}ms
+                    Elements tested: {test.elementsTested} • Test duration:{" "}
+                    {test.testDuration}ms
                   </Typography>
                 </Box>
 
                 {test.violations.length === 0 ? (
-                  <Typography variant="body3" color="success.main" sx={{ fontWeight: 500 }}>
+                  <Typography
+                    variant="body3"
+                    color="success.main"
+                    sx={{ fontWeight: 500 }}
+                  >
                     ✓ No accessibility issues found
                   </Typography>
                 ) : (
@@ -1164,7 +1294,8 @@ export default function AccessibilityReportPage() {
                               ? "error.dark"
                               : violation.impact === "SERIOUS"
                                 ? "warning.dark"
-                                : violation.impact.toUpperCase() === "Incomplete"
+                                : violation.impact.toUpperCase() ===
+                                    "Incomplete"
                                   ? "info.main"
                                   : "grey.300",
                           bgcolor: "background.default",
@@ -1174,9 +1305,14 @@ export default function AccessibilityReportPage() {
                         <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
                           <Chip
                             label={
-                              getImpactDisplayText(violation.impact, violation.description).impact
+                              getImpactDisplayText(
+                                violation.impact,
+                                violation.description
+                              ).impact
                             }
-                            color={getImpactColorScheme(violation.impact).chipColor}
+                            color={
+                              getImpactColorScheme(violation.impact).chipColor
+                            }
                             size="small"
                           />
                           <Chip
@@ -1188,186 +1324,241 @@ export default function AccessibilityReportPage() {
                             size="small"
                           />
                           {violation.id && (
-                            <Chip label={violation.id} variant="outlined" size="small" />
+                            <Chip
+                              label={violation.id}
+                              variant="outlined"
+                              size="small"
+                            />
                           )}
                         </Stack>
 
-                        <Typography variant="body3" fontWeight="500" gutterBottom>
+                        <Typography
+                          variant="body3"
+                          fontWeight="500"
+                          gutterBottom
+                        >
                           {
-                            getImpactDisplayText(violation.impact, violation.description)
-                              .description
+                            getImpactDisplayText(
+                              violation.impact,
+                              violation.description
+                            ).description
                           }
                         </Typography>
 
-                        <Typography variant="body3" color="text.secondary" sx={{ mb: 2 }}>
+                        <Typography
+                          variant="body3"
+                          color="text.secondary"
+                          sx={{ mb: 2 }}
+                        >
                           {violation.help}
                         </Typography>
 
                         {violation.helpUrl && (
                           <Typography variant="body3" sx={{ mb: 2 }}>
                             <strong>Learn more:</strong>{" "}
-                            <a href={violation.helpUrl} target="_blank" rel="noopener noreferrer">
+                            <a
+                              href={violation.helpUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
                               {violation.helpUrl}
                             </a>
                           </Typography>
                         )}
 
-                        {violation.elements && violation.elements.length > 0 && (
-                          <Box sx={{ mt: 2 }}>
-                            <Typography
-                              variant="subtitle2"
-                              gutterBottom
-                              sx={{ fontWeight: 500, color: "text.primary" }}
-                            >
-                              {violation.impact?.toUpperCase() === "Incomplete"
-                                ? "Elements to Review"
-                                : "Failing Elements"}{" "}
-                              ({violation.elements.length} of {violation.nodes}):
-                            </Typography>
-                            <Stack spacing={2}>
-                              {violation.elements.map((element, eIndex) => (
-                                <Box
-                                  key={eIndex}
-                                  sx={{
-                                    p: 2,
-                                    bgcolor: "background.Card",
-                                    borderRadius: 1,
-                                    border: "1px solid",
-                                    borderColor: "divider",
-                                  }}
-                                >
-                                  <Typography variant="body3" sx={{ mb: 1 }}>
-                                    <strong>Element #{eIndex + 1} - Selector:</strong>{" "}
-                                    <code
-                                      style={{
-                                        backgroundColor: "var(--mui-palette-action-selected)",
-                                        color: "var(--mui-palette-text-primary)",
-                                        padding: "2px 4px",
-                                        borderRadius: "3px",
-                                        fontSize: "0.85em",
-                                        fontFamily: "monospace",
+                        {violation.elements &&
+                          violation.elements.length > 0 && (
+                            <Box sx={{ mt: 2 }}>
+                              <Typography
+                                variant="subtitle2"
+                                gutterBottom
+                                sx={{ fontWeight: 500, color: "text.primary" }}
+                              >
+                                {violation.impact?.toUpperCase() ===
+                                "Incomplete"
+                                  ? "Elements to Review"
+                                  : "Failing Elements"}{" "}
+                                ({violation.elements.length} of{" "}
+                                {violation.nodes}):
+                              </Typography>
+                              <Stack spacing={2}>
+                                {violation.elements.map((element, eIndex) => (
+                                  <Box
+                                    key={eIndex}
+                                    sx={{
+                                      p: 2,
+                                      bgcolor: "background.Card",
+                                      borderRadius: 1,
+                                      border: "1px solid",
+                                      borderColor: "divider",
+                                    }}
+                                  >
+                                    <Typography variant="body3" sx={{ mb: 1 }}>
+                                      <strong>
+                                        Element #{eIndex + 1} - Selector:
+                                      </strong>{" "}
+                                      <code
+                                        style={{
+                                          backgroundColor:
+                                            "var(--mui-palette-action-selected)",
+                                          color:
+                                            "var(--mui-palette-text-primary)",
+                                          padding: "2px 4px",
+                                          borderRadius: "3px",
+                                          fontSize: "0.85em",
+                                          fontFamily: "monospace",
+                                        }}
+                                      >
+                                        {Array.isArray(element.target)
+                                          ? element.target.join(", ")
+                                          : element.target}
+                                      </code>
+                                    </Typography>
+
+                                    <Typography
+                                      variant="body3"
+                                      sx={{
+                                        mb: 1,
+                                        color: getImpactColorScheme(
+                                          violation.impact
+                                        ).textColor,
                                       }}
                                     >
-                                      {Array.isArray(element.target)
-                                        ? element.target.join(", ")
-                                        : element.target}
-                                    </code>
-                                  </Typography>
+                                      <strong>
+                                        {violation.impact?.toUpperCase() ===
+                                        "Incomplete"
+                                          ? "Review needed:"
+                                          : "Violation:"}
+                                      </strong>{" "}
+                                      {element.failureSummary}
+                                    </Typography>
 
+                                    <Typography variant="body3">
+                                      <strong>Element HTML:</strong>
+                                    </Typography>
+                                    <Box
+                                      component="pre"
+                                      sx={{
+                                        "&::first-letter": {
+                                          textTransform: "uppercase",
+                                        },
+                                        backgroundColor:
+                                          "var(--mui-palette-action-selected)",
+                                        color:
+                                          "var(--mui-palette-text-primary)",
+                                        padding: 1,
+                                        borderRadius: 1,
+                                        overflow: "auto",
+                                        fontSize: "0.85em",
+                                        fontFamily: "monospace",
+                                        whiteSpace: "pre-wrap",
+                                        wordBreak: "break-all",
+                                        mt: 0.5,
+                                      }}
+                                    >
+                                      {element.html}
+                                    </Box>
+                                    {element.relatedNodes &&
+                                      element.relatedNodes.length > 0 && (
+                                        <Box sx={{ mt: 1, mb: 1 }}>
+                                          <Typography
+                                            variant="body3"
+                                            sx={{ fontWeight: 500 }}
+                                          >
+                                            Related Nodes (
+                                            {element.relatedNodes.length}):
+                                          </Typography>
+                                          <Stack spacing={1}>
+                                            {element.relatedNodes.map(
+                                              (node: RelatedNode, rIndex) => (
+                                                <Box
+                                                  key={rIndex}
+                                                  sx={{ pl: 2 }}
+                                                >
+                                                  <Typography
+                                                    variant="body3"
+                                                    sx={{ mb: 0.5 }}
+                                                  >
+                                                    <strong>Target:</strong>{" "}
+                                                    <code
+                                                      style={{
+                                                        backgroundColor:
+                                                          "var(--mui-palette-action-selected)",
+                                                        color:
+                                                          "var(--mui-palette-text-primary)",
+                                                        padding: "2px 4px",
+                                                        borderRadius: "3px",
+                                                        fontSize: "0.85em",
+                                                        fontFamily: "monospace",
+                                                      }}
+                                                    >
+                                                      {Array.isArray(
+                                                        node.target
+                                                      )
+                                                        ? node.target.join(", ")
+                                                        : node.target}
+                                                    </code>
+                                                  </Typography>
+                                                  {node.html && (
+                                                    <Box
+                                                      component="pre"
+                                                      sx={{
+                                                        backgroundColor:
+                                                          "var(--mui-palette-action-selected)",
+                                                        color:
+                                                          "var(--mui-palette-text-primary)",
+                                                        padding: 1,
+                                                        borderRadius: 1,
+                                                        overflow: "auto",
+                                                        fontSize: "0.85em",
+                                                        fontFamily: "monospace",
+                                                        whiteSpace: "pre-wrap",
+                                                        wordBreak: "break-all",
+                                                        mt: 0.5,
+                                                      }}
+                                                    >
+                                                      {node.html}
+                                                    </Box>
+                                                  )}
+                                                </Box>
+                                              )
+                                            )}
+                                          </Stack>
+                                        </Box>
+                                      )}
+                                  </Box>
+                                ))}
+                                {violation.nodes >
+                                  (violation.elements?.length ?? 0) && (
                                   <Typography
                                     variant="body3"
-                                    sx={{
-                                      mb: 1,
-                                      color: getImpactColorScheme(violation.impact).textColor,
-                                    }}
+                                    color="text.secondary"
+                                    sx={{ fontStyle: "italic" }}
                                   >
-                                    <strong>
-                                      {violation.impact?.toUpperCase() === "Incomplete"
-                                        ? "Review needed:"
-                                        : "Violation:"}
-                                    </strong>{" "}
-                                    {element.failureSummary}
+                                    ... and{" "}
+                                    {violation.nodes -
+                                      (violation.elements?.length ?? 0)}{" "}
+                                    more similar elements
                                   </Typography>
-
-                                  <Typography variant="body3">
-                                    <strong>Element HTML:</strong>
-                                  </Typography>
-                                  <Box
-                                    component="pre"
-                                    sx={{
-                                      "&::first-letter": {
-                                        textTransform: "uppercase",
-                                      },
-                                      backgroundColor: "var(--mui-palette-action-selected)",
-                                      color: "var(--mui-palette-text-primary)",
-                                      padding: 1,
-                                      borderRadius: 1,
-                                      overflow: "auto",
-                                      fontSize: "0.85em",
-                                      fontFamily: "monospace",
-                                      whiteSpace: "pre-wrap",
-                                      wordBreak: "break-all",
-                                      mt: 0.5,
-                                    }}
-                                  >
-                                    {element.html}
-                                  </Box>
-                                  {element.relatedNodes && element.relatedNodes.length > 0 && (
-                                    <Box sx={{ mt: 1, mb: 1 }}>
-                                      <Typography variant="body3" sx={{ fontWeight: 500 }}>
-                                        Related Nodes ({element.relatedNodes.length}):
-                                      </Typography>
-                                      <Stack spacing={1}>
-                                        {element.relatedNodes.map((node: RelatedNode, rIndex) => (
-                                          <Box key={rIndex} sx={{ pl: 2 }}>
-                                            <Typography variant="body3" sx={{ mb: 0.5 }}>
-                                              <strong>Target:</strong>{" "}
-                                              <code
-                                                style={{
-                                                  backgroundColor:
-                                                    "var(--mui-palette-action-selected)",
-                                                  color: "var(--mui-palette-text-primary)",
-                                                  padding: "2px 4px",
-                                                  borderRadius: "3px",
-                                                  fontSize: "0.85em",
-                                                  fontFamily: "monospace",
-                                                }}
-                                              >
-                                                {Array.isArray(node.target)
-                                                  ? node.target.join(", ")
-                                                  : node.target}
-                                              </code>
-                                            </Typography>
-                                            {node.html && (
-                                              <Box
-                                                component="pre"
-                                                sx={{
-                                                  backgroundColor:
-                                                    "var(--mui-palette-action-selected)",
-                                                  color: "var(--mui-palette-text-primary)",
-                                                  padding: 1,
-                                                  borderRadius: 1,
-                                                  overflow: "auto",
-                                                  fontSize: "0.85em",
-                                                  fontFamily: "monospace",
-                                                  whiteSpace: "pre-wrap",
-                                                  wordBreak: "break-all",
-                                                  mt: 0.5,
-                                                }}
-                                              >
-                                                {node.html}
-                                              </Box>
-                                            )}
-                                          </Box>
-                                        ))}
-                                      </Stack>
-                                    </Box>
-                                  )}
-                                </Box>
-                              ))}
-                              {violation.nodes > (violation.elements?.length ?? 0) && (
-                                <Typography
-                                  variant="body3"
-                                  color="text.secondary"
-                                  sx={{ fontStyle: "italic" }}
-                                >
-                                  ... and {violation.nodes - (violation.elements?.length ?? 0)} more
-                                  similar elements
-                                </Typography>
-                              )}
-                            </Stack>
-                          </Box>
-                        )}
+                                )}
+                              </Stack>
+                            </Box>
+                          )}
 
                         {violation.tags && violation.tags.length > 0 && (
                           <Box sx={{ mt: 2 }}>
                             <Typography variant="body3">
-                              <strong>WCAG Criteria:</strong> {extractWcagCriteria(violation.tags)}
+                              <strong>WCAG Criteria:</strong>{" "}
+                              {extractWcagCriteria(violation.tags)}
                             </Typography>
-                            {violation.tags.some((tag) => !tag.startsWith("wcag")) && (
+                            {violation.tags.some(
+                              (tag) => !tag.startsWith("wcag")
+                            ) && (
                               <Typography variant="body3" sx={{ mt: 1 }}>
                                 <strong>Other Tags:</strong>{" "}
-                                {violation.tags.filter((tag) => !tag.startsWith("wcag")).join(", ")}
+                                {violation.tags
+                                  .filter((tag) => !tag.startsWith("wcag"))
+                                  .join(", ")}
                               </Typography>
                             )}
                           </Box>

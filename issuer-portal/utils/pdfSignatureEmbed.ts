@@ -44,7 +44,10 @@ export async function embedSignaturesIntoPDF({
       // Calculate actual positions from percentages
       const x = (area.x / 100) * pageWidth;
       // PDF coordinates start from bottom-left, so we need to flip Y
-      const y = pageHeight - (area.y / 100) * pageHeight - (area.height / 100) * pageHeight;
+      const y =
+        pageHeight -
+        (area.y / 100) * pageHeight -
+        (area.height / 100) * pageHeight;
       const width = (area.width / 100) * pageWidth;
       const height = (area.height / 100) * pageHeight;
 
@@ -56,7 +59,9 @@ export async function embedSignaturesIntoPDF({
           try {
             // Extract the base64 image data
             const base64Data = signatureData.split(",")[1];
-            const imageBytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+            const imageBytes = Uint8Array.from(atob(base64Data), (c) =>
+              c.charCodeAt(0)
+            );
 
             // Embed the image
             let image;

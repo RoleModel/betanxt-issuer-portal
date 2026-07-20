@@ -1,4 +1,14 @@
-import { Box, Button, Card, Chip, Collapse, Divider, Link, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  Chip,
+  Collapse,
+  Divider,
+  Link,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { useState } from "react";
 
 import ViolationCard from "./ViolationCard";
@@ -46,7 +56,10 @@ interface CriteriaSummary {
 
 interface CriteriaViewProps {
   criteriaSummary: CriteriaSummary[];
-  axeRulesData: Record<string, { description: string; help: string; helpUrl: string }>;
+  axeRulesData: Record<
+    string,
+    { description: string; help: string; helpUrl: string }
+  >;
   axeToWcagMapping: Record<string, string>;
 }
 
@@ -55,7 +68,9 @@ export default function CriteriaView({
   axeRulesData,
   axeToWcagMapping,
 }: CriteriaViewProps) {
-  const [expandedRules, setExpandedRules] = useState<Record<string, boolean>>({});
+  const [expandedRules, setExpandedRules] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const toggleRulesExpanded = (criteriaId: string) => {
     setExpandedRules((prev) => ({
@@ -66,7 +81,7 @@ export default function CriteriaView({
 
   const isCriterionTested = (wcagId: string): boolean => {
     const relevantAxeRules = Object.keys(axeToWcagMapping).filter(
-      (ruleId) => axeToWcagMapping[ruleId] === wcagId,
+      (ruleId) => axeToWcagMapping[ruleId] === wcagId
     );
     return relevantAxeRules.length > 0;
   };
@@ -107,7 +122,9 @@ export default function CriteriaView({
                     ? "Not Tested"
                     : criteria.failedPages === 0
                       ? "Pass"
-                      : criteria.violations.every((v) => v.impact.toUpperCase() === "INCOMPLETE")
+                      : criteria.violations.every(
+                            (v) => v.impact.toUpperCase() === "INCOMPLETE"
+                          )
                         ? "Needs Review"
                         : "Fail"
                 }
@@ -117,7 +134,9 @@ export default function CriteriaView({
                     ? "default"
                     : criteria.failedPages === 0
                       ? "success"
-                      : criteria.violations.every((v) => v.impact.toUpperCase() === "INCOMPLETE")
+                      : criteria.violations.every(
+                            (v) => v.impact.toUpperCase() === "INCOMPLETE"
+                          )
                         ? "info"
                         : "error"
                 }
@@ -128,14 +147,22 @@ export default function CriteriaView({
             {isCriterionTested(criteria.id) && (
               <Collapse in={expandedRules[criteria.id]}>
                 <Divider sx={{ my: 1 }} />
-                <Typography variant="body3" gutterBottom sx={{ fontWeight: 500 }}>
+                <Typography
+                  variant="body3"
+                  gutterBottom
+                  sx={{ fontWeight: 500 }}
+                >
                   Axe Rules Testing This Criterion:
                 </Typography>
                 <Stack spacing={1}>
                   {Object.keys(axeToWcagMapping)
-                    .filter((ruleId) => axeToWcagMapping[ruleId] === criteria.id)
+                    .filter(
+                      (ruleId) => axeToWcagMapping[ruleId] === criteria.id
+                    )
                     .map((ruleId) => {
-                      const passedRule = criteria.passedRules.find((r) => r.rule === ruleId);
+                      const passedRule = criteria.passedRules.find(
+                        (r) => r.rule === ruleId
+                      );
                       const ruleData = axeRulesData[ruleId];
 
                       if (!ruleData) return null;
@@ -147,12 +174,22 @@ export default function CriteriaView({
                             px: 1,
                             py: 0.5,
                             borderRadius: 1,
-                            bgcolor: passedRule ? "success.light" : "transparent",
+                            bgcolor: passedRule
+                              ? "success.light"
+                              : "transparent",
                             border: "1px solid",
-                            borderColor: passedRule ? "success.main" : "divider",
+                            borderColor: passedRule
+                              ? "success.main"
+                              : "divider",
                           }}
                         >
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
                             {passedRule && (
                               <Typography
                                 variant="body3"
@@ -168,7 +205,9 @@ export default function CriteriaView({
                             <Typography
                               variant="body3"
                               sx={{
-                                color: passedRule ? "success.dark" : "text.primary",
+                                color: passedRule
+                                  ? "success.dark"
+                                  : "text.primary",
                                 flex: 1,
                               }}
                             >

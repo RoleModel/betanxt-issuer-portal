@@ -5,7 +5,8 @@ import type { paths } from "@/types/api";
 // Create the openapi-fetch client with proper typing
 // Use environment variable to avoid circular dependency when running as mock server
 // Prefer API_BASE_URL, then construct from SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL, fallback to local
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl =
+  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const baseUrl =
   process.env.API_BASE_URL ||
   (supabaseUrl ? `${supabaseUrl}/rest/v1` : "http://127.0.0.1:54321/rest/v1");

@@ -13,13 +13,13 @@ Do **not** use `issuer-portal-mock-api-server.vercel.app` (404) or `mock-api-ser
 
 ## issuer-portal — required variables
 
-| Variable                        | Correct value                               |
-| ------------------------------- | ------------------------------------------- |
-| `NEXT_PUBLIC_API_BASE_URL`      | `https://bn-mock-api-server.vercel.app/api` |
-| `NEXT_PUBLIC_SUPABASE_URL`      | `https://vfgjzlcakdrpsbzuqklz.supabase.co`  |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key for **same** Supabase project      |
-| `AUTH_TRUST_HOST`               | `true` (exactly — no trailing `\n`)         |
-| `NEXTAUTH_SECRET`               | Strong secret (server)                      |
+| Variable | Correct value |
+| --- | --- |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://bn-mock-api-server.vercel.app/api` |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://vfgjzlcakdrpsbzuqklz.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key for **same** Supabase project |
+| `AUTH_TRUST_HOST` | `true` (exactly — no trailing `\n`) |
+| `NEXTAUTH_SECRET` | Strong secret (server) |
 
 **Do not set `NEXTAUTH_URL` on Vercel** — it breaks cookie domains. `auth.ts` uses `trustHost: true`.
 

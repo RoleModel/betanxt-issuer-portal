@@ -44,12 +44,12 @@ export class VotingApi extends runtime.BaseAPI {
    */
   async createPositionVoteRaw(
     requestParameters: CreatePositionVoteRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<PositionVote>> {
     if (requestParameters["castVoteRequest"] == null) {
       throw new runtime.RequiredError(
         "castVoteRequest",
-        'Required parameter "castVoteRequest" was null or undefined when calling createPositionVote().',
+        'Required parameter "castVoteRequest" was null or undefined when calling createPositionVote().'
       );
     }
 
@@ -78,10 +78,12 @@ export class VotingApi extends runtime.BaseAPI {
         query: queryParameters,
         body: CastVoteRequestToJSON(requestParameters["castVoteRequest"]),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => PositionVoteFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PositionVoteFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -90,9 +92,12 @@ export class VotingApi extends runtime.BaseAPI {
    */
   async createPositionVote(
     requestParameters: CreatePositionVoteRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<PositionVote> {
-    const response = await this.createPositionVoteRaw(requestParameters, initOverrides);
+    const response = await this.createPositionVoteRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -102,7 +107,7 @@ export class VotingApi extends runtime.BaseAPI {
    */
   async getPositionVotesRaw(
     requestParameters: GetPositionVotesRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Array<PositionVote>>> {
     const queryParameters: any = {};
 
@@ -154,11 +159,11 @@ export class VotingApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      jsonValue.map(PositionVoteFromJSON),
+      jsonValue.map(PositionVoteFromJSON)
     );
   }
 
@@ -168,9 +173,12 @@ export class VotingApi extends runtime.BaseAPI {
    */
   async getPositionVotes(
     requestParameters: GetPositionVotesRequest = {},
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Array<PositionVote>> {
-    const response = await this.getPositionVotesRaw(requestParameters, initOverrides);
+    const response = await this.getPositionVotesRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 }

@@ -13,14 +13,19 @@ test.describe("Database Connection", () => {
   });
 
   test("should connect to Supabase successfully", async () => {
-    const { data, error } = await supabase.from("meeting").select("count").limit(1);
+    const { data, error } = await supabase
+      .from("meeting")
+      .select("count")
+      .limit(1);
 
     expect(error).toBeNull();
     expect(data).toBeDefined();
   });
 
   test("should execute raw query successfully", async () => {
-    const { data: _data, error } = await supabase.rpc("get_user_account_id").single();
+    const { data: _data, error } = await supabase
+      .rpc("get_user_account_id")
+      .single();
 
     // Function might not exist or return null, but should not error
     if (error && error.code !== "PGRST116") {
@@ -63,7 +68,7 @@ test.describe("Database Connection", () => {
           id,
           name
         )
-      `,
+      `
       )
       .limit(1);
 
@@ -86,7 +91,7 @@ test.describe("Database Connection", () => {
           id,
           title
         )
-      `,
+      `
       )
       .limit(1);
 

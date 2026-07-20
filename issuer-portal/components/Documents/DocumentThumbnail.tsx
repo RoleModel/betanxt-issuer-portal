@@ -8,7 +8,11 @@ import { Box, CircularProgress } from "@mui/material";
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
 import React, { useEffect, useMemo, useState } from "react";
 
-import { getFileExtension, getStoragePublicUrl, isStorageUrl } from "@/utils/documentUtils";
+import {
+  getFileExtension,
+  getStoragePublicUrl,
+  isStorageUrl,
+} from "@/utils/documentUtils";
 
 import DocumentThumbnailGenerator from "./DocumentThumbnailGenerator";
 
@@ -37,10 +41,15 @@ interface PageProps {
   renderAnnotationLayer?: boolean;
 }
 
-export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Props) {
+export default function DocumentThumbnail({
+  filePath,
+  onClick,
+  width = 60,
+}: Props) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [Document, setDocument] = useState<React.ComponentType<DocumentProps> | null>(null);
+  const [Document, setDocument] =
+    useState<React.ComponentType<DocumentProps> | null>(null);
   const [Page, setPage] = useState<React.ComponentType<PageProps> | null>(null);
   const [, setNumPages] = useState<number | null>(null);
 
@@ -50,13 +59,14 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
     // Handle storage URLs (both absolute and relative)
     if (filePath.startsWith("/storage/v1/object/public/")) {
       // Convert relative storage paths to full Supabase URLs
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
+      const supabaseUrl =
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
       const fullUrl = `${supabaseUrl}${filePath}`;
       console.log(
         "[DocumentThumbnail] Converting relative storage path:",
         filePath,
         "to:",
-        fullUrl,
+        fullUrl
       );
       return fullUrl;
     }
@@ -90,7 +100,10 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
   const isPDF = useMemo(() => {
     if (!fileUrl) return false;
     // Check for .pdf extension or PDF data URI
-    return fileUrl.toLowerCase().endsWith(".pdf") || fileUrl.startsWith("data:application/pdf");
+    return (
+      fileUrl.toLowerCase().endsWith(".pdf") ||
+      fileUrl.startsWith("data:application/pdf")
+    );
   }, [fileUrl]);
 
   // Derive design-system icon file type (limited union)
@@ -142,7 +155,9 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
         const pdfComponents = await import("react-pdf");
 
         if (mounted) {
-          setDocument(() => pdfComponents.Document as React.ComponentType<DocumentProps>);
+          setDocument(
+            () => pdfComponents.Document as React.ComponentType<DocumentProps>
+          );
           setPage(() => pdfComponents.Page as React.ComponentType<PageProps>);
           setIsLoaded(true);
         }
@@ -167,7 +182,10 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
 
   const onDocumentLoadError = (error: Error) => {
     // Suppress 400 errors for missing documents in development
-    if (!error.message.includes("400") && !error.message.includes("Unexpected server response")) {
+    if (
+      !error.message.includes("400") &&
+      !error.message.includes("Unexpected server response")
+    ) {
       console.error("PDF thumbnail load error:", error);
     }
     setHasError(true);
@@ -202,7 +220,9 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
   // Non-PDF file - use DocumentThumbnailGenerator for Office docs
   if (!isPDF) {
     const ext = filePath ? getFileExtension(filePath).toLowerCase() : "";
-    const isOfficeDoc = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(ext);
+    const isOfficeDoc = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(
+      ext
+    );
     const isAudio = ["mp4", "m4a"].includes(ext);
 
     if (isOfficeDoc) {
@@ -376,12 +396,18 @@ export default function DocumentThumbnail({ filePath, onClick, width = 60 }: Pro
         }}
       >
         {hasError ? (
-          <ErrorOutlineOutlined sx={{ fontSize: 20, color: "text.secondary" }} />
+          <ErrorOutlineOutlined
+            sx={{ fontSize: 20, color: "text.secondary" }}
+          />
         ) : (
           <Document
             file={fileUrl}
             loading={<CircularProgress size={20} />}
-            error={<ErrorOutlineOutlined sx={{ fontSize: 20, color: "text.secondary" }} />}
+            error={
+              <ErrorOutlineOutlined
+                sx={{ fontSize: 20, color: "text.secondary" }}
+              />
+            }
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
           >

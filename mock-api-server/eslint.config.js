@@ -2,6 +2,12 @@
 // Inherits from root eslint.config.mjs
 import baseConfig from "../eslint.config.mjs";
 
+const nextPlugin = baseConfig.find((config) => config.plugins?.["@next/next"])
+  .plugins["@next/next"];
+const typescriptEslint = baseConfig.find(
+  (config) => config.plugins?.["@typescript-eslint"]
+).plugins["@typescript-eslint"];
+
 export default [
   ...baseConfig,
   // Ignore generated files
@@ -10,6 +16,11 @@ export default [
   },
   // Mock API Server specific overrides
   {
+    files: ["**/*.{ts,tsx}"],
+    plugins: {
+      "@next/next": nextPlugin,
+      "@typescript-eslint": typescriptEslint,
+    },
     rules: {
       // Disable overly strict type checking rules for development velocity
       "@typescript-eslint/prefer-nullish-coalescing": "off",

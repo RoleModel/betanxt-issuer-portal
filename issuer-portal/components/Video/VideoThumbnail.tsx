@@ -86,7 +86,8 @@ export default function VideoThumbnail({
           sx={{
             position: "absolute",
             inset: 0,
-            background: "linear-gradient(to bottom, transparent 20%, rgba(3, 47, 63, 0.6) 100%)",
+            background:
+              "linear-gradient(to bottom, transparent 20%, rgba(3, 47, 63, 0.6) 100%)",
           }}
         />
 

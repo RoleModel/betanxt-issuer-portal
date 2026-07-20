@@ -13,7 +13,9 @@ interface ChatbotContextValue {
   closeChatbot: () => void;
 }
 
-const ChatbotContext = createContext<ChatbotContextValue | undefined>(undefined);
+const ChatbotContext = createContext<ChatbotContextValue | undefined>(
+  undefined
+);
 
 const CHATBOT_OPEN_STORAGE_KEY = "issuer-chatbot-open";
 
@@ -30,7 +32,10 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   React.useEffect(() => {
-    window.sessionStorage.setItem(CHATBOT_OPEN_STORAGE_KEY, isOpen ? "true" : "false");
+    window.sessionStorage.setItem(
+      CHATBOT_OPEN_STORAGE_KEY,
+      isOpen ? "true" : "false"
+    );
   }, [isOpen]);
 
   const openChatbot = useCallback(() => {
@@ -54,7 +59,7 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
 
       return Promise.resolve();
     },
-    [router],
+    [router]
   );
 
   return (

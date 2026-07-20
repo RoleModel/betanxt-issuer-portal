@@ -63,7 +63,9 @@ const DocumentThumbnailGenerator: React.FC<DocumentThumbnailProps> = ({
   };
 
   // For images, we can show the actual image as thumbnail
-  const isImage = ["jpg", "jpeg", "png", "gif", "svg"].includes(fileType?.toLowerCase() || "");
+  const isImage = ["jpg", "jpeg", "png", "gif", "svg"].includes(
+    fileType?.toLowerCase() || ""
+  );
 
   if (loading) {
     return <Skeleton variant="rectangular" width={width} height={height} />;

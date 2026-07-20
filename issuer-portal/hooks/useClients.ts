@@ -39,7 +39,7 @@ export const ALL_FEATURE_KEYS: ClientFeatureKey[] = [
  * NOBO is an upsell (Engage) feature and must be opted into per client.
  */
 export const DEFAULT_FEATURE_KEYS: ClientFeatureKey[] = ALL_FEATURE_KEYS.filter(
-  (key) => key !== "nobo",
+  (key) => key !== "nobo"
 );
 
 export interface Client {
@@ -75,7 +75,10 @@ export interface UseClientsResult {
   refetch: () => Promise<void>;
 }
 
-const pickNumber = (source: Record<string, unknown>, keys: string[]): number | undefined => {
+const pickNumber = (
+  source: Record<string, unknown>,
+  keys: string[]
+): number | undefined => {
   for (const key of keys) {
     const value = source[key];
     if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -107,7 +110,9 @@ const normalizeClient = (raw: unknown): Client | null => {
   const accounts = Array.isArray(accountsRaw)
     ? accountsRaw
         .map((account) => asRecord(account))
-        .filter((account): account is Record<string, unknown> => Boolean(account))
+        .filter((account): account is Record<string, unknown> =>
+          Boolean(account)
+        )
         .map((account) => ({
           id: asString(account.id) ?? "",
           name: asString(account.name) ?? undefined,
@@ -118,28 +123,26 @@ const normalizeClient = (raw: unknown): Client | null => {
 
   const phaseValue = pickNumber(record, ["phase"]) ?? 2;
   const phase = (phaseValue >= 1 && phaseValue <= 8 ? phaseValue : 2) as
-    | 1
-    | 2
-    | 3
-    | 4
-    | 5
-    | 6
-    | 7
-    | 8;
+    1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
   return {
     id,
     name: companyName,
     ticker,
     company_name: companyName,
-    short_name: asString(record.shortName) ?? asString(record.short_name) ?? companyName,
+    short_name:
+      asString(record.shortName) ?? asString(record.short_name) ?? companyName,
     industry: asString(record.industry) ?? undefined,
     description: asString(record.description) ?? undefined,
     website: asString(record.website) ?? undefined,
     primary_contact:
-      asString(record.primaryContact) ?? asString(record.primary_contact) ?? undefined,
+      asString(record.primaryContact) ??
+      asString(record.primary_contact) ??
+      undefined,
     primary_contact_email:
-      asString(record.primaryContactEmail) ?? asString(record.primary_contact_email) ?? undefined,
+      asString(record.primaryContactEmail) ??
+      asString(record.primary_contact_email) ??
+      undefined,
     is_active:
       typeof record.isActive === "boolean"
         ? record.isActive
@@ -147,10 +150,13 @@ const normalizeClient = (raw: unknown): Client | null => {
           ? record.is_active
           : undefined,
     branding_id: pickNumber(record, ["brandingId", "branding_id"]),
-    created_at: asString(record.createdAt) ?? asString(record.created_at) ?? undefined,
-    updated_at: asString(record.updatedAt) ?? asString(record.updated_at) ?? undefined,
+    created_at:
+      asString(record.createdAt) ?? asString(record.created_at) ?? undefined,
+    updated_at:
+      asString(record.updatedAt) ?? asString(record.updated_at) ?? undefined,
     phase,
-    meeting_id: asString(record.meetingId) ?? asString(record.meeting_id) ?? undefined,
+    meeting_id:
+      asString(record.meetingId) ?? asString(record.meeting_id) ?? undefined,
     accounts,
     // A stored array (even empty) is admin intent and is preserved as-is;
     // only a missing/null column falls back to the defaults (NOBO off).
@@ -234,7 +240,9 @@ export const useClients = (): UseClientsResult => {
     const { data, error } = await apiClient.GET("/clients");
 
     if (error) {
-      throw new Error(`API Error: ${getApiErrorMessage(error, "Failed to fetch clients")}`);
+      throw new Error(
+        `API Error: ${getApiErrorMessage(error, "Failed to fetch clients")}`
+      );
     }
 
     // Transform the API response to match our Client interface
@@ -252,7 +260,7 @@ export const useClients = (): UseClientsResult => {
     // Key includes session info to refetch when user changes
     session || bypassAuth ? ["/clients", session?.user?.id, bypassAuth] : null,
     clientsFetcher,
-    clientsSWRConfig,
+    clientsSWRConfig
   );
 
   // Filter is applied outside the fetcher so it is always reactive to the current session.
@@ -266,7 +274,8 @@ export const useClients = (): UseClientsResult => {
   // Transform error for consistent interface
   let errorMessage: string | null = null;
   if (error) {
-    errorMessage = error instanceof Error ? error.message : "Failed to fetch clients";
+    errorMessage =
+      error instanceof Error ? error.message : "Failed to fetch clients";
     // Add helpful context for common issues
     if (errorMessage.includes("fetch")) {
       errorMessage += " (The server is restarting)";

@@ -26,12 +26,15 @@ import type { BrandColor, BrandFormat, BrandLogo } from "./types.js";
 export function pickBestLogo(
   logos: BrandLogo[],
   preferredType: string,
-  preferredTheme: string,
+  preferredTheme: string
 ): BrandFormat | null {
   const themed = logos.filter(
-    (logo) => logo.type === preferredType && logo.theme === preferredTheme,
+    (logo) => logo.type === preferredType && logo.theme === preferredTheme
   );
-  const typed = themed.length > 0 ? themed : logos.filter((logo) => logo.type === preferredType);
+  const typed =
+    themed.length > 0
+      ? themed
+      : logos.filter((logo) => logo.type === preferredType);
   const candidates = typed.length > 0 ? typed : logos;
 
   const chosen = candidates[0];
@@ -70,7 +73,10 @@ export interface BrandColorPair {
  */
 export function pickBrandColors(
   colors: BrandColor[],
-  fallback: BrandColorPair = { primaryColor: "#171717", secondaryColor: "#363636" },
+  fallback: BrandColorPair = {
+    primaryColor: "#171717",
+    secondaryColor: "#363636",
+  }
 ): BrandColorPair {
   if (colors.length === 0) return fallback;
 
@@ -78,7 +84,8 @@ export function pickBrandColors(
   const primaryColor = (accent ?? colors[0])?.hex ?? fallback.primaryColor;
 
   const darkest = [...colors].sort((a, b) => a.brightness - b.brightness);
-  const secondaryColor = darkest.find((color) => color.hex !== primaryColor)?.hex ?? primaryColor;
+  const secondaryColor =
+    darkest.find((color) => color.hex !== primaryColor)?.hex ?? primaryColor;
 
   return { primaryColor, secondaryColor };
 }

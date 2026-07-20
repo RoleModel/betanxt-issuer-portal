@@ -115,12 +115,12 @@ npm run generate:db-types
 
 ## 8. Troubleshooting
 
-| Symptom                    | Likely Cause                                       | Fix                                           |
-| -------------------------- | -------------------------------------------------- | --------------------------------------------- |
-| 403 on upload              | Missing anon key or bucket policies tightened      | Verify env vars / bucket policies             |
-| 500 on upload route        | Service role key missing for server client         | Add `SUPABASE_SERVICE_ROLE_KEY` (server only) |
-| Provisional never replaced | Persistence phase not implemented yet              | Planned next phase migration                  |
-| Type errors in tests       | Vitest types missing; project uses Playwright only | Remove or convert Vitest tests                |
+| Symptom | Likely Cause | Fix |
+| --- | --- | --- |
+| 403 on upload | Missing anon key or bucket policies tightened | Verify env vars / bucket policies |
+| 500 on upload route | Service role key missing for server client | Add `SUPABASE_SERVICE_ROLE_KEY` (server only) |
+| Provisional never replaced | Persistence phase not implemented yet | Planned next phase migration |
+| Type errors in tests | Vitest types missing; project uses Playwright only | Remove or convert Vitest tests |
 
 ## 9. Cleanup Tasks (Optional Now)
 

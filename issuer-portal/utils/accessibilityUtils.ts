@@ -1,4 +1,8 @@
-import type { AxeResults as AxeCoreResults, ImpactValue, NodeResult } from "axe-core";
+import type {
+  AxeResults as AxeCoreResults,
+  ImpactValue,
+  NodeResult,
+} from "axe-core";
 
 interface GroupedViolation {
   impact: ImpactValue | undefined;
@@ -44,10 +48,14 @@ function targetToString(target: NodeResult["target"]): string {
  * @param accessibilityScanResults The results from an axe-core scan
  * @returns A stringified JSON representation of violations grouped by rule
  */
-export function groupViolationsByRule(accessibilityScanResults: AxeCoreResults): string {
+export function groupViolationsByRule(
+  accessibilityScanResults: AxeCoreResults
+): string {
   const groupedViolations = [
     ...accessibilityScanResults.violations,
-    ...accessibilityScanResults.incomplete.filter((issue) => isBlockingIncomplete(issue.impact)),
+    ...accessibilityScanResults.incomplete.filter((issue) =>
+      isBlockingIncomplete(issue.impact)
+    ),
   ].reduce<Record<string, GroupedViolation>>((acc, violation) => {
     if (!acc[violation.id]) {
       acc[violation.id] = {
@@ -55,7 +63,9 @@ export function groupViolationsByRule(accessibilityScanResults: AxeCoreResults):
         description: violation.description,
         help: violation.help,
         helpUrl: violation.helpUrl,
-        type: accessibilityScanResults.violations.includes(violation) ? "violation" : "incomplete",
+        type: accessibilityScanResults.violations.includes(violation)
+          ? "violation"
+          : "incomplete",
         occurrences: [],
       };
     }
@@ -64,7 +74,7 @@ export function groupViolationsByRule(accessibilityScanResults: AxeCoreResults):
       ...violation.nodes.map((node) => ({
         target: targetToString(node.target),
         failureSummary: node.failureSummary ?? "No failure summary available",
-      })),
+      }))
     );
 
     return acc;
@@ -79,12 +89,14 @@ export function groupViolationsByRule(accessibilityScanResults: AxeCoreResults):
  * @param accessibilityScanResults The results from an axe-core scan
  * @returns A stringified JSON representation of the violation summary
  */
-export function createViolationSummary(accessibilityScanResults: AxeCoreResults): string {
+export function createViolationSummary(
+  accessibilityScanResults: AxeCoreResults
+): string {
   const criticalIncomplete = accessibilityScanResults.incomplete.filter(
-    (i) => i.impact === "critical",
+    (i) => i.impact === "critical"
   );
   const seriousIncomplete = accessibilityScanResults.incomplete.filter(
-    (i) => i.impact === "serious",
+    (i) => i.impact === "serious"
   );
 
   const allIssues = [

@@ -37,7 +37,10 @@ class DefaultDocumentRepository implements DocumentRepository {
     }
 
     const supabase = getBrowserSupabase();
-    const { data, error } = await supabase.from("document").select("*").eq("meeting_id", meetingId);
+    const { data, error } = await supabase
+      .from("document")
+      .select("*")
+      .eq("meeting_id", meetingId);
     if (error) {
       console.error("Supabase documents query failed", error);
       return [];
@@ -48,13 +51,19 @@ class DefaultDocumentRepository implements DocumentRepository {
   async get(id: string): Promise<Document | null> {
     try {
       const api = await buildApiClient();
-      const { data } = await api.GET("/documents/{id}", { params: { path: { id } } });
+      const { data } = await api.GET("/documents/{id}", {
+        params: { path: { id } },
+      });
       if (data) return data;
     } catch (error) {
       console.warn("get API fallback", error);
     }
     const supabase = getBrowserSupabase();
-    const { data, error } = await supabase.from("document").select("*").eq("id", id).maybeSingle();
+    const { data, error } = await supabase
+      .from("document")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
     if (error || !data) return null;
     return this.mapRow(data);
   }
@@ -70,10 +79,13 @@ class DefaultDocumentRepository implements DocumentRepository {
         form.append("versionNotes", versionNotes);
         form.append("title", versionNotes.trim());
       }
-      const resp = await fetch(`/api/documents/types/${encodeURIComponent(documentType)}/upload`, {
-        method: "POST",
-        body: form,
-      });
+      const resp = await fetch(
+        `/api/documents/types/${encodeURIComponent(documentType)}/upload`,
+        {
+          method: "POST",
+          body: form,
+        }
+      );
       if (resp.ok) {
         const data = await resp.json();
         return this.mapRow(data);
@@ -99,11 +111,15 @@ class DefaultDocumentRepository implements DocumentRepository {
     try {
       const api = await buildApiClient();
       const titleOverride =
-        versionNotes && versionNotes.trim().length > 0 ? versionNotes.trim() : file.name;
+        versionNotes && versionNotes.trim().length > 0
+          ? versionNotes.trim()
+          : file.name;
       const createBody: components["schemas"]["CreateDocumentRequest"] = {
         title: titleOverride,
         description:
-          versionNotes && versionNotes.trim().length > 0 ? versionNotes.trim() : undefined,
+          versionNotes && versionNotes.trim().length > 0
+            ? versionNotes.trim()
+            : undefined,
         type: documentType,
         file: upData.path,
       };
@@ -150,7 +166,8 @@ class DefaultDocumentRepository implements DocumentRepository {
       type: getString("type") ?? undefined,
       filePath: getString("file_path"),
       fileType: getString("file_type"),
-      displayCategory: getString("display_category") as Document["displayCategory"] | undefined,
+      displayCategory: getString("display_category") as
+        Document["displayCategory"] | undefined,
       fileSize: getNumber("file_size"),
       status: statusValue as Document["status"] | undefined,
       uploadDate: getString("upload_date"),
@@ -170,4 +187,5 @@ class DefaultDocumentRepository implements DocumentRepository {
   }
 }
 
-export const documentRepository: DocumentRepository = new DefaultDocumentRepository();
+export const documentRepository: DocumentRepository =
+  new DefaultDocumentRepository();

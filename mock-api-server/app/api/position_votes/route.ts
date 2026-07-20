@@ -7,7 +7,10 @@ import { NextResponse } from "next/server";
 
 import type { components } from "@/types/api";
 
-import { createPositionVote, listPositionVotes } from "@/domain-models/api/votes";
+import {
+  createPositionVote,
+  listPositionVotes,
+} from "@/domain-models/api/votes";
 import { handleCors, withCors } from "@/utils/cors";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -37,7 +40,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -50,8 +56,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "getPositionVotes",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -59,14 +65,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["CastVoteRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["CastVoteRequest"];
 
     // Use existing domain model function
     const { data, error } = await createPositionVote(body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 400 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 400 }
+        )
       );
     }
 
@@ -79,8 +89,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "createPositionVote",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

@@ -25,7 +25,7 @@ async function run() {
     const proposals = await client.query(
       `SELECT id, proposal_number FROM proposal
        WHERE meeting_id = 'wen-annual-meeting-2026'
-       ORDER BY proposal_number`,
+       ORDER BY proposal_number`
     );
 
     const totalShares = 190466246;
@@ -37,7 +37,7 @@ async function run() {
            SUM(CASE WHEN vote = 'AGAINST' THEN shares_voting::numeric ELSE 0 END) AS total_against,
            SUM(CASE WHEN vote = 'ABSTAIN' THEN shares_voting::numeric ELSE 0 END) AS total_abstain
          FROM position_vote WHERE proposal_id = $1`,
-        [p.id],
+        [p.id]
       );
       const t = totals.rows[0];
       const totalFor = Number(t.total_for);
@@ -64,12 +64,15 @@ async function run() {
           ((totalFor / totalShares) * 100).toFixed(4),
           ((totalAgainst / totalShares) * 100).toFixed(4),
           ((totalAbstain / totalShares) * 100).toFixed(4),
-          (((totalFor + totalAgainst + totalAbstain) / totalShares) * 100).toFixed(4),
+          (
+            ((totalFor + totalAgainst + totalAbstain) / totalShares) *
+            100
+          ).toFixed(4),
           p.id,
-        ],
+        ]
       );
       console.log(
-        `  ${Number(p.proposal_number).toFixed(2).padEnd(6)} → FOR=${totalFor.toLocaleString().padStart(10)}  AGAINST=${totalAgainst.toLocaleString().padStart(10)}  ABSTAIN=${totalAbstain.toLocaleString().padStart(8)}`,
+        `  ${Number(p.proposal_number).toFixed(2).padEnd(6)} → FOR=${totalFor.toLocaleString().padStart(10)}  AGAINST=${totalAgainst.toLocaleString().padStart(10)}  ABSTAIN=${totalAbstain.toLocaleString().padStart(8)}`
       );
     }
 

@@ -71,7 +71,10 @@ export default function DigitalShareholderMeetingsPage() {
     },
     { name: "Online voting", essential: true },
     { name: "Identification of shareholder asking question", essential: true },
-    { name: "Meeting recording and archive with replays on demand", essential: true },
+    {
+      name: "Meeting recording and archive with replays on demand",
+      essential: true,
+    },
     { name: "Reports with meeting metrics", essential: true },
     { name: "Follow-up with shareholders", essential: true },
   ];
@@ -79,12 +82,14 @@ export default function DigitalShareholderMeetingsPage() {
   const leftColumnContent = (
     <Stack gap={2}>
       <Typography variant="body1">
-        <strong>MIC Digital Shareholder Meeting (DSM)</strong> enables shareholders to participate
-        in annual meetings remotely with the same level of access as in-person attendees - they can
-        view, vote, and ask questions. DSM also allows you to shape your meeting to best facilitate
-        your shareholders&apos; engagement with ease of access on any device, real-time voting,
-        questions, polling, and more. Combined with the platform&apos;s Q&A management capabilities,
-        branding options, and high-touch service, DSM is the industry&apos;s most innovative and
+        <strong>MIC Digital Shareholder Meeting (DSM)</strong> enables
+        shareholders to participate in annual meetings remotely with the same
+        level of access as in-person attendees - they can view, vote, and ask
+        questions. DSM also allows you to shape your meeting to best facilitate
+        your shareholders&apos; engagement with ease of access on any device,
+        real-time voting, questions, polling, and more. Combined with the
+        platform&apos;s Q&A management capabilities, branding options, and
+        high-touch service, DSM is the industry&apos;s most innovative and
         leading platform.
       </Typography>
       <Card>
@@ -146,15 +151,16 @@ export default function DigitalShareholderMeetingsPage() {
         }}
       >
         <Typography variant="body3" component="p">
-          View the DSM Quickstart Guide for a step-by-step overview of how to run your next virtual
-          shareholder meeting.
+          View the DSM Quickstart Guide for a step-by-step overview of how to
+          run your next virtual shareholder meeting.
         </Typography>
       </SidebarCard>
 
       <SidebarCard title="Want to Know More?">
         <Typography variant="body3" component="p" sx={{ mb: 2 }}>
-          Our Digital Shareholder Meeting solution provides equal access for all shareholders,
-          enabling seamless registration and effortless participation.
+          Our Digital Shareholder Meeting solution provides equal access for all
+          shareholders, enabling seamless registration and effortless
+          participation.
         </Typography>
         <Box
           aria-label="Play Digital Shareholder Meeting demo video"

@@ -26,12 +26,16 @@ async function linkStorageDocuments() {
       .list(meetingId, { limit: 1000 });
 
     if (typeDirError) {
-      console.error(`❌ Error listing directories for ${meetingId}:`, typeDirError);
+      console.error(
+        `❌ Error listing directories for ${meetingId}:`,
+        typeDirError
+      );
       continue;
     }
 
     // Filter to only directories (no file extension)
-    const directories = typeDirs?.filter((item) => !item.name.includes(".")) || [];
+    const directories =
+      typeDirs?.filter((item) => !item.name.includes(".")) || [];
 
     for (const dir of directories) {
       const dirPath = `${meetingId}/${dir.name}`;
@@ -47,13 +51,16 @@ async function linkStorageDocuments() {
       }
 
       // Process each file
-      const actualFiles = files?.filter((item) => item.name.includes(".")) || [];
+      const actualFiles =
+        files?.filter((item) => item.name.includes(".")) || [];
 
       for (const file of actualFiles) {
         const fullPath = `${dirPath}/${file.name}`;
 
         // Get public URL
-        const { data: urlData } = supabase.storage.from("documents").getPublicUrl(fullPath);
+        const { data: urlData } = supabase.storage
+          .from("documents")
+          .getPublicUrl(fullPath);
 
         // Map folder name to document type
         const typeMapping: Record<string, string> = {
@@ -86,24 +93,28 @@ async function linkStorageDocuments() {
             .replace(/\.(pdf|docx?|xlsx?|pptx?)$/i, "") // Remove extension
             .replace(/_/g, " "); // Replace underscores with spaces
 
-          const { error: insertError } = await supabase.from("document").insert({
-            meeting_id: meetingId,
-            title: title,
-            type: dir.name
-              .split("-")
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-              .join(" "),
-            file_path: urlData.publicUrl,
-            file_type: file.name.split(".").pop() || "pdf",
-            file_size: file.metadata?.size ?? 0,
-            status: "UPLOADED",
-            display_category: "general",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
+          const { error: insertError } = await supabase
+            .from("document")
+            .insert({
+              meeting_id: meetingId,
+              title: title,
+              type: dir.name
+                .split("-")
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(" "),
+              file_path: urlData.publicUrl,
+              file_type: file.name.split(".").pop() || "pdf",
+              file_size: file.metadata?.size ?? 0,
+              status: "UPLOADED",
+              display_category: "general",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
 
           if (insertError) {
-            console.error(`❌ Failed to create document: ${insertError.message}`);
+            console.error(
+              `❌ Failed to create document: ${insertError.message}`
+            );
           } else {
             console.log(`✅ Created new: ${title}`);
           }
@@ -134,18 +145,20 @@ async function linkStorageDocuments() {
             .replace(/\.(pdf|docx?|xlsx?|pptx?)$/i, "") // Remove extension
             .replace(/_/g, " "); // Replace underscores with spaces
 
-          const { error: insertError } = await supabase.from("document").insert({
-            meeting_id: meetingId,
-            title: title || docType,
-            type: docType,
-            file_path: urlData.publicUrl,
-            file_type: file.name.split(".").pop() || "pdf",
-            file_size: file.metadata?.size ?? 0,
-            status: "UPLOADED",
-            display_category: getDisplayCategory(docType),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
+          const { error: insertError } = await supabase
+            .from("document")
+            .insert({
+              meeting_id: meetingId,
+              title: title || docType,
+              type: docType,
+              file_path: urlData.publicUrl,
+              file_type: file.name.split(".").pop() || "pdf",
+              file_size: file.metadata?.size ?? 0,
+              status: "UPLOADED",
+              display_category: getDisplayCategory(docType),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
 
           if (insertError) {
             console.error(`❌ Failed to create: ${insertError.message}`);

@@ -77,7 +77,9 @@ export interface UpdateClientRequest {
 /**
  * Check if a given object implements the UpdateClientRequest interface.
  */
-export function instanceOfUpdateClientRequest(value: object): value is UpdateClientRequest {
+export function instanceOfUpdateClientRequest(
+  value: object
+): value is UpdateClientRequest {
   return true;
 }
 
@@ -87,7 +89,7 @@ export function UpdateClientRequestFromJSON(json: any): UpdateClientRequest {
 
 export function UpdateClientRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): UpdateClientRequest {
   if (json == null) {
     return json;
@@ -98,9 +100,12 @@ export function UpdateClientRequestFromJSONTyped(
     industry: json["industry"] == null ? undefined : json["industry"],
     description: json["description"] == null ? undefined : json["description"],
     website: json["website"] == null ? undefined : json["website"],
-    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
+    primaryContact:
+      json["primaryContact"] == null ? undefined : json["primaryContact"],
     primaryContactEmail:
-      json["primaryContactEmail"] == null ? undefined : json["primaryContactEmail"],
+      json["primaryContactEmail"] == null
+        ? undefined
+        : json["primaryContactEmail"],
     isActive: json["isActive"] == null ? undefined : json["isActive"],
     brandingId: json["brandingId"] == null ? undefined : json["brandingId"],
   };
@@ -112,7 +117,7 @@ export function UpdateClientRequestToJSON(json: any): UpdateClientRequest {
 
 export function UpdateClientRequestToJSONTyped(
   value?: UpdateClientRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

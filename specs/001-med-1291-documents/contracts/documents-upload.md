@@ -1,7 +1,6 @@
 # POST /api/documents/{docType}/upload
 
-Purpose: Upload new proxy material or supporting document version.
-Auth: ADMIN or ISSUER_EDITOR
+Purpose: Upload new proxy material or supporting document version. Auth: ADMIN or ISSUER_EDITOR
 
 docType Path Param:
 

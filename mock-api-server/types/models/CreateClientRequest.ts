@@ -83,9 +83,12 @@ export interface CreateClientRequest {
 /**
  * Check if a given object implements the CreateClientRequest interface.
  */
-export function instanceOfCreateClientRequest(value: object): value is CreateClientRequest {
+export function instanceOfCreateClientRequest(
+  value: object
+): value is CreateClientRequest {
   if (!("ticker" in value) || value["ticker"] === undefined) return false;
-  if (!("companyName" in value) || value["companyName"] === undefined) return false;
+  if (!("companyName" in value) || value["companyName"] === undefined)
+    return false;
   if (!("shortName" in value) || value["shortName"] === undefined) return false;
   return true;
 }
@@ -96,7 +99,7 @@ export function CreateClientRequestFromJSON(json: any): CreateClientRequest {
 
 export function CreateClientRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CreateClientRequest {
   if (json == null) {
     return json;
@@ -108,9 +111,12 @@ export function CreateClientRequestFromJSONTyped(
     industry: json["industry"] == null ? undefined : json["industry"],
     description: json["description"] == null ? undefined : json["description"],
     website: json["website"] == null ? undefined : json["website"],
-    primaryContact: json["primaryContact"] == null ? undefined : json["primaryContact"],
+    primaryContact:
+      json["primaryContact"] == null ? undefined : json["primaryContact"],
     primaryContactEmail:
-      json["primaryContactEmail"] == null ? undefined : json["primaryContactEmail"],
+      json["primaryContactEmail"] == null
+        ? undefined
+        : json["primaryContactEmail"],
     isActive: json["isActive"] == null ? undefined : json["isActive"],
     brandingId: json["brandingId"] == null ? undefined : json["brandingId"],
   };
@@ -122,7 +128,7 @@ export function CreateClientRequestToJSON(json: any): CreateClientRequest {
 
 export function CreateClientRequestToJSONTyped(
   value?: CreateClientRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

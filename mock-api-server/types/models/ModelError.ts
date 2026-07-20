@@ -49,7 +49,10 @@ export function ModelErrorFromJSON(json: any): ModelError {
   return ModelErrorFromJSONTyped(json, false);
 }
 
-export function ModelErrorFromJSONTyped(json: any, ignoreDiscriminator: boolean): ModelError {
+export function ModelErrorFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): ModelError {
   if (json == null) {
     return json;
   }
@@ -66,7 +69,7 @@ export function ModelErrorToJSON(json: any): ModelError {
 
 export function ModelErrorToJSONTyped(
   value?: ModelError | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

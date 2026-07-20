@@ -48,41 +48,43 @@ export interface TabulationReportShareRangePerformanceInner {
  * Check if a given object implements the TabulationReportShareRangePerformanceInner interface.
  */
 export function instanceOfTabulationReportShareRangePerformanceInner(
-  value: object,
+  value: object
 ): value is TabulationReportShareRangePerformanceInner {
   return true;
 }
 
 export function TabulationReportShareRangePerformanceInnerFromJSON(
-  json: any,
+  json: any
 ): TabulationReportShareRangePerformanceInner {
   return TabulationReportShareRangePerformanceInnerFromJSONTyped(json, false);
 }
 
 export function TabulationReportShareRangePerformanceInnerFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): TabulationReportShareRangePerformanceInner {
   if (json == null) {
     return json;
   }
   return {
     rangeLabel: json["rangeLabel"] == null ? undefined : json["rangeLabel"],
-    positionCount: json["positionCount"] == null ? undefined : json["positionCount"],
+    positionCount:
+      json["positionCount"] == null ? undefined : json["positionCount"],
     totalShares: json["totalShares"] == null ? undefined : json["totalShares"],
-    percentVoted: json["percentVoted"] == null ? undefined : json["percentVoted"],
+    percentVoted:
+      json["percentVoted"] == null ? undefined : json["percentVoted"],
   };
 }
 
 export function TabulationReportShareRangePerformanceInnerToJSON(
-  json: any,
+  json: any
 ): TabulationReportShareRangePerformanceInner {
   return TabulationReportShareRangePerformanceInnerToJSONTyped(json, false);
 }
 
 export function TabulationReportShareRangePerformanceInnerToJSONTyped(
   value?: TabulationReportShareRangePerformanceInner | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

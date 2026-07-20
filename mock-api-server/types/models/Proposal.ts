@@ -192,38 +192,67 @@ export function ProposalFromJSON(json: any): Proposal {
   return ProposalFromJSONTyped(json, false);
 }
 
-export function ProposalFromJSONTyped(json: any, ignoreDiscriminator: boolean): Proposal {
+export function ProposalFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Proposal {
   if (json == null) {
     return json;
   }
   return {
     id: json["id"] == null ? undefined : json["id"],
     meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
-    proposalNumber: json["proposalNumber"] == null ? undefined : json["proposalNumber"],
-    proposalTitle: json["proposalTitle"] == null ? undefined : json["proposalTitle"],
-    proposalType: json["proposalType"] == null ? undefined : json["proposalType"],
-    proposalSubtype: json["proposalSubtype"] == null ? undefined : json["proposalSubtype"],
-    directorName: json["directorName"] == null ? undefined : json["directorName"],
-    directorTermYears: json["directorTermYears"] == null ? undefined : json["directorTermYears"],
-    directorClass: json["directorClass"] == null ? undefined : json["directorClass"],
-    termExpirationYear: json["termExpirationYear"] == null ? undefined : json["termExpirationYear"],
-    frequencyOptions: json["frequencyOptions"] == null ? undefined : json["frequencyOptions"],
-    recommendation: json["recommendation"] == null ? undefined : json["recommendation"],
+    proposalNumber:
+      json["proposalNumber"] == null ? undefined : json["proposalNumber"],
+    proposalTitle:
+      json["proposalTitle"] == null ? undefined : json["proposalTitle"],
+    proposalType:
+      json["proposalType"] == null ? undefined : json["proposalType"],
+    proposalSubtype:
+      json["proposalSubtype"] == null ? undefined : json["proposalSubtype"],
+    directorName:
+      json["directorName"] == null ? undefined : json["directorName"],
+    directorTermYears:
+      json["directorTermYears"] == null ? undefined : json["directorTermYears"],
+    directorClass:
+      json["directorClass"] == null ? undefined : json["directorClass"],
+    termExpirationYear:
+      json["termExpirationYear"] == null
+        ? undefined
+        : json["termExpirationYear"],
+    frequencyOptions:
+      json["frequencyOptions"] == null ? undefined : json["frequencyOptions"],
+    recommendation:
+      json["recommendation"] == null ? undefined : json["recommendation"],
     finalResult: json["finalResult"] == null ? undefined : json["finalResult"],
-    totalVotesFor: json["totalVotesFor"] == null ? undefined : json["totalVotesFor"],
-    totalVotesAgainst: json["totalVotesAgainst"] == null ? undefined : json["totalVotesAgainst"],
-    totalVotesAbstain: json["totalVotesAbstain"] == null ? undefined : json["totalVotesAbstain"],
+    totalVotesFor:
+      json["totalVotesFor"] == null ? undefined : json["totalVotesFor"],
+    totalVotesAgainst:
+      json["totalVotesAgainst"] == null ? undefined : json["totalVotesAgainst"],
+    totalVotesAbstain:
+      json["totalVotesAbstain"] == null ? undefined : json["totalVotesAbstain"],
     totalSharesEligible:
-      json["totalSharesEligible"] == null ? undefined : json["totalSharesEligible"],
-    forPercentage: json["forPercentage"] == null ? undefined : json["forPercentage"],
-    againstPercentage: json["againstPercentage"] == null ? undefined : json["againstPercentage"],
-    abstainPercentage: json["abstainPercentage"] == null ? undefined : json["abstainPercentage"],
-    participationRate: json["participationRate"] == null ? undefined : json["participationRate"],
-    votingCompleted: json["votingCompleted"] == null ? undefined : json["votingCompleted"],
+      json["totalSharesEligible"] == null
+        ? undefined
+        : json["totalSharesEligible"],
+    forPercentage:
+      json["forPercentage"] == null ? undefined : json["forPercentage"],
+    againstPercentage:
+      json["againstPercentage"] == null ? undefined : json["againstPercentage"],
+    abstainPercentage:
+      json["abstainPercentage"] == null ? undefined : json["abstainPercentage"],
+    participationRate:
+      json["participationRate"] == null ? undefined : json["participationRate"],
+    votingCompleted:
+      json["votingCompleted"] == null ? undefined : json["votingCompleted"],
     votingCompletedAt:
-      json["votingCompletedAt"] == null ? undefined : new Date(json["votingCompletedAt"]),
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+      json["votingCompletedAt"] == null
+        ? undefined
+        : new Date(json["votingCompletedAt"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
   };
 }
 
@@ -233,7 +262,7 @@ export function ProposalToJSON(json: any): Proposal {
 
 export function ProposalToJSONTyped(
   value?: Proposal | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -266,7 +295,9 @@ export function ProposalToJSONTyped(
       value["votingCompletedAt"] === null
         ? null
         : (value["votingCompletedAt"] as any)?.toISOString(),
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
   };
 }

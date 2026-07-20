@@ -23,6 +23,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, actionId });
   } catch (error) {
     console.error("Failed to queue chatbot action:", error);
-    return NextResponse.json({ error: "Failed to queue action" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to queue action" },
+      { status: 500 }
+    );
   }
 }

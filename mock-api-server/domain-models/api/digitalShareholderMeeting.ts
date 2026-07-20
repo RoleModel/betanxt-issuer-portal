@@ -33,7 +33,7 @@ export interface DigitalShareholderMeetingRequest {
 
 // Transform database row (snake_case) to API response (camelCase)
 export function transformDigitalShareholderMeetingRow(
-  row: DigitalShareholderMeetingRow,
+  row: DigitalShareholderMeetingRow
 ): DigitalShareholderMeetingResponse {
   return {
     id: row.id,
@@ -52,7 +52,7 @@ export function transformDigitalShareholderMeetingRow(
 // Transform API request (camelCase) to database insert (snake_case)
 export function transformToDigitalShareholderMeetingInsert(
   data: DigitalShareholderMeetingRequest,
-  meetingId: string,
+  meetingId: string
 ): DigitalShareholderMeetingInsert {
   return {
     meeting_id: meetingId,
@@ -67,11 +67,12 @@ export function transformToDigitalShareholderMeetingInsert(
 
 // Transform API request (camelCase) to database update (snake_case)
 export function transformToDigitalShareholderMeetingUpdate(
-  data: Partial<DigitalShareholderMeetingRequest>,
+  data: Partial<DigitalShareholderMeetingRequest>
 ): DigitalShareholderMeetingUpdate {
   const update: DigitalShareholderMeetingUpdate = {};
 
-  if (data.registrantType !== undefined) update.registrant_type = data.registrantType;
+  if (data.registrantType !== undefined)
+    update.registrant_type = data.registrantType;
   if (data.firstName !== undefined) update.first_name = data.firstName;
   if (data.lastName !== undefined) update.last_name = data.lastName;
   if (data.emailAddress !== undefined) update.email_address = data.emailAddress;

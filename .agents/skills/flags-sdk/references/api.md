@@ -30,18 +30,16 @@ if (!access) return NextResponse.json(null, { status: 401 });
 
 Merge provider data from multiple sources for the Flags Explorer.
 
-| Parameter | Type                                        | Description            |
-| --------- | ------------------------------------------- | ---------------------- |
-| `data`    | `(ProviderData \| Promise<ProviderData>)[]` | Provider data to merge |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `data` | `(ProviderData \| Promise<ProviderData>)[]` | Provider data to merge |
 
 ```ts
 import { mergeProviderData } from "flags";
 
 return mergeProviderData([
   getProviderData(flags),
-  getStatsigProviderData({
-    /* ... */
-  }),
+  getStatsigProviderData({/* ... */}),
 ]);
 ```
 
@@ -148,16 +146,16 @@ import { FlagDefinitions } from "flags/react";
 
 Declare a feature flag for Next.js.
 
-| Parameter      | Type                               | Description                |
-| -------------- | ---------------------------------- | -------------------------- |
-| `key`          | `string`                           | Flag identifier            |
-| `decide`       | `function`                         | Resolves the flag value    |
-| `defaultValue` | `any`                              | Fallback value             |
-| `description`  | `string`                           | Shown in Flags Explorer    |
-| `origin`       | `string`                           | URL to manage flag         |
-| `options`      | `{ label?: string, value: any }[]` | Possible values            |
-| `adapter`      | `Adapter`                          | Provider adapter           |
-| `identify`     | `function`                         | Returns evaluation context |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `key` | `string` | Flag identifier |
+| `decide` | `function` | Resolves the flag value |
+| `defaultValue` | `any` | Fallback value |
+| `description` | `string` | Shown in Flags Explorer |
+| `origin` | `string` | URL to manage flag |
+| `options` | `{ label?: string, value: any }[]` | Possible values |
+| `adapter` | `Adapter` | Provider adapter |
+| `identify` | `function` | Returns evaluation context |
 
 ### `createFlagsDiscoveryEndpoint`
 
@@ -240,14 +238,14 @@ Not available in Pages Router.
 
 Declare a feature flag for SvelteKit.
 
-| Parameter     | Type                               | Description                |
-| ------------- | ---------------------------------- | -------------------------- |
-| `key`         | `string`                           | Flag identifier            |
-| `decide`      | `function`                         | Resolves value             |
-| `description` | `string`                           | Shown in Flags Explorer    |
-| `origin`      | `string`                           | URL to manage flag         |
-| `options`     | `{ label?: string, value: any }[]` | Possible values            |
-| `identify`    | `function`                         | Returns evaluation context |
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `key` | `string` | Flag identifier |
+| `decide` | `function` | Resolves value |
+| `description` | `string` | Shown in Flags Explorer |
+| `origin` | `string` | URL to manage flag |
+| `options` | `{ label?: string, value: any }[]` | Possible values |
+| `identify` | `function` | Returns evaluation context |
 
 ### `createHandle`
 

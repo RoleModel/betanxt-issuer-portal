@@ -50,35 +50,46 @@ export interface ListClients200Response {
 /**
  * Check if a given object implements the ListClients200Response interface.
  */
-export function instanceOfListClients200Response(value: object): value is ListClients200Response {
+export function instanceOfListClients200Response(
+  value: object
+): value is ListClients200Response {
   return true;
 }
 
-export function ListClients200ResponseFromJSON(json: any): ListClients200Response {
+export function ListClients200ResponseFromJSON(
+  json: any
+): ListClients200Response {
   return ListClients200ResponseFromJSONTyped(json, false);
 }
 
 export function ListClients200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): ListClients200Response {
   if (json == null) {
     return json;
   }
   return {
     clients:
-      json["clients"] == null ? undefined : (json["clients"] as Array<any>).map(ClientsFromJSON),
-    pagination: json["pagination"] == null ? undefined : PaginationFromJSON(json["pagination"]),
+      json["clients"] == null
+        ? undefined
+        : (json["clients"] as Array<any>).map(ClientsFromJSON),
+    pagination:
+      json["pagination"] == null
+        ? undefined
+        : PaginationFromJSON(json["pagination"]),
   };
 }
 
-export function ListClients200ResponseToJSON(json: any): ListClients200Response {
+export function ListClients200ResponseToJSON(
+  json: any
+): ListClients200Response {
   return ListClients200ResponseToJSONTyped(json, false);
 }
 
 export function ListClients200ResponseToJSONTyped(
   value?: ListClients200Response | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -86,7 +97,9 @@ export function ListClients200ResponseToJSONTyped(
 
   return {
     clients:
-      value["clients"] == null ? undefined : (value["clients"] as Array<any>).map(ClientsToJSON),
+      value["clients"] == null
+        ? undefined
+        : (value["clients"] as Array<any>).map(ClientsToJSON),
     pagination: PaginationToJSON(value["pagination"]),
   };
 }

@@ -20,8 +20,8 @@ export async function PATCH(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "markNotificationRead",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

@@ -49,19 +49,33 @@ export default function ReportsPage() {
     ];
 
     const dtcVotedShares = positions
-      .filter((position) => position.accountType === "DTC/CDS" && position.voteStatus === "Voted")
+      .filter(
+        (position) =>
+          position.accountType === "DTC/CDS" && position.voteStatus === "Voted"
+      )
       .reduce((sum, position) => sum + (position.sharesVoted ?? 0), 0);
 
     const dtcUnvotedShares = positions
-      .filter((position) => position.accountType === "DTC/CDS" && position.voteStatus === "Unvoted")
+      .filter(
+        (position) =>
+          position.accountType === "DTC/CDS" &&
+          position.voteStatus === "Unvoted"
+      )
       .reduce((sum, position) => sum + (position.shares ?? 0), 0);
 
     const nonDtcVotedShares = positions
-      .filter((position) => position.accountType === "Non-DTC" && position.voteStatus === "Voted")
+      .filter(
+        (position) =>
+          position.accountType === "Non-DTC" && position.voteStatus === "Voted"
+      )
       .reduce((sum, position) => sum + (position.sharesVoted ?? 0), 0);
 
     const nonDtcUnvotedShares = positions
-      .filter((position) => position.accountType === "Non-DTC" && position.voteStatus === "Unvoted")
+      .filter(
+        (position) =>
+          position.accountType === "Non-DTC" &&
+          position.voteStatus === "Unvoted"
+      )
       .reduce((sum, position) => sum + (position.shares ?? 0), 0);
 
     return [

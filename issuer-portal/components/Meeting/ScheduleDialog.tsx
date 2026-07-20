@@ -79,7 +79,11 @@ export default function ScheduleDialog({
           <Button onClick={handleClose} variant="outlined">
             Cancel
           </Button>
-          <Button onClick={handleSchedule} variant="contained" disabled={!selectedDate}>
+          <Button
+            onClick={handleSchedule}
+            variant="contained"
+            disabled={!selectedDate}
+          >
             Schedule
           </Button>
         </DialogActions>

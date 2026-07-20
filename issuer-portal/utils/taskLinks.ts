@@ -40,7 +40,9 @@ export function parseTaskLinks(json: unknown, taskTitle?: string): TaskLink[] {
 
   // Auto-add Sign Form and Upload links for form tasks
   const hasDownloadLink = links.some((link) => link.action === "download");
-  const hasSignLink = links.some((link) => link.action === "signature" || link.action === "sign");
+  const hasSignLink = links.some(
+    (link) => link.action === "signature" || link.action === "sign"
+  );
   const hasUploadLink = links.some((link) => link.action === "upload");
   const isFormTask =
     taskTitle &&

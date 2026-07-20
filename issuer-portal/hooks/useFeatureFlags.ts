@@ -47,7 +47,9 @@ async function fetchFeatureFlags(ticker: string | null): Promise<FeatureFlags> {
  * routes). Defaults every flag to off until the response arrives so gated
  * UI (e.g. the NOBO chip in the event manager) never flashes on.
  */
-export function useFeatureFlags(tickerOverride?: string): UseFeatureFlagsResult {
+export function useFeatureFlags(
+  tickerOverride?: string
+): UseFeatureFlagsResult {
   const { currentClient } = useClient();
   const ticker = tickerOverride ?? currentClient?.ticker ?? null;
 
@@ -57,7 +59,7 @@ export function useFeatureFlags(tickerOverride?: string): UseFeatureFlagsResult 
     {
       revalidateOnFocus: false,
       dedupingInterval: 60_000,
-    },
+    }
   );
 
   return { flags: data ?? DEFAULT_FLAGS, isLoading };

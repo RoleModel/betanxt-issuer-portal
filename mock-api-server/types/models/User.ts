@@ -100,7 +100,10 @@ export function UserFromJSON(json: any): User {
   return UserFromJSONTyped(json, false);
 }
 
-export function UserFromJSONTyped(json: any, ignoreDiscriminator: boolean): User {
+export function UserFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): User {
   if (json == null) {
     return json;
   }
@@ -113,7 +116,8 @@ export function UserFromJSONTyped(json: any, ignoreDiscriminator: boolean): User
     password: json["password"] == null ? undefined : json["password"],
     type: json["type"] == null ? undefined : UserTypeFromJSON(json["type"]),
     accountId: json["accountId"] == null ? undefined : json["accountId"],
-    account: json["account"] == null ? undefined : AccountFromJSON(json["account"]),
+    account:
+      json["account"] == null ? undefined : AccountFromJSON(json["account"]),
   };
 }
 
@@ -121,7 +125,10 @@ export function UserToJSON(json: any): User {
   return UserToJSONTyped(json, false);
 }
 
-export function UserToJSONTyped(value?: User | null, ignoreDiscriminator: boolean = false): any {
+export function UserToJSONTyped(
+  value?: User | null,
+  ignoreDiscriminator: boolean = false
+): any {
   if (value == null) {
     return value;
   }

@@ -6,7 +6,7 @@ import { signIn } from "@/auth";
 
 export async function authenticate(
   username: string,
-  password: string,
+  password: string
 ): Promise<{ error: string } | { success: true } | undefined> {
   try {
     await signIn("credentials", {

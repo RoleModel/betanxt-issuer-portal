@@ -56,7 +56,7 @@ interface RealtimeChannel {
   on: (
     event: string,
     config: { event: string; schema: string; table: string; filter: string },
-    callback: (payload: RealtimePayload) => void,
+    callback: (payload: RealtimePayload) => void
   ) => RealtimeChannel;
   subscribe: () => void;
 }
@@ -78,8 +78,11 @@ export function useDocumentSync({
       setIsLoading(true);
       setError(null);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-      const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`);
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+      const response = await fetch(
+        `${API_URL}/meetings/${meetingId}/documents`
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch documents");
@@ -134,7 +137,9 @@ export function useDocumentSync({
     void fetchDocuments();
 
     // Subscribe to document changes - cast to RealtimeChannel for proper typing
-    const channel = supabase.channel(`documents:${meetingId}`) as unknown as RealtimeChannel;
+    const channel = supabase.channel(
+      `documents:${meetingId}`
+    ) as unknown as RealtimeChannel;
 
     channel
       .on(
@@ -151,7 +156,7 @@ export function useDocumentSync({
             setDocuments((prev) => [...prev, newDocument]);
             onDocumentAdded?.(newDocument);
           }
-        },
+        }
       )
       .on(
         "postgres_changes",
@@ -165,11 +170,13 @@ export function useDocumentSync({
           if (payload.new) {
             const updatedDocument = transformDocument(payload.new);
             setDocuments((prev) =>
-              prev.map((doc) => (doc.id === updatedDocument.id ? updatedDocument : doc)),
+              prev.map((doc) =>
+                doc.id === updatedDocument.id ? updatedDocument : doc
+              )
             );
             onDocumentUpdated?.(updatedDocument);
           }
-        },
+        }
       )
       .on(
         "postgres_changes",
@@ -181,18 +188,29 @@ export function useDocumentSync({
         },
         (payload: RealtimePayload) => {
           if (payload.old?.id) {
-            setDocuments((prev) => prev.filter((doc) => doc.id !== payload.old?.id));
+            setDocuments((prev) =>
+              prev.filter((doc) => doc.id !== payload.old?.id)
+            );
             onDocumentDeleted?.(payload.old.id);
           }
-        },
+        }
       )
       .subscribe();
 
     // Cleanup subscription on unmount
     return () => {
-      void supabase.removeChannel(channel as unknown as ReturnType<typeof supabase.channel>);
+      void supabase.removeChannel(
+        channel as unknown as ReturnType<typeof supabase.channel>
+      );
     };
-  }, [meetingId, supabase, onDocumentAdded, onDocumentUpdated, onDocumentDeleted, fetchDocuments]);
+  }, [
+    meetingId,
+    supabase,
+    onDocumentAdded,
+    onDocumentUpdated,
+    onDocumentDeleted,
+    fetchDocuments,
+  ]);
 
   // Manual refresh function
   const refresh = useCallback(() => {
@@ -219,7 +237,7 @@ export function useDocumentSync({
       setDocuments((prev) => [...prev, optimisticDoc]);
       return optimisticDoc.id;
     },
-    [meetingId],
+    [meetingId]
   );
 
   const removeOptimisticDocument = useCallback((tempId: string) => {

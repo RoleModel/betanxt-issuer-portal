@@ -29,17 +29,21 @@ export interface LogoutUser200Response {
 /**
  * Check if a given object implements the LogoutUser200Response interface.
  */
-export function instanceOfLogoutUser200Response(value: object): value is LogoutUser200Response {
+export function instanceOfLogoutUser200Response(
+  value: object
+): value is LogoutUser200Response {
   return true;
 }
 
-export function LogoutUser200ResponseFromJSON(json: any): LogoutUser200Response {
+export function LogoutUser200ResponseFromJSON(
+  json: any
+): LogoutUser200Response {
   return LogoutUser200ResponseFromJSONTyped(json, false);
 }
 
 export function LogoutUser200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): LogoutUser200Response {
   if (json == null) {
     return json;
@@ -55,7 +59,7 @@ export function LogoutUser200ResponseToJSON(json: any): LogoutUser200Response {
 
 export function LogoutUser200ResponseToJSONTyped(
   value?: LogoutUser200Response | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

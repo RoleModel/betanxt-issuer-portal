@@ -5,7 +5,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import type { components } from "@/domain-models/generated-schema";
 
 import { useClient } from "@/contexts/ClientContext";
-import buildApiClient, { type ApiClientReturnType } from "@/domain-models/apiClient";
+import buildApiClient, {
+  type ApiClientReturnType,
+} from "@/domain-models/apiClient";
 import { generateSeededEventParticipationPercent } from "@/utils/eventParticipation";
 import { asRecord, asString } from "@/utils/typeUtils";
 
@@ -49,42 +51,53 @@ const getVoteStatus = (position: components["schemas"]["Position"]): string => {
   return asString(record.vote_status) ?? asString(record.status) ?? "";
 };
 
-const isPositionVoted = (position: components["schemas"]["Position"]): boolean => {
+const isPositionVoted = (
+  position: components["schemas"]["Position"]
+): boolean => {
   const status = getVoteStatus(position).toLowerCase();
   return status === "voted";
 };
 
 const _computeParticipationMetrics = (
   meeting: Meeting,
-  positions: components["schemas"]["Position"][],
+  positions: components["schemas"]["Position"][]
 ) => {
   if (positions.length === 0) {
     return getDefaultMetrics(meeting.id ?? "");
   }
 
-  const totalSharesOutstanding = parseNumericValue(meeting.totalSharesOutstanding);
+  const totalSharesOutstanding = parseNumericValue(
+    meeting.totalSharesOutstanding
+  );
   const totalSharesFromPositions = positions.reduce(
     (sum, position) => sum + parseNumericValue(position.shares),
-    0,
+    0
   );
 
   const totalShares =
-    totalSharesOutstanding > 0 ? totalSharesOutstanding : totalSharesFromPositions;
+    totalSharesOutstanding > 0
+      ? totalSharesOutstanding
+      : totalSharesFromPositions;
 
   const votedShares = positions.reduce((sum, position) => {
     if (!isPositionVoted(position)) return sum;
     const sharesValue =
-      position.sharesVoted ?? asRecord(position)?.shares_voted ?? position.shares ?? 0;
+      position.sharesVoted ??
+      asRecord(position)?.shares_voted ??
+      position.shares ??
+      0;
     return sum + parseNumericValue(sharesValue);
   }, 0);
 
   const totalVotes = positions.reduce(
     (count, position) => (isPositionVoted(position) ? count + 1 : count),
-    0,
+    0
   );
 
   const participationPercent =
-    totalShares > 0 ? Math.round((votedShares / totalShares) * 100 * 10) / 10 : 0;
+    totalShares > 0
+      ? Math.round((votedShares / totalShares) * 100 * 10) / 10
+      : 0;
 
   return {
     participationPercent,
@@ -93,7 +106,10 @@ const _computeParticipationMetrics = (
   };
 };
 
-export default function PastMeetingsCard({ maxHeight = 400, limit = 6 }: PastMeetingsCardProps) {
+export default function PastMeetingsCard({
+  maxHeight = 400,
+  limit = 6,
+}: PastMeetingsCardProps) {
   const { currentClient } = useClient();
   const clientTicker = currentClient?.ticker ?? "";
 
@@ -137,32 +153,36 @@ export default function PastMeetingsCard({ maxHeight = 400, limit = 6 }: PastMee
       })) as ApiClientReturnType<unknown>;
 
       if (meetingsResponse.error) {
-        throw new Error(meetingsResponse.error.message ?? "Failed to load meetings");
+        throw new Error(
+          meetingsResponse.error.message ?? "Failed to load meetings"
+        );
       }
 
       interface MeetingsApiResponse {
         meetings?: Meeting[];
         pagination?: components["schemas"]["Pagination"];
       }
-      const typedData = meetingsResponse.data as MeetingsApiResponse | undefined;
+      const typedData = meetingsResponse.data as
+        MeetingsApiResponse | undefined;
       const completedMeetings: Meeting[] = Array.isArray(typedData?.meetings)
         ? typedData.meetings.slice(0, limit)
         : [];
 
       // Use consistent seeded mock participation data to match Reporting page
-      const meetingsWithParticipation: PastMeetingData[] = completedMeetings.map(
-        (meeting: Meeting): PastMeetingData => {
+      const meetingsWithParticipation: PastMeetingData[] =
+        completedMeetings.map((meeting: Meeting): PastMeetingData => {
           const meetingId = meeting.id ?? "";
           return {
             ...meeting,
             ...getDefaultMetrics(meetingId),
           };
-        },
-      );
+        });
 
       setMeetings(meetingsWithParticipation);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load past meetings");
+      setError(
+        err instanceof Error ? err.message : "Failed to load past meetings"
+      );
     } finally {
       setLoading(false);
     }

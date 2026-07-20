@@ -5,7 +5,11 @@ import React from "react";
 
 import { PageTitle } from "@/components/PageTitle";
 
-export default function EducationLayout({ children }: { children: React.ReactNode }) {
+export default function EducationLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <>
       <PageTitle>Education</PageTitle>

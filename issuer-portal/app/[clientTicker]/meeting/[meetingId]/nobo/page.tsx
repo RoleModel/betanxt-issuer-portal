@@ -42,7 +42,10 @@ export default function NoboPage() {
               }
             />
             <CardContent sx={{ pt: 0 }}>
-              <NoboPositionsTable positions={positions} loading={positionsLoading} />
+              <NoboPositionsTable
+                positions={positions}
+                loading={positionsLoading}
+              />
             </CardContent>
           </Card>
         </Grid>

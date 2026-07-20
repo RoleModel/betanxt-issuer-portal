@@ -16,20 +16,22 @@ async function run() {
   await client.connect();
 
   const props = await client.query(
-    "SELECT proposal_number, proposal_type FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' ORDER BY proposal_number",
+    "SELECT proposal_number, proposal_type FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' ORDER BY proposal_number"
   );
   console.log("Proposals:");
   for (const row of props.rows) {
-    console.log(`  ${String(row.proposal_number).padEnd(6)} | ${row.proposal_type}`);
+    console.log(
+      `  ${String(row.proposal_number).padEnd(6)} | ${row.proposal_type}`
+    );
   }
 
   const pvs = await client.query(
-    "SELECT pos.name, pr.proposal_number, pv.vote FROM position_vote pv JOIN position pos ON pos.id = pv.position_id JOIN proposal pr ON pr.id = pv.proposal_id WHERE pos.meeting_id = 'wen-annual-meeting-2026' ORDER BY pos.name, pr.proposal_number",
+    "SELECT pos.name, pr.proposal_number, pv.vote FROM position_vote pv JOIN position pos ON pos.id = pv.position_id JOIN proposal pr ON pr.id = pv.proposal_id WHERE pos.meeting_id = 'wen-annual-meeting-2026' ORDER BY pos.name, pr.proposal_number"
   );
   console.log("\nPosition votes:");
   for (const row of pvs.rows) {
     console.log(
-      `  ${String(row.name).padEnd(30)} | ${String(row.proposal_number).padEnd(6)} | ${row.vote}`,
+      `  ${String(row.name).padEnd(30)} | ${String(row.proposal_number).padEnd(6)} | ${row.vote}`
     );
   }
 

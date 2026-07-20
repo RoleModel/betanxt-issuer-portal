@@ -7,7 +7,10 @@ import React from "react";
 // A TableCell that prevents text from wrapping
 // Usage: <NoWrapTableCell>Some long text</NoWrapTableCell>
 // or <NoWrapTableCell sx={{ color: 'red' }}>Some long text</NoWrapTableCell>
-const NoWrapTableCell: React.FC<TableCellProps & SxProps> = ({ children, ...props }) => {
+const NoWrapTableCell: React.FC<TableCellProps & SxProps> = ({
+  children,
+  ...props
+}) => {
   return (
     <Tooltip placement="bottom" title={children} arrow>
       <TableCell

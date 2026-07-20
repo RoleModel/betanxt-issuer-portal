@@ -11,6 +11,8 @@ export const normalizeCusips = (value?: string | string[] | null): string[] => {
   return [...new Set(parts)];
 };
 
-export const getCusipLabel = (value?: string | string[] | null): "CUSIP" | "CUSIPs" => {
+export const getCusipLabel = (
+  value?: string | string[] | null
+): "CUSIP" | "CUSIPs" => {
   return normalizeCusips(value).length > 1 ? "CUSIPs" : "CUSIP";
 };

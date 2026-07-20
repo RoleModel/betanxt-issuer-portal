@@ -37,12 +37,12 @@ export class ReportsApi extends runtime.BaseAPI {
    */
   async getMailingStatisticsRaw(
     requestParameters: GetMailingStatisticsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Mailing>> {
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling getMailingStatistics().',
+        'Required parameter "meetingId" was null or undefined when calling getMailingStatistics().'
       );
     }
 
@@ -62,7 +62,7 @@ export class ReportsApi extends runtime.BaseAPI {
     let urlPath = `/meetings/{meetingId}/mailing`;
     urlPath = urlPath.replace(
       `{${"meetingId"}}`,
-      encodeURIComponent(String(requestParameters["meetingId"])),
+      encodeURIComponent(String(requestParameters["meetingId"]))
     );
 
     const response = await this.request(
@@ -72,10 +72,12 @@ export class ReportsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => MailingFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      MailingFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -83,9 +85,12 @@ export class ReportsApi extends runtime.BaseAPI {
    */
   async getMailingStatistics(
     requestParameters: GetMailingStatisticsRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Mailing> {
-    const response = await this.getMailingStatisticsRaw(requestParameters, initOverrides);
+    const response = await this.getMailingStatisticsRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -94,12 +99,12 @@ export class ReportsApi extends runtime.BaseAPI {
    */
   async getTabulationReportRaw(
     requestParameters: GetTabulationReportRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<TabulationReport>> {
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling getTabulationReport().',
+        'Required parameter "meetingId" was null or undefined when calling getTabulationReport().'
       );
     }
 
@@ -119,7 +124,7 @@ export class ReportsApi extends runtime.BaseAPI {
     let urlPath = `/meetings/{meetingId}/tabulation-report`;
     urlPath = urlPath.replace(
       `{${"meetingId"}}`,
-      encodeURIComponent(String(requestParameters["meetingId"])),
+      encodeURIComponent(String(requestParameters["meetingId"]))
     );
 
     const response = await this.request(
@@ -129,11 +134,11 @@ export class ReportsApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      TabulationReportFromJSON(jsonValue),
+      TabulationReportFromJSON(jsonValue)
     );
   }
 
@@ -142,9 +147,12 @@ export class ReportsApi extends runtime.BaseAPI {
    */
   async getTabulationReport(
     requestParameters: GetTabulationReportRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<TabulationReport> {
-    const response = await this.getTabulationReportRaw(requestParameters, initOverrides);
+    const response = await this.getTabulationReportRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 }

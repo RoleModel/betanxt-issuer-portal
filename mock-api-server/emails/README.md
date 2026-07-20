@@ -4,8 +4,8 @@ React Email templates for the BetaNXT Issuer Portal, sent via Gmail SMTP in depl
 
 ## Available Templates
 
-| Key                            | File                             | Description                                                               |
-| ------------------------------ | -------------------------------- | ------------------------------------------------------------------------- |
+| Key | File | Description |
+| --- | --- | --- |
 | `document-update-notification` | `DocumentUpdateNotification.tsx` | Notifies an issuer account when a new document is added to their workflow |
 
 ## Adding a New Template

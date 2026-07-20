@@ -1,6 +1,10 @@
 import React from "react";
 
-export default function SROnlyTableCaption({ children }: { children: React.ReactNode }) {
+export default function SROnlyTableCaption({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <caption
       style={{

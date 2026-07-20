@@ -20,7 +20,7 @@ interface ApiResponse<T> {
 
 export async function listAccounts(
   page?: number,
-  limit?: number,
+  limit?: number
 ): Promise<ApiResponse<{ accounts?: Account[]; pagination?: Pagination }>> {
   const { data, error, response } = await apiClient.GET("/accounts", {
     params: {
@@ -50,7 +50,7 @@ export async function listAccounts(
 }
 
 export async function createAccount(
-  accountData: CreateAccountRequest,
+  accountData: CreateAccountRequest
 ): Promise<ApiResponse<Account>> {
   const { data, error, response } = await apiClient.POST("/accounts", {
     body: accountData,
@@ -74,12 +74,17 @@ export async function createAccount(
   };
 }
 
-export async function getAccountById(id: string): Promise<ApiResponse<Account>> {
-  const { data, error, response } = await apiClient.GET("/accounts/{accountId}", {
-    params: {
-      path: { accountId: id },
-    },
-  });
+export async function getAccountById(
+  id: string
+): Promise<ApiResponse<Account>> {
+  const { data, error, response } = await apiClient.GET(
+    "/accounts/{accountId}",
+    {
+      params: {
+        path: { accountId: id },
+      },
+    }
+  );
 
   if (error) {
     return {
@@ -101,14 +106,17 @@ export async function getAccountById(id: string): Promise<ApiResponse<Account>> 
 
 export async function updateAccount(
   id: string,
-  accountData: UpdateAccountRequest,
+  accountData: UpdateAccountRequest
 ): Promise<ApiResponse<Account>> {
-  const { data, error, response } = await apiClient.PUT("/accounts/{accountId}", {
-    params: {
-      path: { accountId: id },
-    },
-    body: accountData,
-  });
+  const { data, error, response } = await apiClient.PUT(
+    "/accounts/{accountId}",
+    {
+      params: {
+        path: { accountId: id },
+      },
+      body: accountData,
+    }
+  );
 
   if (error) {
     return {
@@ -154,13 +162,16 @@ export async function deleteAccount(id: string): Promise<ApiResponse<void>> {
 }
 
 export async function listUserAccounts(
-  userId: string,
+  userId: string
 ): Promise<ApiResponse<{ accounts?: Account[]; total?: number }>> {
-  const { data, error, response } = await apiClient.GET("/users/{id}/accounts", {
-    params: {
-      path: { id: userId },
-    },
-  });
+  const { data, error, response } = await apiClient.GET(
+    "/users/{id}/accounts",
+    {
+      params: {
+        path: { id: userId },
+      },
+    }
+  );
 
   if (error) {
     return {

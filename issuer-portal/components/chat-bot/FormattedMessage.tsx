@@ -8,9 +8,14 @@ interface FormattedMessageProps {
   variant?: "body1" | "body2";
 }
 
-export function FormattedMessage({ content, variant = "body2" }: FormattedMessageProps) {
+export function FormattedMessage({
+  content,
+  variant = "body2",
+}: FormattedMessageProps) {
   const sanitizedContent = content.replaceAll("**", "").replaceAll("##", "");
-  const paragraphs = sanitizedContent.split(/\n\s*\n/).filter((paragraph) => paragraph.trim());
+  const paragraphs = sanitizedContent
+    .split(/\n\s*\n/)
+    .filter((paragraph) => paragraph.trim());
 
   const renderParagraph = (paragraph: string) => {
     const bulletLines = paragraph
@@ -18,11 +23,20 @@ export function FormattedMessage({ content, variant = "body2" }: FormattedMessag
       .map((line) => line.trim())
       .filter(Boolean);
 
-    if (bulletLines.every((line) => line.startsWith("- ") || line.startsWith("* "))) {
+    if (
+      bulletLines.every(
+        (line) => line.startsWith("- ") || line.startsWith("* ")
+      )
+    ) {
       return (
         <Box component="ul" sx={{ m: 0, pl: 2 }}>
           {bulletLines.map((line) => (
-            <Typography key={line} component="li" variant={variant} sx={{ mb: 0.5 }}>
+            <Typography
+              key={line}
+              component="li"
+              variant={variant}
+              sx={{ mb: 0.5 }}
+            >
               {line.slice(2)}
             </Typography>
           ))}
@@ -43,11 +57,16 @@ export function FormattedMessage({ content, variant = "body2" }: FormattedMessag
 
   return (
     <Box>
-      {(paragraphs.length > 0 ? paragraphs : [sanitizedContent]).map((paragraph, index) => (
-        <Box key={`${paragraph}-${index}`} sx={{ mb: index === paragraphs.length - 1 ? 0 : 1.5 }}>
-          {renderParagraph(paragraph)}
-        </Box>
-      ))}
+      {(paragraphs.length > 0 ? paragraphs : [sanitizedContent]).map(
+        (paragraph, index) => (
+          <Box
+            key={`${paragraph}-${index}`}
+            sx={{ mb: index === paragraphs.length - 1 ? 0 : 1.5 }}
+          >
+            {renderParagraph(paragraph)}
+          </Box>
+        )
+      )}
     </Box>
   );
 }

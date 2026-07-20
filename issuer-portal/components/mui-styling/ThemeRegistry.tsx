@@ -36,12 +36,19 @@ function getThemeOptions(tick: string): ReturnType<typeof createClientTheme> {
   return opts;
 }
 
-const brandThemeForUserType: Record<string, ReturnType<typeof createClientTheme>> = {
+const brandThemeForUserType: Record<
+  string,
+  ReturnType<typeof createClientTheme>
+> = {
   PARENT_CLIENT: dfinThemeOptions,
   SOLICITOR: morrowSodaliThemeOptions,
 };
 
-export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
+export default function ThemeRegistry({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { currentClient } = useClient();
   const { data: session } = useSession();
   const pathname = usePathname();
@@ -56,7 +63,9 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
   }, [pathname]);
 
   const theme = useMemo(() => {
-    const isMultiClientUser = userType ? multiClientUserTypes.has(userType) : false;
+    const isMultiClientUser = userType
+      ? multiClientUserTypes.has(userType)
+      : false;
 
     if (isMultiClientUser && userType) {
       // When on a client-specific page, use that client's brand theme
@@ -72,9 +81,12 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     }
 
     // Use client ticker if available, otherwise fall back to user-type brand
-    const effectiveTicker = ticker ?? (userType ? userTypeBrandTicker[userType] : undefined);
+    const effectiveTicker =
+      ticker ?? (userType ? userTypeBrandTicker[userType] : undefined);
 
-    return createTheme(effectiveTicker ? getThemeOptions(effectiveTicker) : dfinThemeOptions);
+    return createTheme(
+      effectiveTicker ? getThemeOptions(effectiveTicker) : dfinThemeOptions
+    );
   }, [ticker, userType, urlTicker]);
 
   return (

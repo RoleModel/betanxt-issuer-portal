@@ -66,12 +66,19 @@ const getImpactDisplayText = (impact: string, description: string) => {
     impact: impact.toUpperCase(),
     description,
     prefix:
-      impact.toUpperCase() === "CRITICAL" ? "🚨" : impact.toUpperCase() === "SERIOUS" ? "⚠️" : "❓",
+      impact.toUpperCase() === "CRITICAL"
+        ? "🚨"
+        : impact.toUpperCase() === "SERIOUS"
+          ? "⚠️"
+          : "❓",
   };
 };
 
 export default function ViolationCard({ violation, page }: ViolationCardProps) {
-  const displayInfo = getImpactDisplayText(violation.impact, violation.description);
+  const displayInfo = getImpactDisplayText(
+    violation.impact,
+    violation.description
+  );
   const colorScheme = getImpactColorScheme(violation.impact);
 
   return (
@@ -89,12 +96,22 @@ export default function ViolationCard({ violation, page }: ViolationCardProps) {
           {page}
         </Link>
         <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-          <Chip label={displayInfo.impact} color={colorScheme.chipColor} size="small" />
           <Chip
-            label={violation.tags ? extractWcagCriteria(violation.tags) : "No WCAG criteria mapped"}
+            label={displayInfo.impact}
+            color={colorScheme.chipColor}
             size="small"
           />
-          {violation.id && <Chip label={violation.id} variant="outlined" size="small" />}
+          <Chip
+            label={
+              violation.tags
+                ? extractWcagCriteria(violation.tags)
+                : "No WCAG criteria mapped"
+            }
+            size="small"
+          />
+          {violation.id && (
+            <Chip label={violation.id} variant="outlined" size="small" />
+          )}
         </Stack>
       </Box>
 
@@ -151,7 +168,9 @@ export default function ViolationCard({ violation, page }: ViolationCardProps) {
                         fontSize: "0.85em",
                       }}
                     >
-                      {Array.isArray(element.target) ? element.target.join(", ") : element.target}
+                      {Array.isArray(element.target)
+                        ? element.target.join(", ")
+                        : element.target}
                     </code>
                   </Typography>
 

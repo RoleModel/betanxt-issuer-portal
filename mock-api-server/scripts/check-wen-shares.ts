@@ -26,7 +26,7 @@ async function run() {
   `);
   for (const row of r.rows) {
     console.log(
-      `${row.name.padEnd(30)} | ${Number(row.proposal_number).toFixed(2)} | ${row.vote.padEnd(8)} | shares_voting="${row.shares_voting}"`,
+      `${row.name.padEnd(30)} | ${Number(row.proposal_number).toFixed(2)} | ${row.vote.padEnd(8)} | shares_voting="${row.shares_voting}"`
     );
   }
 

@@ -1,6 +1,12 @@
 "use client";
 
-import { Font, Image as PDFImage, StyleSheet, Text, View } from "@react-pdf/renderer";
+import {
+  Font,
+  Image as PDFImage,
+  StyleSheet,
+  Text,
+  View,
+} from "@react-pdf/renderer";
 import React from "react";
 
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
@@ -370,7 +376,9 @@ export const ReportPdfHeader: React.FC<ReportPdfHeaderProps> = ({
     <View style={reportStyles.titleRow}>
       <View>
         <Text style={reportStyles.title}>{reportTitle}</Text>
-        {subtitle ? <Text style={reportStyles.subtitle}>{subtitle}</Text> : null}
+        {subtitle ? (
+          <Text style={reportStyles.subtitle}>{subtitle}</Text>
+        ) : null}
       </View>
       <Text style={reportStyles.runDate}>Run Date: {formatRunDate()}</Text>
     </View>
@@ -409,9 +417,11 @@ export const ReportMetaGrid: React.FC<ReportMetaGridProps> = ({ items }) => {
               </View>
             ) : (
               <View key={itemIndex} style={reportStyles.metaGridItemSpacer} />
-            ),
+            )
           )}
-          {row.length === 1 ? <View style={reportStyles.metaGridItemSpacer} /> : null}
+          {row.length === 1 ? (
+            <View style={reportStyles.metaGridItemSpacer} />
+          ) : null}
         </View>
       ))}
     </View>
@@ -425,7 +435,9 @@ export const ReportMetaGrid: React.FC<ReportMetaGridProps> = ({ items }) => {
 export const ReportPageNumber: React.FC = () => (
   <Text
     style={reportStyles.pageNumber}
-    render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
+    render={({ pageNumber, totalPages }) =>
+      `Page ${pageNumber} of ${totalPages}`
+    }
     fixed
   />
 );
@@ -447,7 +459,11 @@ async function imageUrlToBase64(url: string): Promise<string | undefined> {
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result;
-        resolve(typeof result === "string" && result.startsWith("data:") ? result : undefined);
+        resolve(
+          typeof result === "string" && result.startsWith("data:")
+            ? result
+            : undefined
+        );
       };
       reader.onerror = () => resolve(undefined);
       reader.readAsDataURL(blob);
@@ -475,7 +491,7 @@ export interface ReportLogos {
  */
 async function resolveClientLogo(
   clientTicker: string,
-  baseUrl: string,
+  baseUrl: string
 ): Promise<string | undefined> {
   const ticker = clientTicker.toUpperCase();
   const brand = getBrandConfigByTicker(ticker);
@@ -508,14 +524,18 @@ async function resolveClientLogo(
  * @param clientTicker - Ticker used to look up the client logo
  * @returns The resolved logo data URLs
  */
-export async function resolveReportLogos(clientTicker?: string): Promise<ReportLogos> {
+export async function resolveReportLogos(
+  clientTicker?: string
+): Promise<ReportLogos> {
   const baseUrl =
     typeof window !== "undefined"
       ? window.location.origin
       : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   const [clientLogoUrl, betanxtLogoUrl] = await Promise.all([
-    clientTicker ? resolveClientLogo(clientTicker, baseUrl) : Promise.resolve(undefined),
+    clientTicker
+      ? resolveClientLogo(clientTicker, baseUrl)
+      : Promise.resolve(undefined),
     imageUrlToBase64(`${baseUrl}/images/betanxt-logo.png`),
   ]);
 

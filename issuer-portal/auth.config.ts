@@ -4,7 +4,9 @@ import Credentials from "next-auth/providers/credentials";
 
 export default {
   trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET ?? "development-secret-please-change-in-production",
+  secret:
+    process.env.NEXTAUTH_SECRET ??
+    "development-secret-please-change-in-production",
   session: {
     strategy: "jwt",
     maxAge: 24 * 60 * 60, // 24 hours
@@ -24,7 +26,8 @@ export default {
           credentials?.username === "bypass" &&
           credentials?.password === "bypass"
         ) {
-          const bypassRole = process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || "ADMIN";
+          const bypassRole =
+            process.env.NEXT_PUBLIC_BYPASS_USER_ROLE || "ADMIN";
           return {
             id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
             name: "Dev User",
@@ -110,13 +113,13 @@ export default {
             u.username === credentials.username &&
             (u.password
               ? credentials.password === u.password
-              : credentials.password === "password"),
+              : credentials.password === "password")
         );
 
         console.log("User found:", user ? user.username : "No user found");
         console.log(
           "Available users:",
-          testUsers.map((u) => ({ username: u.username, password: u.password })),
+          testUsers.map((u) => ({ username: u.username, password: u.password }))
         );
 
         if (user) {
@@ -152,7 +155,10 @@ export default {
         token.client_ticker = user.client_ticker;
         token.username = user.username;
         token.image = undefined; // Reset avatar on new sign-in
-        token.roles = user.type === "admin" || user.type === "ADMIN" ? ["ADMIN", "USER"] : ["USER"];
+        token.roles =
+          user.type === "admin" || user.type === "ADMIN"
+            ? ["ADMIN", "USER"]
+            : ["USER"];
       }
 
       // Handle session updates (like avatar uploads)
@@ -167,11 +173,16 @@ export default {
     async session({ session, token }) {
       session.user.id = (token.id as string | undefined) ?? token.sub ?? "";
       session.user.type = (token.type as string | undefined) ?? undefined;
-      session.user.account_id = (token.account_id as string | undefined) ?? undefined;
-      session.user.client_ticker = (token.client_ticker as string | null | undefined) ?? null;
-      session.user.username = (token.username as string | undefined) ?? undefined;
+      session.user.account_id =
+        (token.account_id as string | undefined) ?? undefined;
+      session.user.client_ticker =
+        (token.client_ticker as string | null | undefined) ?? null;
+      session.user.username =
+        (token.username as string | undefined) ?? undefined;
       session.user.image = (token.image as string | null | undefined) ?? null;
-      session.user.roles = Array.isArray(token.roles) ? (token.roles as string[]) : [];
+      session.user.roles = Array.isArray(token.roles)
+        ? (token.roles as string[])
+        : [];
       return session;
     },
     async redirect({ url, baseUrl }) {

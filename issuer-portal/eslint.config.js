@@ -1,5 +1,9 @@
 import baseConfig from "../eslint.config.mjs";
 
+const typescriptEslint = baseConfig.find(
+  (config) => config.plugins?.["@typescript-eslint"]
+).plugins["@typescript-eslint"];
+
 export default [
   ...baseConfig,
   // Ignore auto-generated files
@@ -8,6 +12,10 @@ export default [
   },
   // Issuer Portal specific overrides
   {
+    files: ["**/*.{ts,tsx}"],
+    plugins: {
+      "@typescript-eslint": typescriptEslint,
+    },
     rules: {
       // Disable overly strict type checking rules for development velocity
       "@typescript-eslint/prefer-nullish-coalescing": "off",

@@ -1,8 +1,6 @@
 # UX/UI Audit Skill Definition
 
-**Session ID:** ses_1c30e83f1ffehRcqiYBcetkmbK
-**Created:** 5/18/2026, 4:15:19 PM
-**Updated:** 5/18/2026, 5:31:55 PM
+**Session ID:** ses_1c30e83f1ffehRcqiYBcetkmbK **Created:** 5/18/2026, 4:15:19 PM **Updated:** 5/18/2026, 5:31:55 PM
 
 ---
 
@@ -4550,19 +4548,9 @@ Present the outline and ask for approval before proceeding.
 Example:
 ```
 
-Document: Discover Phase Proposal
-Estimated pages: 9 (cover + 8 interior)
-Prepared for: Acme Corporation
-Date: April 2026
+Document: Discover Phase Proposal Estimated pages: 9 (cover + 8 interior) Prepared for: Acme Corporation Date: April 2026
 
-Cover: "Discover Phase Proposal" / Engagement Proposal
-Page 2: Executive Summary (body-text, stat-callout)
-Page 3: Part 1 - "The Challenge" (body-text)
-Page 4: Part 2 - "Our Approach" (body-text, hero-graphic with process diagram)
-Page 5: Part 3 - "What We Will Deliver" (body-text, metric-table)
-Page 6-7: Part 4 - "Timeline and Investment" (data-table, note-box)
-Page 8: Part 5 - "The Team" (two-col team bios)
-Page 9: Part 6 - "Next Steps" (body-text)
+Cover: "Discover Phase Proposal" / Engagement Proposal Page 2: Executive Summary (body-text, stat-callout) Page 3: Part 1 - "The Challenge" (body-text) Page 4: Part 2 - "Our Approach" (body-text, hero-graphic with process diagram) Page 5: Part 3 - "What We Will Deliver" (body-text, metric-table) Page 6-7: Part 4 - "Timeline and Investment" (data-table, note-box) Page 8: Part 5 - "The Team" (two-col team bios) Page 9: Part 6 - "Next Steps" (body-text)
 
 ````
 
@@ -4806,23 +4794,9 @@ See `tools/markdown-sync/AGENTS.md` for GWS CLI auth setup and for finding a fol
 - Do not add content that is not in or derivable from the source material
 - Do not use em dashes in any content
 
-Base directory for this skill: file:///Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document
-Relative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.
-Note: file list is sampled.
+Base directory for this skill: file:///Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document Relative paths in this skill (e.g., scripts/, reference/) are relative to this base directory. Note: file list is sampled.
 
-<skill_files>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/section-divider-page.html</file>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/routing-stack.html</file>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/stat-callout.html</file>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/craft-own-hero.html</file>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/service-table.html</file>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/figure-group.html</file>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/two-col-card.html</file>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/skill-command.html</file>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/heatmap.html</file>
-<file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/warning-box.html</file>
-</skill_files>
-</skill_content>
+<skill_files> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/section-divider-page.html</file> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/routing-stack.html</file> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/stat-callout.html</file> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/craft-own-hero.html</file> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/service-table.html</file> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/figure-group.html</file> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/two-col-card.html</file> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/skill-command.html</file> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/heatmap.html</file> <file>/Users/dallas/.claude/skills/\_rolemodel/\_RoleModel-standard/skills/paged-document/assets/components/warning-box.html</file> </skill_files> </skill_content>
 
 ````
 
@@ -8798,10 +8772,7 @@ Now I have all the reference files loaded. Let me plan the document structure fo
 
 The audit report is a "Report" type per the document-type-layouts spec. Let me plan:
 
-**Document Type**: Report (UX/UI Audit Report)
-**Client context**: BetaNXT (the product being audited)
-**Audience**: Internal/technical team
-**Source material**: The existing ux-audit-report.html
+**Document Type**: Report (UX/UI Audit Report) **Client context**: BetaNXT (the product being audited) **Audience**: Internal/technical team **Source material**: The existing ux-audit-report.html
 
 Let me create the document outline. This is a substantial report with 10 sections, so it will be around 15-20 pages.
 
@@ -8823,10 +8794,7 @@ Now I have all reference files loaded. Let me plan the document structure for co
 
 ## Document Plan: BetaNXT Issuer Portal UX/UI Audit Report
 
-**Document type**: Report (codebase assessment format)
-**Prepared for**: BetaNXT Engineering Team
-**Date**: May 2026
-**Estimated pages**: 18-22 (cover + 17-21 interior)
+**Document type**: Report (codebase assessment format) **Prepared for**: BetaNXT Engineering Team **Date**: May 2026 **Estimated pages**: 18-22 (cover + 17-21 interior)
 
 ### Cover Page
 
@@ -8912,8 +8880,7 @@ Does this structure work? Any sections to condense or expand?
 
 _Thinking:_
 
-The user wants a summary of the conversation history.
-The conversation involves:
+The user wants a summary of the conversation history. The conversation involves:
 
 1. Running a UX/UI audit on the BetaNXT Issuer Portal (`/ux-audit` skill).
 2. Completing all 5 phases of the audit.
@@ -8925,38 +8892,28 @@ The conversation involves:
 8. I loaded the paged-document references and read the audit report HTML.
 9. I read the paged-document template.
 
-Goal: Convert the UX audit report to a branded PDF using the paged-document skill.
-Constraints: Use RoleModel brand standards, paged.js, DM Sans + Geist Mono.
-Progress:
+Goal: Convert the UX audit report to a branded PDF using the paged-document skill. Constraints: Use RoleModel brand standards, paged.js, DM Sans + Geist Mono. Progress:
 
 - Done: UX audit complete, HTML report generated and filled out with checklist findings. Paged-document references loaded. Audit report HTML read. Template read.
 - In Progress: Planning the document structure for the PDF conversion.
-- Blocked: None.
-  Key Decisions:
+- Blocked: None. Key Decisions:
 - Audience mode for audit was "Internal".
 - Design system is `@rolemodel/betanxt-design-system`.
-- Using RoleModel paged-document skill for PDF export.
-  Next Steps:
+- Using RoleModel paged-document skill for PDF export. Next Steps:
 - Plan document structure (cover, sections, page breaks) based on the audit report content.
 - Generate the paged.js HTML document.
-- Run layout QA and export to PDF.
-  Critical Context:
+- Run layout QA and export to PDF. Critical Context:
 - Audit report has 10 sections with findings.
 - Findings include C1-C4 (Critical), H1-H3 (High), M1-M4 (Medium), P1-P3 (Pattern).
 - Token mapping tables and hardcoded values bar charts are in the report.
-- Component mapping grid is included.
-  Relevant Files:
+- Component mapping grid is included. Relevant Files:
 - `/Users/dallas/Development/betanxt/betanxt-issuer-portal/dev-tools/ux-audit-output/ux-audit-report.html`: Source audit report with filled checklists.
 - `/Users/dallas/.claude/skills/_rolemodel/_RoleModel-standard/skills/paged-document/references/template.html`: Paged.js template.
 - `/Users/dallas/.claude/skills/_rolemodel/_RoleModel-standard/skills/paged-document/references/component-catalog.md`: Component patterns.
 - `/Users/dallas/.claude/skills/_rolemodel/_RoleModel-standard/skills/paged-document/references/document-type-layouts.md`: Layout specs (Report type).
 - `/Users/dallas/.claude/skills/_rolemodel/_RoleModel-standard/skills/rolemodel-brand/rolemodel-brand-reference.md`: Brand colors/fonts.
 
-I will structure this into the requested template.
-Check constraints: "Keep every section, even when empty. Use terse bullets. Preserve exact file paths."
-All good.
-Proceed.
-Output matches template exactly.✅
+I will structure this into the requested template. Check constraints: "Keep every section, even when empty. Use terse bullets. Preserve exact file paths." All good. Proceed. Output matches template exactly.✅
 
 ## Goal
 

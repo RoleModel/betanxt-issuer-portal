@@ -20,21 +20,28 @@ const CACHE_TTL = {
 // first load. Bypass the cache entirely outside production.
 const isProduction = process.env.NODE_ENV === "production";
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-  global: {
-    fetch: (url, options = {}) => {
-      const method = (options.method ?? "GET").toUpperCase();
-      // Only cache read operations — Next.js data cache deduplicates identical
-      // in-flight requests and revalidates on the given interval.
-      if (isProduction && (method === "GET" || method === "HEAD")) {
-        return fetch(url, { ...options, next: { revalidate: CACHE_TTL.short } });
-      }
-      // Mutations (and all dev reads) must never be served from cache.
-      return fetch(url, { ...options, cache: "no-store" });
+export const supabase = createClient<Database>(
+  supabaseUrl,
+  supabaseServiceKey,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
-  },
-});
+    global: {
+      fetch: (url, options = {}) => {
+        const method = (options.method ?? "GET").toUpperCase();
+        // Only cache read operations — Next.js data cache deduplicates identical
+        // in-flight requests and revalidates on the given interval.
+        if (isProduction && (method === "GET" || method === "HEAD")) {
+          return fetch(url, {
+            ...options,
+            next: { revalidate: CACHE_TTL.short },
+          });
+        }
+        // Mutations (and all dev reads) must never be served from cache.
+        return fetch(url, { ...options, cache: "no-store" });
+      },
+    },
+  }
+);

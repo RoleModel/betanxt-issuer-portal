@@ -37,7 +37,7 @@ const DEFAULT_LOGO = "/images/logo.svg"; // BetaNXT default logo
 export const getClientLogo = (
   clientName?: string,
   ticker?: string,
-  accountCode?: string,
+  accountCode?: string
 ): string => {
   // Try exact client name match first
   if (clientName && LOGO_MAPPING[clientName]) {
@@ -94,7 +94,7 @@ export const getAllClientLogos = (): string[] => {
 export const hasClientLogo = (
   clientName?: string,
   ticker?: string,
-  accountCode?: string,
+  accountCode?: string
 ): boolean => {
   return getClientLogo(clientName, ticker, accountCode) !== DEFAULT_LOGO;
 };

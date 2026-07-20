@@ -31,7 +31,7 @@ export function normalizeHolderCategory(value: unknown): HolderCategory | null {
  */
 export function isRegisteredOnlyHolder(
   holderCategory: HolderCategory | null,
-  accountType: string,
+  accountType: string
 ): boolean {
   if (holderCategory) return holderCategory === "REGISTERED";
   return accountType === LEGACY_REGISTERED_ACCOUNT_TYPE;
@@ -44,12 +44,14 @@ export function isRegisteredOnlyHolder(
  */
 export function getHolderTypeFromCategory(
   holderCategory: HolderCategory | null,
-  accountType: string,
+  accountType: string
 ): "registered" | "beneficial" {
   if (holderCategory) {
     return holderCategory === "REGISTERED" || holderCategory === "PLAN"
       ? "registered"
       : "beneficial";
   }
-  return accountType === LEGACY_REGISTERED_ACCOUNT_TYPE ? "registered" : "beneficial";
+  return accountType === LEGACY_REGISTERED_ACCOUNT_TYPE
+    ? "registered"
+    : "beneficial";
 }

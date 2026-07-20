@@ -19,11 +19,20 @@ interface VoteDistributionChartProps {
   loading?: boolean;
 }
 
-export default function VoteDistributionChart({ data, loading }: VoteDistributionChartProps) {
+export default function VoteDistributionChart({
+  data,
+  loading,
+}: VoteDistributionChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   if (loading) {
-    return <SkeletonChart title="Vote Distribution by Account Type" height={300} showLegend />;
+    return (
+      <SkeletonChart
+        title="Vote Distribution by Account Type"
+        height={300}
+        showLegend
+      />
+    );
   }
 
   if (data.length === 0) {
@@ -31,7 +40,12 @@ export default function VoteDistributionChart({ data, loading }: VoteDistributio
       <Card>
         <CardHeader title="Vote Distribution by Account Type" />
         <CardContent>
-          <Box display="flex" alignItems="center" justifyContent="center" height={300}>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            height={300}
+          >
             <Typography variant="body1" color="text.secondary">
               No vote distribution data available
             </Typography>

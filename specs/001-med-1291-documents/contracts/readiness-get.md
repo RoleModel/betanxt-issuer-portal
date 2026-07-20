@@ -1,7 +1,6 @@
 # GET /api/documents/readiness
 
-Purpose: Aggregate readiness across meeting documents.
-Auth: ADMIN or ISSUER_EDITOR or VIEWER (read-only)
+Purpose: Aggregate readiness across meeting documents. Auth: ADMIN or ISSUER_EDITOR or VIEWER (read-only)
 
 Query Params:
 
@@ -17,7 +16,11 @@ Response 200:
   "overallReady": false,
   "outstandingPhase1": [],
   "outstandingPhase2": [
-    { "type": "PROXY_STATEMENT", "expectedState": "APPROVED", "currentState": "UPLOADED" }
+    {
+      "type": "PROXY_STATEMENT",
+      "expectedState": "APPROVED",
+      "currentState": "UPLOADED"
+    }
   ],
   "computedAt": "iso-timestamp"
 }

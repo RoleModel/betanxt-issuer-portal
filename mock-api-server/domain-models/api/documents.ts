@@ -96,10 +96,13 @@ export async function listDocuments(
   opts?: {
     type?: string;
     status?: string;
-  },
+  }
 ): Promise<ApiResponse<Document[]>> {
   try {
-    let query = supabase.from("document").select("*").eq("meeting_id", meetingId);
+    let query = supabase
+      .from("document")
+      .select("*")
+      .eq("meeting_id", meetingId);
 
     console.log("listDocuments query built:", { meetingId, opts });
 
@@ -116,7 +119,10 @@ export async function listDocuments(
 
     const { data, error } = await query;
 
-    console.log("listDocuments raw result:", { dataCount: data?.length, error });
+    console.log("listDocuments raw result:", {
+      dataCount: data?.length,
+      error,
+    });
 
     if (error) {
       return {
@@ -130,7 +136,8 @@ export async function listDocuments(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch documents",
+        message:
+          error instanceof Error ? error.message : "Failed to fetch documents",
       },
     };
   }
@@ -138,7 +145,7 @@ export async function listDocuments(
 
 export async function createDocument(
   meetingId: string,
-  body: CreateDocumentRequest,
+  body: CreateDocumentRequest
 ): Promise<ApiResponse<Document>> {
   try {
     const request = body;
@@ -153,7 +160,8 @@ export async function createDocument(
       try {
         // Extract base64 data and content type
         const [header, base64Data] = request.file.split(",");
-        const contentType = /data:([^;]+)/.exec(header)?.[1] || "application/pdf";
+        const contentType =
+          /data:([^;]+)/.exec(header)?.[1] || "application/pdf";
         const fileExtension = contentType.includes("pdf") ? "pdf" : "bin";
 
         // Convert base64 to buffer
@@ -227,15 +235,22 @@ export async function createDocument(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to create document",
+        message:
+          error instanceof Error ? error.message : "Failed to create document",
       },
     };
   }
 }
 
-export async function getDocumentById(id: string): Promise<ApiResponse<Document>> {
+export async function getDocumentById(
+  id: string
+): Promise<ApiResponse<Document>> {
   try {
-    const { data, error } = await supabase.from("document").select("*").eq("id", id).single();
+    const { data, error } = await supabase
+      .from("document")
+      .select("*")
+      .eq("id", id)
+      .single();
 
     if (error) {
       return {
@@ -249,7 +264,8 @@ export async function getDocumentById(id: string): Promise<ApiResponse<Document>
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch document",
+        message:
+          error instanceof Error ? error.message : "Failed to fetch document",
       },
     };
   }
@@ -257,13 +273,14 @@ export async function getDocumentById(id: string): Promise<ApiResponse<Document>
 
 export async function updateDocument(
   id: string,
-  body: UpdateDocumentRequest,
+  body: UpdateDocumentRequest
 ): Promise<ApiResponse<Document>> {
   try {
     const request = body;
     const updateData: Partial<DocumentUpdate> = {};
     if (request.title !== undefined) updateData.title = request.title;
-    if (request.description !== undefined) updateData.description = request.description;
+    if (request.description !== undefined)
+      updateData.description = request.description;
     if (request.status !== undefined) updateData.status = request.status;
 
     // Always update the updated_at timestamp
@@ -288,20 +305,21 @@ export async function updateDocument(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to update document",
+        message:
+          error instanceof Error ? error.message : "Failed to update document",
       },
     };
   }
 }
 
 export async function listDocumentsByMeetingId(
-  meetingId: string,
+  meetingId: string
 ): Promise<ApiResponse<Document[]>> {
   return listDocuments(meetingId);
 }
 
 export async function getDocumentComments(
-  documentId: string,
+  documentId: string
 ): Promise<ApiResponse<CommentWithUser[]>> {
   try {
     const { data, error } = await supabase
@@ -328,7 +346,7 @@ export async function getDocumentComments(
         users: {
           avatar: null,
         },
-      }),
+      })
     );
 
     return {
@@ -337,7 +355,8 @@ export async function getDocumentComments(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to fetch comments",
+        message:
+          error instanceof Error ? error.message : "Failed to fetch comments",
       },
     };
   }
@@ -346,7 +365,7 @@ export async function getDocumentComments(
 export async function addComment(
   documentId: string,
   body: CreateCommentRequest,
-  userId?: string,
+  userId?: string
 ): Promise<ApiResponse<Comment>> {
   try {
     const { data, error } = await supabase
@@ -371,13 +390,16 @@ export async function addComment(
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to add comment",
+        message:
+          error instanceof Error ? error.message : "Failed to add comment",
       },
     };
   }
 }
 
-export async function downloadDocument(id: string): Promise<ApiResponse<string>> {
+export async function downloadDocument(
+  id: string
+): Promise<ApiResponse<string>> {
   try {
     const { data, error } = await supabase
       .from("document")
@@ -397,7 +419,10 @@ export async function downloadDocument(id: string): Promise<ApiResponse<string>>
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to download document",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to download document",
       },
     };
   }
@@ -417,7 +442,10 @@ export async function deleteDocument(id: string): Promise<ApiResponse<void>> {
         .remove([docData.file_path]);
 
       if (storageError) {
-        console.warn("Failed to remove file from storage:", storageError.message);
+        console.warn(
+          "Failed to remove file from storage:",
+          storageError.message
+        );
       }
     }
 
@@ -435,7 +463,8 @@ export async function deleteDocument(id: string): Promise<ApiResponse<void>> {
   } catch (error) {
     return {
       error: {
-        message: error instanceof Error ? error.message : "Failed to delete document",
+        message:
+          error instanceof Error ? error.message : "Failed to delete document",
       },
     };
   }

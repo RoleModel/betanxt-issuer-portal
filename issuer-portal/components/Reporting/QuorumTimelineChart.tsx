@@ -56,7 +56,11 @@ interface MilestoneLabelsProps {
  * scale, clamped to the drawing area, and pushed down a row when it would
  * overlap an already-placed label (frequent with close follow-up mailings).
  */
-function MilestoneLabels({ milestones, fillColors, textColors }: MilestoneLabelsProps) {
+function MilestoneLabels({
+  milestones,
+  fillColors,
+  textColors,
+}: MilestoneLabelsProps) {
   const xScale = useXScale<"time">();
   const drawingArea = useDrawingArea();
 
@@ -70,7 +74,7 @@ function MilestoneLabels({ milestones, fillColors, textColors }: MilestoneLabels
 
         // Approximate text width; SVG text can't be measured before render.
         const width = Math.ceil(
-          milestone.label.length * LABEL_FONT_SIZE * 0.62 + LABEL_PADDING_X * 2,
+          milestone.label.length * LABEL_FONT_SIZE * 0.62 + LABEL_PADDING_X * 2
         );
         // Mail sits 4px right of its line, deadline 4px left, follow-ups centered.
         const preferredLeft =
@@ -81,13 +85,19 @@ function MilestoneLabels({ milestones, fillColors, textColors }: MilestoneLabels
               : lineX - width / 2;
         const minLeft = drawingArea.left + 2;
         const maxLeft = drawingArea.left + drawingArea.width - width - 2;
-        const left = Math.min(Math.max(preferredLeft, minLeft), Math.max(maxLeft, minLeft));
+        const left = Math.min(
+          Math.max(preferredLeft, minLeft),
+          Math.max(maxLeft, minLeft)
+        );
         const right = left + width;
 
         let row = 0;
         while (
           placedLabels.some(
-            (placed) => placed.row === row && left < placed.right + 12 && right > placed.left - 2,
+            (placed) =>
+              placed.row === row &&
+              left < placed.right + 12 &&
+              right > placed.left - 2
           )
         ) {
           row += 1;
@@ -168,11 +178,18 @@ export function QuorumTimelineChart({
   const dates = points.map((point) => point.date);
   const percents = points.map((point) => point.percentOfOutstanding);
   const maxPercent = percents.length > 0 ? Math.max(...percents) : 0;
-  const yMax = Math.min(100, Math.ceil(Math.max(maxPercent, quorumPercent) * 1.15));
+  const yMax = Math.min(
+    100,
+    Math.ceil(Math.max(maxPercent, quorumPercent) * 1.15)
+  );
 
   return (
     <Card sx={{ height: "100%" }}>
-      <CardHeader title="Quorum Timeline" subheader={subheader} action={action} />
+      <CardHeader
+        title="Quorum Timeline"
+        subheader={subheader}
+        action={action}
+      />
       <CardContent>
         {!hasVotes ? (
           <EmptyState
@@ -209,7 +226,9 @@ export function QuorumTimelineChart({
                 color: "var(--mui-palette-chartSeries-1-main)",
                 valueFormatter: (value, { dataIndex }) => {
                   const point = points[dataIndex];
-                  const shares = point ? formatNumber(point.cumulativeSharesVoted) : "0";
+                  const shares = point
+                    ? formatNumber(point.cumulativeSharesVoted)
+                    : "0";
                   return `${value ?? 0}% of outstanding (${shares} shares)`;
                 },
               },

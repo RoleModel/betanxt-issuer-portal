@@ -1,7 +1,15 @@
 "use client";
 
 import { Assignment as TaskIcon } from "@mui/icons-material";
-import { Box, Fade, Paper, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
+import {
+  Box,
+  Fade,
+  Paper,
+  Stack,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import React, { useState } from "react";
 
 import type { KeyDate, Task } from "@/types/api-exports";
@@ -51,7 +59,11 @@ const parseDateWithWeekendShift = (dateStr: string | null): Date | null => {
   if (!date) return null;
 
   // Convert UTC date to local date for day-of-week calculation
-  const localDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  const localDate = new Date(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate()
+  );
   const shiftedLocalDate = shiftWeekendToMonday(localDate);
 
   // Convert back to UTC
@@ -59,8 +71,8 @@ const parseDateWithWeekendShift = (dateStr: string | null): Date | null => {
     Date.UTC(
       shiftedLocalDate.getFullYear(),
       shiftedLocalDate.getMonth(),
-      shiftedLocalDate.getDate(),
-    ),
+      shiftedLocalDate.getDate()
+    )
   );
 };
 
@@ -81,7 +93,9 @@ const getTasksForDate = (date: Date, tasks: Task[]): Task[] => {
     const taskDate = parseDateWithWeekendShift(task.dueDate || null);
     if (!taskDate) return false;
     // Convert input date to UTC for comparison
-    const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const utcDate = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    );
     return isSameDayUTC(taskDate, utcDate);
   });
 };
@@ -92,7 +106,9 @@ const getKeyDatesForDate = (date: Date, keyDates: KeyDate[]): KeyDate[] => {
     const keyDateParsed = parseDateWithWeekendShift(keyDate.date || null);
     if (!keyDateParsed) return false;
     // Convert input date to UTC for comparison
-    const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const utcDate = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    );
     return isSameDayUTC(keyDateParsed, utcDate);
   });
 };
@@ -173,10 +189,13 @@ const generateCalendar = (tasks: Task[], keyDates: KeyDate[]) => {
             year: currentYear,
             month: new Date(currentYear, currentMonth),
             weeks: monthWeeks,
-            monthName: new Date(currentYear, currentMonth).toLocaleDateString("en-US", {
-              month: "long",
-              year: "numeric",
-            }),
+            monthName: new Date(currentYear, currentMonth).toLocaleDateString(
+              "en-US",
+              {
+                month: "long",
+                year: "numeric",
+              }
+            ),
           });
         }
         currentMonth = weekMonth;
@@ -192,10 +211,13 @@ const generateCalendar = (tasks: Task[], keyDates: KeyDate[]) => {
         year: currentYear,
         month: new Date(currentYear, currentMonth),
         weeks: monthWeeks,
-        monthName: new Date(currentYear, currentMonth).toLocaleDateString("en-US", {
-          month: "long",
-          year: "numeric",
-        }),
+        monthName: new Date(currentYear, currentMonth).toLocaleDateString(
+          "en-US",
+          {
+            month: "long",
+            year: "numeric",
+          }
+        ),
       });
     }
   }
@@ -207,7 +229,7 @@ const filterTasks = (
   tasks: Task[],
   searchQuery: string,
   statusFilter: string,
-  phaseFilter: number | null,
+  phaseFilter: number | null
 ): Task[] => {
   return tasks.filter((task) => {
     const matchesSearch =
@@ -250,10 +272,17 @@ const DayCell: React.FC<{
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
   const isCurrentDay = isToday(date);
 
-  const filteredTasks = filterTasks(tasks, searchQuery, statusFilter, phaseFilter);
+  const filteredTasks = filterTasks(
+    tasks,
+    searchQuery,
+    statusFilter,
+    phaseFilter
+  );
 
   // Check if this date has special key dates
-  const hasMeetingDate = keyDates.some((kd) => kd.title.toLowerCase().includes("meeting date"));
+  const hasMeetingDate = keyDates.some((kd) =>
+    kd.title.toLowerCase().includes("meeting date")
+  );
   const hasKeyDate = keyDates.length > 0;
 
   return (
@@ -285,7 +314,10 @@ const DayCell: React.FC<{
               ? theme.vars?.palette?.text?.primary
               : theme.vars?.palette?.text?.secondary;
         },
-        opacity: !isCurrentMonth && filteredTasks.length === 0 && keyDates.length === 0 ? 0.5 : 1,
+        opacity:
+          !isCurrentMonth && filteredTasks.length === 0 && keyDates.length === 0
+            ? 0.5
+            : 1,
         position: "relative",
         overflowY: "auto",
         borderRadius: hasKeyDate ? 1 : 0,
@@ -309,7 +341,9 @@ const DayCell: React.FC<{
 
       <Box sx={{ mt: 2, overflowY: "auto", scrollbarWidth: "none" }}>
         {keyDates.map((keyDate) => {
-          const isMeetingDate = keyDate.title.toLowerCase().includes("meeting date");
+          const isMeetingDate = keyDate.title
+            .toLowerCase()
+            .includes("meeting date");
 
           const keyDateTask: Task = {
             id: keyDate.id,
@@ -346,8 +380,12 @@ const DayCell: React.FC<{
         <Stack spacing={0.5}>
           {filteredTasks.slice(0, isMobile ? 2 : 3).map((task) => {
             // Find the original Task to get phaseNumber
-            const originalTask = allTasks.find((t) => t.id === task.id || t.taskId === task.id);
-            const taskPhase = originalTask ? getTaskPhase(originalTask) : getTaskPhase(task);
+            const originalTask = allTasks.find(
+              (t) => t.id === task.id || t.taskId === task.id
+            );
+            const taskPhase = originalTask
+              ? getTaskPhase(originalTask)
+              : getTaskPhase(task);
 
             // Get phase config the same way ListView does
             const taskPhaseColor = getPhaseColor(taskPhase - 1);
@@ -376,10 +414,12 @@ const DayCell: React.FC<{
                 fontStyle: "italic",
                 cursor: "pointer",
                 color: (theme) =>
-                  theme.vars?.palette?.text?.secondary || theme.palette.text.secondary,
+                  theme.vars?.palette?.text?.secondary ||
+                  theme.palette.text.secondary,
                 "&:hover": {
                   color: (theme) =>
-                    theme.vars?.palette?.primary?.main || theme.palette.primary.main,
+                    theme.vars?.palette?.primary?.main ||
+                    theme.palette.primary.main,
                 },
               }}
             >
@@ -428,7 +468,11 @@ const MonthGrid: React.FC<{
     <Box>
       {/* Calendar grid - no gaps between cells */}
       {month.weeks.map((week: CalendarWeek, weekIndex: number) => (
-        <Box key={weekIndex} display="grid" gridTemplateColumns="repeat(7, 1fr)">
+        <Box
+          key={weekIndex}
+          display="grid"
+          gridTemplateColumns="repeat(7, 1fr)"
+        >
           {week.days.map((calendarDate: CalendarDate, dayIndex: number) => (
             <DayCell
               key={dayIndex}
@@ -476,8 +520,10 @@ export const MonthView: React.FC<MonthViewProps> = ({
 
   // Context menu and edit modal state
   const [contextMenuOpen, setContextMenuOpen] = useState(false);
-  const [contextMenuPosition, setContextMenuPosition] = useState<ContextMenuPosition | null>(null);
-  const [selectedTaskForContext, setSelectedTaskForContext] = useState<Task | null>(null);
+  const [contextMenuPosition, setContextMenuPosition] =
+    useState<ContextMenuPosition | null>(null);
+  const [selectedTaskForContext, setSelectedTaskForContext] =
+    useState<Task | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
@@ -532,7 +578,15 @@ export const MonthView: React.FC<MonthViewProps> = ({
     setTaskToEdit(null);
   };
 
-  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
 
   if (months.length === 0) {
     return (
@@ -563,7 +617,8 @@ export const MonthView: React.FC<MonthViewProps> = ({
           gridTemplateColumns="repeat(7, 1fr)"
           sx={{
             backgroundColor: (theme) => theme.vars?.palette?.background?.paper,
-            borderBottom: (theme) => `1px solid ${theme.vars?.palette?.divider}`,
+            borderBottom: (theme) =>
+              `1px solid ${theme.vars?.palette?.divider}`,
             position: "sticky",
             top: 0,
             zIndex: 10,
@@ -576,13 +631,20 @@ export const MonthView: React.FC<MonthViewProps> = ({
                 sx={{
                   py: 1,
                   px: 2,
-                  backgroundColor: (theme) => theme.vars?.palette?.background?.paper,
+                  backgroundColor: (theme) =>
+                    theme.vars?.palette?.background?.paper,
                   borderRight: (theme) =>
-                    index < 6 ? `1px solid ${theme.vars?.palette?.divider}` : "none",
+                    index < 6
+                      ? `1px solid ${theme.vars?.palette?.divider}`
+                      : "none",
                   textAlign: "center",
                 }}
               >
-                <Typography variant="body3" fontWeight={500} color="text.primary">
+                <Typography
+                  variant="body3"
+                  fontWeight={500}
+                  color="text.primary"
+                >
                   {isMobile ? dayName.substring(0, 3) : dayName}
                 </Typography>
               </Box>

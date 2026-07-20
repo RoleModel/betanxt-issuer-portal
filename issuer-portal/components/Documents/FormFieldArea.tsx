@@ -20,7 +20,10 @@ interface FormFieldAreaProps {
   onValueChange: (areaId: string, value: string) => void;
 }
 
-export const FormFieldArea: React.FC<FormFieldAreaProps> = ({ area, onValueChange }) => {
+export const FormFieldArea: React.FC<FormFieldAreaProps> = ({
+  area,
+  onValueChange,
+}) => {
   const [value, setValue] = useState(area.value ?? "");
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);

@@ -12,7 +12,13 @@ interface DocumentCardProps {
   viewDocumentUrl: string;
 }
 
-function UploaderAvatar({ name, avatarUrl }: { name: string; avatarUrl?: string }) {
+function UploaderAvatar({
+  name,
+  avatarUrl,
+}: {
+  name: string;
+  avatarUrl?: string;
+}) {
   const initials = name
     .split(" ")
     .map((n) => n[0])

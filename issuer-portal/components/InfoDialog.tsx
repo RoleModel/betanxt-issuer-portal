@@ -27,15 +27,24 @@ interface InfoDialogProps {
   definition: string;
 }
 
-export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, definition }) => {
+export const InfoDialog: React.FC<InfoDialogProps> = ({
+  open,
+  onClose,
+  term,
+  definition,
+}) => {
   // Create an array of unique categories from termsDefinitions
   const categoriesSet = new Set<string>();
-  Object.values(termsDefinitions).forEach((term) => categoriesSet.add(term.category));
+  Object.values(termsDefinitions).forEach((term) =>
+    categoriesSet.add(term.category)
+  );
   const categories = Array.from(categoriesSet);
 
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedTerm, setSelectedTerm] = useState("");
-  const [currentTerms, setCurrentTerms] = useState<{ id: string; term: string }[]>([]);
+  const [currentTerms, setCurrentTerms] = useState<
+    { id: string; term: string }[]
+  >([]);
   const [currentDefinition, setCurrentDefinition] = useState("");
 
   // Create a memoized, sorted list of all terms
@@ -55,10 +64,12 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
       if (term) {
         // If a specific term is provided, use it
         const termKey = Object.keys(termsDefinitions).find(
-          (key) => termsDefinitions[key as keyof typeof termsDefinitions].term === term,
+          (key) =>
+            termsDefinitions[key as keyof typeof termsDefinitions].term === term
         );
         if (termKey) {
-          const termObj = termsDefinitions[termKey as keyof typeof termsDefinitions];
+          const termObj =
+            termsDefinitions[termKey as keyof typeof termsDefinitions];
           setSelectedCategory(termObj.category);
           setSelectedTerm(termKey);
           setCurrentDefinition(definition); // Use initial definition prop
@@ -69,7 +80,8 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
             setSelectedCategory(firstTerm.category);
             setSelectedTerm(firstTerm.id);
             setCurrentDefinition(
-              termsDefinitions[firstTerm.id as keyof typeof termsDefinitions].definition,
+              termsDefinitions[firstTerm.id as keyof typeof termsDefinitions]
+                .definition
             );
           }
         }
@@ -80,7 +92,8 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
           setSelectedCategory(firstTerm.category);
           setSelectedTerm(firstTerm.id);
           setCurrentDefinition(
-            termsDefinitions[firstTerm.id as keyof typeof termsDefinitions].definition,
+            termsDefinitions[firstTerm.id as keyof typeof termsDefinitions]
+              .definition
           );
         }
       }
@@ -91,7 +104,7 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
   useEffect(() => {
     if (selectedCategory) {
       const filteredTerms = allTermsOrdered.filter(
-        (termObj) => termObj.category === selectedCategory,
+        (termObj) => termObj.category === selectedCategory
       );
       setCurrentTerms(filteredTerms.map(({ id, term }) => ({ id, term })));
       // No need to auto-select first term here anymore for navigation
@@ -105,11 +118,15 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
     const newCategory = event.target.value;
     setSelectedCategory(newCategory);
     // When category changes via dropdown, select the first term in that category
-    const firstTermInCategory = allTermsOrdered.find((t) => t.category === newCategory);
+    const firstTermInCategory = allTermsOrdered.find(
+      (t) => t.category === newCategory
+    );
     if (firstTermInCategory) {
       setSelectedTerm(firstTermInCategory.id);
       setCurrentDefinition(
-        termsDefinitions[firstTermInCategory.id as keyof typeof termsDefinitions].definition,
+        termsDefinitions[
+          firstTermInCategory.id as keyof typeof termsDefinitions
+        ].definition
       );
     }
   };
@@ -118,7 +135,8 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
   const handleTermChange = (event: SelectChangeEvent) => {
     const newTermKey = event.target.value;
     if (newTermKey) {
-      const termObj = termsDefinitions[newTermKey as keyof typeof termsDefinitions];
+      const termObj =
+        termsDefinitions[newTermKey as keyof typeof termsDefinitions];
       setSelectedTerm(newTermKey);
       setCurrentDefinition(termObj.definition);
       // Ensure category is synced if term changes via dropdown
@@ -130,25 +148,31 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
 
   // Handle navigation using the full ordered list
   const handlePrevious = () => {
-    const currentIndex = allTermsOrdered.findIndex((t) => t.id === selectedTerm);
+    const currentIndex = allTermsOrdered.findIndex(
+      (t) => t.id === selectedTerm
+    );
     if (currentIndex > 0) {
       const prevTermData = allTermsOrdered[currentIndex - 1];
       setSelectedTerm(prevTermData.id);
       setSelectedCategory(prevTermData.category); // Sync category
       setCurrentDefinition(
-        termsDefinitions[prevTermData.id as keyof typeof termsDefinitions].definition,
+        termsDefinitions[prevTermData.id as keyof typeof termsDefinitions]
+          .definition
       );
     }
   };
 
   const handleNext = () => {
-    const currentIndex = allTermsOrdered.findIndex((t) => t.id === selectedTerm);
+    const currentIndex = allTermsOrdered.findIndex(
+      (t) => t.id === selectedTerm
+    );
     if (currentIndex < allTermsOrdered.length - 1) {
       const nextTermData = allTermsOrdered[currentIndex + 1];
       setSelectedTerm(nextTermData.id);
       setSelectedCategory(nextTermData.category); // Sync category
       setCurrentDefinition(
-        termsDefinitions[nextTermData.id as keyof typeof termsDefinitions].definition,
+        termsDefinitions[nextTermData.id as keyof typeof termsDefinitions]
+          .definition
       );
     }
   };
@@ -168,7 +192,9 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
   };
 
   // Update disabled logic based on the full ordered list
-  const currentIndexInAll = allTermsOrdered.findIndex((t) => t.id === selectedTerm);
+  const currentIndexInAll = allTermsOrdered.findIndex(
+    (t) => t.id === selectedTerm
+  );
   const canGoPrevious = currentIndexInAll > 0;
   const canGoNext = currentIndexInAll < allTermsOrdered.length - 1;
 
@@ -195,7 +221,10 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
         }}
       >
         Terms and Definitions
-        <IconButton aria-label="Close terms and definitions dialog" onClick={onClose}>
+        <IconButton
+          aria-label="Close terms and definitions dialog"
+          onClick={onClose}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -298,7 +327,9 @@ export const InfoDialog: React.FC<InfoDialogProps> = ({ open, onClose, term, def
               <ContentCopyIcon />
             </IconButton>
           </Box>
-          <Typography variant="body2">{currentDefinition || definition}</Typography>
+          <Typography variant="body2">
+            {currentDefinition || definition}
+          </Typography>
         </Box>
       </DialogContent>
 

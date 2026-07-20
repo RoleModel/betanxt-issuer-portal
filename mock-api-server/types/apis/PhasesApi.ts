@@ -10,7 +10,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import type { CreatePhaseRequest, Phase, PhaseStatus, UpdatePhaseRequest } from "../models/index";
+import type {
+  CreatePhaseRequest,
+  Phase,
+  PhaseStatus,
+  UpdatePhaseRequest,
+} from "../models/index";
 
 import {
   CreatePhaseRequestFromJSON,
@@ -52,19 +57,19 @@ export class PhasesApi extends runtime.BaseAPI {
    */
   async createPhaseRaw(
     requestParameters: CreatePhaseOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Phase>> {
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling createPhase().',
+        'Required parameter "meetingId" was null or undefined when calling createPhase().'
       );
     }
 
     if (requestParameters["createPhaseRequest"] == null) {
       throw new runtime.RequiredError(
         "createPhaseRequest",
-        'Required parameter "createPhaseRequest" was null or undefined when calling createPhase().',
+        'Required parameter "createPhaseRequest" was null or undefined when calling createPhase().'
       );
     }
 
@@ -86,7 +91,7 @@ export class PhasesApi extends runtime.BaseAPI {
     let urlPath = `/meetings/{meetingId}/phases`;
     urlPath = urlPath.replace(
       `{${"meetingId"}}`,
-      encodeURIComponent(String(requestParameters["meetingId"])),
+      encodeURIComponent(String(requestParameters["meetingId"]))
     );
 
     const response = await this.request(
@@ -97,10 +102,12 @@ export class PhasesApi extends runtime.BaseAPI {
         query: queryParameters,
         body: CreatePhaseRequestToJSON(requestParameters["createPhaseRequest"]),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => PhaseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PhaseFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -108,9 +115,12 @@ export class PhasesApi extends runtime.BaseAPI {
    */
   async createPhase(
     requestParameters: CreatePhaseOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Phase> {
-    const response = await this.createPhaseRaw(requestParameters, initOverrides);
+    const response = await this.createPhaseRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -119,12 +129,12 @@ export class PhasesApi extends runtime.BaseAPI {
    */
   async getPhaseByIdRaw(
     requestParameters: GetPhaseByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Phase>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling getPhaseById().',
+        'Required parameter "id" was null or undefined when calling getPhaseById().'
       );
     }
 
@@ -142,7 +152,10 @@ export class PhasesApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/phases/{id}`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -151,10 +164,12 @@ export class PhasesApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => PhaseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PhaseFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -162,9 +177,12 @@ export class PhasesApi extends runtime.BaseAPI {
    */
   async getPhaseById(
     requestParameters: GetPhaseByIdRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Phase> {
-    const response = await this.getPhaseByIdRaw(requestParameters, initOverrides);
+    const response = await this.getPhaseByIdRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 
@@ -173,12 +191,12 @@ export class PhasesApi extends runtime.BaseAPI {
    */
   async listPhasesRaw(
     requestParameters: ListPhasesRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Array<Phase>>> {
     if (requestParameters["meetingId"] == null) {
       throw new runtime.RequiredError(
         "meetingId",
-        'Required parameter "meetingId" was null or undefined when calling listPhases().',
+        'Required parameter "meetingId" was null or undefined when calling listPhases().'
       );
     }
 
@@ -202,7 +220,7 @@ export class PhasesApi extends runtime.BaseAPI {
     let urlPath = `/meetings/{meetingId}/phases`;
     urlPath = urlPath.replace(
       `{${"meetingId"}}`,
-      encodeURIComponent(String(requestParameters["meetingId"])),
+      encodeURIComponent(String(requestParameters["meetingId"]))
     );
 
     const response = await this.request(
@@ -212,10 +230,12 @@ export class PhasesApi extends runtime.BaseAPI {
         headers: headerParameters,
         query: queryParameters,
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PhaseFromJSON));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      jsonValue.map(PhaseFromJSON)
+    );
   }
 
   /**
@@ -223,7 +243,7 @@ export class PhasesApi extends runtime.BaseAPI {
    */
   async listPhases(
     requestParameters: ListPhasesRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Array<Phase>> {
     const response = await this.listPhasesRaw(requestParameters, initOverrides);
     return await response.value();
@@ -234,19 +254,19 @@ export class PhasesApi extends runtime.BaseAPI {
    */
   async updatePhaseRaw(
     requestParameters: UpdatePhaseOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<runtime.ApiResponse<Phase>> {
     if (requestParameters["id"] == null) {
       throw new runtime.RequiredError(
         "id",
-        'Required parameter "id" was null or undefined when calling updatePhase().',
+        'Required parameter "id" was null or undefined when calling updatePhase().'
       );
     }
 
     if (requestParameters["updatePhaseRequest"] == null) {
       throw new runtime.RequiredError(
         "updatePhaseRequest",
-        'Required parameter "updatePhaseRequest" was null or undefined when calling updatePhase().',
+        'Required parameter "updatePhaseRequest" was null or undefined when calling updatePhase().'
       );
     }
 
@@ -266,7 +286,10 @@ export class PhasesApi extends runtime.BaseAPI {
     }
 
     let urlPath = `/phases/{id}`;
-    urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters["id"])));
+    urlPath = urlPath.replace(
+      `{${"id"}}`,
+      encodeURIComponent(String(requestParameters["id"]))
+    );
 
     const response = await this.request(
       {
@@ -276,10 +299,12 @@ export class PhasesApi extends runtime.BaseAPI {
         query: queryParameters,
         body: UpdatePhaseRequestToJSON(requestParameters["updatePhaseRequest"]),
       },
-      initOverrides,
+      initOverrides
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => PhaseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      PhaseFromJSON(jsonValue)
+    );
   }
 
   /**
@@ -287,9 +312,12 @@ export class PhasesApi extends runtime.BaseAPI {
    */
   async updatePhase(
     requestParameters: UpdatePhaseOperationRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction
   ): Promise<Phase> {
-    const response = await this.updatePhaseRaw(requestParameters, initOverrides);
+    const response = await this.updatePhaseRaw(
+      requestParameters,
+      initOverrides
+    );
     return await response.value();
   }
 }

@@ -72,24 +72,26 @@ export type CreateDigitalShareholderMeetingRequestRegistrantTypeEnum =
  * Check if a given object implements the CreateDigitalShareholderMeetingRequest interface.
  */
 export function instanceOfCreateDigitalShareholderMeetingRequest(
-  value: object,
+  value: object
 ): value is CreateDigitalShareholderMeetingRequest {
-  if (!("registrantType" in value) || value["registrantType"] === undefined) return false;
+  if (!("registrantType" in value) || value["registrantType"] === undefined)
+    return false;
   if (!("firstName" in value) || value["firstName"] === undefined) return false;
   if (!("lastName" in value) || value["lastName"] === undefined) return false;
-  if (!("emailAddress" in value) || value["emailAddress"] === undefined) return false;
+  if (!("emailAddress" in value) || value["emailAddress"] === undefined)
+    return false;
   return true;
 }
 
 export function CreateDigitalShareholderMeetingRequestFromJSON(
-  json: any,
+  json: any
 ): CreateDigitalShareholderMeetingRequest {
   return CreateDigitalShareholderMeetingRequestFromJSONTyped(json, false);
 }
 
 export function CreateDigitalShareholderMeetingRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CreateDigitalShareholderMeetingRequest {
   if (json == null) {
     return json;
@@ -100,21 +102,25 @@ export function CreateDigitalShareholderMeetingRequestFromJSONTyped(
     lastName: json["lastName"],
     emailAddress: json["emailAddress"],
     registrationQuestions:
-      json["registrationQuestions"] == null ? undefined : json["registrationQuestions"],
+      json["registrationQuestions"] == null
+        ? undefined
+        : json["registrationQuestions"],
     minutesAttendedMeeting:
-      json["minutesAttendedMeeting"] == null ? undefined : json["minutesAttendedMeeting"],
+      json["minutesAttendedMeeting"] == null
+        ? undefined
+        : json["minutesAttendedMeeting"],
   };
 }
 
 export function CreateDigitalShareholderMeetingRequestToJSON(
-  json: any,
+  json: any
 ): CreateDigitalShareholderMeetingRequest {
   return CreateDigitalShareholderMeetingRequestToJSONTyped(json, false);
 }
 
 export function CreateDigitalShareholderMeetingRequestToJSONTyped(
   value?: CreateDigitalShareholderMeetingRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

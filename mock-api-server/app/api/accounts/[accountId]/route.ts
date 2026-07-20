@@ -7,7 +7,11 @@ import { NextResponse } from "next/server";
 
 import type { components } from "@/types/api";
 
-import { deleteAccount, getAccountById, updateAccount } from "@/domain-models/api/accounts";
+import {
+  deleteAccount,
+  getAccountById,
+  updateAccount,
+} from "@/domain-models/api/accounts";
 import { handleCors, withCors } from "@/utils/cors";
 
 interface RouteParams {
@@ -16,7 +20,7 @@ interface RouteParams {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -28,7 +32,10 @@ export async function GET(
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -41,15 +48,15 @@ export async function GET(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "getAccountById",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -57,14 +64,18 @@ export async function PUT(
     const accountId = resolvedParams.accountId;
 
     // Parse request body
-    const body = (await request.json()) as components["schemas"]["UpdateAccountRequest"];
+    const body =
+      (await request.json()) as components["schemas"]["UpdateAccountRequest"];
 
     // Use existing domain model function
     const { data, error } = await updateAccount(accountId, body);
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -77,15 +88,15 @@ export async function PUT(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "updateAccount",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> },
+  { params }: { params: Promise<RouteParams> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
@@ -97,7 +108,10 @@ export async function DELETE(
 
     if (error) {
       return withCors(
-        NextResponse.json({ error: error.message }, { status: error.statusCode || 500 }),
+        NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode || 500 }
+        )
       );
     }
 
@@ -110,8 +124,8 @@ export async function DELETE(
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "deleteAccount",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardHeader, Stack, Typography } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Stack,
+  Typography,
+} from "@mui/material";
 import ChecklistDocumentIcon from "@rolemodel/betanxt-design-system/components/icons/brand/ChecklistDocumentIcon";
 import DocumentEditIcon from "@rolemodel/betanxt-design-system/components/icons/brand/DocumentEditIcon";
 import HandshakeAgreementIcon from "@rolemodel/betanxt-design-system/components/icons/brand/HandshakeAgreementIcon";
@@ -79,10 +85,11 @@ export default function InspectorOfElectionsPage() {
     <Stack useFlexGap gap={2}>
       <ContentTitle title="Ensure legal compliance and voting accuracy with certified oversight solutions" />
       <Typography variant="body1">
-        Most states require an Inspector of Election to ensure the propriety of shareholder voting
-        processes. BetaNXT provides certified Inspector of Elections services that tabulate votes
-        with precision, ensure regulatory compliance, and make legally binding declarations of
-        results. Our experienced team manages the entire oversight process, from pre-meeting
+        Most states require an Inspector of Election to ensure the propriety of
+        shareholder voting processes. BetaNXT provides certified Inspector of
+        Elections services that tabulate votes with precision, ensure regulatory
+        compliance, and make legally binding declarations of results. Our
+        experienced team manages the entire oversight process, from pre-meeting
         preparation to final result certification.
       </Typography>
       <Card>
@@ -125,8 +132,8 @@ export default function InspectorOfElectionsPage() {
         onClick={() => setOpen(true)}
       >
         <Typography variant="body3" component="p" gutterBottom>
-          Get detailed information about our certified Inspector of Elections services and
-          compliance solutions.
+          Get detailed information about our certified Inspector of Elections
+          services and compliance solutions.
         </Typography>
       </SidebarCard>
       <DocumentViewer
@@ -142,6 +149,9 @@ export default function InspectorOfElectionsPage() {
   );
 
   return (
-    <ProductsLayout leftColumnContent={leftColumnContent} rightColumnContent={rightColumnContent} />
+    <ProductsLayout
+      leftColumnContent={leftColumnContent}
+      rightColumnContent={rightColumnContent}
+    />
   );
 }

@@ -20,7 +20,12 @@ import {
   DocumentToJSON,
   DocumentToJSONTyped,
 } from "./Document";
-import { UserFromJSON, UserFromJSONTyped, UserToJSON, UserToJSONTyped } from "./User";
+import {
+  UserFromJSON,
+  UserFromJSONTyped,
+  UserToJSON,
+  UserToJSONTyped,
+} from "./User";
 
 /**
  *
@@ -105,7 +110,9 @@ export type DocumentHistoryEventTypeEnum =
 /**
  * Check if a given object implements the DocumentHistory interface.
  */
-export function instanceOfDocumentHistory(value: object): value is DocumentHistory {
+export function instanceOfDocumentHistory(
+  value: object
+): value is DocumentHistory {
   return true;
 }
 
@@ -115,7 +122,7 @@ export function DocumentHistoryFromJSON(json: any): DocumentHistory {
 
 export function DocumentHistoryFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): DocumentHistory {
   if (json == null) {
     return json;
@@ -127,8 +134,10 @@ export function DocumentHistoryFromJSONTyped(
     userId: json["userId"] == null ? undefined : json["userId"],
     userName: json["userName"] == null ? undefined : json["userName"],
     metadata: json["metadata"] == null ? undefined : json["metadata"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    document: json["document"] == null ? undefined : DocumentFromJSON(json["document"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    document:
+      json["document"] == null ? undefined : DocumentFromJSON(json["document"]),
     user: json["user"] == null ? undefined : UserFromJSON(json["user"]),
   };
 }
@@ -139,7 +148,7 @@ export function DocumentHistoryToJSON(json: any): DocumentHistory {
 
 export function DocumentHistoryToJSONTyped(
   value?: DocumentHistory | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -152,7 +161,8 @@ export function DocumentHistoryToJSONTyped(
     userId: value["userId"],
     userName: value["userName"],
     metadata: value["metadata"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
     document: DocumentToJSON(value["document"]),
     user: UserToJSON(value["user"]),
   };

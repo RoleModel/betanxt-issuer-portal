@@ -162,7 +162,9 @@ type ApiResponse<T> = {
 };
 
 // Implementation pattern
-export async function listTasks(meetingId: string): Promise<ApiResponse<Task[]>> {
+export async function listTasks(
+  meetingId: string
+): Promise<ApiResponse<Task[]>> {
   try {
     const { data, error } = await supabase
       .from("task")
@@ -206,7 +208,7 @@ const { data, error } = await supabase
     phases:phase(*),
     tasks:task(*),
     documents:document(*)
-  `,
+  `
   )
   .eq("id", meetingId)
   .single();
@@ -248,7 +250,7 @@ const meetings = clients.flatMap((client, clientIndex) =>
       status: copycat.oneOf(seedValue, ["PLANNING", "ACTIVE", "COMPLETED"]),
       // ... other fields
     };
-  }),
+  })
 );
 ```
 
@@ -348,16 +350,19 @@ export function useTasks(meetingId: string, phaseId?: string) {
   const { data, error, mutate } = useSWR(
     meetingId ? ["tasks", meetingId, phaseId] : null,
     async () => {
-      const { data, error } = await apiClient.GET("/meetings/{meetingId}/tasks", {
-        params: {
-          path: { meetingId },
-          query: phaseId ? { phaseId } : {},
-        },
-      });
+      const { data, error } = await apiClient.GET(
+        "/meetings/{meetingId}/tasks",
+        {
+          params: {
+            path: { meetingId },
+            query: phaseId ? { phaseId } : {},
+          },
+        }
+      );
 
       if (error) throw new Error("Failed to fetch tasks");
       return data;
-    },
+    }
   );
 
   return {
@@ -397,7 +402,9 @@ const { data: tasks } = await apiClient.GET("/meetings/{meetingId}/tasks", {
 
 ```typescript
 // Handle Supabase errors consistently
-export async function createTask(taskData: CreateTaskRequest): Promise<ApiResponse<Task>> {
+export async function createTask(
+  taskData: CreateTaskRequest
+): Promise<ApiResponse<Task>> {
   try {
     const { data, error } = await supabase
       .from("task")
@@ -414,12 +421,17 @@ export async function createTask(taskData: CreateTaskRequest): Promise<ApiRespon
       if (error.code === "23505") {
         // Unique violation
         return {
-          error: { message: "Task with this title already exists", statusCode: 409 },
+          error: {
+            message: "Task with this title already exists",
+            statusCode: 409,
+          },
         };
       }
       if (error.code === "23503") {
         // Foreign key violation
-        return { error: { message: "Invalid meeting or phase ID", statusCode: 400 } };
+        return {
+          error: { message: "Invalid meeting or phase ID", statusCode: 400 },
+        };
       }
 
       return { error: { message: error.message, statusCode: 500 } };
@@ -466,7 +478,7 @@ const { data } = await supabase
     status,
     tasks:task(id, title, status),
     phases:phase(id, name, status)
-  `,
+  `
   )
   .eq("id", meetingId)
   .single();
@@ -476,11 +488,15 @@ const { data } = await supabase
 
 ```typescript
 // Use SWR with appropriate cache keys and revalidation
-const { data: meeting } = useSWR(["meeting", meetingId], () => fetchMeeting(meetingId), {
-  revalidateOnFocus: false,
-  revalidateOnReconnect: true,
-  dedupingInterval: 60000, // 1 minute
-});
+const { data: meeting } = useSWR(
+  ["meeting", meetingId],
+  () => fetchMeeting(meetingId),
+  {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 60000, // 1 minute
+  }
+);
 ```
 
 ## Critical Rules

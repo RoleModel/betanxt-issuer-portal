@@ -52,7 +52,9 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
       onClose();
     } catch (err) {
       console.error("Error submitting revision request:", err);
-      setError(err instanceof Error ? err.message : "Failed to submit revision request");
+      setError(
+        err instanceof Error ? err.message : "Failed to submit revision request"
+      );
     } finally {
       setLoading(false);
     }
@@ -137,8 +139,8 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
           icon={<CheckCircleOutline />}
           sx={{ width: "100%" }}
         >
-          We received your revision request and will review it promptly. You will be notified once
-          the updates are complete.
+          We received your revision request and will review it promptly. You
+          will be notified once the updates are complete.
         </Alert>
       </Snackbar>
     </>

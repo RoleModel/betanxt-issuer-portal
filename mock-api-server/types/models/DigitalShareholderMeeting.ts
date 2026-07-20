@@ -96,18 +96,20 @@ export type DigitalShareholderMeetingRegistrantTypeEnum =
  * Check if a given object implements the DigitalShareholderMeeting interface.
  */
 export function instanceOfDigitalShareholderMeeting(
-  value: object,
+  value: object
 ): value is DigitalShareholderMeeting {
   return true;
 }
 
-export function DigitalShareholderMeetingFromJSON(json: any): DigitalShareholderMeeting {
+export function DigitalShareholderMeetingFromJSON(
+  json: any
+): DigitalShareholderMeeting {
   return DigitalShareholderMeetingFromJSONTyped(json, false);
 }
 
 export function DigitalShareholderMeetingFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): DigitalShareholderMeeting {
   if (json == null) {
     return json;
@@ -115,26 +117,36 @@ export function DigitalShareholderMeetingFromJSONTyped(
   return {
     id: json["id"] == null ? undefined : json["id"],
     meetingId: json["meetingId"] == null ? undefined : json["meetingId"],
-    registrantType: json["registrantType"] == null ? undefined : json["registrantType"],
+    registrantType:
+      json["registrantType"] == null ? undefined : json["registrantType"],
     firstName: json["firstName"] == null ? undefined : json["firstName"],
     lastName: json["lastName"] == null ? undefined : json["lastName"],
-    emailAddress: json["emailAddress"] == null ? undefined : json["emailAddress"],
+    emailAddress:
+      json["emailAddress"] == null ? undefined : json["emailAddress"],
     registrationQuestions:
-      json["registrationQuestions"] == null ? undefined : json["registrationQuestions"],
+      json["registrationQuestions"] == null
+        ? undefined
+        : json["registrationQuestions"],
     minutesAttendedMeeting:
-      json["minutesAttendedMeeting"] == null ? undefined : json["minutesAttendedMeeting"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+      json["minutesAttendedMeeting"] == null
+        ? undefined
+        : json["minutesAttendedMeeting"],
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
   };
 }
 
-export function DigitalShareholderMeetingToJSON(json: any): DigitalShareholderMeeting {
+export function DigitalShareholderMeetingToJSON(
+  json: any
+): DigitalShareholderMeeting {
   return DigitalShareholderMeetingToJSONTyped(json, false);
 }
 
 export function DigitalShareholderMeetingToJSONTyped(
   value?: DigitalShareholderMeeting | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -149,7 +161,9 @@ export function DigitalShareholderMeetingToJSONTyped(
     emailAddress: value["emailAddress"],
     registrationQuestions: value["registrationQuestions"],
     minutesAttendedMeeting: value["minutesAttendedMeeting"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
   };
 }

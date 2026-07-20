@@ -26,8 +26,8 @@ export async function GET(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "getCurrentUser",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

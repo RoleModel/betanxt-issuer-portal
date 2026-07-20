@@ -30,12 +30,15 @@ export interface UseDigitalShareholderMeetingReturn {
   mutate: () => Promise<DigitalShareholderMeetingAttendee[] | undefined>;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
 export function useDigitalShareholderMeeting(
-  meetingId: string | undefined,
+  meetingId: string | undefined
 ): UseDigitalShareholderMeetingReturn {
-  const fetcher = async (url: string): Promise<DigitalShareholderMeetingAttendee[]> => {
+  const fetcher = async (
+    url: string
+  ): Promise<DigitalShareholderMeetingAttendee[]> => {
     const response = await fetch(`${API_URL}${url}`);
     if (!response.ok) {
       throw new Error("Failed to fetch attendees");
@@ -49,7 +52,7 @@ export function useDigitalShareholderMeeting(
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    },
+    }
   );
   const data = swrResult.data;
   const error = swrResult.error as Error | undefined;
@@ -61,13 +64,16 @@ export function useDigitalShareholderMeeting(
       throw new Error("Meeting ID is required");
     }
 
-    const response = await fetch(`${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(attendees),
-    });
+    const response = await fetch(
+      `${API_URL}/meetings/${meetingId}/digital-shareholder-meeting`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(attendees),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -76,7 +82,9 @@ export function useDigitalShareholderMeeting(
         statusText: response.statusText,
         error: errorText,
       });
-      throw new Error(`Failed to upload attendees: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to upload attendees: ${response.status} ${response.statusText}`
+      );
     }
 
     const result = (await response.json()) as unknown;

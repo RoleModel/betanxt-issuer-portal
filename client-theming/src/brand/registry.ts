@@ -53,12 +53,14 @@ export const brandConfigs: Record<string, BrandConfig> = {
  * possible — they are far more reliable than exact company-name string
  * matching. Rebuilt from `brandConfigs` at module load.
  */
-export const brandConfigsByTicker: Record<string, BrandConfig> = Object.values(brandConfigs).reduce(
+export const brandConfigsByTicker: Record<string, BrandConfig> = Object.values(
+  brandConfigs
+).reduce(
   (accumulator, config) => {
     if (config.ticker) accumulator[config.ticker.toUpperCase()] = config;
     return accumulator;
   },
-  {} as Record<string, BrandConfig>,
+  {} as Record<string, BrandConfig>
 );
 
 /**
@@ -88,7 +90,10 @@ export function getBrandConfigByTicker(ticker: string): BrandConfig | null {
  * @param fallback - Returned when the company or its logo is missing.
  * @returns The logo path or the fallback.
  */
-export function getBrandLogoPath(companyName: string, fallback = "/images/logo.svg"): string {
+export function getBrandLogoPath(
+  companyName: string,
+  fallback = "/images/logo.svg"
+): string {
   return brandConfigs[companyName]?.logoPath || fallback;
 }
 
@@ -99,6 +104,9 @@ export function getBrandLogoPath(companyName: string, fallback = "/images/logo.s
  * @param fallback - Returned when the company or its icon is missing.
  * @returns The icon path or the fallback.
  */
-export function getBrandIconPath(companyName: string, fallback = "/images/logo.svg"): string {
+export function getBrandIconPath(
+  companyName: string,
+  fallback = "/images/logo.svg"
+): string {
   return brandConfigs[companyName]?.iconPath || fallback;
 }

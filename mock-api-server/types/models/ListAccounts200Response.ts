@@ -50,35 +50,46 @@ export interface ListAccounts200Response {
 /**
  * Check if a given object implements the ListAccounts200Response interface.
  */
-export function instanceOfListAccounts200Response(value: object): value is ListAccounts200Response {
+export function instanceOfListAccounts200Response(
+  value: object
+): value is ListAccounts200Response {
   return true;
 }
 
-export function ListAccounts200ResponseFromJSON(json: any): ListAccounts200Response {
+export function ListAccounts200ResponseFromJSON(
+  json: any
+): ListAccounts200Response {
   return ListAccounts200ResponseFromJSONTyped(json, false);
 }
 
 export function ListAccounts200ResponseFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): ListAccounts200Response {
   if (json == null) {
     return json;
   }
   return {
     accounts:
-      json["accounts"] == null ? undefined : (json["accounts"] as Array<any>).map(AccountFromJSON),
-    pagination: json["pagination"] == null ? undefined : PaginationFromJSON(json["pagination"]),
+      json["accounts"] == null
+        ? undefined
+        : (json["accounts"] as Array<any>).map(AccountFromJSON),
+    pagination:
+      json["pagination"] == null
+        ? undefined
+        : PaginationFromJSON(json["pagination"]),
   };
 }
 
-export function ListAccounts200ResponseToJSON(json: any): ListAccounts200Response {
+export function ListAccounts200ResponseToJSON(
+  json: any
+): ListAccounts200Response {
   return ListAccounts200ResponseToJSONTyped(json, false);
 }
 
 export function ListAccounts200ResponseToJSONTyped(
   value?: ListAccounts200Response | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -86,7 +97,9 @@ export function ListAccounts200ResponseToJSONTyped(
 
   return {
     accounts:
-      value["accounts"] == null ? undefined : (value["accounts"] as Array<any>).map(AccountToJSON),
+      value["accounts"] == null
+        ? undefined
+        : (value["accounts"] as Array<any>).map(AccountToJSON),
     pagination: PaginationToJSON(value["pagination"]),
   };
 }

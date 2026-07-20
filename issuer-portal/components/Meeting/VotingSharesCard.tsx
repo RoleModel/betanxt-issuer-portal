@@ -84,8 +84,13 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
       <CardHeader title="Voting Shares" />
       <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
         <Table>
-          <SROnlyTableCaption>Voting shares for the meeting.</SROnlyTableCaption>
-          <TableHead aria-hidden="false" sx={{ visibility: "hidden", display: "none" }}>
+          <SROnlyTableCaption>
+            Voting shares for the meeting.
+          </SROnlyTableCaption>
+          <TableHead
+            aria-hidden="false"
+            sx={{ visibility: "hidden", display: "none" }}
+          >
             <TableRow>
               <TableCell>Item</TableCell>
               <TableCell align="right">Value/Action</TableCell>

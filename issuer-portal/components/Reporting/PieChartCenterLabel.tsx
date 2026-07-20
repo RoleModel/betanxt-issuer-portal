@@ -46,7 +46,11 @@ function PieCenterLabel({ data }: { data: PieChartData }) {
       >
         {data.centerPercentage ?? floorAndFormatNumber(data.total)}
       </StyledNumberText>
-      <StyledDescriptionText tabIndex={0} x={left + width / 2} y={top + height / 1.7}>
+      <StyledDescriptionText
+        tabIndex={0}
+        x={left + width / 2}
+        y={top + height / 1.7}
+      >
         {data.label}
       </StyledDescriptionText>
     </>

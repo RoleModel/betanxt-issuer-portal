@@ -69,14 +69,20 @@ const toFiniteNumber = (value: unknown): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const fetchReports: Fetcher<ReportsData, ReportsKey> = async ([_key, meetingId]: ReportsKey) => {
+const fetchReports: Fetcher<ReportsData, ReportsKey> = async ([
+  _key,
+  meetingId,
+]: ReportsKey) => {
   const apiClient = await buildApiClient();
 
-  const { data, error } = await apiClient.GET("/meetings/{meetingId}/tabulation-report", {
-    params: {
-      path: { meetingId },
-    },
-  });
+  const { data, error } = await apiClient.GET(
+    "/meetings/{meetingId}/tabulation-report",
+    {
+      params: {
+        path: { meetingId },
+      },
+    }
+  );
 
   if (error || !data) {
     throw new Error("Failed to load tabulation report");
@@ -85,12 +91,16 @@ const fetchReports: Fetcher<ReportsData, ReportsKey> = async ([_key, meetingId]:
   const report = asRecord(data) ?? {};
 
   const brokerVotingByProposal = _transformBrokerVoting(report.brokerVoting);
-  const shareRangePerformance = _transformShareRangePerformance(report.shareRangePerformance);
+  const shareRangePerformance = _transformShareRangePerformance(
+    report.shareRangePerformance
+  );
   const nonDtcVoteStatus = _transformNonDtcVoteStatus(report.nonDtcVoteStatus);
   const dtcVoteStatus = _transformDtcVoteStatus(report.dtcVoteStatus);
   const voteDistribution = _transformVoteDistribution(report.voteDistribution);
   const positionsVoted = _transformPositionsVoted(report.positionsVoted);
-  const setKeys = Array.isArray(report.setKeys) ? report.setKeys.map((key) => String(key)) : [];
+  const setKeys = Array.isArray(report.setKeys)
+    ? report.setKeys.map((key) => String(key))
+    : [];
 
   return {
     brokerVotingByProposal,
@@ -141,8 +151,12 @@ function _normalizeBrokerVotingEntries(entries: unknown[]): BrokerVotingData[] {
     if (!brokerRecord) return acc;
 
     const forVotes = toFiniteNumber(brokerRecord.sharesFor ?? brokerRecord.for);
-    const againstVotes = toFiniteNumber(brokerRecord.sharesAgainst ?? brokerRecord.against);
-    const abstainVotes = toFiniteNumber(brokerRecord.sharesAbstain ?? brokerRecord.abstain);
+    const againstVotes = toFiniteNumber(
+      brokerRecord.sharesAgainst ?? brokerRecord.against
+    );
+    const abstainVotes = toFiniteNumber(
+      brokerRecord.sharesAbstain ?? brokerRecord.abstain
+    );
 
     // Ensure broker is always a string to prevent chart rendering errors
     const brokerName = asString(brokerRecord.broker);
@@ -158,7 +172,9 @@ function _normalizeBrokerVotingEntries(entries: unknown[]): BrokerVotingData[] {
   }, []);
 }
 
-function _transformShareRangePerformance(shareRangePerformance: unknown): ShareRangeData[] {
+function _transformShareRangePerformance(
+  shareRangePerformance: unknown
+): ShareRangeData[] {
   if (!Array.isArray(shareRangePerformance)) {
     return [];
   }
@@ -178,7 +194,9 @@ function _transformShareRangePerformance(shareRangePerformance: unknown): ShareR
   }, []);
 }
 
-function _transformNonDtcVoteStatus(nonDtcVoteStatus: unknown): VoteStatusData[] {
+function _transformNonDtcVoteStatus(
+  nonDtcVoteStatus: unknown
+): VoteStatusData[] {
   if (!nonDtcVoteStatus || typeof nonDtcVoteStatus !== "object") {
     return [];
   }
@@ -195,32 +213,46 @@ function _transformNonDtcVoteStatus(nonDtcVoteStatus: unknown): VoteStatusData[]
       category: "Not Voted",
       shareholders: toFiniteNumber(data.unvotedShareholders),
       shares: toFiniteNumber(data.unvotedShares),
-      percentage: totalShares > 0 ? (toFiniteNumber(data.unvotedShares) / totalShares) * 100 : 0,
+      percentage:
+        totalShares > 0
+          ? (toFiniteNumber(data.unvotedShares) / totalShares) * 100
+          : 0,
     },
     {
       category: "PRINT",
       shareholders: toFiniteNumber(data.printShareholders),
       shares: toFiniteNumber(data.printShares),
-      percentage: totalShares > 0 ? (toFiniteNumber(data.printShares) / totalShares) * 100 : 0,
+      percentage:
+        totalShares > 0
+          ? (toFiniteNumber(data.printShares) / totalShares) * 100
+          : 0,
     },
     {
       category: "IVR",
       shareholders: toFiniteNumber(data.ivrShareholders),
       shares: toFiniteNumber(data.ivrShares),
-      percentage: totalShares > 0 ? (toFiniteNumber(data.ivrShares) / totalShares) * 100 : 0,
+      percentage:
+        totalShares > 0
+          ? (toFiniteNumber(data.ivrShares) / totalShares) * 100
+          : 0,
     },
     {
       category: "WEB",
       shareholders: toFiniteNumber(data.webShareholders),
       shares: toFiniteNumber(data.webShares),
-      percentage: totalShares > 0 ? (toFiniteNumber(data.webShares) / totalShares) * 100 : 0,
+      percentage:
+        totalShares > 0
+          ? (toFiniteNumber(data.webShares) / totalShares) * 100
+          : 0,
     },
     {
       category: "Voted Sub-Total",
       shareholders: toFiniteNumber(data.votedSubtotalShareholders),
       shares: toFiniteNumber(data.votedSubtotalShares),
       percentage:
-        totalShares > 0 ? (toFiniteNumber(data.votedSubtotalShares) / totalShares) * 100 : 0,
+        totalShares > 0
+          ? (toFiniteNumber(data.votedSubtotalShares) / totalShares) * 100
+          : 0,
     },
     {
       category: "Grand Total",
@@ -248,13 +280,19 @@ function _transformDtcVoteStatus(dtcVoteStatus: unknown): VoteStatusData[] {
       category: "Not Voted",
       shareholders: toFiniteNumber(data.unvotedShareholders),
       shares: toFiniteNumber(data.unvotedShares),
-      percentage: totalShares > 0 ? (toFiniteNumber(data.unvotedShares) / totalShares) * 100 : 0,
+      percentage:
+        totalShares > 0
+          ? (toFiniteNumber(data.unvotedShares) / totalShares) * 100
+          : 0,
     },
     {
       category: "Voted",
       shareholders: toFiniteNumber(data.votedShareholders),
       shares: toFiniteNumber(data.votedShares),
-      percentage: totalShares > 0 ? (toFiniteNumber(data.votedShares) / totalShares) * 100 : 0,
+      percentage:
+        totalShares > 0
+          ? (toFiniteNumber(data.votedShares) / totalShares) * 100
+          : 0,
     },
     {
       category: "Grand Total",
@@ -265,7 +303,9 @@ function _transformDtcVoteStatus(dtcVoteStatus: unknown): VoteStatusData[] {
   ];
 }
 
-function _transformVoteDistribution(voteDistribution: unknown): VoteDistributionData[] {
+function _transformVoteDistribution(
+  voteDistribution: unknown
+): VoteDistributionData[] {
   if (!voteDistribution || typeof voteDistribution !== "object") {
     return [];
   }
@@ -356,15 +396,15 @@ function _transformPositionsVoted(positionsVoted: unknown): PositionsVotedData {
 }
 
 export function useReports(meetingId?: string) {
-  const { data, error, isLoading, isValidating } = useSWR<ReportsData, Error, ReportsKey | null>(
-    meetingId ? ["reports", meetingId] : null,
-    fetchReports,
-    {
-      dedupingInterval: 30_000,
-      revalidateOnFocus: false,
-      keepPreviousData: false, // Changed to false to prevent stale data issues
-    },
-  );
+  const { data, error, isLoading, isValidating } = useSWR<
+    ReportsData,
+    Error,
+    ReportsKey | null
+  >(meetingId ? ["reports", meetingId] : null, fetchReports, {
+    dedupingInterval: 30_000,
+    revalidateOnFocus: false,
+    keepPreviousData: false, // Changed to false to prevent stale data issues
+  });
 
   return {
     brokerVotingByProposal: data?.brokerVotingByProposal || {},

@@ -58,11 +58,11 @@ File: `supabase/seed.ts`
 
 ## Future Hardening (Optional Roadmap)
 
-| Topic            | Deferred Reason            | Future Action                                                  |
-| ---------------- | -------------------------- | -------------------------------------------------------------- |
-| Versioning       | Complexity vs current need | Introduce `document_versions` table if audit fidelity required |
-| Detailed RLS     | Rapid iteration in dev     | Add row-level policies once auth roles finalized               |
-| Signed URLs      | Dev convenience            | Switch storage bucket to private + generate signed URLs        |
+| Topic | Deferred Reason | Future Action |
+| --- | --- | --- |
+| Versioning | Complexity vs current need | Introduce `document_versions` table if audit fidelity required |
+| Detailed RLS | Rapid iteration in dev | Add row-level policies once auth roles finalized |
+| Signed URLs | Dev convenience | Switch storage bucket to private + generate signed URLs |
 | User Attribution | Placeholder `system` value | Replace with authenticated user ID when auth context available |
 
 ## Migration Strategy (If/When Version Tables Adopted)
@@ -92,7 +92,10 @@ File: `supabase/seed.ts`
   "storagePath": "wen-annual-2025/Proxy%20Statement/1695588723512_ab12cd.pdf",
   "url": "https://.../documents/wen-annual-2025/Proxy%20Statement/...",
   "versionNotes": "Updated charts",
-  "_meta": { "provisional": false, "note": "Document updated in single legacy table." }
+  "_meta": {
+    "provisional": false,
+    "note": "Document updated in single legacy table."
+  }
 }
 ```
 

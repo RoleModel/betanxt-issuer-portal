@@ -56,15 +56,24 @@ export default function TabulationPage() {
             <TabulationDistributionDrawer
               meetingId={meetingId}
               clientTicker={clientTicker}
-              initialDistribution={currentMeeting?.tabulationDistribution ?? undefined}
+              initialDistribution={
+                currentMeeting?.tabulationDistribution ?? undefined
+              }
               meetingDate={currentMeeting?.meetingDate}
             />
           ) : null}
         </Grid>
         <Grid size={12}>
-          <Grid container columns={{ sm: 5, md: 6, lg: 5 }} spacing={{ xs: 2, md: 3 }}>
+          <Grid
+            container
+            columns={{ sm: 5, md: 6, lg: 5 }}
+            spacing={{ xs: 2, md: 3 }}
+          >
             <Grid size={{ sm: 5, md: 2, lg: 1 }}>
-              <QuorumGaugeCard model={quorumGauge} loading={tabulationLoading} />
+              <QuorumGaugeCard
+                model={quorumGauge}
+                loading={tabulationLoading}
+              />
             </Grid>
             <Grid size={{ sm: 5, md: 2, lg: 1 }}>
               <VotingActivityCard
@@ -98,7 +107,9 @@ export default function TabulationPage() {
             loading={tabulationLoading}
             proposals={proposals}
             positions={filteredPositions}
-            meetingTitle={meetingTitle || currentMeeting?.title || "Meeting Positions"}
+            meetingTitle={
+              meetingTitle || currentMeeting?.title || "Meeting Positions"
+            }
             clientTicker={clientTicker || currentMeeting?.ticker || ""}
             filters={filters}
             onFiltersChange={(nextFilters) => setFilters(nextFilters)}

@@ -111,7 +111,10 @@ export function SignatureFromJSON(json: any): Signature {
   return SignatureFromJSONTyped(json, false);
 }
 
-export function SignatureFromJSONTyped(json: any, ignoreDiscriminator: boolean): Signature {
+export function SignatureFromJSONTyped(
+  json: any,
+  ignoreDiscriminator: boolean
+): Signature {
   if (json == null) {
     return json;
   }
@@ -123,11 +126,15 @@ export function SignatureFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     yPosition: json["yPosition"] == null ? undefined : json["yPosition"],
     width: json["width"] == null ? undefined : json["width"],
     height: json["height"] == null ? undefined : json["height"],
-    signatureType: json["signatureType"] == null ? undefined : json["signatureType"],
+    signatureType:
+      json["signatureType"] == null ? undefined : json["signatureType"],
     required: json["required"] == null ? undefined : json["required"],
-    createdAt: json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
-    updatedAt: json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
-    document: json["document"] == null ? undefined : DocumentFromJSON(json["document"]),
+    createdAt:
+      json["createdAt"] == null ? undefined : new Date(json["createdAt"]),
+    updatedAt:
+      json["updatedAt"] == null ? undefined : new Date(json["updatedAt"]),
+    document:
+      json["document"] == null ? undefined : DocumentFromJSON(json["document"]),
   };
 }
 
@@ -137,7 +144,7 @@ export function SignatureToJSON(json: any): Signature {
 
 export function SignatureToJSONTyped(
   value?: Signature | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;
@@ -153,8 +160,10 @@ export function SignatureToJSONTyped(
     height: value["height"],
     signatureType: value["signatureType"],
     required: value["required"],
-    createdAt: value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
-    updatedAt: value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
+    createdAt:
+      value["createdAt"] == null ? undefined : value["createdAt"].toISOString(),
+    updatedAt:
+      value["updatedAt"] == null ? undefined : value["updatedAt"].toISOString(),
     document: DocumentToJSON(value["document"]),
   };
 }

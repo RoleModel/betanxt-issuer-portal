@@ -5,7 +5,9 @@ test.describe("Comprehensive API Tests", () => {
 
   // Meeting API Tests
   test.describe("Meeting API", () => {
-    test("GET /api/meetings should return paginated results", async ({ request }) => {
+    test("GET /api/meetings should return paginated results", async ({
+      request,
+    }) => {
       const response = await request.get(`${API_BASE_URL}/meetings`);
       expect(response.status()).toBe(200);
 
@@ -19,7 +21,9 @@ test.describe("Comprehensive API Tests", () => {
     });
 
     test("GET /api/meetings with filters should work", async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings?status=ACTIVE&meetingYear=2025`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings?status=ACTIVE&meetingYear=2025`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -38,8 +42,12 @@ test.describe("Comprehensive API Tests", () => {
       expect(Array.isArray(data.positions)).toBe(true);
     });
 
-    test("GET /api/positions with meetingId filter should work", async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/positions?meetingId=ELVN-2025-SM`);
+    test("GET /api/positions with meetingId filter should work", async ({
+      request,
+    }) => {
+      const response = await request.get(
+        `${API_BASE_URL}/positions?meetingId=ELVN-2025-SM`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -53,7 +61,9 @@ test.describe("Comprehensive API Tests", () => {
     test("GET /api/meetings/{meetingId}/tasks should return tasks for meeting", async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/tasks`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/tasks`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -63,7 +73,9 @@ test.describe("Comprehensive API Tests", () => {
     test("GET /api/meetings/{meetingId}/tasks with no filters should return all tasks for meeting", async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/tasks`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/tasks`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -76,7 +88,9 @@ test.describe("Comprehensive API Tests", () => {
     test("GET /api/meetings/{meetingId}/documents should return documents for meeting", async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/documents`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/documents`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -86,7 +100,9 @@ test.describe("Comprehensive API Tests", () => {
     test("GET /api/meetings/{meetingId}/documents with no filters should return all documents for meeting", async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/documents`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/documents`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -99,7 +115,9 @@ test.describe("Comprehensive API Tests", () => {
     test("GET /api/meetings/{meetingId}/proposals should return proposals for meeting", async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/proposals`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/proposals`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -109,7 +127,9 @@ test.describe("Comprehensive API Tests", () => {
     test("GET /api/meetings/{meetingId}/proposals with no filters should return all proposals for meeting", async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/proposals`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/proposals`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -122,7 +142,9 @@ test.describe("Comprehensive API Tests", () => {
     test("GET /api/meetings/{meetingId}/phases should return phases for meeting", async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/phases`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/phases`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -132,7 +154,9 @@ test.describe("Comprehensive API Tests", () => {
     test("GET /api/meetings/{meetingId}/phases with no filters should return all phases for meeting", async ({
       request,
     }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/ELVN-2025-SM/phases`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/ELVN-2025-SM/phases`
+      );
       expect(response.status()).toBe(200);
 
       const data = await response.json();
@@ -154,12 +178,18 @@ test.describe("Comprehensive API Tests", () => {
   // Error Handling Tests
   test.describe("Error Handling", () => {
     test("should handle 404 for non-existent meeting", async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings/non-existent-id`);
+      const response = await request.get(
+        `${API_BASE_URL}/meetings/non-existent-id`
+      );
       expect(response.status()).toBe(404);
     });
 
-    test("should handle invalid query parameters gracefully", async ({ request }) => {
-      const response = await request.get(`${API_BASE_URL}/meetings?invalidParam=value&page=abc`);
+    test("should handle invalid query parameters gracefully", async ({
+      request,
+    }) => {
+      const response = await request.get(
+        `${API_BASE_URL}/meetings?invalidParam=value&page=abc`
+      );
       // Should either work (ignoring invalid params) or return a validation error
       expect([200, 400]).toContain(response.status());
     });

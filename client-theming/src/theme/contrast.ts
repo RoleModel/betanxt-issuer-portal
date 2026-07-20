@@ -28,6 +28,12 @@ export const CONTRAST_THRESHOLD = 4.5;
  * contrastText("#DAD55E"); // "#111"
  * ```
  */
-export function contrastText(background: string, light = "#fff", dark = "#111"): string {
-  return getContrastRatio(background, "#fff") > CONTRAST_THRESHOLD ? light : dark;
+export function contrastText(
+  background: string,
+  light = "#fff",
+  dark = "#111"
+): string {
+  return getContrastRatio(background, "#fff") > CONTRAST_THRESHOLD
+    ? light
+    : dark;
 }

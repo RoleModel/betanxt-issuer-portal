@@ -23,7 +23,9 @@ export const enqueueChatbotAction = (action: ChatbotAction): string => {
   });
 
   const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
-  pendingActions = pendingActions.filter((item) => item.timestamp > fiveMinutesAgo);
+  pendingActions = pendingActions.filter(
+    (item) => item.timestamp > fiveMinutesAgo
+  );
 
   return actionId;
 };

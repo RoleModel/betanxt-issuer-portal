@@ -14,7 +14,10 @@ function globalSetup() {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     console.warn("Warning: Missing required environment variables for tests");
     console.warn("SUPABASE_URL:", !!process.env.SUPABASE_URL);
-    console.warn("SUPABASE_SERVICE_ROLE_KEY:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.warn(
+      "SUPABASE_SERVICE_ROLE_KEY:",
+      !!process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
   }
 }
 

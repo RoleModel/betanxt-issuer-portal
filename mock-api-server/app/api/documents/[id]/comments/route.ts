@@ -26,8 +26,8 @@ export async function GET(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "getDocumentComments",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }
@@ -56,8 +56,8 @@ export async function POST(): Promise<NextResponse> {
           message: error instanceof Error ? error.message : "Unknown error",
           operationId: "addComment",
         },
-        { status: 500 },
-      ),
+        { status: 500 }
+      )
     );
   }
 }

@@ -170,7 +170,8 @@ function identify({
   cookies: ReadonlyRequestCookies;
   headers: ReadonlyHeaders;
 }): Entities {
-  const visitorId = cookies.get("visitorId")?.value ?? headers.get("x-visitorId");
+  const visitorId =
+    cookies.get("visitorId")?.value ?? headers.get("x-visitorId");
   return { visitorId };
 }
 
@@ -251,7 +252,10 @@ import { computeInternalRoute } from "$lib/precomputed-flags";
 import { text } from "@sveltejs/kit";
 
 export async function GET({ url, request }) {
-  const destination = await computeInternalRoute(url.searchParams.get("pathname")!, request);
+  const destination = await computeInternalRoute(
+    url.searchParams.get("pathname")!,
+    request
+  );
   return text(destination);
 }
 ```
@@ -270,7 +274,9 @@ export const config = { matcher: ["/pricing"] };
 export default async function middleware(request: Request) {
   const { url, denormalize } = normalizeUrl(request.url);
   if (url.pathname === "/pricing") {
-    return rewrite(denormalize(await computeInternalRoute(url.pathname, request)));
+    return rewrite(
+      denormalize(await computeInternalRoute(url.pathname, request))
+    );
   }
 }
 ```
@@ -364,7 +370,10 @@ import { normalizeUrl } from "@sveltejs/kit";
 import { rewrite } from "@vercel/edge";
 import { parse } from "cookie";
 
-import { computeInternalRoute, createVisitorId } from "./src/lib/precomputed-flags";
+import {
+  computeInternalRoute,
+  createVisitorId,
+} from "./src/lib/precomputed-flags";
 
 export const config = { matcher: ["/examples/marketing-pages"] };
 
@@ -377,7 +386,9 @@ export default async function middleware(request: Request) {
     request.headers.set("x-visitorId", visitorId);
   }
 
-  return rewrite(denormalize(await computeInternalRoute(url.pathname, request)));
+  return rewrite(
+    denormalize(await computeInternalRoute(url.pathname, request))
+  );
 }
 ```
 
@@ -392,7 +403,8 @@ interface Entities {
 }
 
 function identify({ cookies, headers }) {
-  const visitorId = cookies.get("visitorId")?.value ?? headers.get("x-visitorId");
+  const visitorId =
+    cookies.get("visitorId")?.value ?? headers.get("x-visitorId");
   if (!visitorId) throw new Error("Visitor ID not found");
   return { visitorId };
 }

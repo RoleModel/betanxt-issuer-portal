@@ -1,6 +1,13 @@
 "use client";
 
-import { Document, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  StyleSheet,
+  Text,
+  View,
+  pdf,
+} from "@react-pdf/renderer";
 import React from "react";
 
 import {
@@ -95,18 +102,42 @@ const VoteRow: React.FC<VoteRowProps> = ({
 }) => (
   <View style={reportStyles.tableRow}>
     <Text style={[reportStyles.cellLabel, columnWidths.label]}>{label}</Text>
-    <Text style={[reportStyles.cell, columnWidths.votes, reportStyles.cellRight]}>
+    <Text
+      style={[reportStyles.cell, columnWidths.votes, reportStyles.cellRight]}
+    >
       {formatNumber(votes)}
     </Text>
-    <Text style={[reportStyles.cell, columnWidths.percentOutstanding, reportStyles.cellRight]}>
-      {formatReportPercent(totalOutstanding > 0 ? (votes / totalOutstanding) * 100 : 0)}
-    </Text>
-    <Text style={[reportStyles.cell, columnWidths.percentTotal, reportStyles.cellRight]}>
+    <Text
+      style={[
+        reportStyles.cell,
+        columnWidths.percentOutstanding,
+        reportStyles.cellRight,
+      ]}
+    >
       {formatReportPercent(
-        votesRepresentedForQuorum > 0 ? (votes / votesRepresentedForQuorum) * 100 : 0,
+        totalOutstanding > 0 ? (votes / totalOutstanding) * 100 : 0
       )}
     </Text>
-    <Text style={[reportStyles.cell, columnWidths.percentProposal, reportStyles.cellRight]}>
+    <Text
+      style={[
+        reportStyles.cell,
+        columnWidths.percentTotal,
+        reportStyles.cellRight,
+      ]}
+    >
+      {formatReportPercent(
+        votesRepresentedForQuorum > 0
+          ? (votes / votesRepresentedForQuorum) * 100
+          : 0
+      )}
+    </Text>
+    <Text
+      style={[
+        reportStyles.cell,
+        columnWidths.percentProposal,
+        reportStyles.cellRight,
+      ]}
+    >
       {formatReportPercent(percentOfProposal)}
     </Text>
   </View>
@@ -194,9 +225,11 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
   // of N directors") followed by one section per nominee.
   const directorProposals = proposals.filter((p) => p.directorName);
   const otherProposals = proposals.filter((p) => !p.directorName);
-  const directorGroupNumber = directorProposals[0]?.proposalNumber.split(".")[0];
+  const directorGroupNumber =
+    directorProposals[0]?.proposalNumber.split(".")[0];
   const directorGroupTitle =
-    directorProposals[0]?.title || `The election of ${directorProposals.length} directors`;
+    directorProposals[0]?.title ||
+    `The election of ${directorProposals.length} directors`;
 
   return (
     <Document>
@@ -212,7 +245,10 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
         <ReportMetaGrid
           items={[
             { label: "Company Name:", value: companyName },
-            { label: "Total Outstanding:", value: formatNumber(totalOutstanding) },
+            {
+              label: "Total Outstanding:",
+              value: formatNumber(totalOutstanding),
+            },
             { label: "Type:", value: meetingType },
             {
               label: "Votes Represented for Quorum:",
@@ -221,7 +257,10 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
             { label: "Meeting Date:", value: formatReportDate(meetingDate) },
             { label: "Quorum:", value: formatReportPercent(quorumPercentage) },
             { label: "Record Date:", value: formatReportDate(recordDate) },
-            { label: "% Needed for Quorum:", value: `${quorumRequirement} + 1 Vote` },
+            {
+              label: "% Needed for Quorum:",
+              value: `${quorumRequirement} + 1 Vote`,
+            },
             { label: "", value: "" },
             {
               label: "Votes over / (under) Quorum:",
@@ -231,14 +270,22 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
         />
 
         <View style={reportStyles.metaFullRow}>
-          <Text style={[reportStyles.metaLabel, { width: "23%" }]}>CUSIP(s) (multiplier):</Text>
+          <Text style={[reportStyles.metaLabel, { width: "23%" }]}>
+            CUSIP(s) (multiplier):
+          </Text>
           <Text style={reportStyles.metaValue}>{cusipList || "N/A"}</Text>
         </View>
 
         {/* Column headers */}
         <View style={[reportStyles.tableHeaderRow, { marginTop: 18 }]}>
           <View style={columnWidths.label} />
-          <Text style={[reportStyles.headerCell, columnWidths.votes, reportStyles.cellRight]}>
+          <Text
+            style={[
+              reportStyles.headerCell,
+              columnWidths.votes,
+              reportStyles.cellRight,
+            ]}
+          >
             Vote{"\n"}Submitted
           </Text>
           <Text
@@ -251,12 +298,20 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
             % of{"\n"}Outstanding
           </Text>
           <Text
-            style={[reportStyles.headerCell, columnWidths.percentTotal, reportStyles.cellRight]}
+            style={[
+              reportStyles.headerCell,
+              columnWidths.percentTotal,
+              reportStyles.cellRight,
+            ]}
           >
             % of{"\n"}Total Voted
           </Text>
           <Text
-            style={[reportStyles.headerCell, columnWidths.percentProposal, reportStyles.cellRight]}
+            style={[
+              reportStyles.headerCell,
+              columnWidths.percentProposal,
+              reportStyles.cellRight,
+            ]}
           >
             % of{"\n"}Proposal Votes
           </Text>
@@ -274,7 +329,9 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                   <Text style={[reportStyles.sectionCell, columnWidths.label]}>
                     Proposal {directorGroupNumber}
                   </Text>
-                  <Text style={[reportStyles.sectionCell, { flex: 1 }]}>{directorGroupTitle}</Text>
+                  <Text style={[reportStyles.sectionCell, { flex: 1 }]}>
+                    {directorGroupTitle}
+                  </Text>
                 </View>
                 {directorProposals.map((proposal, index) => (
                   <ProposalSection
@@ -308,7 +365,8 @@ export async function exportTabulationPdf(options: ExportOptions) {
   const { tabulationData, clientTicker } = options;
 
   try {
-    const { clientLogoUrl, betanxtLogoUrl } = await resolveReportLogos(clientTicker);
+    const { clientLogoUrl, betanxtLogoUrl } =
+      await resolveReportLogos(clientTicker);
 
     const pdfBlob = await pdf(
       <TabulationPDFDocument
@@ -316,7 +374,7 @@ export async function exportTabulationPdf(options: ExportOptions) {
         clientTicker={clientTicker}
         clientLogoUrl={clientLogoUrl}
         betanxtLogoUrl={betanxtLogoUrl}
-      />,
+      />
     ).toBlob();
 
     const fileName = `${tabulationData.companyName.replace(/\s+/g, "_")}_Tabulation_Report_${

@@ -39,7 +39,11 @@ export interface UseTasksResult {
   loading: boolean;
   error: string | null;
   refetch: () => void;
-  updateTaskById: (id: string, updates: Partial<Task>, skipSync?: boolean) => Promise<void>;
+  updateTaskById: (
+    id: string,
+    updates: Partial<Task>,
+    skipSync?: boolean
+  ) => Promise<void>;
   createNewTask: (meetingId: string, task: Partial<Task>) => Promise<void>;
 }
 
@@ -75,12 +79,14 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
         // Convert to the correct API format
         const apiUpdates: Record<string, unknown> = {};
         if (updates.title !== undefined) apiUpdates.title = updates.title;
-        if (updates.description !== undefined) apiUpdates.description = updates.description;
+        if (updates.description !== undefined)
+          apiUpdates.description = updates.description;
         if (updates.type !== undefined) apiUpdates.type = updates.type;
         if (updates.status !== undefined) apiUpdates.status = updates.status;
         if (updates.dueDate !== undefined) apiUpdates.dueDate = updates.dueDate;
         if (updates.owner !== undefined) apiUpdates.owner = updates.owner;
-        if (updates.documentId !== undefined) apiUpdates.documentId = updates.documentId;
+        if (updates.documentId !== undefined)
+          apiUpdates.documentId = updates.documentId;
         if (updates.links !== undefined) apiUpdates.links = updates.links;
 
         const apiClient = await buildApiClient();
@@ -93,7 +99,9 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
 
         if (updateError) {
           console.error("API error updating task:", updateError);
-          throw new Error(`Failed to update task: ${JSON.stringify(updateError)}`);
+          throw new Error(
+            `Failed to update task: ${JSON.stringify(updateError)}`
+          );
         }
 
         await fetchData();
@@ -105,13 +113,13 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
             // Create a wrapper that sets skipSync=true to prevent infinite recursion
             const updateWithoutSync = (
               taskId: string,
-              taskUpdates: { status: components["schemas"]["TaskStatus"] },
+              taskUpdates: { status: components["schemas"]["TaskStatus"] }
             ) => updateTaskById(taskId, taskUpdates, true);
 
             const syncedIds = await syncCarryoverTaskStatus(
               { ...updatedTask, status: updates.status },
               tasks,
-              updateWithoutSync,
+              updateWithoutSync
             );
 
             // Refresh data if any tasks were synced
@@ -126,7 +134,7 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
         throw err;
       }
     },
-    [fetchData, tasks],
+    [fetchData, tasks]
   );
 
   const createNewTask = useCallback(
@@ -137,14 +145,17 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
         const taskData: Record<string, unknown> = {};
         if (task.taskId !== undefined) taskData.taskId = task.taskId;
         if (task.phaseId !== undefined) taskData.phaseId = task.phaseId;
-        if (task.phaseNumber !== undefined) taskData.phaseNumber = task.phaseNumber;
+        if (task.phaseNumber !== undefined)
+          taskData.phaseNumber = task.phaseNumber;
         if (task.title !== undefined) taskData.title = task.title;
-        if (task.description !== undefined) taskData.description = task.description;
+        if (task.description !== undefined)
+          taskData.description = task.description;
         if (task.type !== undefined) taskData.type = task.type;
         if (task.status !== undefined) taskData.status = task.status;
         if (task.dueDate !== undefined) taskData.dueDate = task.dueDate;
         if (task.owner !== undefined) taskData.owner = task.owner;
-        if (task.documentId !== undefined) taskData.documentId = task.documentId;
+        if (task.documentId !== undefined)
+          taskData.documentId = task.documentId;
         if (task.links !== undefined) taskData.links = task.links;
 
         const apiClient = await buildApiClient();
@@ -166,7 +177,7 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
         throw err;
       }
     },
-    [fetchData],
+    [fetchData]
   );
 
   return {

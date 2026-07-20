@@ -5,6 +5,9 @@
       {
         "command": ".cursor/hooks/format-after-edit.sh",
         "timeout": 30
+      },
+      {
+        "command": "pnpm run fix"
       }
     ]
   }

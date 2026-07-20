@@ -9,7 +9,12 @@ import { useClient } from "@/contexts/ClientContext";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
-  const { currentClient, availableClients, loading: clientLoading, error } = useClient();
+  const {
+    currentClient,
+    availableClients,
+    loading: clientLoading,
+    error,
+  } = useClient();
   const router = useRouter();
   const [showError, setShowError] = useState(false);
   const [hasRedirected, setHasRedirected] = useState(false);
@@ -40,7 +45,11 @@ export default function HomePage() {
     const clientTicker = session?.user?.client_ticker;
 
     // PARENT_CLIENT, SOLICITOR, and CSM users go to the events overview dashboard
-    if (userType === "PARENT_CLIENT" || userType === "SOLICITOR" || userType === "CSM") {
+    if (
+      userType === "PARENT_CLIENT" ||
+      userType === "SOLICITOR" ||
+      userType === "CSM"
+    ) {
       setHasRedirected(true);
       router.push("/events");
       return;

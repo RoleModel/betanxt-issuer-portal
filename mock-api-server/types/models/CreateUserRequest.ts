@@ -73,7 +73,9 @@ export interface CreateUserRequest {
 /**
  * Check if a given object implements the CreateUserRequest interface.
  */
-export function instanceOfCreateUserRequest(value: object): value is CreateUserRequest {
+export function instanceOfCreateUserRequest(
+  value: object
+): value is CreateUserRequest {
   if (!("username" in value) || value["username"] === undefined) return false;
   if (!("firstName" in value) || value["firstName"] === undefined) return false;
   if (!("lastName" in value) || value["lastName"] === undefined) return false;
@@ -89,7 +91,7 @@ export function CreateUserRequestFromJSON(json: any): CreateUserRequest {
 
 export function CreateUserRequestFromJSONTyped(
   json: any,
-  ignoreDiscriminator: boolean,
+  ignoreDiscriminator: boolean
 ): CreateUserRequest {
   if (json == null) {
     return json;
@@ -111,7 +113,7 @@ export function CreateUserRequestToJSON(json: any): CreateUserRequest {
 
 export function CreateUserRequestToJSONTyped(
   value?: CreateUserRequest | null,
-  ignoreDiscriminator: boolean = false,
+  ignoreDiscriminator: boolean = false
 ): any {
   if (value == null) {
     return value;

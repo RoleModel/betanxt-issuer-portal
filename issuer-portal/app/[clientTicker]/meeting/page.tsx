@@ -72,18 +72,20 @@ export default function MeetingsPage() {
       const meetingsData = data as Meeting[];
 
       // Calculate days until meeting
-      const meetingsWithData: MeetingData[] = meetingsData.map((meeting: Meeting) => {
-        const meetingDate = new Date(meeting.meetingDate ?? "");
-        const today = new Date();
-        const daysUntilMeeting = Math.ceil(
-          (meetingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-        );
+      const meetingsWithData: MeetingData[] = meetingsData.map(
+        (meeting: Meeting) => {
+          const meetingDate = new Date(meeting.meetingDate ?? "");
+          const today = new Date();
+          const daysUntilMeeting = Math.ceil(
+            (meetingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+          );
 
-        return {
-          ...meeting,
-          daysUntilMeeting,
-        };
-      });
+          return {
+            ...meeting,
+            daysUntilMeeting,
+          };
+        }
+      );
 
       setMeetings(meetingsWithData);
     } catch (error) {
@@ -202,7 +204,9 @@ export default function MeetingsPage() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body3">
-                        {meeting.meetingDate ? formatDate(meeting.meetingDate) : "TBD"}
+                        {meeting.meetingDate
+                          ? formatDate(meeting.meetingDate)
+                          : "TBD"}
                       </Typography>
                       {meeting.daysUntilMeeting > 0 && (
                         <Typography variant="caption" color="text.secondary">
@@ -211,7 +215,10 @@ export default function MeetingsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <StatusChip status={meeting.status ?? "ACTIVE"} size="small" />
+                      <StatusChip
+                        status={meeting.status ?? "ACTIVE"}
+                        size="small"
+                      />
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", gap: 1 }}>
@@ -241,7 +248,9 @@ export default function MeetingsPage() {
 
           {meetings.length === 0 && (
             <Box sx={{ p: 4, textAlign: "center" }}>
-              <Typography color="text.secondary">No active meetings found.</Typography>
+              <Typography color="text.secondary">
+                No active meetings found.
+              </Typography>
             </Box>
           )}
         </CardContent>

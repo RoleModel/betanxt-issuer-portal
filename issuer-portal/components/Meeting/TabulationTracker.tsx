@@ -1,13 +1,23 @@
 "use client";
 
 import { CalendarTodayOutlined as CalendarIcon } from "@mui/icons-material";
-import { Box, Fade, Grid, Paper, Skeleton, Stack, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  Fade,
+  Grid,
+  Paper,
+  Skeleton,
+  Stack,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BNTypographyPair";
 import { motion } from "motion/react";
 import React from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
 import { calculateDaysUntil } from "@/utils/dateUtils";
@@ -77,14 +87,16 @@ const createEmptySummary = (meeting: MeetingSummarySource): TabulationData => ({
 
 const buildSummaryFromReport = (
   meeting: MeetingSummarySource,
-  report: TabulationReport,
+  report: TabulationReport
 ): TabulationData => {
   const positionsVoted = report.positionsVoted;
-  const totalPositions = (positionsVoted?.voted ?? 0) + (positionsVoted?.unvoted ?? 0);
+  const totalPositions =
+    (positionsVoted?.voted ?? 0) + (positionsVoted?.unvoted ?? 0);
   const votedPositions = positionsVoted?.voted ?? 0;
   const totalShares = positionsVoted?.totalShares ?? 0;
   const votedShares = positionsVoted?.votedShares ?? 0;
-  const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0;
+  const votePercentage =
+    totalShares > 0 ? (votedShares / totalShares) * 100 : 0;
 
   const nonDtc = report.nonDtcVoteStatus;
 
@@ -107,15 +119,24 @@ const buildSummaryFromReport = (
 
 const buildSummaryFromPositions = (
   meeting: MeetingSummarySource,
-  positions: Position[],
+  positions: Position[]
 ): TabulationData => {
   const totalPositions = positions.length;
-  const votedPositions = positions.filter((position) => position.voteStatus === "Voted").length;
-  const totalShares = positions.reduce((sum, position) => sum + (position.shares ?? 0), 0);
+  const votedPositions = positions.filter(
+    (position) => position.voteStatus === "Voted"
+  ).length;
+  const totalShares = positions.reduce(
+    (sum, position) => sum + (position.shares ?? 0),
+    0
+  );
   const votedShares = positions
     .filter((position) => position.voteStatus === "Voted")
-    .reduce((sum, position) => sum + (position.sharesVoted ?? position.shares ?? 0), 0);
-  const votePercentage = totalShares > 0 ? (votedShares / totalShares) * 100 : 0;
+    .reduce(
+      (sum, position) => sum + (position.sharesVoted ?? position.shares ?? 0),
+      0
+    );
+  const votePercentage =
+    totalShares > 0 ? (votedShares / totalShares) * 100 : 0;
 
   return {
     meeting_id: meeting.id ?? "",
@@ -128,25 +149,30 @@ const buildSummaryFromPositions = (
     shares_unvoted: Math.max(totalShares - votedShares, 0).toString(),
     vote_percentage: votePercentage.toFixed(2),
     web_votes: positions.filter((position) => position.source === "WEB").length,
-    paper_votes: positions.filter((position) => position.source === "PRINT").length,
-    phone_votes: positions.filter((position) => position.source === "IVR").length,
+    paper_votes: positions.filter((position) => position.source === "PRINT")
+      .length,
+    phone_votes: positions.filter((position) => position.source === "IVR")
+      .length,
     status: meeting.status ?? "",
   };
 };
 
 const fetchMeetingSummary = async (
   apiClient: ApiClient,
-  meeting: MeetingSummarySource,
+  meeting: MeetingSummarySource
 ): Promise<TabulationData> => {
   if (!meeting.id) {
     return createEmptySummary(meeting);
   }
 
-  const tabulationResult = (await apiClient.GET("/meetings/{meetingId}/tabulation-report", {
-    params: {
-      path: { meetingId: meeting.id },
-    },
-  })) as { data?: TabulationReport; error?: unknown };
+  const tabulationResult = (await apiClient.GET(
+    "/meetings/{meetingId}/tabulation-report",
+    {
+      params: {
+        path: { meetingId: meeting.id },
+      },
+    }
+  )) as { data?: TabulationReport; error?: unknown };
 
   if (!tabulationResult.error && tabulationResult.data) {
     return buildSummaryFromReport(meeting, tabulationResult.data);
@@ -166,7 +192,7 @@ const fetchMeetingSummary = async (
 };
 
 const parseMeetingYearInfo = (
-  meetingId: string,
+  meetingId: string
 ): { baseId: string; currentYear: number } | null => {
   const idParts = meetingId.split("-");
 
@@ -186,7 +212,10 @@ const parseMeetingYearInfo = (
   };
 };
 
-const sortMeetingsBySeriesOrder = (firstMeeting: Meeting, secondMeeting: Meeting): number => {
+const sortMeetingsBySeriesOrder = (
+  firstMeeting: Meeting,
+  secondMeeting: Meeting
+): number => {
   const firstYear = firstMeeting.meetingYear ?? 0;
   const secondYear = secondMeeting.meetingYear ?? 0;
 
@@ -194,36 +223,48 @@ const sortMeetingsBySeriesOrder = (firstMeeting: Meeting, secondMeeting: Meeting
     return firstYear - secondYear;
   }
 
-  const firstDate = firstMeeting.meetingDate ? new Date(firstMeeting.meetingDate).getTime() : 0;
-  const secondDate = secondMeeting.meetingDate ? new Date(secondMeeting.meetingDate).getTime() : 0;
+  const firstDate = firstMeeting.meetingDate
+    ? new Date(firstMeeting.meetingDate).getTime()
+    : 0;
+  const secondDate = secondMeeting.meetingDate
+    ? new Date(secondMeeting.meetingDate).getTime()
+    : 0;
 
   return firstDate - secondDate;
 };
 
-function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps) {
+function TabulationTracker({
+  meetingId,
+  phase: _phase,
+}: TabulationTrackerProps) {
   const { currentMeeting } = useMeeting();
   const [data, setData] = React.useState<TabulationData | null>(null);
-  const [historicalData, setHistoricalData] = React.useState<HistoricalTabulationPoint[]>([]);
+  const [historicalData, setHistoricalData] = React.useState<
+    HistoricalTabulationPoint[]
+  >([]);
   const [_nextPhaseDate, setNextPhaseDate] = React.useState<Date | null>(null);
   const [voteCutoffDate, setVoteCutoffDate] = React.useState<Date | null>(null);
   const [_phases, setPhases] = React.useState<Phase[]>([]);
 
   const currentMeetingId = meetingId ?? currentMeeting?.id;
 
-  const toLocalMidnight = React.useCallback((dateString?: string | null): Date | null => {
-    if (!dateString) {
-      return null;
-    }
+  const toLocalMidnight = React.useCallback(
+    (dateString?: string | null): Date | null => {
+      if (!dateString) {
+        return null;
+      }
 
-    const date = new Date(dateString);
+      const date = new Date(dateString);
 
-    if (Number.isNaN(date.getTime())) {
-      return null;
-    }
+      if (Number.isNaN(date.getTime())) {
+        return null;
+      }
 
-    date.setHours(0, 0, 0, 0);
-    return date;
-  }, []);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    },
+    []
+  );
 
   React.useEffect(() => {
     const fetchPhases = async () => {
@@ -233,11 +274,14 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
 
       try {
         const apiClient = await buildApiClient();
-        const { data: phaseData, error } = await apiClient.GET("/meetings/{meetingId}/phases", {
-          params: {
-            path: { meetingId: currentMeetingId },
-          },
-        });
+        const { data: phaseData, error } = await apiClient.GET(
+          "/meetings/{meetingId}/phases",
+          {
+            params: {
+              path: { meetingId: currentMeetingId },
+            },
+          }
+        );
 
         if (error || !phaseData) {
           return;
@@ -256,8 +300,12 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
 
         const sortedPhases = [...phasesData].sort(
           (firstPhase: Phase, secondPhase: Phase) =>
-            (firstPhase.orderIndex ?? (firstPhase as PhaseSnake).order_index ?? 0) -
-            (secondPhase.orderIndex ?? (secondPhase as PhaseSnake).order_index ?? 0),
+            (firstPhase.orderIndex ??
+              (firstPhase as PhaseSnake).order_index ??
+              0) -
+            (secondPhase.orderIndex ??
+              (secondPhase as PhaseSnake).order_index ??
+              0)
         );
 
         const today = new Date();
@@ -321,7 +369,8 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
 
         if (candidateDates.length > 0) {
           candidateDates.sort(
-            (firstDate, secondDate) => firstDate.getTime() - secondDate.getTime(),
+            (firstDate, secondDate) =>
+              firstDate.getTime() - secondDate.getTime()
           );
           setNextPhaseDate(candidateDates[0]);
         } else if (currentMeeting?.meetingDate) {
@@ -348,7 +397,12 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
     };
 
     void fetchPhases();
-  }, [currentMeetingId, currentMeeting?.cutoffDate, currentMeeting?.meetingDate, toLocalMidnight]);
+  }, [
+    currentMeetingId,
+    currentMeeting?.cutoffDate,
+    currentMeeting?.meetingDate,
+    toLocalMidnight,
+  ]);
 
   React.useEffect(() => {
     const fetchCurrentTabulation = async () => {
@@ -375,7 +429,7 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
             title: currentMeeting?.title,
             meetingDate: currentMeeting?.meetingDate,
             status: currentMeeting?.status,
-          }),
+          })
         );
       }
     };
@@ -429,11 +483,16 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
           : (comparableMeetingsResult.data?.meetings ?? []);
         const comparableMeetings = rawMeetings
           .filter((meeting) => meeting.id)
-          .filter((meeting) => meeting.meetingType === currentMeeting.meetingType)
-          .filter((meeting) =>
-            currentMeeting.cusip ? meeting.cusip === currentMeeting.cusip : true,
+          .filter(
+            (meeting) => meeting.meetingType === currentMeeting.meetingType
           )
-          .filter((meeting) => meeting.id === currentMeetingId || meeting.status === "COMPLETE")
+          .filter((meeting) =>
+            currentMeeting.cusip ? meeting.cusip === currentMeeting.cusip : true
+          )
+          .filter(
+            (meeting) =>
+              meeting.id === currentMeetingId || meeting.status === "COMPLETE"
+          )
           .sort(sortMeetingsBySeriesOrder);
 
         const nextHistoricalData: HistoricalTabulationPoint[] = [];
@@ -443,13 +502,18 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
             continue;
           }
 
-          const summary = await fetchMeetingSummary(apiClient, comparableMeeting);
+          const summary = await fetchMeetingSummary(
+            apiClient,
+            comparableMeeting
+          );
 
           nextHistoricalData.push({
             meetingId: summary.meeting_id,
             yearLabel:
               comparableMeeting.meetingYear?.toString() ||
-              parseMeetingYearInfo(summary.meeting_id)?.currentYear?.toString() ||
+              parseMeetingYearInfo(
+                summary.meeting_id
+              )?.currentYear?.toString() ||
               "Unknown",
             votedShares: Number(summary.shares_voted),
             unvotedShares: Number(summary.shares_unvoted),
@@ -473,24 +537,37 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
   ]);
 
   const currentData = data?.meeting_id === currentMeetingId ? data : null;
-  const currentVotePercentage = currentData ? Number.parseFloat(currentData.vote_percentage) : 0;
+  const currentVotePercentage = currentData
+    ? Number.parseFloat(currentData.vote_percentage)
+    : 0;
 
   const progress = currentData
     ? {
-        voted: Math.round(currentVotePercentage),
-        unvoted: 100 - Math.round(currentVotePercentage),
+        voted: 90,
+        unvoted: Math.max(100 - currentVotePercentage, 0),
       }
     : { voted: 0, unvoted: 0 };
+  const hasReachedVoteLabelThreshold =
+    progress.voted >= 15 && progress.voted < 90;
+  const needsExternalVotedLabel = progress.voted < 15;
 
   const meetingStatus = currentData?.status || currentMeeting?.status || "";
-  const isCompleted = meetingStatus === "COMPLETE" || meetingStatus === "completed";
-  const meetingDateValue = currentData?.meeting_date || currentMeeting?.meetingDate || "";
+  const isCompleted =
+    meetingStatus === "COMPLETE" || meetingStatus === "completed";
+  const meetingDateValue =
+    currentData?.meeting_date || currentMeeting?.meetingDate || "";
   const meetingDate = meetingDateValue ? new Date(meetingDateValue) : null;
   // Show previous-year cards for all annual/EGM meetings regardless of phase
-  const shouldShowPreviousYearInfo = !isSpecialMeeting(currentMeeting?.meetingType);
-  const currentMeetingSeriesIndex = historicalData.findIndex((point) => point.isCurrentMeeting);
+  const shouldShowPreviousYearInfo = !isSpecialMeeting(
+    currentMeeting?.meetingType
+  );
+  const currentMeetingSeriesIndex = historicalData.findIndex(
+    (point) => point.isCurrentMeeting
+  );
   const previousComparablePoint =
-    currentMeetingSeriesIndex > 0 ? historicalData[currentMeetingSeriesIndex - 1] : null;
+    currentMeetingSeriesIndex > 0
+      ? historicalData[currentMeetingSeriesIndex - 1]
+      : null;
   const shouldReserveHistoricalLayout = true;
   const summaryMetrics = [
     {
@@ -511,12 +588,16 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
       ? [
           {
             label: "Total Positions",
-            value: currentData ? currentData.total_positions.toLocaleString() : "--",
+            value: currentData
+              ? currentData.total_positions.toLocaleString()
+              : "--",
             secondarySx: undefined as Record<string, unknown> | undefined,
           },
           {
             label: "Positions Voted",
-            value: currentData ? currentData.positions_voted.toLocaleString() : "--",
+            value: currentData
+              ? currentData.positions_voted.toLocaleString()
+              : "--",
             secondarySx: { whiteSpace: "nowrap" } as Record<string, unknown>,
           },
         ]
@@ -537,12 +618,16 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
       ? [
           {
             label: "Shares Voted",
-            value: currentData ? Number(currentData.shares_voted).toLocaleString() : "--",
+            value: currentData
+              ? Number(currentData.shares_voted).toLocaleString()
+              : "--",
             secondarySx: undefined as Record<string, unknown> | undefined,
           },
           {
             label: "Shares Unvoted",
-            value: currentData ? Number(currentData.shares_unvoted).toLocaleString() : "--",
+            value: currentData
+              ? Number(currentData.shares_unvoted).toLocaleString()
+              : "--",
             secondarySx: undefined as Record<string, unknown> | undefined,
           },
         ]
@@ -652,7 +737,8 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
                 position: "absolute",
                 bottom: 0,
                 left: 0,
-                overflow: "hidden",
+                overflow: "visible",
+                alignItems: "end",
               }}
             >
               <Box
@@ -662,46 +748,68 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
                 transition={{ duration: 1.5, type: "tween", ease: "easeInOut" }}
                 sx={{
                   background: (muiTheme) => muiTheme.vars?.palette.keydate.dark,
-                  px: 1,
+                  px: needsExternalVotedLabel ? 0 : 2,
                   py: 0,
-                  minWidth: "70px",
+                  minWidth: "8px",
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "end",
                   justifyContent: "end",
+                  overflow: "visible",
+                  position: "relative",
+                  height: needsExternalVotedLabel ? 20 : 20,
                 }}
               >
                 <Typography
                   noWrap
                   variant="body3"
                   fontWeight={600}
+                  align={needsExternalVotedLabel ? "right" : "left"}
                   sx={{
-                    color: (muiTheme) => muiTheme.palette.common.white,
+                    color: needsExternalVotedLabel
+                      ? theme.vars.palette.keydate.contrastText
+                      : theme.vars.palette.common.white,
+                    lineHeight: needsExternalVotedLabel ? "20px" : "20px",
+                    position: needsExternalVotedLabel ? "absolute" : "relative",
+                    left: needsExternalVotedLabel ? "110%" : "unset",
+                    transform: needsExternalVotedLabel
+                      ? "translateY(0%)"
+                      : "translateY(0)",
                   }}
                 >
                   {progress.voted}% Voted
                 </Typography>
               </Box>
-              <Box
-                sx={(muiTheme) => ({
-                  background: `rgba(${muiTheme.vars?.palette.keydate.darkChannel} / 0.1)`,
-                  px: 1,
-                  py: 0.25,
-                  flexGrow: 1,
-                  display: "flex",
-                  alignItems: "center",
-                })}
+
+              <CustomTooltip
+                title={`${progress.unvoted}% Not Voted`}
+                arrow
+                placement="top-start"
               >
-                <Typography
-                  noWrap
-                  variant="body3"
-                  fontWeight={600}
+                <Box
                   sx={(muiTheme) => ({
-                    color: muiTheme.vars?.palette.keydate.contrastText,
+                    background: `rgba(${muiTheme.vars?.palette.keydate.darkChannel} / 0.1)`,
+                    px: 1,
+                    py: 0.25,
+                    flexGrow: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    height: 20,
                   })}
                 >
-                  {progress.unvoted}% Not Voted
-                </Typography>
-              </Box>
+                  <Typography
+                    noWrap
+                    variant="body3"
+                    fontWeight={600}
+                    sx={(muiTheme) => ({
+                      color: muiTheme.vars?.palette.keydate.contrastText,
+                      display: hasReachedVoteLabelThreshold ? "block" : "none",
+                    })}
+                  >
+                    {progress.unvoted}% Not Voted
+                  </Typography>
+                </Box>
+              </CustomTooltip>
             </Box>
           </Fade>
         </Paper>
@@ -722,18 +830,29 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
                 secondary={{
                   variant: "h2",
                   fontWeight: 600,
-                  text: currentData ? Number(currentData.shares_voted).toLocaleString() : "--",
+                  text: currentData
+                    ? Number(currentData.shares_voted).toLocaleString()
+                    : "--",
                 }}
                 sx={{ flex: 1 }}
               />
 
               {shouldShowPreviousYearInfo ? (
-                <Stack direction="row" alignItems="center" gap={1} justifyContent="end">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  gap={1}
+                  justifyContent="end"
+                >
                   <Typography variant="body3" sx={{ lineHeight: 2.5 }}>
                     Previous year:
                   </Typography>
                   {previousComparablePoint ? (
-                    <Typography variant="body3" fontWeight={600} color="inherit">
+                    <Typography
+                      variant="body3"
+                      fontWeight={600}
+                      color="inherit"
+                    >
                       {previousComparablePoint.votedShares.toLocaleString()}
                     </Typography>
                   ) : (
@@ -757,17 +876,28 @@ function TabulationTracker({ meetingId, phase: _phase }: TabulationTrackerProps)
                 secondary={{
                   variant: "h2",
                   fontWeight: 600,
-                  text: currentData ? Number(currentData.shares_unvoted).toLocaleString() : "--",
+                  text: currentData
+                    ? Number(currentData.shares_unvoted).toLocaleString()
+                    : "--",
                 }}
                 sx={{ flex: 1 }}
               />
               {shouldShowPreviousYearInfo ? (
-                <Stack direction="row" alignItems="center" justifyContent="end" gap={1}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="end"
+                  gap={1}
+                >
                   <Typography variant="body3" sx={{ lineHeight: 2.5 }}>
                     Previous year:
                   </Typography>
                   {previousComparablePoint ? (
-                    <Typography variant="body3" fontWeight={600} color="inherit">
+                    <Typography
+                      variant="body3"
+                      fontWeight={600}
+                      color="inherit"
+                    >
                       {previousComparablePoint.unvotedShares.toLocaleString()}
                     </Typography>
                   ) : (

@@ -8,7 +8,9 @@ export const apiFetcher = async (url: string) => {
 
   // Parse the URL to extract the path and params
   const [path, queryString] = url.split("?");
-  const params = queryString ? Object.fromEntries(new URLSearchParams(queryString)) : {};
+  const params = queryString
+    ? Object.fromEntries(new URLSearchParams(queryString))
+    : {};
 
   // Make the API call based on the path
   let response: { data?: unknown; error?: unknown };
@@ -16,7 +18,9 @@ export const apiFetcher = async (url: string) => {
   if (path === "/notifications") {
     response = await client.GET(
       "/notifications",
-      params.read !== undefined ? { params: { query: { read: params.read === "true" } } } : {},
+      params.read !== undefined
+        ? { params: { query: { read: params.read === "true" } } }
+        : {}
     );
   } else if (path === "/clients") {
     response = await client.GET("/clients");

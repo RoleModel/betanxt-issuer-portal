@@ -22,7 +22,8 @@ const patterns = [
   },
   // Unused destructured params in callbacks
   {
-    regex: /\(([a-zA-Z_][a-zA-Z0-9_]*),\s*([a-zA-Z_][a-zA-Z0-9_]*)\)\s*=>\s*{[^}]*\b\2\b[^}]*}/g,
+    regex:
+      /\(([a-zA-Z_][a-zA-Z0-9_]*),\s*([a-zA-Z_][a-zA-Z0-9_]*)\)\s*=>\s*{[^}]*\b\2\b[^}]*}/g,
     check: (match, p1, p2) => {
       // Only replace if p1 is not used in the function body
       return !match.includes(p1) && match.includes(p2);
@@ -75,7 +76,11 @@ function processDirectory(dir) {
     const fullPath = path.join(dir, item);
     const stat = fs.statSync(fullPath);
 
-    if (stat.isDirectory() && !item.startsWith(".") && item !== "node_modules") {
+    if (
+      stat.isDirectory() &&
+      !item.startsWith(".") &&
+      item !== "node_modules"
+    ) {
       processDirectory(fullPath);
     } else if (stat.isFile()) {
       processFile(fullPath);

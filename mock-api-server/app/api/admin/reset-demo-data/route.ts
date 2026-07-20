@@ -15,7 +15,11 @@ interface ResetStats {
   dsmConfigs: number;
 }
 
-async function executeWithRetry(client: Client, query: string, maxRetries = 3): Promise<void> {
+async function executeWithRetry(
+  client: Client,
+  query: string,
+  maxRetries = 3
+): Promise<void> {
   for (let i = 0; i < maxRetries; i++) {
     try {
       await client.query(query);
@@ -41,7 +45,8 @@ export async function POST(_req: NextRequest) {
     console.log("Starting database reset...");
     console.log("Using database:", databaseUrl.replace(/:[^:@]+@/, ":****@"));
 
-    const isLocalhost = databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1");
+    const isLocalhost =
+      databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1");
 
     // Configure SSL for remote connections
     const originalTlsReject = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
@@ -87,14 +92,15 @@ export async function POST(_req: NextRequest) {
           tabulation_report,
           "user"
         RESTART IDENTITY CASCADE;
-      `,
+      `
       );
       console.log("Data tables truncated");
 
       // Step 2: Fetch seed data from Supabase storage
       console.log("Fetching seed data from Supabase storage...");
       const supabaseUrl =
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "https://vfgjzlcakdrpsbzuqklz.supabase.co";
+        process.env.NEXT_PUBLIC_SUPABASE_URL ||
+        "https://vfgjzlcakdrpsbzuqklz.supabase.co";
       const seedUrl = `${supabaseUrl}/storage/v1/object/public/documents/backup.sql`;
 
       console.log("Fetching from:", seedUrl);
@@ -102,12 +108,14 @@ export async function POST(_req: NextRequest) {
 
       if (!seedResponse.ok) {
         throw new Error(
-          `Failed to fetch seed data: ${seedResponse.status} ${seedResponse.statusText}`,
+          `Failed to fetch seed data: ${seedResponse.status} ${seedResponse.statusText}`
         );
       }
 
       const seedSql = await seedResponse.text();
-      console.log(`Seed SQL size: ${(seedSql.length / 1024 / 1024).toFixed(2)} MB`);
+      console.log(
+        `Seed SQL size: ${(seedSql.length / 1024 / 1024).toFixed(2)} MB`
+      );
 
       // Step 3: Execute seed SQL
       // The seed.sql file contains a transaction (BEGIN...COMMIT) so it's atomic
@@ -117,12 +125,14 @@ export async function POST(_req: NextRequest) {
 
       // Step 4: Grant permissions
       console.log("Granting permissions...");
-      await client.query("GRANT ALL ON SCHEMA public TO anon, authenticated, service_role");
       await client.query(
-        "GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role",
+        "GRANT ALL ON SCHEMA public TO anon, authenticated, service_role"
       );
       await client.query(
-        "GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role",
+        "GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role"
+      );
+      await client.query(
+        "GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role"
       );
       console.log("Permissions granted");
 
@@ -130,7 +140,9 @@ export async function POST(_req: NextRequest) {
       const meetingsResult = await client.query("SELECT COUNT(*) FROM meeting");
       const phasesResult = await client.query("SELECT COUNT(*) FROM phase");
       const tasksResult = await client.query("SELECT COUNT(*) FROM task");
-      const documentsResult = await client.query("SELECT COUNT(*) FROM document");
+      const documentsResult = await client.query(
+        "SELECT COUNT(*) FROM document"
+      );
 
       const stats: ResetStats = {
         meetings: parseInt(meetingsResult.rows[0].count),
@@ -167,7 +179,7 @@ export async function POST(_req: NextRequest) {
         error: error instanceof Error ? error.message : "Reset failed",
         details: error instanceof Error ? error.stack : undefined,
       },
-      { status: 500 },
+      { status: 500 }
     );
   } finally {
     if (client) {

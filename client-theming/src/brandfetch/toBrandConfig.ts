@@ -54,7 +54,7 @@ export interface ToBrandConfigOptions {
  */
 export function brandResponseToBrandConfig(
   brand: BrandResponse,
-  options: ToBrandConfigOptions = {},
+  options: ToBrandConfigOptions = {}
 ): BrandConfig {
   const companyName = options.companyName ?? brand.name;
   const assetBaseDir = options.assetBaseDir ?? "/logos/brands";
@@ -73,8 +73,12 @@ export function brandResponseToBrandConfig(
     companyName,
     ticker: options.ticker,
     domain: brand.domain,
-    logoPath: lightLogo ? `${assetBaseDir}/${slug}_logo.${ext(lightLogo.format)}` : "",
-    iconPath: lightIcon ? `${assetBaseDir}/${slug}_icon.${ext(lightIcon.format)}` : "",
+    logoPath: lightLogo
+      ? `${assetBaseDir}/${slug}_logo.${ext(lightLogo.format)}`
+      : "",
+    iconPath: lightIcon
+      ? `${assetBaseDir}/${slug}_icon.${ext(lightIcon.format)}`
+      : "",
     headerLogoPath: darkLogo
       ? `${assetBaseDir}/${slug}_logo-dark.${ext(darkLogo.format)}`
       : undefined,

@@ -15,27 +15,29 @@ import NotificationPopper from "@/components/Notifications/NotificationPopper";
 import { useAppBar } from "@/hooks/useAppBar";
 
 // Next.js Image component wrapper for BNAppBar logo
-const NextImageComponent = React.memo((props: React.ImgHTMLAttributes<HTMLImageElement>) => {
-  const { src, alt, style } = props;
+const NextImageComponent = React.memo(
+  (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
+    const { src, alt, style } = props;
 
-  if (!src) {
-    return null;
+    if (!src) {
+      return null;
+    }
+
+    return (
+      <Image
+        src={src}
+        alt={alt ?? "Logo"}
+        width={120}
+        height={44}
+        style={style}
+        loading="eager"
+        priority
+        blurDataURL={src}
+        sizes="(max-width: 600px) 120px, 120px"
+      />
+    );
   }
-
-  return (
-    <Image
-      src={src}
-      alt={alt ?? "Logo"}
-      width={120}
-      height={44}
-      style={style}
-      loading="eager"
-      priority
-      blurDataURL={src}
-      sizes="(max-width: 600px) 120px, 120px"
-    />
-  );
-});
+);
 NextImageComponent.displayName = "NextImageComponent";
 
 interface BNAppBarWrapperProps {
@@ -58,7 +60,7 @@ export function BNAppBarClient(props: BNAppBarWrapperProps) {
 }
 
 const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
-  props: BNAppBarWrapperProps,
+  props: BNAppBarWrapperProps
 ) {
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -111,7 +113,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       notificationAnchor,
       handleNotificationClick,
       handleNotificationClose,
-    ],
+    ]
   );
 
   // CSM logo component wrapper that renders BNLogo instead of a client image
@@ -130,7 +132,10 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
 
   const appBarProps = {
     slots: {
-      logoImg: showCSMBrandLogo && CSMLogoComponent ? CSMLogoComponent : NextImageComponent,
+      logoImg:
+        showCSMBrandLogo && CSMLogoComponent
+          ? CSMLogoComponent
+          : NextImageComponent,
       end: endSlot,
     },
     slotProps: showCSMBrandLogo ? undefined : logoSlotProps,
@@ -153,7 +158,10 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     <Box onClick={handleWrapperClick}>
       <BNAppBar {...appBarProps}>
         {props.appSwitcher && (
-          <Box aria-label="Client and Application Switcher" role="complementary">
+          <Box
+            aria-label="Client and Application Switcher"
+            role="complementary"
+          >
             <ClientAppSwitcher />
           </Box>
         )}
