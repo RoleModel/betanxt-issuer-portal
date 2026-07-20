@@ -543,7 +543,7 @@ function TabulationTracker({
 
   const progress = currentData
     ? {
-        voted: 90,
+        voted: Math.round(currentVotePercentage),
         unvoted: Math.max(100 - currentVotePercentage, 0),
       }
     : { voted: 0, unvoted: 0 };

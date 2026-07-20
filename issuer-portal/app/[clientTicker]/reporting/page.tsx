@@ -23,12 +23,10 @@ import { GeoHeatmapCard } from "@/components/Reporting/GeoHeatmapCard";
 import ParticipationChart from "@/components/Reporting/ParticipationChart";
 import PositionsVotedChart from "@/components/Reporting/PositionsVotedChart";
 import ProposalPerformanceTable from "@/components/Reporting/ProposalPerformanceTable";
-import QuorumPerformanceTable from "@/components/Reporting/QuorumPerformanceTable";
 import { QuorumTimelineChart } from "@/components/Reporting/QuorumTimelineChart";
 import VotingPerformanceChart from "@/components/Reporting/VotingPerformanceChart";
 import YearOverYearChart from "@/components/Reporting/YearOverYearChart";
 import { useClientFeatures } from "@/hooks/useClientFeatures";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { useQuorumTimeline } from "@/hooks/useQuorumTimeline";
 import { useReporting } from "@/hooks/useReporting";
 import { useReports } from "@/hooks/useReports";
@@ -74,8 +72,6 @@ export default function ReportingPage() {
   const mappedYearOverYear = reportingData?.mappedYearOverYear ?? [];
   const mappedProposalPerformanceData =
     reportingData?.mappedProposalPerformanceData ?? [];
-  const mappedQuorumPerformanceData =
-    reportingData?.mappedQuorumPerformanceData ?? [];
   const availableMeetings = useMemo(
     () => reportingData?.availableMeetings ?? [],
     [reportingData]
