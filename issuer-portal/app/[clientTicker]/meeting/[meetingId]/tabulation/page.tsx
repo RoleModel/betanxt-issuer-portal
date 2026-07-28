@@ -11,7 +11,7 @@ import { TabulationDistributionDrawer } from "@/components/Tabulation/Tabulation
 import TabulationReportCard from "@/components/Tabulation/TabulationReportCard";
 import VotingActivityCard from "@/components/Tabulation/VotingActivityCard";
 import { useMeeting } from "@/contexts/MeetingContext";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useTabulationInsights } from "@/hooks/useTabulationInsights";
 
 /**

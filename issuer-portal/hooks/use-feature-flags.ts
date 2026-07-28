@@ -12,6 +12,8 @@ interface FeatureFlags {
    * feature (automated daily tabulation delivery). Phase 2, off for MVP.
    */
   configureDistribution: boolean;
+  /** Gates updated client-brand colors in the Tabulation Tracker. */
+  enableTabulationTrackerColors: boolean;
 }
 
 interface UseFeatureFlagsResult {
@@ -19,23 +21,40 @@ interface UseFeatureFlagsResult {
   isLoading: boolean;
 }
 
-const DEFAULT_FLAGS: FeatureFlags = {
-  enableNobo: false,
+const defaultFlags: FeatureFlags = {
   configureDistribution: false,
+  enableNobo: false,
+  enableTabulationTrackerColors: false,
 };
 
-async function fetchFeatureFlags(ticker: string | null): Promise<FeatureFlags> {
-  const response = await fetch("/api/feature-flags", {
-    headers: ticker ? { "x-client-ticker": ticker } : undefined,
-  });
-  if (!response.ok) return DEFAULT_FLAGS;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
 
-  const data = (await response.json()) as Partial<FeatureFlags>;
+const fetchFeatureFlags = async (
+  ticker: string | null
+): Promise<FeatureFlags> => {
+  // eslint-disable-next-line compat/compat -- This client hook runs only in browsers supported by Next.js.
+  const response = await fetch("/api/feature-flags", {
+    headers:
+      ticker !== null && ticker.length > 0
+        ? { "x-client-ticker": ticker }
+        : undefined,
+  });
+  if (!response.ok) {
+    return defaultFlags;
+  }
+
+  const data: unknown = await response.json();
+  if (!isRecord(data)) {
+    return defaultFlags;
+  }
+
   return {
-    enableNobo: data.enableNobo === true,
     configureDistribution: data.configureDistribution === true,
+    enableNobo: data.enableNobo === true,
+    enableTabulationTrackerColors: data.enableTabulationTrackerColors === true,
   };
-}
+};
 
 /**
  * Reads server-evaluated Vercel Flags from `/api/feature-flags`.
@@ -47,20 +66,20 @@ async function fetchFeatureFlags(ticker: string | null): Promise<FeatureFlags> {
  * routes). Defaults every flag to off until the response arrives so gated
  * UI (e.g. the NOBO chip in the event manager) never flashes on.
  */
-export function useFeatureFlags(
+export const useFeatureFlags = (
   tickerOverride?: string
-): UseFeatureFlagsResult {
+): UseFeatureFlagsResult => {
   const { currentClient } = useClient();
   const ticker = tickerOverride ?? currentClient?.ticker ?? null;
 
   const { data, isLoading } = useSWR(
     ["/api/feature-flags", ticker] as const,
-    ([, clientTicker]) => fetchFeatureFlags(clientTicker),
+    async ([, clientTicker]) => await fetchFeatureFlags(clientTicker),
     {
-      revalidateOnFocus: false,
       dedupingInterval: 60_000,
+      revalidateOnFocus: false,
     }
   );
 
-  return { flags: data ?? DEFAULT_FLAGS, isLoading };
-}
+  return { flags: data ?? defaultFlags, isLoading };
+};

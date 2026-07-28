@@ -675,3 +675,4 @@ COMMENT ON COLUMN dsm_config.speaker_list_doc_id IS 'Original param name - speak
 COMMENT ON COLUMN dsm_config.guest_link_registration_doc_id IS 'Original param name - guestLinkRegistrationDocId.';
 COMMENT ON COLUMN dsm_config.created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN dsm_config.updated_at IS 'Original param name - updatedAt.';
+

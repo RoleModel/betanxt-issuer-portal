@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { configureDistributionFlag, enableNoboFlag } from "@/flags";
+import {
+  configureDistributionFlag,
+  enableTabulationTrackerColorsFlag,
+  enableNoboFlag,
+} from "@/flags";
 
 /**
  * Exposes server-evaluated Vercel Flags to the client-rendered app.
@@ -9,10 +13,16 @@ import { configureDistributionFlag, enableNoboFlag } from "@/flags";
  * flags directly.
  */
 export async function GET() {
-  const [enableNobo, configureDistribution] = await Promise.all([
-    enableNoboFlag(),
-    configureDistributionFlag(),
-  ]);
+  const [enableNobo, configureDistribution, enableTabulationTrackerColors] =
+    await Promise.all([
+      enableNoboFlag(),
+      configureDistributionFlag(),
+      enableTabulationTrackerColorsFlag(),
+    ]);
 
-  return NextResponse.json({ enableNobo, configureDistribution });
+  return NextResponse.json({
+    configureDistribution,
+    enableTabulationTrackerColors,
+    enableNobo,
+  });
 }

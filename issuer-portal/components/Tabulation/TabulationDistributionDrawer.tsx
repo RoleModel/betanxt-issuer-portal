@@ -30,7 +30,7 @@ import type { components } from "@/domain-models/generated-schema";
 import DrawerHeader from "@/components/Drawers/shared/DrawerHeader";
 import { useNotifications } from "@/contexts/NotificationContext";
 import buildApiClient from "@/domain-models/apiClient";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 type TabulationDistribution = components["schemas"]["TabulationDistribution"];
 

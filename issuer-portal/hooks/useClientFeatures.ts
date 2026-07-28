@@ -7,7 +7,7 @@ import {
   type ClientFeatureKey,
   DEFAULT_FEATURE_KEYS,
 } from "@/hooks/useClients";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { FEATURE_KEYS } from "@/utils/clientFeatures";
 
 interface UseClientFeaturesResult {

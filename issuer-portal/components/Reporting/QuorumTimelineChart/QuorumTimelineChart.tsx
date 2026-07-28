@@ -1,6 +1,17 @@
 "use client";
 
-import { Card, CardContent, CardHeader, useTheme } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  MenuItem,
+  Select,
+  Skeleton,
+  Typography,
+  useTheme,
+} from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material/Select";
 import { ChartsReferenceLine } from "@mui/x-charts/ChartsReferenceLine";
 import { useDrawingArea, useXScale } from "@mui/x-charts/hooks";
 import { LineChart } from "@mui/x-charts/LineChart";
@@ -10,42 +21,71 @@ import type {
   QuorumMilestoneKind,
   QuorumTimelineMilestone,
   QuorumTimelinePoint,
-} from "@/hooks/useQuorumTimeline";
+} from "./useQuorumTimeline";
 
-import { EmptyState } from "@/components/EmptyState";
-import SkeletonChart from "@/components/ui/SkeletonChart";
-import { formatNumber } from "@/utils/numberUtils";
-import { formatQuorumRequirementPercentLabel } from "@/utils/quorum";
+export interface QuorumTimelineEvent {
+  id: string;
+  label: string;
+}
 
 interface QuorumTimelineChartProps {
   /** Cumulative voting progress points, ordered by date (from {@link useQuorumTimeline}). */
-  points: QuorumTimelinePoint[];
+  readonly points: QuorumTimelinePoint[];
   /** Mailing/follow-up/deadline events rendered as dashed vertical reference lines. */
-  milestones: QuorumTimelineMilestone[];
-  /** Meeting quorum requirement; drives the horizontal threshold line. Falls back to 50% when unset. */
-  quorumRequirementPercent?: number | string | null;
+  readonly milestones: QuorumTimelineMilestone[];
+  /** Percentage threshold for the horizontal reference line. Falls back to 50% when unset. */
+  readonly quorumRequirementPercent?: number | string | null;
   /** Forces the skeleton state from the parent while page-level data resolves. */
-  loading?: boolean;
-  /** Optional header action node (e.g. an event selector). */
-  action?: React.ReactNode;
+  readonly loading?: boolean;
+  /** Events available in the MUI selector. */
+  readonly events?: QuorumTimelineEvent[];
+  /** ID of the event currently represented by the chart data. */
+  readonly selectedEventId?: string;
+  /** Called when the user switches the selected event. */
+  readonly onEventChange?: (eventId: string) => void;
   /** Card subheader; defaults to the chart description when unset. */
-  subheader?: string;
+  readonly subheader?: string;
 }
 
 const formatAxisDate = (date: Date): string =>
   date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-const LABEL_FONT_SIZE = 11;
-const LABEL_HEIGHT = 20;
-const LABEL_PADDING_X = 8;
-const LABEL_ROW_GAP = 4;
+const labelFontSize = 11;
+const labelHeight = 20;
+const labelPaddingX = 8;
+const labelRowGap = 4;
+const emptyEvents: QuorumTimelineEvent[] = [];
+
+const formatNumber = (value: number | null | undefined): string =>
+  (value ?? 0).toLocaleString();
+
+const formatQuorumRequirementPercentLabel = (
+  value: number | string | null | undefined
+): string => {
+  const numericValue = Number(value);
+  return `${Number.isFinite(numericValue) && numericValue > 0 ? numericValue : 50}%`;
+};
+
+const ChartSkeleton = (): React.ReactNode => (
+  <Card>
+    <CardHeader title={<Skeleton variant="text" width="60%" height={32} />} />
+    <CardContent>
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={360}
+        sx={{ borderRadius: 1 }}
+      />
+    </CardContent>
+  </Card>
+);
 
 interface MilestoneLabelsProps {
-  milestones: QuorumTimelineMilestone[];
+  readonly milestones: QuorumTimelineMilestone[];
   /** Pill background per milestone kind (matches the reference line stroke). */
-  fillColors: Record<QuorumMilestoneKind, string>;
+  readonly fillColors: Record<QuorumMilestoneKind, string>;
   /** Pill text color per milestone kind (the palette contrast token). */
-  textColors: Record<QuorumMilestoneKind, string>;
+  readonly textColors: Record<QuorumMilestoneKind, string>;
 }
 
 /**
@@ -56,11 +96,11 @@ interface MilestoneLabelsProps {
  * scale, clamped to the drawing area, and pushed down a row when it would
  * overlap an already-placed label (frequent with close follow-up mailings).
  */
-function MilestoneLabels({
+const MilestoneLabels = ({
   milestones,
   fillColors,
   textColors,
-}: MilestoneLabelsProps) {
+}: MilestoneLabelsProps) => {
   const xScale = useXScale<"time">();
   const drawingArea = useDrawingArea();
 
@@ -70,11 +110,11 @@ function MilestoneLabels({
     <g>
       {milestones.map((milestone) => {
         const lineX = xScale(milestone.date);
-        if (lineX === undefined || Number.isNaN(lineX)) return null;
+        if (Number.isNaN(lineX)) return null;
 
         // Approximate text width; SVG text can't be measured before render.
         const width = Math.ceil(
-          milestone.label.length * LABEL_FONT_SIZE * 0.62 + LABEL_PADDING_X * 2
+          milestone.label.length * labelFontSize * 0.62 + labelPaddingX * 2
         );
         // Mail sits 4px right of its line, deadline 4px left, follow-ups centered.
         const preferredLeft =
@@ -104,7 +144,7 @@ function MilestoneLabels({
         }
         placedLabels.push({ left, right, row });
 
-        const top = drawingArea.top + 0 + row * (LABEL_HEIGHT + LABEL_ROW_GAP);
+        const top = drawingArea.top + row * (labelHeight + labelRowGap);
 
         return (
           <g
@@ -113,17 +153,17 @@ function MilestoneLabels({
           >
             <rect
               width={width}
-              height={LABEL_HEIGHT}
-              rx={LABEL_HEIGHT / 2}
+              height={labelHeight}
+              rx={labelHeight / 2}
               fill={fillColors[milestone.kind]}
             />
             <text
               x={width / 2}
-              y={LABEL_HEIGHT / 2}
+              y={labelHeight / 2}
               fill={textColors[milestone.kind]}
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize={LABEL_FONT_SIZE}
+              fontSize={labelFontSize}
             >
               {milestone.label}
             </text>
@@ -132,7 +172,7 @@ function MilestoneLabels({
       })}
     </g>
   );
-}
+};
 
 /**
  * Step line chart of cumulative shares voted (as % of outstanding shares)
@@ -146,19 +186,25 @@ function MilestoneLabels({
  * Shows a skeleton while `loading` and an empty state when no points carry
  * any voted shares.
  */
-export function QuorumTimelineChart({
+export const QuorumTimelineChart = ({
   points,
   milestones,
   quorumRequirementPercent,
   loading = false,
-  action,
+  events = emptyEvents,
+  selectedEventId = "",
+  onEventChange,
   subheader = "Cumulative shares voted from mail date through the vote deadline",
-}: QuorumTimelineChartProps) {
+}: QuorumTimelineChartProps) => {
   const theme = useTheme();
 
   if (loading) {
-    return <SkeletonChart title="Quorum Timeline" height={360} showLegend />;
+    return <ChartSkeleton />;
   }
+
+  const handleEventChange = (event: SelectChangeEvent): void => {
+    onEventChange?.(event.target.value);
+  };
 
   const hasVotes = points.some((point) => point.cumulativeSharesVoted > 0);
   const quorumPercent = Number(quorumRequirementPercent) || 50;
@@ -182,21 +228,50 @@ export function QuorumTimelineChart({
     100,
     Math.ceil(Math.max(maxPercent, quorumPercent) * 1.15)
   );
+  const eventSelect =
+    events.length > 0 ? (
+      <Select
+        aria-label="Event"
+        displayEmpty
+        size="small"
+        value={selectedEventId}
+        onChange={handleEventChange}
+        sx={{ minWidth: 260 }}
+      >
+        {events.map((event) => (
+          <MenuItem key={event.id} value={event.id}>
+            {event.label}
+          </MenuItem>
+        ))}
+      </Select>
+    ) : null;
 
   return (
     <Card sx={{ height: "100%" }}>
       <CardHeader
         title="Quorum Timeline"
         subheader={subheader}
-        action={action}
+        action={eventSelect}
       />
       <CardContent>
         {!hasVotes ? (
-          <EmptyState
-            title="No voted positions for this event"
-            description="The quorum timeline will populate as votes are recorded."
-            minHeight={300}
-          />
+          <Box
+            sx={{
+              alignItems: "center",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              minHeight: 300,
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="body1">
+              No voted positions for this event
+            </Typography>
+            <Typography color="text.secondary" variant="body2">
+              The quorum timeline will populate as votes are recorded.
+            </Typography>
+          </Box>
         ) : (
           <LineChart
             xAxis={[
@@ -226,9 +301,7 @@ export function QuorumTimelineChart({
                 color: "var(--mui-palette-chartSeries-1-main)",
                 valueFormatter: (value, { dataIndex }) => {
                   const point = points[dataIndex];
-                  const shares = point
-                    ? formatNumber(point.cumulativeSharesVoted)
-                    : "0";
+                  const shares = formatNumber(point.cumulativeSharesVoted);
                   return `${value ?? 0}% of outstanding (${shares} shares)`;
                 },
               },
@@ -281,4 +354,4 @@ export function QuorumTimelineChart({
       </CardContent>
     </Card>
   );
-}
+};

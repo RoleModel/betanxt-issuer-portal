@@ -4440,6 +4440,8 @@ SELECT
     }
   });
 
+  appendPaycomVotingData(sqlStatements);
+
   // WEN + FOC: mirror Wendy's tabulation, voted positions, and director variation
   appendWenStyleAnnualVoteOverrides(sqlStatements, "wen");
   appendWenStyleAnnualVoteOverrides(sqlStatements, "foc");
@@ -4596,6 +4598,100 @@ SELECT
 
   // Output all SQL statements
   console.log(sqlStatements.join("\n"));
+};
+
+const appendPaycomVotingData = (sqlStatements: string[]): void => {
+  sqlStatements.push(`
+-- PAYC 2026 is the issuer's current annual meeting. Seed active voting data so
+-- dashboard and reporting views do not render as an empty pre-vote meeting.
+WITH bucketed_positions AS (
+  SELECT id, MOD(HASHTEXT(id)::bigint + 2147483648, 100) AS vote_bucket
+  FROM position
+  WHERE meeting_id = 'payc-annual-meeting-2026'
+)
+UPDATE position AS target
+SET
+  vote_status = 'Voted',
+  shares_voted = target.shares,
+  source = CASE bucketed_positions.vote_bucket % 3
+    WHEN 0 THEN 'PRINT'::position_source
+    WHEN 1 THEN 'WEB'::position_source
+    ELSE 'IVR'::position_source
+  END,
+  date_voted = '2026-06-24T12:00:00.000Z',
+  updated_at = NOW()
+FROM bucketed_positions
+WHERE target.id = bucketed_positions.id
+  AND bucketed_positions.vote_bucket < 60;
+
+DELETE FROM position_vote
+WHERE position_id IN (
+  SELECT id FROM position WHERE meeting_id = 'payc-annual-meeting-2026'
+);
+
+INSERT INTO position_vote (id, position_id, proposal_id, vote, shares_voting, created_at)
+SELECT
+  gen_random_uuid(),
+  position.id,
+  proposal.id,
+  CASE
+    WHEN MOD(ABS(HASHTEXT(position.id || proposal.id)), 20) = 0 THEN 'ABSTAIN'
+    WHEN MOD(ABS(HASHTEXT(position.id || proposal.id)), 10) = 0 THEN 'AGAINST'
+    ELSE 'FOR'
+  END,
+  position.shares_voted::text,
+  NOW()
+FROM position
+CROSS JOIN proposal
+WHERE position.meeting_id = 'payc-annual-meeting-2026'
+  AND proposal.meeting_id = 'payc-annual-meeting-2026'
+  AND position.vote_status = 'Voted';
+
+UPDATE proposal AS target
+SET
+  total_votes_for = totals.votes_for,
+  total_votes_against = totals.votes_against,
+  total_votes_abstain = totals.votes_abstain,
+  total_shares_eligible = meeting.total_shares_outstanding::numeric,
+  for_percentage = totals.votes_for / NULLIF(meeting.total_shares_outstanding::numeric, 0) * 100,
+  against_percentage = totals.votes_against / NULLIF(meeting.total_shares_outstanding::numeric, 0) * 100,
+  abstain_percentage = totals.votes_abstain / NULLIF(meeting.total_shares_outstanding::numeric, 0) * 100,
+  participation_rate = totals.participating_shares / NULLIF(meeting.total_shares_outstanding::numeric, 0) * 100,
+  final_result = 'PENDING',
+  voting_completed = false,
+  updated_at = NOW()
+FROM (
+  SELECT
+    proposal_id,
+    SUM(CASE WHEN vote = 'FOR' THEN shares_voting::numeric ELSE 0 END) AS votes_for,
+    SUM(CASE WHEN vote = 'AGAINST' THEN shares_voting::numeric ELSE 0 END) AS votes_against,
+    SUM(CASE WHEN vote = 'ABSTAIN' THEN shares_voting::numeric ELSE 0 END) AS votes_abstain,
+    SUM(shares_voting::numeric) AS participating_shares
+  FROM position_vote
+  GROUP BY proposal_id
+) AS totals
+CROSS JOIN meeting
+WHERE target.id = totals.proposal_id
+  AND target.meeting_id = 'payc-annual-meeting-2026'
+  AND meeting.id = target.meeting_id;
+
+UPDATE tabulation_report
+SET
+  positions_voted = jsonb_build_object(
+    'voted', (SELECT COUNT(*) FROM position WHERE meeting_id = 'payc-annual-meeting-2026' AND vote_status = 'Voted'),
+    'unvoted', (SELECT COUNT(*) FROM position WHERE meeting_id = 'payc-annual-meeting-2026' AND vote_status <> 'Voted'),
+    'totalShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = 'payc-annual-meeting-2026'),
+    'votedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = 'payc-annual-meeting-2026' AND vote_status = 'Voted')
+  ),
+  vote_distribution = jsonb_build_object(
+    'dtcVotedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = 'payc-annual-meeting-2026' AND account_type = 'DTC/CDS' AND vote_status = 'Voted'),
+    'dtcUnvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = 'payc-annual-meeting-2026' AND account_type = 'DTC/CDS' AND vote_status <> 'Voted'),
+    'nonDtcVotedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM position WHERE meeting_id = 'payc-annual-meeting-2026' AND account_type <> 'DTC/CDS' AND vote_status = 'Voted'),
+    'nonDtcUnvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM position WHERE meeting_id = 'payc-annual-meeting-2026' AND account_type <> 'DTC/CDS' AND vote_status <> 'Voted')
+  ),
+  last_calculated_at = NOW(),
+  updated_at = NOW()
+WHERE meeting_id = 'payc-annual-meeting-2026';`);
 };
 
 /**

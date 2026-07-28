@@ -1,35 +1,109 @@
 "use client";
 
-import type { PaletteColor, SxProps } from "@mui/material";
+import type {
+  PaletteColorOptions,
+  SimplePaletteColorOptions,
+  SxProps,
+  Theme,
+} from "@mui/material";
 
 import { Box, Card, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import betanxtTheme from "@rolemodel/betanxt-design-system/themes/betanxtTheme";
 import Link from "next/link";
 import React from "react";
 
 interface FeatureTileProps {
-  title: string;
-  subtitle?: string;
-  description?: string | React.ReactNode;
-  children?: React.ReactNode;
-  actionText?: string;
-  icon?: React.ReactNode;
-  iconSize?: "24px" | "32px" | "48px" | "64px" | "96px";
-  titleVariant?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
-  bodyVariant?: "body1" | "body2" | "body3";
-  variant?: "default" | "primary" | "secondary" | "tertiary" | "base";
-  onClick?: () => void;
-  href?: string;
-  flex?: boolean;
-  gutterBottom?: boolean;
-  height?: string;
-  sx?: SxProps;
-  fileUrl?: string;
-  brandFont?: boolean;
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly description?: string | React.ReactNode;
+  readonly children?: React.ReactNode;
+  readonly actionText?: string;
+  readonly icon?: React.ReactNode;
+  readonly iconSize?: "24px" | "32px" | "48px" | "64px" | "96px";
+  readonly titleVariant?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  readonly bodyVariant?: "body1" | "body2" | "body3";
+  readonly variant?: "default" | "primary" | "secondary" | "tertiary" | "base";
+  readonly onClick?: () => void;
+  readonly href?: string;
+  readonly flex?: boolean;
+  readonly gutterBottom?: boolean;
+  readonly height?: string;
+  readonly sx?: SxProps;
+  readonly brandFont?: boolean;
 }
 
-export function FeatureTile({
+type FeatureTileVariant = NonNullable<FeatureTileProps["variant"]>;
+
+interface VariantColors {
+  background: string;
+  backgroundDark: string;
+  color: string;
+  colorDark: string;
+}
+
+const hasMainColor = (
+  color: PaletteColorOptions
+): color is SimplePaletteColorOptions => Object.hasOwn(color, "main");
+
+const assertNever = (value: never): never => {
+  throw new Error(`Unsupported FeatureTile variant: ${String(value)}`);
+};
+
+const getVariantColors = (
+  theme: Theme,
+  tileVariant: FeatureTileVariant
+): VariantColors => {
+  switch (tileVariant) {
+    case "primary":
+      return {
+        background: theme.palette.primary.main,
+        backgroundDark: theme.palette.primary.main,
+        color: theme.palette.primary.contrastText,
+        colorDark: theme.palette.primary.contrastText,
+      };
+    case "secondary":
+      return {
+        background: theme.palette.secondary.main,
+        backgroundDark: theme.palette.secondary.main,
+        color: theme.palette.secondary.contrastText,
+        colorDark: theme.palette.secondary.contrastText,
+      };
+    case "tertiary": {
+      const { tertiary } = theme.palette;
+      if (!hasMainColor(tertiary)) {
+        return getVariantColors(theme, "default");
+      }
+
+      const contrastText =
+        tertiary.contrastText ?? theme.palette.getContrastText(tertiary.main);
+
+      return {
+        background: tertiary.main,
+        backgroundDark: tertiary.main,
+        color: contrastText,
+        colorDark: contrastText,
+      };
+    }
+    case "base":
+      return {
+        background: theme.vars.palette.background.default,
+        backgroundDark: theme.vars.palette.background.default,
+        color: theme.vars.palette.text.primary,
+        colorDark: theme.vars.palette.text.primary,
+      };
+    case "default":
+      return {
+        background: theme.vars.palette.background.paper,
+        backgroundDark: theme.vars.palette.background.paper,
+        color: theme.vars.palette.text.primary,
+        colorDark: theme.vars.palette.text.primary,
+      };
+  }
+
+  return assertNever(tileVariant);
+};
+
+export const FeatureTile = ({
   title,
   subtitle,
   description,
@@ -47,53 +121,10 @@ export function FeatureTile({
   sx,
   brandFont = false,
   children,
-}: FeatureTileProps) {
-  // Get colors from betanxt theme
+}: FeatureTileProps) => {
   const theme = useTheme();
-  const getVariantColors = (variant: string) => {
-    switch (variant) {
-      case "primary":
-        return {
-          background: theme.palette.primary.main,
-          backgroundDark: theme.palette.primary.main,
-          color: theme.palette.primary.contrastText,
-          colorDark: theme.palette.primary.contrastText,
-        };
-      case "secondary":
-        return {
-          background: theme.palette.secondary.main,
-          backgroundDark: theme.palette.secondary.main,
-          color: theme.palette.secondary.contrastText,
-          colorDark: theme.palette.secondary.contrastText,
-        };
-      case "tertiary": {
-        const tertiary = betanxtTheme.palette.tertiary as PaletteColor;
-        return {
-          background: tertiary.main,
-          backgroundDark: tertiary.main,
-          color: tertiary.contrastText,
-          colorDark: tertiary.contrastText,
-        };
-      }
-      case "base":
-        return {
-          background: theme.vars.palette.background.default,
-          backgroundDark: theme.vars.palette.background.default,
-          color: theme.vars.palette.text.primary,
-          colorDark: theme.vars.palette.text.primary,
-        };
-      default:
-        return {
-          background: theme.vars.palette.background.paper,
-          backgroundDark: theme.vars.palette.background.paper,
-          color: theme.vars.palette.text.primary,
-          colorDark: theme.vars.palette.text.primary,
-        };
-    }
-  };
-
-  const variantColors = getVariantColors(variant);
-  const isInteractive = Boolean(href || onClick);
+  const variantColors = getVariantColors(theme, variant);
+  const isInteractive = href !== undefined || onClick !== undefined;
 
   const CardContent = (
     <Card
@@ -103,9 +134,9 @@ export function FeatureTile({
         {
           display: "flex",
           position: "relative",
-          flex: flex ? "1 0 0%" : "0 0 auto",
+          flex: (flex ?? false) ? "1 0 0%" : "0 0 auto",
           flexDirection: "column",
-          ...(height ? { height } : {}),
+          ...(height != null ? { height } : {}),
           background: variantColors.background,
           backgroundColor: variantColors.background,
           color: variantColors.color,
@@ -121,15 +152,17 @@ export function FeatureTile({
               }
             : {}),
         },
-        (theme) =>
-          theme.applyStyles("dark", {
+        (muiTheme) =>
+          muiTheme.applyStyles("dark", {
             background: variantColors.backgroundDark,
             backgroundColor: variantColors.backgroundDark,
             color: variantColors.colorDark,
           }),
-        ...(sx ? (Array.isArray(sx) ? sx : [sx]) : []),
+        ...(sx === undefined ? [] : Array.isArray(sx) ? sx : [sx]),
       ]}
-      onClick={onClick && !href ? onClick : undefined}
+      onClick={
+        onClick !== undefined && href === undefined ? onClick : undefined
+      }
     >
       <Box
         sx={{
@@ -142,7 +175,7 @@ export function FeatureTile({
           gap: 0.25,
         }}
       >
-        {icon && (
+        {icon != null && (
           <Box
             sx={[
               {
@@ -159,8 +192,8 @@ export function FeatureTile({
                   stroke: variantColors.color,
                 },
               },
-              (theme) =>
-                theme.applyStyles("dark", {
+              (muiTheme) =>
+                muiTheme.applyStyles("dark", {
                   color: variantColors.colorDark,
                   '& .MuiSvgIcon-root path[stroke-width="2"]:not([stroke])': {
                     stroke: variantColors.colorDark,
@@ -184,19 +217,19 @@ export function FeatureTile({
               fontWeight: 500,
               color: variantColors.color,
             },
-            (theme) =>
-              theme.applyStyles("dark", {
+            (muiTheme) =>
+              muiTheme.applyStyles("dark", {
                 color: variantColors.colorDark,
               }),
           ]}
         >
           {title}
         </Typography>
-        {subtitle && (
+        {subtitle != null && (
           <Typography
             variant={bodyVariant}
-            sx={(theme) => ({
-              color: theme.vars.palette.primary.main,
+            sx={(muiTheme) => ({
+              color: muiTheme.vars.palette.primary.main,
               fontWeight: 600,
             })}
           >
@@ -205,19 +238,19 @@ export function FeatureTile({
         )}
         <Box
           sx={[
-            (theme) => ({
+            (muiTheme) => ({
               color: variantColors.color,
-              ...theme.typography.body3,
+              ...muiTheme.typography.body3,
             }),
-            (theme) =>
-              theme.applyStyles("dark", {
+            (muiTheme) =>
+              muiTheme.applyStyles("dark", {
                 color: variantColors.colorDark,
               }),
           ]}
         >
           {description}
         </Box>
-        {actionText || href ? (
+        {actionText != null || href != null ? (
           <Typography
             variant="body3"
             sx={[
@@ -225,8 +258,8 @@ export function FeatureTile({
                 textDecoration: "underline",
                 color: variantColors.color,
               },
-              (theme) =>
-                theme.applyStyles("dark", {
+              (muiTheme) =>
+                muiTheme.applyStyles("dark", {
                   color: variantColors.colorDark,
                 }),
             ]}
@@ -240,7 +273,7 @@ export function FeatureTile({
   );
 
   // If href is provided, wrap the entire card with Link for better accessibility
-  if (href) {
+  if (href != null) {
     return (
       <Link href={href} style={{ textDecoration: "none", color: "inherit" }}>
         {CardContent}
@@ -249,7 +282,7 @@ export function FeatureTile({
   }
 
   return CardContent;
-}
+};
 
 // Export types for external use
 export type { FeatureTileProps };

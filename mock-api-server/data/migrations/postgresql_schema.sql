@@ -1609,3 +1609,4 @@ COMMENT ON COLUMN "user".last_name IS 'Original param name - lastName.';
 COMMENT ON COLUMN "user"."password" IS 'Legacy password field for seed data - not used with NextAuth';
 COMMENT ON COLUMN "user".account_id IS 'Original param name - accountId.';
 COMMENT ON COLUMN "user".avatar_url IS 'URL of the user&#39;s profile photo stored in Supabase Storage';
+

@@ -224,6 +224,9 @@ importers:
       "@rolemodel/betanxt-design-system":
         specifier: ^1.1.1
         version: 1.1.2(9d71a7bf8fe88a9df231c8d70df37d51)
+      "@rolemodel/client-theming":
+        specifier: https://registry.npmjs.org/@rolemodel/client-theming/-/client-theming-0.1.2.tgz
+        version: https://registry.npmjs.org/@rolemodel/client-theming/-/client-theming-0.1.2.tgz(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       "@supabase/supabase-js":
         specifier: ^2.58.0
         version: 2.106.2
@@ -4049,6 +4052,18 @@ packages:
         optional: true
       uuid:
         optional: true
+
+  "@rolemodel/client-theming@https://registry.npmjs.org/@rolemodel/client-theming/-/client-theming-0.1.2.tgz":
+    resolution:
+      {
+        integrity: sha512-xy0Zu8+5f/xil6Cm1QQ+R6bu0z8sV8yG493+AkoRjixn0YezKmq4oEKeBBucYFHBz+wy8UwQwYMhORCP0DJeAg==,
+        tarball: https://registry.npmjs.org/@rolemodel/client-theming/-/client-theming-0.1.2.tgz,
+      }
+    version: 0.1.2
+    peerDependencies:
+      "@mui/material": ">=6"
+      react: ">=18"
+      react-dom: ">=18"
 
   "@rtsao/scc@1.1.0":
     resolution:
@@ -14061,6 +14076,12 @@ snapshots:
       "@mui/x-data-grid-pro": 8.28.7(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react@19.2.7))(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(@mui/system@7.3.11(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react-dropzone: 14.4.1(react@19.2.7)
       uuid: 13.0.2
+
+  "@rolemodel/client-theming@https://registry.npmjs.org/@rolemodel/client-theming/-/client-theming-0.1.2.tgz(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)":
+    dependencies:
+      "@mui/material": 7.3.11(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react@19.2.7))(@types/react@18.3.30)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
 
   "@rtsao/scc@1.1.0": {}
 

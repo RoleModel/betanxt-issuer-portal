@@ -64,3 +64,15 @@ export const configureDistributionFlag = flag({
   adapter: vercelAdapter(),
   identify,
 });
+
+export const enableTabulationTrackerColorsFlag = flag<boolean, FlagEntities>({
+  key: "enable-tabulation-tracker-colors",
+  description: "Enable updated client-brand colors in the Tabulation Tracker",
+  defaultValue: false,
+  options: [
+    { value: false, label: "Off" },
+    { value: true, label: "On" },
+  ],
+  identify,
+  adapter: vercelAdapter(),
+});

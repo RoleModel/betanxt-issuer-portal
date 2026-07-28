@@ -44,11 +44,7 @@ const brandThemeForUserType: Record<
   SOLICITOR: morrowSodaliThemeOptions,
 };
 
-export default function ThemeRegistry({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const ThemeRegistry = ({ children }: { children: React.ReactNode }) => {
   const { currentClient } = useClient();
   const { data: session } = useSession();
   const pathname = usePathname();
@@ -95,7 +91,7 @@ export default function ThemeRegistry({
       {children}
     </ThemeProvider>
   );
-}
+};
 
 export const useClientTicker = () => {
   const { currentClient } = useClient();
@@ -103,3 +99,4 @@ export const useClientTicker = () => {
 };
 
 export { useTheme } from "@mui/material/styles";
+export default ThemeRegistry;

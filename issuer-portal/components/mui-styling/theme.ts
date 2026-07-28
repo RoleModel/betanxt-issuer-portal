@@ -1,4 +1,7 @@
+/* eslint-disable import-x/order */
 "use client";
+
+/* eslint-disable sort-keys, @typescript-eslint/naming-convention -- MUI theme object order and CSS-variable palette keys are semantic. */
 
 import type {
   PaletteColor,
@@ -6,7 +9,9 @@ import type {
   SimplePaletteColorOptions,
   Theme,
 } from "@mui/material/styles";
+// eslint-disable-next-line import-x/no-empty-named-blocks, unicorn/require-module-specifiers -- Loads MUI date-picker theme augmentations.
 import type {} from "@mui/x-date-pickers/themeAugmentation";
+// eslint-disable-next-line import-x/no-empty-named-blocks, unicorn/require-module-specifiers -- Loads design-system theme augmentations.
 import type {} from "@rolemodel/betanxt-design-system/themes/mui-type-customizations";
 
 import {
@@ -34,21 +39,25 @@ import {
   bnteal,
   celery,
   gold,
+  nxtBlue,
   orangered,
   persimmon,
   seagrass,
 } from "@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens";
-import { nxtBlue } from "@rolemodel/betanxt-design-system/themes/base/palette-tokens/brand-tokens";
 import { shadows } from "@rolemodel/betanxt-design-system/themes/base/shadows";
 import { typography as baseTypography } from "@rolemodel/betanxt-design-system/themes/base/typography";
 import betanxtTheme from "@rolemodel/betanxt-design-system/themes/betanxtTheme";
+import { createClientThemeOptions } from "@rolemodel/client-theming/theme";
 
-import { brandConfigsByTicker } from "@/utils/brandConfig";
+import { getBrandConfigByTicker } from "@/utils/brandConfig";
 import { clientBranding } from "@/utils/clientBranding";
 
-/** Safely extract `main` from a PaletteColorOptions value. */
-const paletteMain = (color: PaletteColorOptions): string =>
-  (color as SimplePaletteColorOptions).main;
+const hasMainColor = (
+  color: PaletteColorOptions
+): color is SimplePaletteColorOptions => Object.hasOwn(color, "main");
+
+const getPaletteMain = (color: PaletteColorOptions): string =>
+  hasMainColor(color) ? color.main : "";
 
 const jobStatusColorsLight = {
   statusProofing: {
@@ -112,7 +121,7 @@ const jobStatusColorsLight = {
     contrastText: betanxtTheme.palette.success.contrastText,
   },
   statusReceived: {
-    main: paletteMain(betanxtTheme.vars.palette.neutral),
+    main: getPaletteMain(betanxtTheme.vars.palette.neutral),
     contrastText: betanxtTheme.vars.palette.text.primary,
   },
 };
@@ -198,7 +207,7 @@ const baseThemeOptions = {
   typography: baseTypography,
 };
 
-export interface LayoutVars {
+export interface LayoutVariables {
   navbarHeight: number;
   appSwitcherHeight: number;
   footerHeight: number;
@@ -261,6 +270,7 @@ declare module "@mui/material/styles" {
 }
 
 declare module "@mui/material/LinearProgress" {
+  // eslint-disable-next-line unicorn/name-replacements -- This interface name must match MUI's module augmentation API.
   interface LinearProgressPropsColorOverrides {
     phase: true;
     "chartSeries[0].main": true;
@@ -286,29 +296,39 @@ export type PhaseColor =
   | "phase[7].main"
   | "complete";
 
+const phaseColorNames = [
+  "phase[0].main",
+  "phase[1].main",
+  "phase[2].main",
+  "phase[3].main",
+  "phase[4].main",
+  "phase[5].main",
+  "phase[6].main",
+  "phase[7].main",
+] satisfies PhaseColor[];
+
 // Utility function to get phase color CSS variable (works everywhere)
-export const getPhaseColor = (phase: number) => {
-  return `var(--mui-palette-phase-${phase - 1}-main)`;
-};
-export const getPhaseContrastText = (phase: number) => {
-  return `var(--mui-palette-phase-${phase - 1}-contrastText)`;
-};
+export const getPhaseColor = (phase: number) =>
+  `var(--mui-palette-phase-${phase - 1}-main)`;
+export const getPhaseContrastText = (phase: number) =>
+  `var(--mui-palette-phase-${phase - 1}-contrastText)`;
 
 // Utility function to get phase color format for MUI components (e.g., LinearProgress)
-export const getPhaseNumber = (phase: number) => {
-  return `phase[${phase - 1}].main` as PhaseColor;
-};
+export const getPhaseNumber = (phase: number): PhaseColor =>
+  phaseColorNames[phase - 1] ?? "complete";
 
 // Status color categories (matching StatusChip logic)
 // Only these statuses override the phase color
-const STATUS_COLORS: {
-  success: string[];
-  warning: string[];
-  neutral: string[];
-} = {
-  success: ["COMPLETE", "AUTHORIZED"],
-  warning: ["PENDING_AUTHORIZATION", "WAITING_FOR_FORM_RETURN"],
-  neutral: ["SUBMITTED_AWAITING_RECORD_DATE", "REQUEST_FORM_TO_FOLLOW"],
+const statusColors = {
+  success: new Set<string>(["COMPLETE", "AUTHORIZED"]),
+  warning: new Set<string>([
+    "PENDING_AUTHORIZATION",
+    "WAITING_FOR_FORM_RETURN",
+  ]),
+  neutral: new Set<string>([
+    "SUBMITTED_AWAITING_RECORD_DATE",
+    "REQUEST_FORM_TO_FOLLOW",
+  ]),
 };
 
 export const getStatusBorderColor = (
@@ -316,97 +336,135 @@ export const getStatusBorderColor = (
   phaseColor: string,
   theme: Theme
 ) => {
-  if (!status) {
+  if (status === null || status === undefined || status.length === 0) {
     return phaseColor;
   }
 
-  if (STATUS_COLORS.success.includes(status)) {
+  if (statusColors.success.has(status)) {
     return theme.vars.palette.success.main;
   }
 
-  if (STATUS_COLORS.warning.includes(status)) {
+  if (statusColors.warning.has(status)) {
     return "#EBB322";
   }
 
-  if (STATUS_COLORS.neutral.includes(status)) {
+  if (statusColors.neutral.has(status)) {
     return theme.vars.palette.grey[400];
   }
 
   return phaseColor;
 };
 
-const getClientBranding = (ticker?: string) => {
-  if (!ticker) {
-    const branding = clientBranding[0];
-    return {
-      ...branding,
-      primaryContrastText:
-        getContrastRatio(branding.primaryColor, "#fff") > 4.5 ? "#fff" : "#111",
-      secondaryContrastText:
-        getContrastRatio(branding.secondaryColor, "#fff") > 4.5
-          ? "#fff"
-          : "#111",
-      tertiaryContrastText:
-        getContrastRatio(branding.tertiaryColor, "#fff") > 4.5
-          ? "#fff"
-          : "#111",
-    };
+interface BrandingColors {
+  primaryColor: string;
+  secondaryColor: string;
+  tertiaryColor: string;
+  ticker: string;
+}
+
+interface BrandingWithContrast extends BrandingColors {
+  primaryContrastText: string;
+  secondaryContrastText: string;
+  tertiaryContrastText: string;
+}
+
+const getContrastText = (color: string): string =>
+  getContrastRatio(color, "#fff") > 4.5 ? "#fff" : "#111";
+
+const addContrastText = (branding: BrandingColors): BrandingWithContrast => ({
+  ...branding,
+  primaryContrastText: getContrastText(branding.primaryColor),
+  secondaryContrastText: getContrastText(branding.secondaryColor),
+  tertiaryContrastText: getContrastText(branding.tertiaryColor),
+});
+
+const [defaultClientBranding] = clientBranding;
+
+const getClientBranding = (ticker?: string): BrandingWithContrast => {
+  if (ticker === undefined || ticker.length === 0) {
+    return addContrastText(defaultClientBranding);
   }
 
   const branding = clientBranding.find(
-    (b: {
-      ticker: string;
-      primaryColor: string;
-      secondaryColor: string;
-      tertiaryColor: string;
-    }) => b.ticker.toLowerCase() === ticker.toLowerCase()
+    (clientBrand) => clientBrand.ticker.toLowerCase() === ticker.toLowerCase()
   );
 
-  // Fall back to brandConfig colors for the 50+ companies not in the hardcoded list
-  if (!branding) {
-    const brand = brandConfigsByTicker[ticker.toUpperCase()];
-    if (brand) {
-      const fallbackBranding = {
-        ticker: brand.ticker ?? ticker.toUpperCase(),
-        primaryColor: brand.primaryColor,
-        secondaryColor: brand.secondaryColor,
-        tertiaryColor: brand.secondaryColor, // use secondary as tertiary
-      };
+  if (branding !== undefined) {
+    return addContrastText(branding);
+  }
+
+  const normalizedTicker = ticker.toUpperCase();
+  const brand = getBrandConfigByTicker(normalizedTicker);
+
+  if (brand === null) {
+    return addContrastText(defaultClientBranding);
+  }
+
+  // Use the secondary brand color as the tertiary fallback.
+  return addContrastText({
+    primaryColor: brand.primaryColor,
+    secondaryColor: brand.secondaryColor,
+    tertiaryColor: brand.secondaryColor,
+    ticker: brand.ticker ?? normalizedTicker,
+  });
+};
+
+const linearProgressPhaseColors = new Set<string>(phaseColorNames);
+const linearProgressChartColors = new Set<string>([
+  "chartSeries[0].main",
+  "chartSeries[1].main",
+  "chartSeries[2].main",
+  "chartSeries[3].main",
+  "chartSeries[4].main",
+  "chartSeries[5].main",
+  "chartSeries[6].main",
+  "chartSeries[7].main",
+]);
+
+const getLinearProgressColorStyles = ({
+  ownerState,
+}: {
+  ownerState: { color?: string };
+}): Record<string, unknown> => {
+  const { color } = ownerState;
+
+  if (color === undefined || color.length === 0) {
+    return {};
+  }
+
+  if (linearProgressPhaseColors.has(color)) {
+    const phaseIndex = /phase\[(?<index>\d+)\]\.main/u.exec(color)?.groups
+      ?.index;
+
+    if (phaseIndex !== undefined) {
+      const phaseColor = `var(--mui-palette-phase-${phaseIndex}-main)`;
+
       return {
-        ...fallbackBranding,
-        primaryContrastText:
-          getContrastRatio(fallbackBranding.primaryColor, "#fff") > 4.5
-            ? "#fff"
-            : "#111",
-        secondaryContrastText:
-          getContrastRatio(fallbackBranding.secondaryColor, "#fff") > 4.5
-            ? "#fff"
-            : "#111",
-        tertiaryContrastText:
-          getContrastRatio(fallbackBranding.tertiaryColor, "#fff") > 4.5
-            ? "#fff"
-            : "#111",
+        backgroundColor: `color-mix(in srgb, ${phaseColor} 20%, transparent)`,
+        "& .MuiLinearProgress-bar": {
+          backgroundColor: phaseColor,
+        },
       };
     }
   }
 
-  const selectedBranding = branding ?? clientBranding[0];
+  if (linearProgressChartColors.has(color)) {
+    const chartIndex = /chartSeries\[(?<index>\d+)\]\.main/u.exec(color)?.groups
+      ?.index;
 
-  return {
-    ...selectedBranding,
-    primaryContrastText:
-      getContrastRatio(selectedBranding.primaryColor, "#fff") > 4.5
-        ? "#fff"
-        : "#111",
-    secondaryContrastText:
-      getContrastRatio(selectedBranding.secondaryColor, "#fff") > 4.5
-        ? "#fff"
-        : "#111",
-    tertiaryContrastText:
-      getContrastRatio(selectedBranding.tertiaryColor, "#fff") > 4.5
-        ? "#fff"
-        : "#111",
-  };
+    if (chartIndex !== undefined) {
+      const chartColor = `var(--mui-palette-chartSeries-${chartIndex}-main)`;
+
+      return {
+        backgroundColor: `color-mix(in srgb, ${chartColor} 20%, transparent)`,
+        "& .MuiLinearProgress-bar": {
+          backgroundColor: chartColor,
+        },
+      };
+    }
+  }
+
+  return {};
 };
 
 /**
@@ -416,6 +474,11 @@ const getClientBranding = (ticker?: string) => {
  */
 export const createClientTheme = (ticker?: string) => {
   const branding = getClientBranding(ticker);
+  const portableClientThemeOptions = createClientThemeOptions({
+    primaryColor: branding.primaryColor,
+    secondaryColor: branding.secondaryColor,
+    tertiaryColor: branding.tertiaryColor,
+  });
 
   const clientThemeOptions = deepmerge(baseThemeOptions, {
     colorSchemes: {
@@ -661,7 +724,7 @@ export const createClientTheme = (ticker?: string) => {
             height: "auto",
             [theme.breakpoints.down("md")]: {
               boxShadow: "none",
-              border: `solid 1px ${theme.vars?.palette.divider}`,
+              border: `solid 1px ${theme.vars.palette.divider}`,
             },
           }),
         },
@@ -681,32 +744,32 @@ export const createClientTheme = (ticker?: string) => {
               height: theme.layout?.navbarHeight,
             },
             "&.MuiAppBar-root": {
-              backgroundColor: theme.vars?.palette.common.white,
-              color: theme.vars?.palette.text.primary,
-              borderBottom: `1px solid ${theme.vars?.palette.divider}`,
+              backgroundColor: theme.vars.palette.common.white,
+              color: theme.vars.palette.text.primary,
+              borderBottom: `1px solid ${theme.vars.palette.divider}`,
               "& .MuiPaper-root": {
                 boxShadow: "none",
               },
               "& .MuiTabs-indicator": {
-                backgroundColor: theme.vars?.palette.primary.main,
+                backgroundColor: theme.vars.palette.primary.main,
                 height: 4,
               },
               "& .MuiTab-root ": {
-                color: theme.vars?.palette.text.primary,
+                color: theme.vars.palette.text.primary,
                 transition: theme.transitions.create(["color"]),
               },
               "& .MuiTab-root:hover ": {
-                color: theme.vars?.palette.primary.main,
-                boxShadow: `inset 0 -4px 0 0 ${theme.vars?.palette.primary.main}`,
+                color: theme.vars.palette.primary.main,
+                boxShadow: `inset 0 -4px 0 0 ${theme.vars.palette.primary.main}`,
               },
               "& .MuiTabs-root .Mui-selected": {
-                color: theme.vars?.palette.primary.main,
+                color: theme.vars.palette.primary.main,
               },
             },
             ...theme.applyStyles("dark", {
               "&.MuiAppBar-root": {
-                backgroundColor: theme.vars?.palette.footer.background,
-                color: theme.vars?.palette.common.white,
+                backgroundColor: theme.vars.palette.footer.background,
+                color: theme.vars.palette.common.white,
               },
             }),
           }),
@@ -714,61 +777,7 @@ export const createClientTheme = (ticker?: string) => {
       },
       MuiLinearProgress: {
         styleOverrides: {
-          root: ({ ownerState }: { ownerState: { color?: string } }) => {
-            const phaseColors = [
-              "phase[0].main",
-              "phase[1].main",
-              "phase[2].main",
-              "phase[3].main",
-              "phase[4].main",
-              "phase[5].main",
-              "phase[6].main",
-              "phase[7].main",
-            ];
-
-            const chartColors = [
-              "chartSeries[0].main",
-              "chartSeries[1].main",
-              "chartSeries[2].main",
-              "chartSeries[3].main",
-              "chartSeries[4].main",
-              "chartSeries[5].main",
-              "chartSeries[6].main",
-              "chartSeries[7].main",
-            ];
-
-            if (ownerState.color && phaseColors.includes(ownerState.color)) {
-              const phaseMatch = /phase\[(\d+)\]\.main/.exec(ownerState.color);
-              if (phaseMatch) {
-                const phaseIndex = phaseMatch[1];
-                const phaseColor = `var(--mui-palette-phase-${phaseIndex}-main)`;
-
-                return {
-                  backgroundColor: `color-mix(in srgb, ${phaseColor} 20%, transparent)`,
-                  "& .MuiLinearProgress-bar": {
-                    backgroundColor: phaseColor,
-                  },
-                };
-              }
-            }
-
-            if (ownerState.color && chartColors.includes(ownerState.color)) {
-              const match = /chartSeries\[(\d+)\]\.main/.exec(ownerState.color);
-              if (match) {
-                const idx = match[1];
-                const chartColor = `var(--mui-palette-chartSeries-${idx}-main)`;
-
-                return {
-                  backgroundColor: `color-mix(in srgb, ${chartColor} 20%, transparent)`,
-                  "& .MuiLinearProgress-bar": {
-                    backgroundColor: chartColor,
-                  },
-                };
-              }
-            }
-
-            return {};
-          },
+          root: getLinearProgressColorStyles,
         },
       },
       MuiTable: {
@@ -781,20 +790,20 @@ export const createClientTheme = (ticker?: string) => {
             "& .MuiTableContainer-root": {
               borderRadius: 0,
             },
-            backgroundColor: theme.vars?.palette.tableCellRow.fill,
+            backgroundColor: theme.vars.palette.tableCellRow.fill,
             contain: "paint",
             "& .MuiTableCell-head": {
               borderRadius: 0,
-              backgroundColor: theme.vars?.palette.tableHeaderRow.restingFill,
+              backgroundColor: theme.vars.palette.tableHeaderRow.restingFill,
               fontSize: theme.typography.dataHeader.fontSize,
               fontWeight: 600,
-              borderBottom: `solid 1px ${theme.vars?.palette.tableHeaderRow.border}`,
+              borderBottom: `solid 1px ${theme.vars.palette.tableHeaderRow.border}`,
             },
             "& .MuiTableHead-root": {
-              backgroundColor: theme.vars?.palette.tableHeaderRow.restingFill,
+              backgroundColor: theme.vars.palette.tableHeaderRow.restingFill,
               borderRadius: 0,
               "& :has(.MuiTableSortLabel-root):hover": {
-                backgroundColor: theme.vars?.palette.action.hover,
+                backgroundColor: theme.vars.palette.action.hover,
               },
               "& .MuiTableCell-root:has(.MuiTableSortLabel-root)": {
                 padding: 0,
@@ -808,7 +817,7 @@ export const createClientTheme = (ticker?: string) => {
             "& .MuiTableCell-root": {
               fontSize: theme.typography.dataCell.fontSize,
               lineHeight: 1.2,
-              borderColor: theme.vars?.palette?.dataGridCellRow?.border,
+              borderColor: theme.vars.palette.dataGridCellRow.border,
             },
             "& .MuiTableRow-root:last-child": {
               borderBottom: "none",
@@ -821,7 +830,7 @@ export const createClientTheme = (ticker?: string) => {
             },
             "& .MuiTableFooter-root": {
               backgroundColor:
-                theme.vars?.palette.dataGridPagination.backgroundFill,
+                theme.vars.palette.dataGridPagination.backgroundFill,
               ...theme.typography.caption,
               "& .MuiTableCell-root": {
                 ...theme.typography.caption,
@@ -870,7 +879,7 @@ export const createClientTheme = (ticker?: string) => {
     },
   });
 
-  return clientThemeOptions;
+  return deepmerge(clientThemeOptions, portableClientThemeOptions);
 };
 
 // Export theme options instead of created themes to avoid duplicate CSS variable generation

@@ -7,9 +7,9 @@ export const CustomTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip describeChild {...props} arrow classes={{ popper: className }} />
 ))(({ theme }) => ({
   [`& .${tooltipClasses.arrow}`]: {
-    color: theme.palette.keydate.contrastText,
+    color: theme.vars.palette.secondary.dark,
   },
   [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: theme.palette.keydate.dark,
+    backgroundColor: theme.vars.palette.secondary.dark,
   },
 }));

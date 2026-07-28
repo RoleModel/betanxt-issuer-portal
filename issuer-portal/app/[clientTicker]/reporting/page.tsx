@@ -7,9 +7,7 @@ import {
   CardContent,
   CardHeader,
   Container,
-  MenuItem,
   Skeleton,
-  TextField,
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
@@ -23,13 +21,19 @@ import { GeoHeatmapCard } from "@/components/Reporting/GeoHeatmapCard";
 import ParticipationChart from "@/components/Reporting/ParticipationChart";
 import PositionsVotedChart from "@/components/Reporting/PositionsVotedChart";
 import ProposalPerformanceTable from "@/components/Reporting/ProposalPerformanceTable";
-import { QuorumTimelineChart } from "@/components/Reporting/QuorumTimelineChart";
+import { QuorumTimelineChart } from "@/components/Reporting/QuorumTimelineChart/QuorumTimelineChart";
+import { useQuorumTimeline } from "@/components/Reporting/QuorumTimelineChart/useQuorumTimeline";
 import VotingPerformanceChart from "@/components/Reporting/VotingPerformanceChart";
 import YearOverYearChart from "@/components/Reporting/YearOverYearChart";
 import { useClientFeatures } from "@/hooks/useClientFeatures";
-import { useQuorumTimeline } from "@/hooks/useQuorumTimeline";
 import { useReporting } from "@/hooks/useReporting";
 import { useReports } from "@/hooks/useReports";
+import {
+  classifyMailingDistribution,
+  computeRecommendedMailByDate,
+  mailingDistributionShortLabel,
+  parseLocalDate,
+} from "@/utils/dateUtils";
 
 const ChartSkeleton = () => (
   <Skeleton
@@ -59,7 +63,7 @@ interface PositionsVotedBuckets {
  * ({@link buildMockFollowUpJobs}) and threads the selected meeting's quorum
  * requirement into the threshold line.
  */
-export default function ReportingPage() {
+const ReportingPage = () => {
   const params = useParams();
   const clientTicker = params.clientTicker as string;
 
@@ -181,12 +185,70 @@ export default function ReportingPage() {
     [clientTicker]
   );
 
+  const quorumTimelineInput = useMemo(() => {
+    const meetingDate = selectedMeeting?.meetingDate
+      ? parseLocalDate(selectedMeeting.meetingDate)
+      : null;
+    const distribution = classifyMailingDistribution(
+      selectedMeeting?.distributionType
+    );
+    const mailDate =
+      meetingDate && distribution
+        ? computeRecommendedMailByDate(meetingDate, distribution).date
+        : (selectedMeeting?.mailingDate ?? null);
+    const endDate = meetingDate ?? selectedMeeting?.cutoffDate ?? null;
+    const milestones = [];
+
+    if (mailDate) {
+      milestones.push({
+        date: mailDate,
+        kind: "mail" as const,
+        label: distribution
+          ? `Mail Date · ${mailingDistributionShortLabel(distribution)}`
+          : "Mail Date",
+      });
+    }
+
+    for (const mailing of followUpMailings) {
+      if (!mailing.date) continue;
+      milestones.push({
+        date: mailing.date,
+        kind: "followUp" as const,
+        label: mailing.label,
+      });
+    }
+
+    if (endDate) {
+      milestones.push({
+        date: endDate,
+        kind: "deadline" as const,
+        label: "Meeting Date",
+      });
+    }
+
+    return {
+      endDate,
+      milestones,
+      startDate: mailDate,
+      totalOutstandingShares: Number(
+        selectedMeeting?.totalSharesOutstanding ?? 0
+      ),
+      votes: positions
+        .filter(
+          (position) =>
+            position.meetingId === effectiveMeetingId &&
+            position.voteStatus === "Voted" &&
+            Boolean(position.dateVoted)
+        )
+        .map((position) => ({
+          date: parseLocalDate((position.dateVoted ?? "").slice(0, 10)),
+          shares: Number(position.sharesVoted ?? 0),
+        })),
+    };
+  }, [effectiveMeetingId, followUpMailings, positions, selectedMeeting]);
+
   const { points: quorumTimelinePoints, milestones: quorumTimelineMilestones } =
-    useQuorumTimeline({
-      meeting: selectedMeeting,
-      positions,
-      followUpMailings,
-    });
+    useQuorumTimeline(quorumTimelineInput);
 
   if (error) {
     return (
@@ -195,26 +257,6 @@ export default function ReportingPage() {
       </Container>
     );
   }
-
-  const meetingSelect =
-    availableMeetings.length > 0 ? (
-      <TextField
-        select
-        size="small"
-        label="Event"
-        value={effectiveMeetingId}
-        onChange={(event) => setSelectedMeetingId(event.target.value)}
-        sx={{ minWidth: 260 }}
-      >
-        {availableMeetings.map((meeting) => (
-          <MenuItem key={meeting.id} value={meeting.id}>
-            {meeting.year
-              ? `${meeting.title} - ${meeting.year}`
-              : meeting.title}
-          </MenuItem>
-        ))}
-      </TextField>
-    ) : null;
 
   return (
     <Container component="main" maxWidth="xl" sx={{ p: { xs: 1, md: 3 } }}>
@@ -254,10 +296,18 @@ export default function ReportingPage() {
               selectedMeeting?.quorumRequirement ?? null
             }
             loading={loading}
+            events={availableMeetings.map((meeting) => ({
+              id: meeting.id,
+              label: meeting.year
+                ? `${meeting.title} - ${meeting.year}`
+                : meeting.title,
+            }))}
+            selectedEventId={effectiveMeetingId}
+            onEventChange={setSelectedMeetingId}
             subheader={selectedMeetingLabel || undefined}
           />
         </Grid>
-        {hasNoboFeature && (
+        {hasNoboFeature ? (
           <>
             <Grid size={12}>
               <Box
@@ -273,7 +323,6 @@ export default function ReportingPage() {
                 <Typography variant="pageTitle" component="h2">
                   Analytics
                 </Typography>
-                {meetingSelect}
               </Box>
             </Grid>
 
@@ -337,8 +386,10 @@ export default function ReportingPage() {
               </Suspense>
             </Grid>
           </>
-        )}
+        ) : null}
       </Grid>
     </Container>
   );
-}
+};
+
+export default ReportingPage;
