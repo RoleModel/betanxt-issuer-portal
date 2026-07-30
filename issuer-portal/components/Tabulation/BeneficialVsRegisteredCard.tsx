@@ -5,11 +5,11 @@ import type { BarLabelProps } from "@mui/x-charts/BarChart";
 import { Box, Card, CardContent, CardHeader, Skeleton } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { BarChart } from "@mui/x-charts/BarChart";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-import buildApiClient from "@/domain-models/apiClient";
-import { formatNumber } from "@/utils/numberUtils";
-import { asArray, asRecord, asString } from "@/utils/typeUtils";
+import buildApiClient from "../../domain-models/apiClient";
+import { formatNumber } from "../../utils/numberUtils";
+import { asArray, asRecord, asString } from "../../utils/typeUtils";
 
 interface Position {
   accountType: string;
@@ -19,12 +19,12 @@ interface Position {
 }
 
 interface BeneficialVsRegisteredCardProps {
-  meetingId: string;
-  chartOverride?: {
-    beneficial: number;
-    registered: number;
+  readonly meetingId: string;
+  readonly chartOverride?: {
+    readonly beneficial: number;
+    readonly registered: number;
   };
-  loadingOverride?: boolean;
+  readonly loadingOverride?: boolean;
 }
 
 const toFiniteNumber = (value: unknown): number => {
@@ -39,7 +39,7 @@ const toFiniteNumber = (value: unknown): number => {
 const toStringValue = (value: unknown): string => {
   if (value === null || value === undefined) return "";
   const str = asString(value);
-  if (str) return str;
+  if (str !== null && str.length > 0) return str;
   // Only convert to string if it's a primitive type
   if (
     typeof value === "string" ||
@@ -53,7 +53,7 @@ const toStringValue = (value: unknown): string => {
 
 const normalizePosition = (value: unknown): Position | null => {
   const record = asRecord(value);
-  if (!record) return null;
+  if (record === null) return null;
 
   // API returns snake_case from PostgREST
   return {
@@ -67,13 +67,13 @@ const normalizePosition = (value: unknown): Position | null => {
 const StyledText = styled("text")(({ theme }) => ({
   ...theme.typography.body3,
   stroke: "none",
-  fill: (theme.vars || theme)?.palette?.text?.primary,
+  fill: theme.vars.palette.text.primary,
   textAnchor: "middle",
   dominantBaseline: "central",
   pointerEvents: "none",
 }));
 
-function CustomBarLabel(props: BarLabelProps) {
+const CustomBarLabel = (props: BarLabelProps) => {
   const { x, y, width, children, ...otherProps } = props;
 
   return (
@@ -81,62 +81,53 @@ function CustomBarLabel(props: BarLabelProps) {
       {formatNumber(Number(children) || 0)}
     </StyledText>
   );
-}
+};
 
-export default function BeneficialVsRegisteredCard({
+const BeneficialVsRegisteredCard = ({
   meetingId,
   chartOverride,
   loadingOverride = false,
-}: BeneficialVsRegisteredCardProps) {
+}: BeneficialVsRegisteredCardProps) => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!meetingId) return;
+    if (meetingId.length === 0) return;
 
     const fetchPositions = async () => {
       setLoading(true);
       try {
         const apiClient = await buildApiClient();
-        const { data, error } = await apiClient.GET("/positions", {
+        const { data } = await apiClient.GET("/positions", {
           params: {
             query: { meetingId },
           },
         });
 
-        if (error) {
-          console.error("Failed to fetch positions:", error);
-          return;
-        }
+        const rawData: unknown[] = Array.isArray(data)
+          ? data
+          : asArray(asRecord(data)?.positions);
 
-        if (data) {
-          const rawData: unknown[] = Array.isArray(data)
-            ? data
-            : asArray(asRecord(data)?.positions);
+        const positionsList = rawData.reduce<Position[]>((acc, item) => {
+          const normalized = normalizePosition(item);
+          if (normalized !== null) acc.push(normalized);
+          return acc;
+        }, []);
 
-          const positionsList = rawData.reduce<Position[]>((acc, item) => {
-            const normalized = normalizePosition(item);
-            if (normalized) acc.push(normalized);
-            return acc;
-          }, []);
-
-          setPositions(positionsList);
-        }
+        setPositions(positionsList);
       } catch (error) {
         console.error("Failed to fetch positions:", error);
-      } finally {
-        setLoading(false);
       }
+
+      setLoading(false);
     };
 
     void fetchPositions();
   }, [meetingId]);
 
-  const chartData = useMemo(() => {
-    if (chartOverride) {
-      return chartOverride;
-    }
+  let chartData = chartOverride;
 
+  if (chartData === undefined) {
     // Beneficial = Non-DTC (beneficial shareholders voting through brokers)
     // Based on wendys_non_dtc_vote_status.csv
     const beneficialVoted = positions
@@ -149,11 +140,11 @@ export default function BeneficialVsRegisteredCard({
       .filter((p) => p.accountType === "DTC/CDS" && p.voteStatus === "Voted")
       .reduce((sum, p) => sum + p.sharesVoted, 0);
 
-    return {
+    chartData = {
       beneficial: beneficialVoted,
       registered: registeredVoted,
     };
-  }, [chartOverride, positions]);
+  }
 
   return (
     <Card sx={{ flex: 1, height: "100%" }}>
@@ -199,4 +190,6 @@ export default function BeneficialVsRegisteredCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default BeneficialVsRegisteredCard;

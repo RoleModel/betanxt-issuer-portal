@@ -11,38 +11,34 @@ import {
 } from "@mui/material";
 import { Gauge } from "@mui/x-charts/Gauge";
 
-import type { QuorumGaugeViewModel } from "@/utils/quorum";
+import {
+  formatQuorumRequirementPercentLabel,
+  type QuorumGaugeViewModel,
+} from "../../utils/quorum";
 
 interface QuorumGaugeCardProps {
-  title?: string;
-  model: QuorumGaugeViewModel | null;
-  loading?: boolean;
-  className?: string;
+  readonly title?: string;
+  readonly model: QuorumGaugeViewModel | null;
+  readonly loading?: boolean;
+  readonly className?: string;
 }
 
-export default function QuorumGaugeCard({
+const QuorumGaugeCard = ({
   title,
   model,
   loading = false,
-}: QuorumGaugeCardProps) {
-  const statusLabel = model?.quorumMet ? "Quorum Met" : "Below Quorum";
-  const statusColor = model?.quorumMet ? "success" : "default";
+  className,
+}: QuorumGaugeCardProps) => {
+  const quorumMet = model?.quorumMet === true;
+  const statusLabel = quorumMet ? "Quorum Met" : "Below Quorum";
+  const statusColor = quorumMet ? "success" : "default";
   const displayTitle = title ?? "Quorum tracker";
 
-  const formatQuorumRequirement = (percent: number | undefined): string => {
-    if (percent === undefined || percent === null) return "50% + 1";
-    if (percent === 50) return "50% + 1";
-    if (percent === 33.3 || percent === 33.33) return "33.3% + 1";
-    if (percent === 66.6 || percent === 66.67) return "66.6% + 1";
-    if (percent === 80) return "80% + 1";
-    return `${percent}% + 1`;
-  };
-
   return (
-    <Card elevation={3} sx={{ flex: 1, height: "100%" }}>
+    <Card className={className} elevation={3} sx={{ flex: 1, height: "100%" }}>
       <CardHeader
         title={displayTitle}
-        subheader={`Quorum requirement: ${formatQuorumRequirement(model?.quorumRequirementPercent)}`}
+        subheader={`Quorum requirement: ${formatQuorumRequirementPercentLabel(model?.quorumRequirementPercent)} + 1`}
       />
       <CardContent>
         {loading || !model ? (
@@ -83,4 +79,6 @@ export default function QuorumGaugeCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default QuorumGaugeCard;
