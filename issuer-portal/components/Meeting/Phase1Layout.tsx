@@ -9,6 +9,7 @@ import type { Meeting } from "@/types/api-exports";
 
 import DocumentHostingCard from "@/components/Meeting/DocumentHostingCard";
 import KeyDatesCard from "@/components/Meeting/KeyDatesCard";
+import MeetingTaskTimeline from "@/components/Meeting/MeetingTaskTimeline";
 import QuorumGaugeCard from "@/components/Meeting/QuorumGaugeCard";
 import buildApiClient from "@/domain-models/apiClient";
 import { buildQuorumGaugeModel } from "@/utils/quorum";
@@ -52,6 +53,9 @@ function Phase1Layout({ meeting }: Phase1LayoutProps) {
   return (
     <Suspense>
       <Grid container spacing={{ xs: 2, md: 3 }}>
+        <Grid size={12}>
+          <MeetingTaskTimeline />
+        </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <KeyDatesCard meeting={meeting} />
         </Grid>

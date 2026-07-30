@@ -5,6 +5,8 @@ import { Box, CircularProgress, Link, Paper, Typography } from "@mui/material";
 import dynamic from "next/dynamic";
 import React from "react";
 
+import { pdfWorkerSource } from "@/lib/pdf-worker";
+
 interface ResourceTitleProps {
   title: string;
   description: string;
@@ -22,8 +24,7 @@ const PDFPreview = dynamic(
   () =>
     import("react-pdf").then((mod) => {
       if (typeof window !== "undefined" && !workerInitialized) {
-        // Pin to the exact pdfjs version to avoid worker/API version mismatch.
-        mod.pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${mod.pdfjs.version}/build/pdf.worker.min.mjs`;
+        mod.pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSource;
         workerInitialized = true;
       }
 

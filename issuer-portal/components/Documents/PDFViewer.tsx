@@ -4,10 +4,12 @@ import { Box, CircularProgress } from "@mui/material";
 import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
 
+import { pdfWorkerSource } from "@/lib/pdf-worker";
+
 const Document = dynamic(
   () =>
     import("react-pdf").then((mod) => {
-      mod.pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${mod.pdfjs.version}/build/pdf.worker.min.mjs`;
+      mod.pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSource;
       return mod.Document;
     }),
   { ssr: false, loading: () => null }

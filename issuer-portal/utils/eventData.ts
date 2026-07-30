@@ -16,6 +16,7 @@ export interface EventRow {
   clientTicker: string;
   meetingStatus: "ACTIVE" | "COMPLETE";
   mailingStatus: string | null;
+  exchange: string | null;
   quorumRequirement: number | null;
 }
 

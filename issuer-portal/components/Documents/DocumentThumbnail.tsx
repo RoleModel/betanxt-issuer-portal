@@ -13,6 +13,7 @@ import {
   getStoragePublicUrl,
   isStorageUrl,
 } from "@/utils/documentUtils";
+import { pdfWorkerSource } from "@/lib/pdf-worker";
 
 import DocumentThumbnailGenerator from "./DocumentThumbnailGenerator";
 
@@ -145,12 +146,8 @@ export default function DocumentThumbnail({
 
     const loadPDFComponents = async () => {
       try {
-        // Dynamically import react-pdf components.
-        // Pin the worker to the exact pdfjs version the API ships — a version
-        // mismatch makes pdf.js throw and the thumbnail silently falls back to
-        // the file-type icon instead of rendering a preview.
         const { pdfjs } = await import("react-pdf");
-        pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+        pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSource;
 
         const pdfComponents = await import("react-pdf");
 

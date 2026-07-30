@@ -25,6 +25,18 @@ function extractClientCompanyName(client: unknown): string | null {
   );
 }
 
+function formatMeetingDate(date: string | null): string | null {
+  if (date === null) {
+    return null;
+  }
+
+  return parseLocalDate(date).toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
 function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
   const id = asString(meeting.id);
   const ticker = asString(meeting.ticker);
@@ -41,11 +53,8 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     getBrandConfigByTicker(ticker)?.companyName ??
     ticker;
 
-  const eventDate = parseLocalDate(meetingDate).toLocaleDateString("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  });
+  const eventDate = formatMeetingDate(meetingDate);
+  if (eventDate === null) return null;
 
   const isAnnual = meetingType.toLowerCase().includes("annual");
   const eventType: "Annual Meeting" | "Special Meeting" = isAnnual
@@ -56,6 +65,21 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     status === "ACTIVE" ? "ACTIVE" : "COMPLETE";
 
   const mailingStatus = asString(meeting.mailingStatus) ?? null;
+  const clientRecord = asRecord(meeting.client);
+  const exchange =
+    asString(meeting.exchange) ??
+    asString(clientRecord?.exchange) ??
+    asString(clientRecord?.listingExchange) ??
+    null;
+  const brokerSearchDate = formatMeetingDate(
+    asString(meeting.brokerSearchDate ?? meeting.broker_search_date)
+  );
+  const recordDate = formatMeetingDate(
+    asString(meeting.recordDate ?? meeting.record_date)
+  );
+  const mailingDate = formatMeetingDate(
+    asString(meeting.mailingDate ?? meeting.mailing_date)
+  );
   const quorumRequirement = asNumber(
     meeting.quorumRequirement ?? meeting.quorum_requirement
   );
@@ -65,11 +89,15 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     event: companyName,
     cusip,
     eventDate,
+    brokerSearchDate,
+    recordDate,
+    mailingDate,
     eventType,
     meetingId: id,
     clientTicker: ticker,
     meetingStatus,
     mailingStatus,
+    exchange,
     quorumRequirement,
   };
 }
