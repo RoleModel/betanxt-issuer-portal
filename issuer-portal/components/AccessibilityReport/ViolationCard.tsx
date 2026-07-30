@@ -74,7 +74,7 @@ const getImpactDisplayText = (impact: string, description: string) => {
   };
 };
 
-export default function ViolationCard({ violation, page }: ViolationCardProps) {
+const ViolationCard = ({ violation, page }: ViolationCardProps) => {
   const displayInfo = getImpactDisplayText(
     violation.impact,
     violation.description
@@ -210,4 +210,6 @@ export default function ViolationCard({ violation, page }: ViolationCardProps) {
       )}
     </Box>
   );
-}
+};
+
+export default ViolationCard;

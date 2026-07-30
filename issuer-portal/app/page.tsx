@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { useClient } from "@/contexts/ClientContext";
 
-export default function HomePage() {
+const HomePage = () => {
   const { data: session, status } = useSession();
   const {
     currentClient,
@@ -123,4 +123,6 @@ export default function HomePage() {
 
   // Show loading spinner while determining client
   return <LinearProgress />;
-}
+};
+
+export default HomePage;

@@ -1,6 +1,6 @@
 import { Container, Skeleton, Stack } from "@mui/material";
 
-export default function Loading() {
+const Loading = () => {
   return (
     <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
       <Stack direction="column" spacing={2}>
@@ -12,4 +12,6 @@ export default function Loading() {
       </Stack>
     </Container>
   );
-}
+};
+
+export default Loading;

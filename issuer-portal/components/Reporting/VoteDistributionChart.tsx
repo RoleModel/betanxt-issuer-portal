@@ -19,10 +19,10 @@ interface VoteDistributionChartProps {
   loading?: boolean;
 }
 
-export default function VoteDistributionChart({
+const VoteDistributionChart = ({
   data,
   loading,
-}: VoteDistributionChartProps) {
+}: VoteDistributionChartProps) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   if (loading) {
@@ -95,4 +95,6 @@ export default function VoteDistributionChart({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default VoteDistributionChart;

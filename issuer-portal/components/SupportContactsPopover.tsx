@@ -68,11 +68,11 @@ interface SupportContactsPopoverProps {
   onClose: () => void;
 }
 
-export default function SupportContactsPopover({
+const SupportContactsPopover = ({
   open,
   anchorEl,
   onClose,
-}: SupportContactsPopoverProps) {
+}: SupportContactsPopoverProps) => {
   return (
     <Popover
       open={open}
@@ -166,4 +166,6 @@ export default function SupportContactsPopover({
       </Paper>
     </Popover>
   );
-}
+};
+
+export default SupportContactsPopover;

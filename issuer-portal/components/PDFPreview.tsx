@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 import { TabulationPDFDocument } from "@/utils/exportTabulationPdf";
 
-export default function PDFPreview() {
+const PDFPreview = () => {
   const [clientLogoBase64, setClientLogoBase64] = useState<string>("");
   const [betanxtLogoBase64, setBetanxtLogoBase64] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -150,4 +150,6 @@ export default function PDFPreview() {
       />
     </PDFViewer>
   );
-}
+};
+
+export default PDFPreview;

@@ -46,11 +46,11 @@ interface SecureFileTransferTableProps {
   maxHeight?: number | string;
 }
 
-export default function SecureFileTransferTable({
+const SecureFileTransferTable = ({
   clientTicker,
   showHeader = true,
   maxHeight,
-}: SecureFileTransferTableProps) {
+}: SecureFileTransferTableProps) => {
   const [meetingId, setMeetingId] = React.useState<string | null>(null);
   const [documents, setDocuments] = React.useState<Document[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
@@ -355,4 +355,6 @@ export default function SecureFileTransferTable({
       </Dialog>
     </Card>
   );
-}
+};
+
+export default SecureFileTransferTable;

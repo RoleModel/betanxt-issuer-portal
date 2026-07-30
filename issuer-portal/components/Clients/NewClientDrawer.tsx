@@ -116,7 +116,7 @@ const EMPTY_EVENT: EventForm = {
   transferAgent: "Computershare",
 };
 
-function ColorField({
+const ColorField = ({
   label,
   value,
   onChange,
@@ -124,7 +124,7 @@ function ColorField({
   label: string;
   value: string;
   onChange: (v: string) => void;
-}) {
+}) => {
   return (
     <TextField
       label={label}
@@ -159,13 +159,13 @@ function ColorField({
       }}
     />
   );
-}
+};
 
-export function NewClientDrawer({
+export const NewClientDrawer = ({
   open,
   onClose,
   onCreated,
-}: NewClientDrawerProps) {
+}: NewClientDrawerProps) => {
   const { data: session, update: updateSession } = useSession();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -841,4 +841,4 @@ export function NewClientDrawer({
       )}
     </Drawer>
   );
-}
+};

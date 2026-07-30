@@ -89,10 +89,10 @@ const SiteHostingButton = ({ label, url }: SiteHostingButtonProps) => {
   );
 };
 
-export default function DocumentHostingCard({
+const DocumentHostingCard = ({
   meeting,
   className,
-}: DocumentHostingCardProps) {
+}: DocumentHostingCardProps) => {
   // Generate dynamic URLs based on client branding and ticker
   const hostingSite = {
     label: "Document Hosting Site",
@@ -126,4 +126,6 @@ export default function DocumentHostingCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default DocumentHostingCard;

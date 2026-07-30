@@ -29,11 +29,11 @@ interface LayoutProps {
   eventTabs?: boolean;
 }
 
-function Layout({
+const Layout = ({
   children,
   navBar = true,
   eventTabs = false,
-}: PropsWithChildren<LayoutProps>) {
+}: PropsWithChildren<LayoutProps>) => {
   const [open, setOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
@@ -273,6 +273,6 @@ function Layout({
       </Stack>
     </Suspense>
   );
-}
+};
 
 export default Layout;

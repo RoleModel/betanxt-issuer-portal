@@ -12,7 +12,7 @@ interface Phase2LayoutProps {
   meeting?: Meeting;
 }
 
-function Phase2Layout({ meeting }: Phase2LayoutProps) {
+const Phase2Layout = ({ meeting }: Phase2LayoutProps) => {
   return (
     <Grid container spacing={{ xs: 2, md: 3 }}>
       <Grid size={{ xs: 12, md: 12 }}>
@@ -23,6 +23,6 @@ function Phase2Layout({ meeting }: Phase2LayoutProps) {
       </Grid>
     </Grid>
   );
-}
+};
 
 export default Phase2Layout;

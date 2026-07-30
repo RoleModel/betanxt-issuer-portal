@@ -68,10 +68,7 @@ interface Phase7LayoutProps {
   meeting?: Meeting;
 }
 
-export default React.memo(function Phase7Layout({
-  meetingId,
-  meeting,
-}: Phase7LayoutProps) {
+export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
   const router = useRouter();
   const { proposals, loading: votingLoading } = useVotingTabulation(meetingId);
   const [scheduledLogistics, setScheduledLogistics] = useState(false);

@@ -96,7 +96,7 @@ const toUiMessages = (messages: StoredConversationMessage[]): UIMessage[] => {
   }));
 };
 
-export default function IssuerChatbot() {
+const IssuerChatbot = () => {
   const [showConversations, setShowConversations] = React.useState(false);
   const [conversations, setConversations] = React.useState<
     StoredConversation[]
@@ -890,4 +890,6 @@ export default function IssuerChatbot() {
       )}
     </Popover>
   );
-}
+};
+
+export default IssuerChatbot;

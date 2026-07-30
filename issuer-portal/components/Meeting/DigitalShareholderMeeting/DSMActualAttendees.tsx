@@ -27,7 +27,7 @@ interface DSMActualAttendeesProps {
   meetingId: string;
 }
 
-export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
+export const DSMActualAttendees = ({ meetingId }: DSMActualAttendeesProps) => {
   const [attendees, setAttendees] = useState<DigitalShareholderMeeting[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -146,4 +146,4 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
       </Card>
     </Box>
   );
-}
+};

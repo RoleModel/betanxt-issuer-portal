@@ -30,10 +30,10 @@ interface VotingTabulationTableProps {
  * buckets with percentages. The aggregate "Total Votes" column was removed in
  * favor of the per-bucket breakdown (002-tabulation-enhancements).
  */
-export default function VotingTabulationTable({
+const VotingTabulationTable = ({
   proposals,
   loading = false,
-}: VotingTabulationTableProps) {
+}: VotingTabulationTableProps) => {
   const { currentMeeting } = useMeeting();
 
   const formatPercentage = (percentage: number) => {
@@ -148,4 +148,6 @@ export default function VotingTabulationTable({
       </Table>
     </TableContainer>
   );
-}
+};
+
+export default VotingTabulationTable;

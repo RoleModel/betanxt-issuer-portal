@@ -49,7 +49,9 @@ interface DSMGuestRegistrantsProps {
   meetingId: string;
 }
 
-export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
+export const DSMGuestRegistrants = ({
+  meetingId,
+}: DSMGuestRegistrantsProps) => {
   const [guests, setGuests] = useState<DigitalShareholderMeeting[]>([]);
   const [filteredGuests, setFilteredGuests] = useState<
     DigitalShareholderMeeting[]
@@ -442,4 +444,4 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
       />
     </Card>
   );
-}
+};

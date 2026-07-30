@@ -16,7 +16,7 @@ const TabulationTracker = dynamic(
   {}
 );
 
-export default function PhasePage() {
+const PhasePage = () => {
   const params = useParams();
   const meetingId = params.meetingId as string;
   const phase = params.phase as string;
@@ -50,4 +50,6 @@ export default function PhasePage() {
       </Box>
     </Container>
   );
-}
+};
+
+export default PhasePage;

@@ -1,6 +1,6 @@
 import { Typography } from "@mui/material";
 
-export function ContentTitle({ title }: { title: string }) {
+export const ContentTitle = ({ title }: { title: string }) => {
   return (
     <Typography
       variant="h1"
@@ -11,4 +11,4 @@ export function ContentTitle({ title }: { title: string }) {
       {title}
     </Typography>
   );
-}
+};

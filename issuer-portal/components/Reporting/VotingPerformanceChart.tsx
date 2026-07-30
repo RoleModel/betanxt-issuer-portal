@@ -44,10 +44,10 @@ interface VotingPerformanceChartProps {
   subheader?: string;
 }
 
-export default function VotingPerformanceChart({
+const VotingPerformanceChart = ({
   meetingId,
   subheader,
-}: VotingPerformanceChartProps) {
+}: VotingPerformanceChartProps) => {
   const [data, setData] = useState<ShareRangeData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -283,4 +283,6 @@ export default function VotingPerformanceChart({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default VotingPerformanceChart;

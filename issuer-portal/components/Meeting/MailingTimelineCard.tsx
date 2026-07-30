@@ -92,12 +92,12 @@ const WORKFLOW_STEPS: WorkflowStep[] = [
   },
 ];
 
-export default function MailingTimelineCard({
+const MailingTimelineCard = ({
   currentStatus,
   statusDate,
   meetingId,
   onStatusChange,
-}: MailingTimelineCardProps) {
+}: MailingTimelineCardProps) => {
   const { data: session } = useSession();
   const isCSM = session?.user?.type === "CSM";
 
@@ -605,4 +605,6 @@ export default function MailingTimelineCard({
       </Dialog>
     </Stack>
   );
-}
+};
+
+export default MailingTimelineCard;

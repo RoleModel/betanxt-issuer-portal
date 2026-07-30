@@ -17,7 +17,7 @@ import {
 
 import FeatureTile from "../FeatureTile";
 
-export default function TabulationReportCard() {
+const TabulationReportCard = () => {
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
   const { proposals: votingProposals } = useVotingTabulation(
@@ -171,4 +171,6 @@ export default function TabulationReportCard() {
       onClick={isDataReady ? handleDownload : undefined}
     />
   );
-}
+};
+
+export default TabulationReportCard;

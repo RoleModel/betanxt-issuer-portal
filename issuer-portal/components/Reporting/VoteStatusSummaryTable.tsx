@@ -44,11 +44,11 @@ const isTotalRow = (category: string): boolean => {
   return category === "Grand Total" || category === "Voted Sub-Total";
 };
 
-export default function VoteStatusSummaryTable({
+const VoteStatusSummaryTable = ({
   title,
   data,
   loading,
-}: VoteStatusSummaryTableProps) {
+}: VoteStatusSummaryTableProps) => {
   if (loading || data.length === 0) {
     return (
       <Card>
@@ -165,4 +165,6 @@ export default function VoteStatusSummaryTable({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default VoteStatusSummaryTable;

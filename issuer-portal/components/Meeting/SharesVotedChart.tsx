@@ -65,11 +65,11 @@ function getProposalTitle(proposal: ProposalVoting): string {
  * @example
  * <SharesVotedChart meetingId="wen-annual-meeting-2025" />
  */
-export default function SharesVotedChart({
+const SharesVotedChart = ({
   meetingId,
   loading = false,
   proposalsOverride,
-}: SharesVotedChartProps) {
+}: SharesVotedChartProps) => {
   const { proposals: fetchedProposals, loading: votingLoading } =
     useVotingTabulation(meetingId);
   const proposals = proposalsOverride ?? fetchedProposals;
@@ -226,4 +226,6 @@ export default function SharesVotedChart({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default SharesVotedChart;

@@ -30,13 +30,13 @@ interface ExportButtonProps {
   size?: "small" | "medium" | "large";
 }
 
-export function ExportButton({
+export const ExportButton = ({
   attendees,
   sectionName = "attendees",
   disabled = false,
   variant = "outlined",
   size = "large",
-}: ExportButtonProps) {
+}: ExportButtonProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const open = Boolean(anchorEl);
@@ -154,4 +154,4 @@ export function ExportButton({
       </Menu>
     </>
   );
-}
+};

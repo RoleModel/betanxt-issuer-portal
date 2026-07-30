@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { useMeeting } from "@/contexts/MeetingContext";
 
 // This handles the Meeting Dashboard route and redirects to the active phase
-export default function MeetingDashboardPage() {
+const MeetingDashboardPage = () => {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -66,4 +66,6 @@ export default function MeetingDashboardPage() {
       </Box>
     );
   }
-}
+};
+
+export default MeetingDashboardPage;

@@ -2,10 +2,8 @@
 
 import React from "react";
 
-export default function ProfileLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const ProfileLayout = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
-}
+};
+
+export default ProfileLayout;

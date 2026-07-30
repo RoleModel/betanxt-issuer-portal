@@ -16,10 +16,10 @@ interface ResetDemoDataDialogProps {
   onClose: () => void;
 }
 
-export function ResetDemoDataDialog({
+export const ResetDemoDataDialog = ({
   open,
   onClose,
-}: ResetDemoDataDialogProps) {
+}: ResetDemoDataDialogProps) => {
   const { resetDemoData, isResetting, error } = useResetDemoData();
 
   const handleConfirm = async () => {
@@ -66,4 +66,4 @@ export function ResetDemoDataDialog({
       </DialogActions>
     </Dialog>
   );
-}
+};

@@ -22,7 +22,7 @@ import { useTabulationInsights } from "@/hooks/useTabulationInsights";
  * aggregate voting summary).
  */
 
-export default function TabulationPage() {
+const TabulationPage = () => {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
   const meetingId = currentMeeting?.id ?? "";
   const { flags } = useFeatureFlags();
@@ -130,4 +130,6 @@ export default function TabulationPage() {
       </Grid>
     </Container>
   );
-}
+};
+
+export default TabulationPage;

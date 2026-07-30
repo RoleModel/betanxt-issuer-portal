@@ -27,7 +27,7 @@ import { SidebarCard } from "@/components/Products/SidebarCard";
 import VideoPlayer from "@/components/Video/VideoPlayer";
 import VideoPlayerDialog from "@/components/Video/VideoPlayerDialog";
 
-export default function DigitalShareholderMeetingsPage() {
+const DigitalShareholderMeetingsPage = () => {
   const [open, setOpen] = React.useState(false);
   const [fileUrl, setFileUrl] = React.useState<string>("");
   const [viewerTitle, setViewerTitle] = React.useState<string>("");
@@ -217,4 +217,6 @@ export default function DigitalShareholderMeetingsPage() {
       />
     </>
   );
-}
+};
+
+export default DigitalShareholderMeetingsPage;

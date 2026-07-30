@@ -51,7 +51,7 @@ interface DSMDocumentsProps {
   placeholders?: { id: string; title: string }[];
 }
 
-export default function DSMDocuments(props: DSMDocumentsProps) {
+const DSMDocuments = (props: DSMDocumentsProps) => {
   const {
     dsmDocuments,
     dsmPage,
@@ -235,4 +235,6 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default DSMDocuments;

@@ -38,7 +38,7 @@ const USER_TYPE_BRAND_LABELS: Record<string, string> = {
  * - For CSM: additionally shows a searchable Autocomplete for all clients
  *   and a "Covering for…" Chip when viewing a non-assigned client.
  */
-function EventSwitchButton({ userType }: { userType: string }) {
+const EventSwitchButton = ({ userType }: { userType: string }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [csmInputValue, setCsmInputValue] = useState("");
   const pathname = usePathname();
@@ -420,9 +420,9 @@ function EventSwitchButton({ userType }: { userType: string }) {
       </Menu>
     </>
   );
-}
+};
 
-function IssuerClientLabel() {
+const IssuerClientLabel = () => {
   const { currentClient, availableClients } = useClient();
   const { data: session } = useSession();
 
@@ -452,9 +452,9 @@ function IssuerClientLabel() {
       {displayName}
     </Typography>
   );
-}
+};
 
-function SwitchButton() {
+const SwitchButton = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { availableClients, currentClient, switchClient } = useClient();
   const { data: session } = useSession();
@@ -580,9 +580,9 @@ function SwitchButton() {
       </Menu>
     </>
   );
-}
+};
 
-export function ClientAppSwitcher() {
+export const ClientAppSwitcher = () => {
   return (
     <Box
       sx={(theme) => ({
@@ -597,4 +597,4 @@ export function ClientAppSwitcher() {
       <SwitchButton />
     </Box>
   );
-}
+};

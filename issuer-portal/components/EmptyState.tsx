@@ -14,14 +14,14 @@ interface EmptyStateProps {
   dangerouslySetInnerHTML?: boolean;
 }
 
-export function EmptyState({
+export const EmptyState = ({
   icon = <HandTouchIcon />,
   title,
   minHeight = 400,
   description,
   action,
   children,
-}: EmptyStateProps) {
+}: EmptyStateProps) => {
   return (
     <Box sx={{ p: 1 }}>
       <Paper
@@ -93,7 +93,7 @@ export function EmptyState({
       </Paper>
     </Box>
   );
-}
+};
 
 // Export types for external use
 export type { EmptyStateProps };

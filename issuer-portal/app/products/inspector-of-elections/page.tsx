@@ -22,7 +22,7 @@ import ProductsLayout from "@/components/Layout/ProductLayout";
 import CTACard from "@/components/Products/CTACard";
 import { SidebarCard } from "@/components/Products/SidebarCard";
 
-export default function InspectorOfElectionsPage() {
+const InspectorOfElectionsPage = () => {
   const [open, setOpen] = useState(false);
   const benefits = [
     {
@@ -154,4 +154,6 @@ export default function InspectorOfElectionsPage() {
       rightColumnContent={rightColumnContent}
     />
   );
-}
+};
+
+export default InspectorOfElectionsPage;

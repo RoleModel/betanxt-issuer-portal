@@ -63,11 +63,11 @@ interface CriteriaViewProps {
   axeToWcagMapping: Record<string, string>;
 }
 
-export default function CriteriaView({
+const CriteriaView = ({
   criteriaSummary,
   axeRulesData,
   axeToWcagMapping,
-}: CriteriaViewProps) {
+}: CriteriaViewProps) => {
   const [expandedRules, setExpandedRules] = useState<Record<string, boolean>>(
     {}
   );
@@ -266,4 +266,6 @@ export default function CriteriaView({
       ))}
     </Stack>
   );
-}
+};
+
+export default CriteriaView;

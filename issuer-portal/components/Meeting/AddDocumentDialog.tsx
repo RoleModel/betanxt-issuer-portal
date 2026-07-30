@@ -43,13 +43,13 @@ interface AddDocumentDialogProps {
   onDocumentAdded: (documentName: string, documentStatus: string) => void;
 }
 
-export function AddDocumentDialog({
+export const AddDocumentDialog = ({
   open,
   onClose,
   participantName,
   meetingId,
   onDocumentAdded,
-}: AddDocumentDialogProps) {
+}: AddDocumentDialogProps) => {
   const [dsmDocuments, setDsmDocuments] = useState<DSMDocument[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState("");
   const [uploadFiles, setUploadFiles] = useState<FileWithMetadata[]>([]);
@@ -270,4 +270,4 @@ export function AddDocumentDialog({
       </DialogActions>
     </Dialog>
   );
-}
+};

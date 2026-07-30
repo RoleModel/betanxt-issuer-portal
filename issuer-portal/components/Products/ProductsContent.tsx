@@ -12,7 +12,7 @@ import React from "react";
 import FeatureTile from "@/components/FeatureTile";
 import GlobalStyle from "@/components/mui-styling/GlobalStyles";
 
-export default function ProductsContent() {
+const ProductsContent = () => {
   const servicePaperItems = React.useMemo(
     () => [
       {
@@ -81,4 +81,6 @@ export default function ProductsContent() {
       </Grid>
     </Container>
   );
-}
+};
+
+export default ProductsContent;

@@ -16,11 +16,11 @@ interface SharesVotedCardProps {
  * per-proposal shares-voted donut with its proposal selector. Exists so the
  * page can pass its already-fetched proposals straight through.
  */
-export default function SharesVotedCard({
+const SharesVotedCard = ({
   meetingId,
   loading,
   proposalsOverride,
-}: SharesVotedCardProps) {
+}: SharesVotedCardProps) => {
   return (
     <SharesVotedChart
       meetingId={meetingId}
@@ -28,4 +28,6 @@ export default function SharesVotedCard({
       proposalsOverride={proposalsOverride}
     />
   );
-}
+};
+
+export default SharesVotedCard;

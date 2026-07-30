@@ -37,13 +37,13 @@ interface BrokerVotingChartProps {
   subheader?: string;
 }
 
-export default function BrokerVotingChart({
+const BrokerVotingChart = ({
   meetingId,
   proposals = [],
   brokerData = {},
   loading = false,
   subheader,
-}: BrokerVotingChartProps) {
+}: BrokerVotingChartProps) => {
   const [selectedProposalId, setSelectedProposalId] = useState<string>("");
 
   // Reset selectedProposalId when meetingId changes or when current selection is invalid
@@ -191,4 +191,6 @@ export default function BrokerVotingChart({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default BrokerVotingChart;

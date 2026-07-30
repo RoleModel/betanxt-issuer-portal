@@ -19,7 +19,11 @@ const ChatbotContext = createContext<ChatbotContextValue | undefined>(
 
 const CHATBOT_OPEN_STORAGE_KEY = "issuer-chatbot-open";
 
-export function ChatbotProvider({ children }: { children: React.ReactNode }) {
+export const ChatbotProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const router = useRouter();
   const isEnabled = true;
   const [isOpen, setIsOpen] = React.useState(false);
@@ -69,7 +73,7 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ChatbotContext.Provider>
   );
-}
+};
 
 export function useChatbotContext() {
   const context = useContext(ChatbotContext);

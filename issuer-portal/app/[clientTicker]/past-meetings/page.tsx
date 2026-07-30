@@ -153,7 +153,7 @@ const _computeParticipationMetrics = (
   };
 };
 
-export default function PastMeetingsPage() {
+const PastMeetingsPage = () => {
   const pathname = usePathname();
   const clientTicker = pathname.split("/")[1];
   const [meetings, setMeetings] = useState<PastMeetingData[]>([]);
@@ -306,4 +306,6 @@ export default function PastMeetingsPage() {
       </Container>
     </Box>
   );
-}
+};
+
+export default PastMeetingsPage;

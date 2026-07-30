@@ -22,12 +22,12 @@ interface VideoPlaylistProps {
   onVideoSelect: (video: VideoItem) => void;
 }
 
-export default function VideoPlaylist({
+const VideoPlaylist = ({
   videos,
   activeVideoId,
   playingVideoId,
   onVideoSelect,
-}: VideoPlaylistProps) {
+}: VideoPlaylistProps) => {
   return (
     <Box
       sx={{
@@ -72,4 +72,6 @@ export default function VideoPlaylist({
       </Box>
     </Box>
   );
-}
+};
+
+export default VideoPlaylist;

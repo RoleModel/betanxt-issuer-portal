@@ -49,7 +49,7 @@ export const StyledSpeedDial = styled(SpeedDial)<SpeedDialProps>(
   })
 );
 
-export default function IssuerSpeedDial({
+const IssuerSpeedDial = ({
   ariaLabel = "Issuer Support Tools",
   icon = <ContactSupportOutlined />,
   closeIcon = <CloseIcon />,
@@ -59,7 +59,7 @@ export default function IssuerSpeedDial({
   onGlossaryClick,
   onContactsClick,
   onAssistantClick,
-}: IssuerSpeedDialProps) {
+}: IssuerSpeedDialProps) => {
   const actions = [
     {
       icon: (
@@ -166,4 +166,6 @@ export default function IssuerSpeedDial({
       </StyledSpeedDial>
     </Box>
   );
-}
+};
+
+export default IssuerSpeedDial;

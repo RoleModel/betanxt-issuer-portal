@@ -6,6 +6,8 @@ const EducationContent = dynamic(
   () => import("@/components/Education/EducationContent")
 );
 
-export default function EducationPage() {
+const EducationPage = () => {
   return <EducationContent />;
-}
+};
+
+export default EducationPage;

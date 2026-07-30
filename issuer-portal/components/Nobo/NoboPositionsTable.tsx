@@ -41,10 +41,10 @@ const formatNumber = (value: number): string => value.toLocaleString("en-US");
  * size changes. Missing states render as an em dash, and an empty state row
  * is shown when no positions exist for the meeting.
  */
-export function NoboPositionsTable({
+export const NoboPositionsTable = ({
   positions,
   loading = false,
-}: NoboPositionsTableProps) {
+}: NoboPositionsTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -161,4 +161,4 @@ export function NoboPositionsTable({
       />
     </Box>
   );
-}
+};

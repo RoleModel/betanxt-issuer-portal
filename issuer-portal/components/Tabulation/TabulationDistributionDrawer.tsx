@@ -73,12 +73,12 @@ function computeNextScheduled(
   return null;
 }
 
-export function TabulationDistributionDrawer({
+export const TabulationDistributionDrawer = ({
   meetingId,
   clientTicker,
   initialDistribution,
   meetingDate,
-}: TabulationDistributionDrawerProps) {
+}: TabulationDistributionDrawerProps) => {
   const { data: session } = useSession();
   const { flags } = useFeatureFlags(clientTicker ?? undefined);
   const isCSM =
@@ -563,4 +563,4 @@ export function TabulationDistributionDrawer({
       </Drawer>
     </>
   );
-}
+};

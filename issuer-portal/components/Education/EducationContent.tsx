@@ -18,7 +18,7 @@ import ScrollContainer from "@/components/ScrollContainer";
 
 import DocumentViewer from "../Documents/DocumentViewer";
 
-export default function EducationContent() {
+const EducationContent = () => {
   const educationPaperItems = React.useMemo(
     () => [
       {
@@ -322,4 +322,6 @@ export default function EducationContent() {
       />
     </Container>
   );
-}
+};
+
+export default EducationContent;

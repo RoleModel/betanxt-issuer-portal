@@ -12,6 +12,8 @@ const ProductsContent = dynamic(
   }
 );
 
-export default function ProductsPage() {
+const ProductsPage = () => {
   return <ProductsContent />;
-}
+};
+
+export default ProductsPage;

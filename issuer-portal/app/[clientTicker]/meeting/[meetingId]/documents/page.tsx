@@ -8,6 +8,8 @@ interface PageProps {
   params: Promise<{ clientTicker: string; meetingId: string }>;
 }
 
-export default function DocumentsPage({ params }: PageProps) {
+const DocumentsPage = ({ params }: PageProps) => {
   return <DocumentsSection params={params} />;
-}
+};
+
+export default DocumentsPage;

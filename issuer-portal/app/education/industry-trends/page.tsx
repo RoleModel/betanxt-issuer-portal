@@ -68,7 +68,7 @@ const industryTrends = [
   },
 ];
 
-export default function IndustryTrendsPage() {
+const IndustryTrendsPage = () => {
   return (
     <Container maxWidth="lg" sx={{ p: { xs: 1, sm: 3 } }}>
       <Grid container spacing={{ xs: 2, md: 3 }}>
@@ -80,4 +80,6 @@ export default function IndustryTrendsPage() {
       </Grid>
     </Container>
   );
-}
+};
+
+export default IndustryTrendsPage;

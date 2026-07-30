@@ -45,10 +45,10 @@ interface MeetingProviderProps {
   initialMeeting?: Meeting | null;
 }
 
-export function MeetingProvider({
+export const MeetingProvider = ({
   children,
   initialMeeting = null,
-}: MeetingProviderProps) {
+}: MeetingProviderProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(
@@ -499,7 +499,7 @@ export function MeetingProvider({
       {children}
     </MeetingContext.Provider>
   );
-}
+};
 
 export const useMeeting = () => {
   const context = useContext(MeetingContext);

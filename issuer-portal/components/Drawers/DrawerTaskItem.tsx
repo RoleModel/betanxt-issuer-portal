@@ -36,7 +36,7 @@ interface DrawerTaskItemProps {
   onLinkClick?: (link: TaskLink, taskTitle: string) => void;
 }
 
-export default function DrawerTaskItem({
+const DrawerTaskItem = ({
   task,
   phaseColor,
   isCompleted = false,
@@ -44,7 +44,7 @@ export default function DrawerTaskItem({
   onStatusUpdate,
   onLinkClick,
   onContextMenu,
-}: DrawerTaskItemProps) {
+}: DrawerTaskItemProps) => {
   const { updateTaskById } = useTasks();
   const { refreshMeetingData } = useMeeting();
   const [isAuthorized, setIsAuthorized] = useState(
@@ -225,4 +225,6 @@ export default function DrawerTaskItem({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default DrawerTaskItem;

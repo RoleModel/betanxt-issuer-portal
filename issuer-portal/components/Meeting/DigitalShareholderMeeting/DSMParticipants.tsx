@@ -48,7 +48,7 @@ interface ParticipantWithRole extends DigitalShareholderMeeting {
   documentUrl?: string;
 }
 
-export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
+export const DSMParticipants = ({ meetingId }: DSMParticipantsProps) => {
   const { dsmDocuments, refreshDocuments } = useDocuments();
   const [participants, setParticipants] = useState<ParticipantWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -403,4 +403,4 @@ export function DSMParticipants({ meetingId }: DSMParticipantsProps) {
       </Dialog>
     </Card>
   );
-}
+};

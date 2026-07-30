@@ -32,10 +32,10 @@ interface PositionsTableProps {
   loading?: boolean;
 }
 
-export default function PositionsTable({
+const PositionsTable = ({
   positions,
   loading = false,
-}: PositionsTableProps) {
+}: PositionsTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -439,4 +439,6 @@ export default function PositionsTable({
       />
     </Box>
   );
-}
+};
+
+export default PositionsTable;

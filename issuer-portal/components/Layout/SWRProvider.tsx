@@ -9,6 +9,8 @@ interface SWRProviderProps {
   children: React.ReactNode;
 }
 
-export default function SWRProvider({ children }: SWRProviderProps) {
+const SWRProvider = ({ children }: SWRProviderProps) => {
   return <SWRConfig value={swrConfig}>{children}</SWRConfig>;
-}
+};
+
+export default SWRProvider;

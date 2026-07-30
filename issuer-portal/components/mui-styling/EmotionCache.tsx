@@ -19,9 +19,9 @@ export interface NextAppDirEmotionCacheProviderProps {
   children: React.ReactNode;
 }
 
-export function NextAppDirEmotionCacheProvider(
+export const NextAppDirEmotionCacheProvider = (
   props: NextAppDirEmotionCacheProviderProps
-) {
+) => {
   const {
     options,
     CacheProvider: DefaultCacheProvider = CacheProvider,
@@ -69,4 +69,4 @@ export function NextAppDirEmotionCacheProvider(
   });
 
   return <DefaultCacheProvider value={cache}>{children}</DefaultCacheProvider>;
-}
+};

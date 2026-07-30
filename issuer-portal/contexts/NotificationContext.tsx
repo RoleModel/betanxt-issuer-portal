@@ -101,7 +101,9 @@ const withFallbackNotifications = (
   return [...missingFallbacks, ...dbNotifications];
 };
 
-export function NotificationProvider({ children }: NotificationProviderProps) {
+export const NotificationProvider = ({
+  children,
+}: NotificationProviderProps) => {
   const [notifications, setNotifications] = useState<DbNotification[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -253,7 +255,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       {children}
     </NotificationContext.Provider>
   );
-}
+};
 
 export function useNotifications() {
   const context = useContext(NotificationContext);

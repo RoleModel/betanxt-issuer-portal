@@ -23,7 +23,7 @@ interface AgendaTableProps {
   onUploadClick?: () => void;
 }
 
-export default function AgendaTable(_props: AgendaTableProps) {
+const AgendaTable = (_props: AgendaTableProps) => {
   const { currentMeeting } = useMeeting();
   const { proposals } = useVotingTabulation(currentMeeting?.id);
 
@@ -196,4 +196,6 @@ export default function AgendaTable(_props: AgendaTableProps) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default AgendaTable;

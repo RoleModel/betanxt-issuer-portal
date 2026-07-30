@@ -21,7 +21,7 @@ interface Phase1LayoutProps {
   meeting?: Meeting;
 }
 
-function Phase1Layout({ meeting }: Phase1LayoutProps) {
+const Phase1Layout = ({ meeting }: Phase1LayoutProps) => {
   const { data: tabulationReport, isLoading } = useSWR<TabulationReport | null>(
     meeting?.id ? `/tabulation-report/${meeting.id}` : null,
     async () => {
@@ -72,6 +72,6 @@ function Phase1Layout({ meeting }: Phase1LayoutProps) {
       </Grid>
     </Suspense>
   );
-}
+};
 
 export default Phase1Layout;

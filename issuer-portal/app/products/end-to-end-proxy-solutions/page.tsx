@@ -20,7 +20,7 @@ import ProductsLayout from "@/components/Layout/ProductLayout";
 import CTACard from "@/components/Products/CTACard";
 import { SidebarCard } from "@/components/Products/SidebarCard";
 
-export default function EndToEndProxySolutionsPage() {
+const EndToEndProxySolutionsPage = () => {
   const products = [
     {
       title: "MIC Digital Shareholder Meeting",
@@ -202,4 +202,6 @@ export default function EndToEndProxySolutionsPage() {
       rightColumnContent={rightColumnContent}
     />
   );
-}
+};
+
+export default EndToEndProxySolutionsPage;

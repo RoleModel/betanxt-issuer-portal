@@ -106,10 +106,10 @@ const _computeParticipationMetrics = (
   };
 };
 
-export default function PastMeetingsCard({
+const PastMeetingsCard = ({
   maxHeight = 400,
   limit = 6,
-}: PastMeetingsCardProps) {
+}: PastMeetingsCardProps) => {
   const { currentClient } = useClient();
   const clientTicker = currentClient?.ticker ?? "";
 
@@ -204,4 +204,6 @@ export default function PastMeetingsCard({
       maxHeight={maxHeight}
     />
   );
-}
+};
+
+export default PastMeetingsCard;

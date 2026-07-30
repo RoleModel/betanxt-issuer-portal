@@ -91,7 +91,7 @@ interface ParsedProposal {
 
 type ExcelRow = Record<string, string | number | boolean | Date | undefined>;
 
-export default function DocumentsPage({ params }: DocumentsPageProps) {
+const DocumentsPage = ({ params }: DocumentsPageProps) => {
   const routeParams = React.use(params);
   const routeMeetingId = routeParams.meetingId;
   const { currentMeeting } = useMeeting();
@@ -685,4 +685,6 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
       />
     </>
   );
-}
+};
+
+export default DocumentsPage;

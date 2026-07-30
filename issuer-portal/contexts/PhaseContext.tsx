@@ -93,12 +93,12 @@ interface PhaseProviderProps {
   initialTasks?: Task[];
 }
 
-export function PhaseProvider({
+export const PhaseProvider = ({
   children,
   meetingId: _meetingId,
   initialPhases = [],
   initialTasks = [],
-}: PhaseProviderProps) {
+}: PhaseProviderProps) => {
   const [state, dispatch] = useReducer(phaseReducer, {
     ...initialState,
     phases: initialPhases,
@@ -202,7 +202,7 @@ export function PhaseProvider({
   return (
     <PhaseContext.Provider value={value}>{children}</PhaseContext.Provider>
   );
-}
+};
 
 export function usePhaseContext() {
   const context = useContext(PhaseContext);

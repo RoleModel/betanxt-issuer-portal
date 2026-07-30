@@ -35,7 +35,7 @@ interface ParsedProposal {
   recommendation: string;
 }
 
-export default function AgendaPage() {
+const AgendaPage = () => {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
   const { proposals, uploadProposals } = useVotingTabulation(
     currentMeeting?.id ?? ""
@@ -173,4 +173,6 @@ export default function AgendaPage() {
       />
     </Container>
   );
-}
+};
+
+export default AgendaPage;

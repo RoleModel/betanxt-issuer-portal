@@ -29,7 +29,7 @@ const AutoAreasizeStyles = {
   fontFamily: "var(--font-roboto)",
 } as React.CSSProperties;
 
-export function CTACard() {
+export const CTACard = () => {
   const theme = useTheme();
   const [contactForm, setContactForm] = useState<ContactFormData>({
     name: "",
@@ -116,7 +116,7 @@ export function CTACard() {
       </CardContent>
     </Card>
   );
-}
+};
 
 // Export types for external use
 export type { ContactFormData };

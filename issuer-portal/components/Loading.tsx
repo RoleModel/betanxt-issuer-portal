@@ -30,10 +30,12 @@ import React from "react";
 
 // Lightweight shared loading fallback component
 
-export default function Loading() {
+const Loading = () => {
   return (
     <Box sx={{ width: "100%", py: 2 }}>
       <LinearProgress />
     </Box>
   );
-}
+};
+
+export default Loading;

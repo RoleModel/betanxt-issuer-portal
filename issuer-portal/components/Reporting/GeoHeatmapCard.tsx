@@ -122,10 +122,10 @@ const getCategoryMetricValue = (
  * Renders a skeleton while loading, the fetch error when one occurs, and an
  * empty state when no positions match the selected populations.
  */
-export function GeoHeatmapCard({
+export const GeoHeatmapCard = ({
   meetingId,
   subheader = "Holder locations by US state, with international and unknown buckets",
-}: GeoHeatmapCardProps) {
+}: GeoHeatmapCardProps) => {
   const { mode, systemMode } = useColorScheme();
   const { isEnabled } = useClientFeatures();
   const hasNoboFeature = isEnabled("nobo");
@@ -379,4 +379,4 @@ export function GeoHeatmapCard({
       </CardContent>
     </Card>
   );
-}
+};

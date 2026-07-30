@@ -40,13 +40,13 @@ interface TaskItemProps {
   onClick: (taskId: string) => void;
 }
 
-export function TaskItem({
+export const TaskItem = ({
   task,
   phaseColor,
   onClick,
   isClickable,
   status,
-}: TaskItemProps) {
+}: TaskItemProps) => {
   const theme = useTheme();
   const isComplete = status === "COMPLETE";
   const borderColor = isComplete
@@ -158,7 +158,7 @@ export function TaskItem({
       </CardActionArea>
     </Card>
   );
-}
+};
 
 interface TaskCardProps {
   meetingId?: string;
@@ -167,12 +167,12 @@ interface TaskCardProps {
   onClick?: (taskId: string) => void;
 }
 
-export default function TaskCard({
+const TaskCard = ({
   meetingId,
   currentPhase,
   currentPhaseTitle,
   onClick,
-}: TaskCardProps) {
+}: TaskCardProps) => {
   const { tasks, tasksLoading, keyDates, currentMeeting, refreshMeetingData } =
     useMeeting();
   const { phases } = usePhases(meetingId ?? currentMeeting?.id ?? "");
@@ -344,4 +344,6 @@ export default function TaskCard({
       />
     </>
   );
-}
+};
+
+export default TaskCard;

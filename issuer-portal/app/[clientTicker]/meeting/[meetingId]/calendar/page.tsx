@@ -17,7 +17,7 @@ const CalendarView = dynamic(
   }
 );
 
-export default function CalendarPage() {
+const CalendarPage = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { currentMeeting } = useMeeting();
 
@@ -43,4 +43,6 @@ export default function CalendarPage() {
       onFullscreenChange={setIsFullscreen}
     />
   );
-}
+};
+
+export default CalendarPage;

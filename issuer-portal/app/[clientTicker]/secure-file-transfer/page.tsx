@@ -6,7 +6,7 @@ import React from "react";
 
 import SecureFileTransferTable from "@/components/Meeting/SecureFileTransferTable";
 
-export default function SecureFileTransferPage() {
+const SecureFileTransferPage = () => {
   const pathname = usePathname();
   const clientTicker = pathname.split("/")[1];
   return (
@@ -22,4 +22,6 @@ export default function SecureFileTransferPage() {
       <SecureFileTransferTable clientTicker={clientTicker} />
     </Container>
   );
-}
+};
+
+export default SecureFileTransferPage;

@@ -35,7 +35,7 @@ interface MeetingData extends Meeting {
 type Order = "asc" | "desc";
 type OrderBy = keyof MeetingData;
 
-export default function MeetingsPage() {
+const MeetingsPage = () => {
   const params = useParams();
   const clientTicker = params.clientTicker as string;
   const [meetings, setMeetings] = useState<MeetingData[]>([]);
@@ -259,4 +259,6 @@ export default function MeetingsPage() {
       </Card>
     </Box>
   );
-}
+};
+
+export default MeetingsPage;

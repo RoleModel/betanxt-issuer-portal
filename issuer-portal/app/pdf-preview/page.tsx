@@ -21,6 +21,8 @@ const PDFPreview = dynamic(() => import("@/components/PDFPreview"), {
   ),
 });
 
-export default function PDFPreviewPage() {
+const PDFPreviewPage = () => {
   return <PDFPreview />;
-}
+};
+
+export default PDFPreviewPage;

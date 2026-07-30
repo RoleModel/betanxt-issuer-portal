@@ -54,7 +54,7 @@ interface PastMeetingsTableProps {
   maxHeight?: number | string;
 }
 
-export default function PastMeetingsTable({
+const PastMeetingsTable = ({
   clientTicker,
   order = "desc",
   orderBy = "meetingDate",
@@ -68,7 +68,7 @@ export default function PastMeetingsTable({
   showSorting = true,
   showHeader = true,
   maxHeight,
-}: PastMeetingsTableProps) {
+}: PastMeetingsTableProps) => {
   const handleSort = (property: keyof PastMeetingData) => {
     if (onRequestSort) {
       onRequestSort(property);
@@ -241,7 +241,9 @@ export default function PastMeetingsTable({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default PastMeetingsTable;
 
 // Export types for external use
 export type { Order };

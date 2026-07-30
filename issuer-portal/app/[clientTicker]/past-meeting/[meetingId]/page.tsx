@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 // This page handles the base past-meeting route and redirects to the dashboard
-export default function PastMeetingPage() {
+const PastMeetingPage = () => {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -20,4 +20,6 @@ export default function PastMeetingPage() {
   }, [clientTicker, meetingId, router, searchParams]);
 
   return <LinearProgress />;
-}
+};
+
+export default PastMeetingPage;

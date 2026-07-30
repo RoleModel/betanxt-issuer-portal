@@ -8,10 +8,10 @@ interface FormattedMessageProps {
   variant?: "body1" | "body2";
 }
 
-export function FormattedMessage({
+export const FormattedMessage = ({
   content,
   variant = "body2",
-}: FormattedMessageProps) {
+}: FormattedMessageProps) => {
   const sanitizedContent = content.replaceAll("**", "").replaceAll("##", "");
   const paragraphs = sanitizedContent
     .split(/\n\s*\n/)
@@ -69,4 +69,4 @@ export function FormattedMessage({
       )}
     </Box>
   );
-}
+};

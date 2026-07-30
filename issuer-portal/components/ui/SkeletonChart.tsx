@@ -7,12 +7,12 @@ interface SkeletonChartProps {
   noCard?: boolean;
 }
 
-export default function SkeletonChart({
+const SkeletonChart = ({
   title,
   height = 300,
   showLegend = false,
   noCard = false,
-}: SkeletonChartProps) {
+}: SkeletonChartProps) => {
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Main chart area */}
@@ -50,4 +50,6 @@ export default function SkeletonChart({
       <CardContent>{content}</CardContent>
     </Card>
   );
-}
+};
+
+export default SkeletonChart;

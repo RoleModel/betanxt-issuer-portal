@@ -62,7 +62,7 @@ interface HostingSiteStatusData {
   hosting_site_comments?: HostingSiteComment[];
 }
 
-export default function DocumentSiteCard() {
+const DocumentSiteCard = () => {
   const { currentMeeting } = useMeeting();
   const { currentClient } = useClient();
   const { data: session } = useSession();
@@ -355,4 +355,6 @@ export default function DocumentSiteCard() {
       />
     </>
   );
-}
+};
+
+export default DocumentSiteCard;

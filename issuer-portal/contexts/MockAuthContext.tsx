@@ -35,7 +35,7 @@ interface MockAuthProviderProps {
   children: React.ReactNode;
 }
 
-export function MockAuthProvider({ children }: MockAuthProviderProps) {
+export const MockAuthProvider = ({ children }: MockAuthProviderProps) => {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
 
@@ -129,7 +129,7 @@ export function MockAuthProvider({ children }: MockAuthProviderProps) {
       {children}
     </MockAuthContext.Provider>
   );
-}
+};
 
 export function useMockAuth() {
   const context = useContext(MockAuthContext);

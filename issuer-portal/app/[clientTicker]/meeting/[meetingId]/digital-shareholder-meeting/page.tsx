@@ -231,7 +231,7 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
   });
 };
 
-export default function DigitalShareholderMeetingPage() {
+const DigitalShareholderMeetingPage = () => {
   const meetingContext = useMeeting();
   const currentMeeting = meetingContext.currentMeeting;
 
@@ -544,4 +544,6 @@ export default function DigitalShareholderMeetingPage() {
       />
     </Container>
   );
-}
+};
+
+export default DigitalShareholderMeetingPage;

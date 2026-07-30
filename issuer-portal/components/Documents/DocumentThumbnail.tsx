@@ -42,11 +42,7 @@ interface PageProps {
   renderAnnotationLayer?: boolean;
 }
 
-export default function DocumentThumbnail({
-  filePath,
-  onClick,
-  width = 60,
-}: Props) {
+const DocumentThumbnail = ({ filePath, onClick, width = 60 }: Props) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [Document, setDocument] =
@@ -419,4 +415,6 @@ export default function DocumentThumbnail({
       </Box>
     </Box>
   );
-}
+};
+
+export default DocumentThumbnail;

@@ -1,10 +1,6 @@
 import React from "react";
 
-export default function SROnlyTableCaption({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const SROnlyTableCaption = ({ children }: { children: React.ReactNode }) => {
   return (
     <caption
       style={{
@@ -22,4 +18,6 @@ export default function SROnlyTableCaption({
       {children}
     </caption>
   );
-}
+};
+
+export default SROnlyTableCaption;

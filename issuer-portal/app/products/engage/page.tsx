@@ -30,7 +30,7 @@ import ProductsLayout from "@/components/Layout/ProductLayout";
 import CTACard from "@/components/Products/CTACard";
 import { SidebarCard } from "@/components/Products/SidebarCard";
 
-export default function EngagePage() {
+const EngagePage = () => {
   const [open, setOpen] = useState(false);
 
   const benefits = [
@@ -243,4 +243,6 @@ export default function EngagePage() {
       rightColumnContent={rightColumnContent}
     />
   );
-}
+};
+
+export default EngagePage;

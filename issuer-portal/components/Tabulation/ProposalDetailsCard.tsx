@@ -54,7 +54,7 @@ interface ProposalDetailsCardProps {
   directors: FilterOption[];
 }
 
-export default function ProposalDetailsCard({
+const ProposalDetailsCard = ({
   proposals,
   positions,
   loading = false,
@@ -65,7 +65,7 @@ export default function ProposalDetailsCard({
   accountTypes,
   setKeys,
   directors,
-}: ProposalDetailsCardProps) {
+}: ProposalDetailsCardProps) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -428,4 +428,6 @@ export default function ProposalDetailsCard({
       </Dialog>
     </Card>
   );
-}
+};
+
+export default ProposalDetailsCard;

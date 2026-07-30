@@ -23,7 +23,7 @@ interface DetailedTabulationTableProps {
   meetingId: string;
 }
 
-function StyledTableContainer({ children }: { children: React.ReactNode }) {
+const StyledTableContainer = ({ children }: { children: React.ReactNode }) => {
   return (
     <TableContainer
       sx={[
@@ -51,7 +51,7 @@ function StyledTableContainer({ children }: { children: React.ReactNode }) {
       {children}
     </TableContainer>
   );
-}
+};
 
 const ProposalHeaderCell = styled(TableCell)(({ theme }) => ({
   backgroundColor: theme.vars.palette.action.hover,
@@ -64,7 +64,7 @@ const VoteTypeCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 500,
 }));
 
-function TotalsRow({ children }: { children: React.ReactNode }) {
+const TotalsRow = ({ children }: { children: React.ReactNode }) => {
   return (
     <TableRow
       sx={[
@@ -81,16 +81,16 @@ function TotalsRow({ children }: { children: React.ReactNode }) {
       {children}
     </TableRow>
   );
-}
+};
 
 const TotalsHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
   paddingLeft: theme.spacing(2),
 }));
 
-export default function DetailedTabulationTable({
+const DetailedTabulationTable = ({
   meetingId,
-}: DetailedTabulationTableProps) {
+}: DetailedTabulationTableProps) => {
   const { currentMeeting } = useMeeting();
   const { proposals, votingSummary, loading } = useVotingTabulation(meetingId);
 
@@ -260,4 +260,6 @@ export default function DetailedTabulationTable({
       </Table>
     </StyledTableContainer>
   );
-}
+};
+
+export default DetailedTabulationTable;

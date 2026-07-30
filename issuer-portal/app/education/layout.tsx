@@ -5,15 +5,13 @@ import React from "react";
 
 import { PageTitle } from "@/components/PageTitle";
 
-export default function EducationLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const EducationLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <PageTitle>Education</PageTitle>
       <Box flexGrow={1}>{children}</Box>
     </>
   );
-}
+};
+
+export default EducationLayout;

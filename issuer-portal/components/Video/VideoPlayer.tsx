@@ -15,7 +15,7 @@ interface VideoPlayerProps {
   onVideoEnd?: () => void;
 }
 
-export default function VideoPlayer({
+const VideoPlayer = ({
   src,
   title = "Welcome to Your Issuer Portal",
   description = "Overview tour of main navigation and dashboard",
@@ -24,7 +24,7 @@ export default function VideoPlayer({
   showSeries = false,
   onVideoEnd,
   showPlayButton = true,
-}: VideoPlayerProps) {
+}: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -373,4 +373,6 @@ export default function VideoPlayer({
       )}
     </Box>
   );
-}
+};
+
+export default VideoPlayer;

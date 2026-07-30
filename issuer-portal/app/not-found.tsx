@@ -4,7 +4,7 @@ import { Container, Link as MuiLink, Typography } from "@mui/material";
 import Link from "next/link";
 import React from "react";
 
-export default function NotFound() {
+const NotFound = () => {
   return (
     <Container
       maxWidth="md"
@@ -48,4 +48,6 @@ export default function NotFound() {
       </MuiLink>
     </Container>
   );
-}
+};
+
+export default NotFound;

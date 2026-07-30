@@ -22,13 +22,13 @@ interface ScheduleDialogProps {
   description: string;
 }
 
-export default function ScheduleDialog({
+const ScheduleDialog = ({
   open,
   onClose,
   onSchedule,
   title,
   description,
-}: ScheduleDialogProps) {
+}: ScheduleDialogProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [notes, setNotes] = useState("");
 
@@ -90,4 +90,6 @@ export default function ScheduleDialog({
       </Dialog>
     </LocalizationProvider>
   );
-}
+};
+
+export default ScheduleDialog;

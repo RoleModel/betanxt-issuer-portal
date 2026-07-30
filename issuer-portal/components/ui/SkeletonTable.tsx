@@ -15,10 +15,7 @@ interface SkeletonTableProps {
   columns?: number;
 }
 
-export default function SkeletonTable({
-  rows = 4,
-  columns = 2,
-}: SkeletonTableProps) {
+const SkeletonTable = ({ rows = 4, columns = 2 }: SkeletonTableProps) => {
   return (
     <Card>
       <CardHeader title={<Skeleton variant="text" width="40%" height={30} />} />
@@ -39,4 +36,6 @@ export default function SkeletonTable({
       </TableContainer>
     </Card>
   );
-}
+};
+
+export default SkeletonTable;

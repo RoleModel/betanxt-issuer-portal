@@ -9,11 +9,11 @@ interface ProductLayoutProps {
   documentViewer?: React.ReactElement;
 }
 
-export default function ProductLayout({
+const ProductLayout = ({
   leftColumnContent,
   rightColumnContent,
   documentViewer,
-}: ProductLayoutProps) {
+}: ProductLayoutProps) => {
   return (
     <Container
       component="main"
@@ -84,4 +84,6 @@ export default function ProductLayout({
       {documentViewer}
     </Container>
   );
-}
+};
+
+export default ProductLayout;

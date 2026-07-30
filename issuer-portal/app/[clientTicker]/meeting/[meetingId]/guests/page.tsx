@@ -206,7 +206,7 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
   });
 };
 
-export default function GuestsPage() {
+const GuestsPage = () => {
   const { currentMeeting } = useMeeting();
   const { attendees, error, isLoading, uploadAttendees } =
     useDigitalShareholderMeeting(currentMeeting?.id);
@@ -444,4 +444,6 @@ export default function GuestsPage() {
       </Dialog>
     </Container>
   );
-}
+};
+
+export default GuestsPage;

@@ -33,7 +33,7 @@ const StyledDescriptionText = styled("text")(({ theme }) => ({
   fontStyle: "normal",
 }));
 
-function PieCenterLabel({ data }: { data: PieChartData }) {
+const PieCenterLabel = ({ data }: { data: PieChartData }) => {
   const { width, height, left, top } = useDrawingArea();
   return (
     <>
@@ -55,6 +55,6 @@ function PieCenterLabel({ data }: { data: PieChartData }) {
       </StyledDescriptionText>
     </>
   );
-}
+};
 
 export default PieCenterLabel;

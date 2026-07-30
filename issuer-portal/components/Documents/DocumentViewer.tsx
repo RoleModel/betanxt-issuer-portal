@@ -153,14 +153,16 @@ interface DocumentViewerProps {
   ) => void;
 }
 
-const Transition = React.forwardRef(function Transition(
-  props: TransitionProps & {
-    children: React.ReactElement<unknown>;
-  },
-  ref: React.Ref<unknown>
-) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
+const Transition = React.forwardRef(
+  (
+    props: TransitionProps & {
+      children: React.ReactElement<unknown>;
+    },
+    ref: React.Ref<unknown>
+  ) => {
+    return <Slide direction="up" ref={ref} {...props} />;
+  }
+);
 
 interface WebsiteIframeWithErrorHandlingProps {
   url: string;

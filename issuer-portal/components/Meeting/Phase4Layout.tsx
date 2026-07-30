@@ -16,7 +16,7 @@ interface Phase4LayoutProps {
   meeting?: Meeting;
 }
 
-function Phase4Layout({ meeting }: Phase4LayoutProps) {
+const Phase4Layout = ({ meeting }: Phase4LayoutProps) => {
   const materialsDate = meeting?.meetingDate
     ? new Date(
         new Date(meeting.meetingDate).getTime() - 48 * 24 * 60 * 60 * 1000
@@ -49,5 +49,5 @@ function Phase4Layout({ meeting }: Phase4LayoutProps) {
       </Grid>
     </Grid>
   );
-}
+};
 export default Phase4Layout;

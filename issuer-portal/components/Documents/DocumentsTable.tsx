@@ -39,7 +39,7 @@ interface DocumentsTableProps {
   onOpenDocument?: (doc: Document) => void;
 }
 
-export default function DocumentsTable(props: DocumentsTableProps) {
+const DocumentsTable = (props: DocumentsTableProps) => {
   const {
     documents,
     page,
@@ -183,4 +183,6 @@ export default function DocumentsTable(props: DocumentsTableProps) {
       </Table>
     </TableContainer>
   );
-}
+};
+
+export default DocumentsTable;

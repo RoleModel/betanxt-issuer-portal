@@ -21,7 +21,7 @@ interface Phase5LayoutProps {
   phase?: number;
 }
 
-function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) {
+const Phase5Layout = ({ meetingId, meeting }: Phase5LayoutProps) => {
   return (
     <Box display="flex" flexDirection="column" gap={3}>
       <Suspense>
@@ -72,6 +72,6 @@ function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) {
       </Grid>
     </Box>
   );
-}
+};
 
 export default Phase5Layout;

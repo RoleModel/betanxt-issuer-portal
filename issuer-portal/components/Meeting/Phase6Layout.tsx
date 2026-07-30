@@ -56,10 +56,7 @@ interface Phase6LayoutProps {
   phase?: number;
 }
 
-export default React.memo(function Phase6Layout({
-  meetingId,
-  meeting,
-}: Phase6LayoutProps) {
+export default React.memo(({ meetingId, meeting }: Phase6LayoutProps) => {
   const { proposals, loading: votingLoading } = useVotingTabulation(meetingId);
 
   return (

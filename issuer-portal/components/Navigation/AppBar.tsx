@@ -51,17 +51,15 @@ interface BNAppBarWrapperProps {
   appSwitcher?: boolean;
 }
 
-export function BNAppBarClient(props: BNAppBarWrapperProps) {
+export const BNAppBarClient = (props: BNAppBarWrapperProps) => {
   return (
     <Suspense fallback={null}>
       <BNAppBarClientMemo {...props} />
     </Suspense>
   );
-}
+};
 
-const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
-  props: BNAppBarWrapperProps
-) {
+const BNAppBarClientMemo = React.memo((props: BNAppBarWrapperProps) => {
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
   const {

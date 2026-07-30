@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
-export default function EventsLayout({ children }: { children: ReactNode }) {
+const EventsLayout = ({ children }: { children: ReactNode }) => {
   return <>{children}</>;
-}
+};
+
+export default EventsLayout;

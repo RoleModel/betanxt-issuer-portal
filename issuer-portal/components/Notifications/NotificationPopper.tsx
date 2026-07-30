@@ -126,12 +126,12 @@ const convertDbNotificationToNotificationData = (
   };
 };
 
-export function NotificationPopper({
+export const NotificationPopper = ({
   anchorEl,
   open,
   onClose,
   onNotificationClick,
-}: NotificationPopperProps) {
+}: NotificationPopperProps) => {
   const router = useRouter();
   const {
     notifications: dbNotifications,
@@ -368,7 +368,7 @@ export function NotificationPopper({
       </Paper>
     </Popover>
   );
-}
+};
 
 // Export types for external use
 export type { NotificationPopperProps, NotificationData };

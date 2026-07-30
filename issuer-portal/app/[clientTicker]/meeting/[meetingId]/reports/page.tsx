@@ -11,7 +11,7 @@ import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
 import { useReports } from "@/hooks/useReports";
 
-export default function ReportsPage() {
+const ReportsPage = () => {
   const { currentMeeting, positions, positionsLoading } = useMeeting();
   const meetingId = currentMeeting?.id ?? "";
   const { voteDistribution, loading: reportsLoading } = useReports(meetingId);
@@ -133,4 +133,6 @@ export default function ReportsPage() {
       </Grid>
     </Container>
   );
-}
+};
+
+export default ReportsPage;

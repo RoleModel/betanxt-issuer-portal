@@ -19,9 +19,9 @@ interface TabulationReportCardProps {
   variant?: "default" | "primary" | "secondary" | "tertiary" | "base";
 }
 
-export default function TabulationReportCard({
+const TabulationReportCard = ({
   variant = "tertiary",
-}: TabulationReportCardProps) {
+}: TabulationReportCardProps) => {
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
   const { proposals: votingProposals } = useVotingTabulation(
@@ -198,4 +198,6 @@ export default function TabulationReportCard({
       }}
     />
   );
-}
+};
+
+export default TabulationReportCard;

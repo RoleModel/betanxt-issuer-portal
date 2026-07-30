@@ -22,7 +22,7 @@ interface IndustryTrendsCardProps {
   externalLink?: boolean;
 }
 
-export function IndustryTrendsCard({
+export const IndustryTrendsCard = ({
   title,
   content,
   date,
@@ -31,7 +31,7 @@ export function IndustryTrendsCard({
   actionText = "View",
   img,
   externalLink,
-}: IndustryTrendsCardProps) {
+}: IndustryTrendsCardProps) => {
   return (
     <Card>
       <CardMedia image={img} sx={{ height: 200 }} />
@@ -64,4 +64,4 @@ export function IndustryTrendsCard({
       )}
     </Card>
   );
-}
+};

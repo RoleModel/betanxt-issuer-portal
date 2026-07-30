@@ -176,11 +176,7 @@ function fullReportName(report: ReportItem): string {
  * browser. Downloads are serialized — all buttons disable while one is in
  * flight (002-tabulation-enhancements).
  */
-export default function DownloadReportsTable({
-  meetingId,
-}: {
-  meetingId: string;
-}) {
+const DownloadReportsTable = ({ meetingId }: { meetingId: string }) => {
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [selectedReportId, setSelectedReportId] = useState<string>(
     BROKER_BREAKOUT_REPORT.id
@@ -437,4 +433,6 @@ export default function DownloadReportsTable({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default DownloadReportsTable;

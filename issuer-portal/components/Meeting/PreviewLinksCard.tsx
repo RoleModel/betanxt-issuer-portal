@@ -12,10 +12,7 @@ interface PreviewLinksCardProps {
   url2?: string | null;
 }
 
-export default function PreviewLinksCard({
-  url1,
-  url2,
-}: PreviewLinksCardProps) {
+const PreviewLinksCard = ({ url1, url2 }: PreviewLinksCardProps) => {
   url1 = "https://dsm.preview.url";
   url2 = "https://dsm.preview.url";
   const router = useRouter();
@@ -66,4 +63,6 @@ export default function PreviewLinksCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default PreviewLinksCard;

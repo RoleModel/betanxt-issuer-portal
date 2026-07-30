@@ -5,7 +5,7 @@ import { Link as MuiLink } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function PageTitle({ children }: { children?: React.ReactNode }) {
+export const PageTitle = ({ children }: { children?: React.ReactNode }) => {
   const pathname = usePathname();
   const segments = pathname.replace(/^\/+|\/+$/g, "").split("/");
 
@@ -124,4 +124,4 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
       </Typography>
     </Box>
   );
-}
+};

@@ -114,7 +114,7 @@ const isMeetingResponse = (value: unknown): value is Meeting => {
   return typeof value.id === "string";
 };
 
-export default function EditEventPage() {
+const EditEventPage = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -645,4 +645,6 @@ export default function EditEventPage() {
       </Grid>
     </Container>
   );
-}
+};
+
+export default EditEventPage;

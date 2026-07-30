@@ -28,7 +28,7 @@ const formatNumber = (num: number | null | undefined): string => {
   return num.toLocaleString("en-US");
 };
 
-export default function MailingPage() {
+const MailingPage = () => {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
   const meetingId = currentMeeting?.id;
   const { getMailingByMeetingId, loading: mailingLoading } = useMailing();
@@ -203,4 +203,6 @@ export default function MailingPage() {
       </Grid>
     </Container>
   );
-}
+};
+
+export default MailingPage;

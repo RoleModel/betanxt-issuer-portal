@@ -16,7 +16,7 @@ interface VideoPlayerDialogProps {
   seriesNumber?: string;
 }
 
-export default function VideoPlayerDialog({
+const VideoPlayerDialog = ({
   open,
   onClose,
   src,
@@ -24,7 +24,7 @@ export default function VideoPlayerDialog({
   description,
   poster,
   seriesNumber,
-}: VideoPlayerDialogProps) {
+}: VideoPlayerDialogProps) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogContent
@@ -65,4 +65,6 @@ export default function VideoPlayerDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default VideoPlayerDialog;

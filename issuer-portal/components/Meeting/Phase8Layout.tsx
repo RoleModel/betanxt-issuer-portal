@@ -23,10 +23,7 @@ interface Phase8LayoutProps {
   meeting?: Meeting;
 }
 
-export default React.memo(function Phase8Layout({
-  meeting,
-  meetingId,
-}: Phase8LayoutProps) {
+export default React.memo(({ meeting, meetingId }: Phase8LayoutProps) => {
   const { currentClient } = useClient();
   const { proposals, votingSummary } = useVotingTabulation(meetingId);
 

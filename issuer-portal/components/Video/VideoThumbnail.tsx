@@ -15,7 +15,7 @@ interface VideoThumbnailProps {
   isPlaying?: boolean;
 }
 
-export default function VideoThumbnail({
+const VideoThumbnail = ({
   title,
   description,
   seriesNumber = "#1",
@@ -24,7 +24,7 @@ export default function VideoThumbnail({
   onClick,
   isActive = false,
   isPlaying = false,
-}: VideoThumbnailProps) {
+}: VideoThumbnailProps) => {
   return (
     <Box
       className="video-list-item"
@@ -224,4 +224,6 @@ export default function VideoThumbnail({
       </Box>
     </Box>
   );
-}
+};
+
+export default VideoThumbnail;

@@ -8,7 +8,7 @@ import IssuerChatbot from "@/components/chat-bot/IssuerChatbot";
 
 import Layout from "./Layout";
 
-export default function RootLayoutClient({ children }: PropsWithChildren) {
+const RootLayoutClient = ({ children }: PropsWithChildren) => {
   const pathname = usePathname();
 
   // Don't show navbar on login page
@@ -20,4 +20,6 @@ export default function RootLayoutClient({ children }: PropsWithChildren) {
       {showNavBar ? <IssuerChatbot /> : null}
     </>
   );
-}
+};
+
+export default RootLayoutClient;

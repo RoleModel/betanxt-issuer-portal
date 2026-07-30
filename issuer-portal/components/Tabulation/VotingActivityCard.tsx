@@ -30,11 +30,11 @@ interface VotingActivityCardProps {
  * {@link useVotingTabulation}, and the header/empty state call out the
  * registered-only scope. Zero-count methods are omitted from the chart.
  */
-export default function VotingActivityCard({
+const VotingActivityCard = ({
   meetingId,
   registeredVotingMethodsOverride,
   loadingOverride = false,
-}: VotingActivityCardProps) {
+}: VotingActivityCardProps) => {
   const { registeredVotingMethods, loading } = useVotingTabulation(meetingId);
   const resolvedMethods =
     registeredVotingMethodsOverride ?? registeredVotingMethods;
@@ -153,4 +153,6 @@ export default function VotingActivityCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default VotingActivityCard;

@@ -36,11 +36,11 @@ interface MeetingDocumentsProps {
   meeting?: Meeting;
 }
 
-export default function MeetingDocuments({
+const MeetingDocuments = ({
   documents: propDocuments,
   meetingId,
   meeting,
-}: MeetingDocumentsProps) {
+}: MeetingDocumentsProps) => {
   const router = useRouter();
   const params = useParams();
   const clientTicker = params.clientTicker as string;
@@ -678,4 +678,6 @@ export default function MeetingDocuments({
       />
     </Card>
   );
-}
+};
+
+export default MeetingDocuments;

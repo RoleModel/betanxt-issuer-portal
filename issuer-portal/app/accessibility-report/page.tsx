@@ -115,7 +115,7 @@ interface AxeRule {
   tags: string[];
 }
 
-export default function AccessibilityReportPage() {
+const AccessibilityReportPage = () => {
   const [results, setResults] = useState<TestResults | null>(null);
   const [viewMode, setViewMode] = useState<"criteria" | "pages">("criteria");
   const [axeRules, setAxeRules] = useState<AxeRule[]>([]);
@@ -1574,4 +1574,6 @@ export default function AccessibilityReportPage() {
       </Box>
     </Container>
   );
-}
+};
+
+export default AccessibilityReportPage;

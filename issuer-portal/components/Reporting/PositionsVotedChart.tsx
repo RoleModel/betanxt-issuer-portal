@@ -41,7 +41,7 @@ interface DonutChartProps {
   centerLabel: string;
 }
 
-function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
+const DonutChart = ({ data, centerValue, centerLabel }: DonutChartProps) => {
   return (
     <Box>
       <Box
@@ -85,13 +85,13 @@ function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
       </Box>
     </Box>
   );
-}
+};
 
-export default function PositionsVotedChart({
+const PositionsVotedChart = ({
   setKeys = [],
   data = {},
   subheader,
-}: PositionsVotedChartProps) {
+}: PositionsVotedChartProps) => {
   const [selectedSetKey, setSelectedSetKey] = useState("");
 
   // Derive the rendered key instead of syncing state via effects: fall back to
@@ -204,4 +204,6 @@ export default function PositionsVotedChart({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default PositionsVotedChart;
