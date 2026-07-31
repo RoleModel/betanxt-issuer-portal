@@ -24,7 +24,7 @@ import {
 import {
   type WorkflowStep,
   WORKFLOW_STEPS,
-} from "@/components/meeting/mailingTimeline";
+} from "@/components/Meeting/mailingTimeline";
 
 interface MailingStatusTimelineProps {
   readonly activeIndex: number;

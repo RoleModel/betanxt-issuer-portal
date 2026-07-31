@@ -16,19 +16,19 @@ import { useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
-import MailingAffidavitSection from "@/components/meeting/MailingAffidavitSection";
-import MailingStatusTimeline from "@/components/meeting/MailingStatusTimeline";
+import MailingAffidavitSection from "@/components/Meeting/MailingAffidavitSection";
+import MailingStatusTimeline from "@/components/Meeting/MailingStatusTimeline";
 import {
   formatMailingStatusDate,
   WORKFLOW_STEPS,
   type MailingStatus,
   type WorkflowStep,
-} from "@/components/meeting/mailingTimeline";
+} from "@/components/Meeting/mailingTimeline";
 import buildApiClient from "@/domain-models/apiClient";
 
 type UpdateMeetingRequest = components["schemas"]["UpdateMeetingRequest"];
 
-export type { MailingStatus } from "@/components/meeting/mailingTimeline";
+export type { MailingStatus } from "@/components/Meeting/mailingTimeline";
 
 interface MailingTimelineCardProps {
   readonly currentStatus?: MailingStatus | null;
