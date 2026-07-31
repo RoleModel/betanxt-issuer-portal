@@ -21,7 +21,10 @@ import {
 import React, { useState } from "react";
 import useSWR from "swr";
 
+import DocumentStackIcon from "@rolemodel/betanxt-design-system/components/icons/brand/DocumentStackIcon";
+
 import DocumentThumbnail from "@/components/Documents/DocumentThumbnail";
+import EmptyState from "@/components/EmptyState";
 import DocumentViewer from "@/components/Documents/DocumentViewer";
 import FileUploadDialog, {
   type FileUploadDialogField,
@@ -112,7 +115,7 @@ const toFollowUpJob = (document: Document): FollowUpJob | null => {
 };
 
 const fileToDataUri = async (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     const reader = new FileReader();
 
     reader.onload = () => {
@@ -122,7 +125,9 @@ const fileToDataUri = async (file: File): Promise<string> =>
         reject(new Error(`Unable to read ${file.name}`));
       }
     };
-    reader.onerror = () => reject(new Error(`Unable to read ${file.name}`));
+    reader.onerror = () => {
+      reject(new Error(`Unable to read ${file.name}`));
+    };
     reader.readAsDataURL(file);
   });
 
@@ -147,11 +152,9 @@ export interface FollowUpJob {
 }
 
 interface AdditionalMailingSummaryCardProps {
-  /** Client ticker — selects the per-client themed mock PDFs under /mock-mailings/{TICKER}. */
-  ticker?: string | null;
-  meetingId?: string;
-  jobs?: FollowUpJob[];
-  loading?: boolean;
+  readonly meetingId?: string;
+  readonly jobs?: FollowUpJob[];
+  readonly loading?: boolean;
 }
 
 /**
@@ -215,12 +218,13 @@ const formatSentDate = (date: string | undefined): string => {
     month: "2-digit",
     day: "2-digit",
     year: "numeric",
+    timeZone: "UTC",
   });
 };
 
 const AdditionalMailingSummaryCard: React.FC<
   AdditionalMailingSummaryCardProps
-> = ({ ticker, meetingId, jobs }) => {
+> = ({ meetingId, jobs }) => {
   const [activeJob, setActiveJob] = useState<FollowUpJob | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadFields, setUploadFields] = useState<Record<string, string>>({
@@ -255,14 +259,12 @@ const AdditionalMailingSummaryCard: React.FC<
     },
     { revalidateOnFocus: false }
   );
-  const tickerForMockJobs = hasNonEmptyString(ticker) ? ticker : "WEN";
   const persistedJobs = (uploadedDocuments ?? [])
     .map(toFollowUpJob)
     .filter((job): job is FollowUpJob => job !== null);
-  const resolvedJobs = [
-    ...persistedJobs,
-    ...(jobs ?? buildMockFollowUpJobs(tickerForMockJobs)),
-  ];
+  // Only genuinely uploaded additional mailings are listed. Previously a mock
+  // fallback was appended unconditionally, so this table could never be empty.
+  const resolvedJobs = [...persistedJobs, ...(jobs ?? [])];
 
   const handleUploadFieldChange = (fieldId: string, value: string) => {
     setUploadFields((currentFields) => ({
@@ -340,7 +342,9 @@ const AdditionalMailingSummaryCard: React.FC<
             <Button
               size="small"
               startIcon={<AddIcon />}
-              onClick={() => setUploadDialogOpen(true)}
+              onClick={() => {
+                setUploadDialogOpen(true);
+              }}
               disabled={!hasNonEmptyString(meetingId)}
             >
               Upload
@@ -348,135 +352,142 @@ const AdditionalMailingSummaryCard: React.FC<
           }
         />
         <CardContent sx={{ "&:last-child": { p: 0 } }}>
-          <TableContainer sx={{ maxHeight: 420 }}>
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell colSpan={2} sx={{ fontWeight: 600 }}>
-                    Job Name
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
-                    Sent
-                  </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>
-                    Positions
-                  </TableCell>
-                  <TableCell
-                    align="right"
-                    sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
-                  >
-                    Full Set / Electronic
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {resolvedJobs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5}>
-                      <Typography variant="body3" color="text.secondary">
-                        No follow-up mailings for this event.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  resolvedJobs.map((job) => (
-                    <TableRow
-                      onClick={() => setActiveJob(job)}
-                      key={job.id}
-                      hover
-                      sx={{ cursor: "pointer" }}
-                    >
-                      <TableCell sx={{ fontWeight: 500, width: 50 }}>
-                        {job.pdfUrl ? (
-                          <DocumentThumbnail filePath={job.pdfUrl} />
-                        ) : (
-                          <Typography variant="caption" color="text.disabled">
-                            —
-                          </Typography>
-                        )}
+          {resolvedJobs.length === 0 ? (
+            <EmptyState
+              title="No additional mailings"
+              description="Additional mailings will appear here once they are uploaded for this event."
+              minHeight="unset"
+              icon={<DocumentStackIcon />}
+            />
+          ) : (
+            <>
+              <TableContainer sx={{ maxHeight: 420 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell colSpan={2} sx={{ fontWeight: 600 }}>
+                        Job Name
                       </TableCell>
-                      <TableCell sx={{ fontWeight: 500 }}>
-                        {job.alternateJobName}
+                      <TableCell sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+                        Sent
                       </TableCell>
-                      <TableCell sx={{ whiteSpace: "nowrap" }}>
-                        {formatSentDate(job.sentDate)}
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>
+                        Positions
                       </TableCell>
                       <TableCell
                         align="right"
-                        sx={{ fontVariantNumeric: "tabularNums" }}
+                        sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
                       >
-                        {formatNumber(job.positions)}
-                      </TableCell>
-
-                      <TableCell align="right">
-                        <Stack direction="column" alignItems="end" spacing={1}>
-                          <Tooltip
-                            title={
-                              job.fullSetFulfillmentRequests
-                                ? `${job.fullSetFulfillmentRequests} full set fulfillment request${
-                                    job.fullSetFulfillmentRequests === 1
-                                      ? ""
-                                      : "s"
-                                  }`
-                                : "No full set fulfillment requests"
-                            }
-                          >
-                            <Chip
-                              size="small"
-                              label={`Full Set: ${formatNumber(job.fullSetFulfillmentRequests)}`}
-                              color={
-                                job.fullSetFulfillmentRequests
-                                  ? "primary"
-                                  : "default"
-                              }
-                              variant={"outlined"}
-                              sx={{ px: 1 }}
-                            />
-                          </Tooltip>
-                          <Tooltip
-                            title={
-                              job.electronicFulfillmentRequests
-                                ? `${job.electronicFulfillmentRequests} electronic fulfillment request${
-                                    job.electronicFulfillmentRequests === 1
-                                      ? ""
-                                      : "s"
-                                  }`
-                                : "No electronic fulfillment requests"
-                            }
-                          >
-                            <Chip
-                              size="small"
-                              label={`Electronic: ${formatNumber(job.electronicFulfillmentRequests)}`}
-                              color={
-                                job.electronicFulfillmentRequests
-                                  ? "default"
-                                  : "default"
-                              }
-                              variant={"outlined"}
-                              sx={{ px: 1 }}
-                            />
-                          </Tooltip>
-                        </Stack>
+                        Full Set / Electronic
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Box
-            sx={{
-              px: 2,
-              py: 1.5,
-              borderTop: "1px solid",
-              borderColor: "divider",
-            }}
-          >
-            <Typography variant="caption" color="text.secondary">
-              {resolvedJobs.length} follow-up mailing
-              {resolvedJobs.length === 1 ? "" : "s"} for this event
-            </Typography>
-          </Box>
+                  </TableHead>
+                  <TableBody>
+                    {resolvedJobs.map((job) => (
+                      <TableRow
+                        onClick={() => {
+                          setActiveJob(job);
+                        }}
+                        key={job.id}
+                        hover
+                        sx={{ cursor: "pointer" }}
+                      >
+                        <TableCell sx={{ fontWeight: 500, width: 50 }}>
+                          {job.pdfUrl ? (
+                            <DocumentThumbnail filePath={job.pdfUrl} />
+                          ) : (
+                            <Typography variant="caption" color="text.disabled">
+                              —
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 500 }}>
+                          {job.alternateJobName}
+                        </TableCell>
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                          {formatSentDate(job.sentDate)}
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          sx={{ fontVariantNumeric: "tabularNums" }}
+                        >
+                          {formatNumber(job.positions)}
+                        </TableCell>
+
+                        <TableCell align="right">
+                          <Stack
+                            direction="column"
+                            alignItems="end"
+                            spacing={1}
+                          >
+                            <Tooltip
+                              title={
+                                job.fullSetFulfillmentRequests
+                                  ? `${job.fullSetFulfillmentRequests} full set fulfillment request${
+                                      job.fullSetFulfillmentRequests === 1
+                                        ? ""
+                                        : "s"
+                                    }`
+                                  : "No full set fulfillment requests"
+                              }
+                            >
+                              <Chip
+                                size="small"
+                                label={`Full Set: ${formatNumber(job.fullSetFulfillmentRequests)}`}
+                                color={
+                                  job.fullSetFulfillmentRequests
+                                    ? "primary"
+                                    : "default"
+                                }
+                                variant="outlined"
+                                sx={{ px: 1 }}
+                              />
+                            </Tooltip>
+                            <Tooltip
+                              title={
+                                job.electronicFulfillmentRequests
+                                  ? `${job.electronicFulfillmentRequests} electronic fulfillment request${
+                                      job.electronicFulfillmentRequests === 1
+                                        ? ""
+                                        : "s"
+                                    }`
+                                  : "No electronic fulfillment requests"
+                              }
+                            >
+                              <Chip
+                                size="small"
+                                label={`Electronic: ${formatNumber(job.electronicFulfillmentRequests)}`}
+                                color={
+                                  job.electronicFulfillmentRequests
+                                    ? "default"
+                                    : "default"
+                                }
+                                variant="outlined"
+                                sx={{ px: 1 }}
+                              />
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Box
+                sx={{
+                  px: 2,
+                  py: 1.5,
+                  borderTop: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  {resolvedJobs.length} follow-up mailing
+                  {resolvedJobs.length === 1 ? "" : "s"} for this event
+                </Typography>
+              </Box>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -484,7 +495,9 @@ const AdditionalMailingSummaryCard: React.FC<
           activity buttons hidden since a mailing has no comments/history. */}
       <DocumentViewer
         open={Boolean(activeJob)}
-        onClose={() => setActiveJob(null)}
+        onClose={() => {
+          setActiveJob(null);
+        }}
         fileUrl={activeJob?.pdfUrl}
         title={activeJob?.alternateJobName}
         signatureAreas={[]}
@@ -493,7 +506,9 @@ const AdditionalMailingSummaryCard: React.FC<
       />
       <FileUploadDialog
         open={uploadDialogOpen}
-        onClose={() => setUploadDialogOpen(false)}
+        onClose={() => {
+          setUploadDialogOpen(false);
+        }}
         onUpload={handleUpload}
         acceptedFileTypes={[".pdf"]}
         dialogTitle="Upload Additional Mailing"
