@@ -3,16 +3,32 @@
 import type { BarLabelProps } from "@mui/x-charts/BarChart";
 
 import { Box, Card, CardContent, CardHeader, Skeleton } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { useEffect, useState } from "react";
 
+import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
 import buildApiClient from "../../domain-models/apiClient";
-import { formatNumber } from "../../utils/numberUtils";
+import {
+  getHolderTypeFromCategory,
+  type HolderCategory,
+  normalizeHolderCategory,
+} from "../../utils/holderCategory";
+import { formatNumber } from "../../utils/number-utilities";
+import {
+  tabulationCardContentStyles,
+  tabulationCardHeaderStyles,
+  tabulationCardStyles,
+  tabulationChartHeight,
+} from "../../utils/tabulation-card-layout";
+import {
+  formatTabulationMetric,
+  formatTabulationPercentage,
+} from "../../utils/tabulation-display";
 import { asArray, asRecord, asString } from "../../utils/typeUtils";
 
 interface Position {
   accountType: string;
+  holderCategory: HolderCategory | null;
   voteStatus: string;
   shares: number;
   sharesVoted: number;
@@ -26,6 +42,11 @@ interface BeneficialVsRegisteredCardProps {
   };
   readonly loadingOverride?: boolean;
 }
+
+const beneficialBarColor = "var(--mui-palette-secondary-main)";
+const beneficialBarContrastText = "var(--mui-palette-secondary-contrastText)";
+const registeredBarColor = "var(--mui-palette-primary-main)";
+const registeredBarContrastText = "var(--mui-palette-primary-contrastText)";
 
 const toFiniteNumber = (value: unknown): number => {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -58,28 +79,42 @@ const normalizePosition = (value: unknown): Position | null => {
   // API returns snake_case from PostgREST
   return {
     accountType: toStringValue(record.account_type ?? record.accountType),
+    holderCategory: normalizeHolderCategory(
+      record.holder_category ?? record.holderCategory
+    ),
     voteStatus: toStringValue(record.vote_status ?? record.voteStatus),
     shares: toFiniteNumber(record.shares),
     sharesVoted: toFiniteNumber(record.shares_voted ?? record.sharesVoted),
   };
 };
 
-const StyledText = styled("text")(({ theme }) => ({
-  ...theme.typography.body3,
-  stroke: "none",
-  fill: theme.vars.palette.text.primary,
-  textAnchor: "middle",
-  dominantBaseline: "central",
-  pointerEvents: "none",
-}));
+const getBarContrastText = (barColor: string): string => {
+  if (barColor === beneficialBarColor) return beneficialBarContrastText;
+  if (barColor === registeredBarColor) return registeredBarContrastText;
+  return "var(--mui-palette-text-primary)";
+};
 
 const CustomBarLabel = (props: BarLabelProps) => {
-  const { x, y, width, children, ...otherProps } = props;
+  const { displayMode } = useTabulationDisplay();
+  const { children, className, color, style, width, x, y } = props;
+  const value = Number(children) || 0;
 
   return (
-    <StyledText {...otherProps} x={x + width / 2} y={y - 8} textAnchor="middle">
-      {formatNumber(Number(children) || 0)}
-    </StyledText>
+    <text
+      className={className}
+      dominantBaseline="central"
+      fill={getBarContrastText(color)}
+      pointerEvents="none"
+      stroke="none"
+      style={style}
+      textAnchor="middle"
+      x={x + width / 2}
+      y={y + 20}
+    >
+      {displayMode === "numbers"
+        ? formatNumber(value)
+        : formatTabulationPercentage(value)}
+    </text>
   );
 };
 
@@ -88,6 +123,7 @@ const BeneficialVsRegisteredCard = ({
   chartOverride,
   loadingOverride = false,
 }: BeneficialVsRegisteredCardProps) => {
+  const { displayMode } = useTabulationDisplay();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -128,16 +164,26 @@ const BeneficialVsRegisteredCard = ({
   let chartData = chartOverride;
 
   if (chartData === undefined) {
-    // Beneficial = Non-DTC (beneficial shareholders voting through brokers)
-    // Based on wendys_non_dtc_vote_status.csv
     const beneficialVoted = positions
-      .filter((p) => p.accountType === "Non-DTC" && p.voteStatus === "Voted")
+      .filter(
+        (position) =>
+          position.voteStatus === "Voted" &&
+          getHolderTypeFromCategory(
+            position.holderCategory,
+            position.accountType
+          ) === "beneficial"
+      )
       .reduce((sum, p) => sum + p.sharesVoted, 0);
 
-    // Registered = DTC/CDS (registered holders/participants)
-    // Based on wendys_dtc_vote_status.csv
     const registeredVoted = positions
-      .filter((p) => p.accountType === "DTC/CDS" && p.voteStatus === "Voted")
+      .filter(
+        (position) =>
+          position.voteStatus === "Voted" &&
+          getHolderTypeFromCategory(
+            position.holderCategory,
+            position.accountType
+          ) === "registered"
+      )
       .reduce((sum, p) => sum + p.sharesVoted, 0);
 
     chartData = {
@@ -146,10 +192,23 @@ const BeneficialVsRegisteredCard = ({
     };
   }
 
+  const totalShares = chartData.beneficial + chartData.registered;
+  const shareCounts = [chartData.beneficial, chartData.registered];
+  const displayedValues = shareCounts.map((value) =>
+    displayMode === "numbers"
+      ? value
+      : totalShares > 0
+        ? (value / totalShares) * 100
+        : 0
+  );
+
   return (
-    <Card sx={{ flex: 1, height: "100%" }}>
-      <CardHeader title="Beneficial vs. Registered" />
-      <CardContent>
+    <Card sx={tabulationCardStyles}>
+      <CardHeader
+        title="Beneficial vs. Registered"
+        sx={tabulationCardHeaderStyles}
+      />
+      <CardContent sx={tabulationCardContentStyles}>
         {loading || loadingOverride ? (
           <Skeleton variant="rectangular" height={300} />
         ) : (
@@ -162,21 +221,28 @@ const BeneficialVsRegisteredCard = ({
                   colorMap: {
                     type: "ordinal",
                     values: ["Beneficial", "Registered"],
-                    colors: [
-                      "var(--mui-palette-chartSeries-0-main)",
-                      "var(--mui-palette-chartSeries-1-main)",
-                    ],
+                    colors: [beneficialBarColor, registeredBarColor],
                   },
                 },
               ]}
               series={[
                 {
-                  data: [chartData.beneficial, chartData.registered],
+                  data: displayedValues,
                   barLabel: "value",
+                  valueFormatter: (value, context) => {
+                    if (!Number.isFinite(value)) return "";
+                    const shareCount = shareCounts[context.dataIndex] ?? 0;
+                    const metric = formatTabulationMetric(
+                      shareCount,
+                      totalShares,
+                      displayMode
+                    );
+                    return `${metric.display} (${metric.alternate})`;
+                  },
                 },
               ]}
-              height={350}
-              margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
+              height={tabulationChartHeight}
+              margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
               hideLegend={true}
               slots={{ barLabel: CustomBarLabel }}
               yAxis={[

@@ -1,12 +1,13 @@
 import { styled } from "@mui/material/styles";
 import { useDrawingArea } from "@mui/x-charts";
 
-import { floorAndFormatNumber, fontSizeScaledBy } from "@/utils/numberUtils";
+import { floorAndFormatNumber } from "@/utils/number-utilities";
 
 export interface PieChartData {
   total: number;
   label: string;
-  centerPercentage?: string;
+  centerValue?: string;
+  centerTooltip?: string;
   sliceData: {
     id: number;
     value: number;
@@ -19,8 +20,8 @@ const StyledNumberText = styled("text")(({ theme }) => ({
   textAnchor: "middle",
   dominantBaseline: "central",
   lineHeight: 1.3,
-  fontWeight: 700,
-  fontSize: 32,
+  fontWeight: 600,
+  fontSize: 38,
 }));
 
 const StyledDescriptionText = styled("text")(({ theme }) => ({
@@ -33,24 +34,21 @@ const StyledDescriptionText = styled("text")(({ theme }) => ({
   fontStyle: "normal",
 }));
 
-const PieCenterLabel = ({ data }: { data: PieChartData }) => {
+const PieCenterLabel = ({ data }: { readonly data: PieChartData }) => {
   const { width, height, left, top } = useDrawingArea();
   return (
     <>
       <StyledNumberText
         tabIndex={0}
         x={left + width / 2}
-        y={top + height / 2.1}
+        y={top + height / 2}
         data-testid="totalCount"
-        style={{ fontSize: fontSizeScaledBy(data.total) }}
+        style={{ fontSize: 32 }}
       >
-        {data.centerPercentage ?? floorAndFormatNumber(data.total)}
+        <title>{data.centerTooltip}</title>
+        {data.centerValue ?? floorAndFormatNumber(data.total)}
       </StyledNumberText>
-      <StyledDescriptionText
-        tabIndex={0}
-        x={left + width / 2}
-        y={top + height / 1.7}
-      >
+      <StyledDescriptionText tabIndex={0} x={left + width / 2} y={top + height / 1.6}>
         {data.label}
       </StyledDescriptionText>
     </>

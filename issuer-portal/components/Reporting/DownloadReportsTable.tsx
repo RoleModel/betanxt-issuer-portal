@@ -1,19 +1,11 @@
 "use client";
 
-import type { SelectChangeEvent } from "@mui/material";
-
-import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   CardHeader,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -22,7 +14,7 @@ import {
   TableRow,
 } from "@mui/material";
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import { useClient } from "@/contexts/ClientContext";
@@ -36,7 +28,7 @@ import {
 } from "@/utils/mockMeetingReports";
 
 interface ReportItem {
-  /** Stable key used for React lists and the report-selection dropdown value. */
+  /** Stable key used for React lists and download state. */
   id: string;
   name: string;
   /** Parent section name for indented sub-reports (e.g. `Account Report - Voted`). */
@@ -153,8 +145,8 @@ const MOCK_REPORTS: ReportItem[] = [
 
 /**
  * Resolves the unambiguous display name for a report, prefixing grouped
- * sub-reports with their section (e.g. `Account Report - Voted`) so dropdown
- * entries and download labels are distinguishable out of context.
+ * sub-reports with their section (e.g. `Account Report - Voted`) so download
+ * labels are distinguishable out of context.
  *
  * @param report - Report list entry
  * @returns The qualified report name
@@ -169,18 +161,13 @@ function fullReportName(report: ReportItem): string {
  * "Download Meeting Reports" card listing every report available for a
  * meeting, each downloadable as PDF and (except Broker Breakout) XLS.
  *
- * A quick-access dropdown above the table downloads the selected report as
- * PDF, defaulting to Broker Breakout. All reports are downloadable: real
- * stored artifacts are fetched from Supabase storage, while mock legacy
- * reports and the Broker Breakout Report are generated on demand in the
- * browser. Downloads are serialized — all buttons disable while one is in
- * flight (002-tabulation-enhancements).
+ * All reports are downloadable: real stored artifacts are fetched from
+ * Supabase storage, while mock legacy reports and the Broker Breakout Report
+ * are generated on demand in the browser. Downloads are serialized — all
+ * buttons disable while one is in flight (002-tabulation-enhancements).
  */
 const DownloadReportsTable = ({ meetingId }: { meetingId: string }) => {
   const [reports, setReports] = useState<ReportItem[]>([]);
-  const [selectedReportId, setSelectedReportId] = useState<string>(
-    BROKER_BREAKOUT_REPORT.id
-  );
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
@@ -223,11 +210,6 @@ const DownloadReportsTable = ({ meetingId }: { meetingId: string }) => {
 
     void fetchReports();
   }, [meetingId, supabase]);
-
-  const downloadableReports = useMemo(
-    () => reports.filter((report) => !report.isHeader),
-    [reports]
-  );
 
   const downloadStorageReport = async (path: string, fileName: string) => {
     const { data, error } = await supabase.storage
@@ -308,52 +290,10 @@ const DownloadReportsTable = ({ meetingId }: { meetingId: string }) => {
     }
   };
 
-  const handleSelectedReportChange = (event: SelectChangeEvent) => {
-    setSelectedReportId(event.target.value);
-  };
-
-  const handleSelectedReportDownload = async () => {
-    const selectedReport = downloadableReports.find(
-      (report) => report.id === selectedReportId
-    );
-    if (!selectedReport) return;
-    await handleDownload(selectedReport, "pdf");
-  };
-
   return (
     <Card>
       <CardHeader title="Download Meeting Reports" />
       <CardContent sx={{ p: 0 }}>
-        <Box
-          sx={{ display: "flex", alignItems: "center", gap: 2, px: 2, pb: 2 }}
-        >
-          <FormControl size="small" sx={{ flex: 1, minWidth: 240 }}>
-            <InputLabel id="report-select-label">Report</InputLabel>
-            <Select
-              labelId="report-select-label"
-              id="report-select"
-              label="Report"
-              value={selectedReportId}
-              onChange={handleSelectedReportChange}
-            >
-              {downloadableReports.map((report) => (
-                <MenuItem key={report.id} value={report.id}>
-                  {fullReportName(report)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            startIcon={<FileDownloadOutlinedIcon />}
-            disabled={
-              downloadingId !== null || downloadableReports.length === 0
-            }
-            onClick={() => void handleSelectedReportDownload()}
-          >
-            Download
-          </Button>
-        </Box>
         <TableContainer>
           <Table size="small" stickyHeader>
             <SROnlyTableCaption>

@@ -1,12 +1,13 @@
+/* eslint-disable import-x/no-named-as-default */
 "use client";
 
 import useSWR from "swr";
 
 import type { ProposalVoting, VotingSummary } from "@/types/phases";
+import type { HolderCategory } from "@/utils/holderCategory";
 
 import buildApiClient from "@/domain-models/apiClient";
 import {
-  type HolderCategory,
   isRegisteredOnlyHolder,
   normalizeHolderCategory,
 } from "@/utils/holderCategory";
@@ -44,10 +45,20 @@ export interface NormalizedProposal {
   totalVotesAbstain: number;
 }
 
+const positionVoteValues = {
+  abstain: "ABSTAIN",
+  against: "AGAINST",
+  for: "FOR",
+  withhold: "WITHHOLD",
+} as const;
+
+type PositionVote =
+  (typeof positionVoteValues)[keyof typeof positionVoteValues];
+
 interface NormalizedPositionVote {
   positionId: string;
   proposalId: string;
-  vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD";
+  vote: PositionVote;
 }
 
 interface ProposalVoteCounts {
@@ -57,9 +68,9 @@ interface ProposalVoteCounts {
   total: number;
 }
 
-async function fetchPositionVotesForMeeting(
+const fetchPositionVotesForMeeting = async (
   meetingId: string
-): Promise<unknown[]> {
+): Promise<unknown[]> => {
   const baseUrl =
     process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
   const response = await fetch(
@@ -72,18 +83,22 @@ async function fetchPositionVotesForMeeting(
 
   const data: unknown = await response.json();
   return asArray(data);
-}
+};
 
 /**
  * Normalizes a raw position record (snake_case or camelCase) into a
  * {@link NormalizedPosition}, including the holderCategory used for the
  * registered-only Voting Activity breakdown.
  */
-function normalizePosition(position: unknown): NormalizedPosition | null {
-  if (!position) return null;
+const normalizePosition = (position: unknown): NormalizedPosition | null => {
+  if (!position) {
+    return null;
+  }
 
   const record = asRecord(position);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   return {
     id: asString(record.id) || "",
@@ -102,14 +117,18 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
       record.holderCategory ?? record.holder_category
     ),
   };
-}
+};
 
 // Normalize proposal data to ensure consistent fields
-function normalizeProposal(proposal: unknown): NormalizedProposal | null {
-  if (!proposal) return null;
+const normalizeProposal = (proposal: unknown): NormalizedProposal | null => {
+  if (!proposal) {
+    return null;
+  }
 
   const record = asRecord(proposal);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   return {
     id: asString(record.id) || "",
@@ -140,19 +159,38 @@ function normalizeProposal(proposal: unknown): NormalizedProposal | null {
       Number(record.total_votes_abstain) ||
       0,
   };
-}
+};
 
-function normalizePositionVote(
+const toPositionVote = (value: string): PositionVote | null => {
+  switch (value) {
+    case positionVoteValues.abstain:
+      return positionVoteValues.abstain;
+    case positionVoteValues.against:
+      return positionVoteValues.against;
+    case positionVoteValues.for:
+      return positionVoteValues.for;
+    case positionVoteValues.withhold:
+      return positionVoteValues.withhold;
+    default:
+      return null;
+  }
+};
+
+const normalizePositionVote = (
   positionVote: unknown
-): NormalizedPositionVote | null {
-  if (!positionVote) return null;
+): NormalizedPositionVote | null => {
+  if (!positionVote) {
+    return null;
+  }
 
   const record = asRecord(positionVote);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
-  const vote = (asString(record.vote) || "").toUpperCase();
+  const vote = toPositionVote((asString(record.vote) || "").toUpperCase());
 
-  if (!["FOR", "AGAINST", "ABSTAIN", "WITHHOLD"].includes(vote)) {
+  if (vote === null) {
     return null;
   }
 
@@ -161,9 +199,9 @@ function normalizePositionVote(
       asString(record.positionId) || asString(record.position_id) || "",
     proposalId:
       asString(record.proposalId) || asString(record.proposal_id) || "",
-    vote: vote as NormalizedPositionVote["vote"],
+    vote,
   };
-}
+};
 
 export interface UseVotingTabulationResult {
   proposals: ProposalVoting[];
@@ -177,7 +215,16 @@ export interface UseVotingTabulationResult {
   previousYearsPercentages: number[];
 }
 
-const fetchVotingData = async (meetingId: string) => {
+interface VotingTabulationData {
+  readonly proposals: ProposalVoting[];
+  readonly previousYearsPercentages: number[];
+  readonly registeredVotingMethods: RegisteredVotingMethods;
+  readonly votingSummary: VotingSummary;
+}
+
+const fetchVotingData = async (
+  meetingId: string
+): Promise<VotingTabulationData> => {
   const apiClient = await buildApiClient();
   const previousYearsPercentages: number[] = [];
 
@@ -185,34 +232,36 @@ const fetchVotingData = async (meetingId: string) => {
     const idParts = meetingId.split("-");
 
     if (idParts.length >= 4) {
-      const currentYear = Number.parseInt(idParts[idParts.length - 1], 10);
+      const currentYear = Number(idParts.at(-1));
       const baseId = idParts.slice(0, -1).join("-");
 
       for (let yearOffset = 1; yearOffset <= 5; yearOffset += 1) {
         const previousMeetingId = `${baseId}-${currentYear - yearOffset}`;
-        const prevPositionsResult = await apiClient.GET("/positions", {
+        const previousPositionsResult = await apiClient.GET("/positions", {
           params: { query: { meetingId: previousMeetingId } },
         });
-        const prevPositionsRaw = Array.isArray(prevPositionsResult.data)
-          ? prevPositionsResult.data
-          : asArray(asRecord(prevPositionsResult.data)?.positions);
-        const prevPositions = prevPositionsRaw
+        const previousPositionsRaw = Array.isArray(previousPositionsResult.data)
+          ? previousPositionsResult.data
+          : asArray(asRecord(previousPositionsResult.data)?.positions);
+        const previousPositions = previousPositionsRaw
           .map((position) => normalizePosition(position))
           .filter(
             (position): position is NormalizedPosition => position !== null
           );
-        const prevTotalShares = prevPositions.reduce(
+        const previousTotalShares = previousPositions.reduce(
           (sum, position) => sum + position.shares,
           0
         );
-        const prevVotedShares = prevPositions
+        const previousVotedShares = previousPositions
           .filter((position) => position.voteStatus === "Voted")
           .reduce((sum, position) => sum + position.sharesVoted, 0);
-        const prevPercentage =
-          prevTotalShares > 0 ? (prevVotedShares / prevTotalShares) * 100 : 0;
+        const previousPercentage =
+          previousTotalShares > 0
+            ? (previousVotedShares / previousTotalShares) * 100
+            : 0;
 
-        if (prevTotalShares > 0) {
-          previousYearsPercentages.push(Number(prevPercentage.toFixed(2)));
+        if (previousTotalShares > 0) {
+          previousYearsPercentages.push(Number(previousPercentage.toFixed(2)));
         }
       }
 
@@ -260,12 +309,12 @@ const fetchVotingData = async (meetingId: string) => {
         positionVote !== null
     );
 
-  normalizedVotes.forEach((vote) => {
+  for (const vote of normalizedVotes) {
     if (
       !proposalIds.has(vote.proposalId) ||
       !positionIdSet.has(vote.positionId)
     ) {
-      return;
+      continue;
     }
 
     const currentCounts = proposalVoteCounts.get(vote.proposalId) ?? {
@@ -285,7 +334,7 @@ const fetchVotingData = async (meetingId: string) => {
 
     currentCounts.total += 1;
     proposalVoteCounts.set(vote.proposalId, currentCounts);
-  });
+  }
 
   // Calculate voting summary
   const totalPositions = positions.length;
@@ -322,7 +371,7 @@ const fetchVotingData = async (meetingId: string) => {
   let totalAgainstShares = 0;
   let totalAbstainShares = 0;
 
-  proposals.forEach((proposal) => {
+  for (const proposal of proposals) {
     const proposalFor = proposal.totalVotesFor;
     const proposalAgainst = proposal.totalVotesAgainst;
     const proposalAbstain = proposal.totalVotesAbstain;
@@ -330,7 +379,7 @@ const fetchVotingData = async (meetingId: string) => {
     totalForShares += proposalFor;
     totalAgainstShares += proposalAgainst;
     totalAbstainShares += proposalAbstain;
-  });
+  }
 
   // Use the aggregate totals for the chart (not averages)
   const forShares = totalForShares;
@@ -415,7 +464,7 @@ const fetchVotingData = async (meetingId: string) => {
     };
 
     return {
-      proposalId: proposal.id ?? "",
+      proposalId: proposal.id,
       proposalNumber: proposal.proposalNumber,
       description: proposal.title,
       proposalTitle: proposal.title,
@@ -431,22 +480,22 @@ const fetchVotingData = async (meetingId: string) => {
 
   // Sort proposals: director elections (1.xx) first in order, then other proposals (2, 3, etc.)
   const sortedProposals = [...votingProposals].sort((a, b) => {
-    const aNum = a.proposalNumber;
-    const bNum = b.proposalNumber;
+    const aNumber = a.proposalNumber;
+    const bNumber = b.proposalNumber;
 
     // Both are sub-proposals (e.g., 1.01, 1.02) - sort numerically
-    const aIsSubProposal = aNum % 1 !== 0;
-    const bIsSubProposal = bNum % 1 !== 0;
+    const isAIsSubProposal = aNumber % 1 !== 0;
+    const isBIsSubProposal = bNumber % 1 !== 0;
 
     // If both are sub-proposals or both are main proposals, sort numerically
-    if (aIsSubProposal === bIsSubProposal) {
-      return aNum - bNum;
+    if (isAIsSubProposal === isBIsSubProposal) {
+      return aNumber - bNumber;
     }
 
     // Sub-proposals (1.01, 1.02) come before main proposals with same integer part
     // e.g., 1.01 < 1.02 < 2 < 3
-    const aInt = Math.floor(aNum);
-    const bInt = Math.floor(bNum);
+    const aInt = Math.floor(aNumber);
+    const bInt = Math.floor(bNumber);
 
     if (aInt !== bInt) {
       return aInt - bInt;
@@ -454,7 +503,7 @@ const fetchVotingData = async (meetingId: string) => {
 
     // Same integer part: sub-proposals come after their parent
     // e.g., for proposal 1: 1.01, 1.02 should come after 1 but before 2
-    return aIsSubProposal ? 1 : -1;
+    return isAIsSubProposal ? 1 : -1;
   });
 
   return {
@@ -468,11 +517,12 @@ const fetchVotingData = async (meetingId: string) => {
 export const useVotingTabulation = (
   meetingId?: string
 ): UseVotingTabulationResult => {
-  const { data, error, isLoading, mutate } = useSWR(
-    meetingId ? `/voting/${meetingId}` : null,
-    () => fetchVotingData(meetingId!),
+  const resolvedMeetingId = meetingId ?? "";
+  const { data, error, isLoading, mutate } = useSWR<VotingTabulationData>(
+    resolvedMeetingId.length > 0 ? `/voting/${resolvedMeetingId}` : null,
+    async () => await fetchVotingData(resolvedMeetingId),
     {
-      refreshInterval: 30000,
+      refreshInterval: 30_000,
       revalidateOnFocus: false,
       keepPreviousData: true,
       dedupingInterval: 2000,
@@ -480,19 +530,22 @@ export const useVotingTabulation = (
   );
 
   const uploadProposals = async (proposals: unknown[]) => {
-    if (!meetingId) {
+    if (meetingId === undefined || meetingId.length === 0) {
       throw new Error("Meeting ID is required");
     }
 
+    const requiredMeetingId: string = meetingId;
     const apiClient = await buildApiClient();
 
     // Upload each proposal
     for (const proposal of proposals) {
       const proposalRecord = asRecord(proposal);
-      if (!proposalRecord) continue;
+      if (!proposalRecord) {
+        continue;
+      }
 
       await apiClient.POST("/meetings/{meetingId}/proposals", {
-        params: { path: { meetingId } },
+        params: { path: { meetingId: requiredMeetingId } },
         body: {
           proposalNumber: Number(proposalRecord.proposalNumber) || 0,
           proposalTitle: asString(proposalRecord.proposalTitle) || "",

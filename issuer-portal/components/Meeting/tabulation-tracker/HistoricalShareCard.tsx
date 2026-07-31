@@ -1,5 +1,6 @@
-import { Grid, Paper, Skeleton, Stack, Typography } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
+
+import { Grid, Paper, Skeleton, Stack, Typography } from "@mui/material";
 import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BNTypographyPair";
 
 interface HistoricalShareCardProps {

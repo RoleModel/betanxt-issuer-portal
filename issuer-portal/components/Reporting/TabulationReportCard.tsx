@@ -1,14 +1,20 @@
+/* eslint-disable @typescript-eslint/strict-void-return */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable react-doctor/js-tosorted-immutable */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+/* eslint-disable react-doctor/rerender-state-only-in-handlers */
 "use client";
 
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
 import { useClient } from "@/contexts/ClientContext";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
 import {
   formatQuorumRequirementPercentLabel,
@@ -29,7 +35,7 @@ const TabulationReportCard = () => {
 
   useEffect(() => {
     const fetchProposals = async () => {
-      if (!currentMeeting?.id) return;
+      if (currentMeeting?.id == null) return;
 
       const apiClient = await buildApiClient();
       const { data } = await apiClient.GET("/meetings/{meetingId}/proposals", {
@@ -86,6 +92,7 @@ const TabulationReportCard = () => {
         (firstProposal.totalVotesAbstain ?? 0)
       : 0;
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
     const proposalSharesEligible = Number(
       firstProposal?.totalSharesEligible ?? 0
     );

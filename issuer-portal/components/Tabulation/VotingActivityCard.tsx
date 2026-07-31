@@ -1,28 +1,82 @@
 "use client";
 
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-  Typography,
-} from "@mui/material";
+import { Box, Card, CardContent, CardHeader, Skeleton } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
-import React, { useMemo } from "react";
 
-import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
 import {
   type RegisteredVotingMethods,
   useVotingTabulation,
-} from "@/hooks/useVotingTabulation";
+} from "../../hooks/use-voting-tabulation";
+import {
+  tabulationCardContentStyles,
+  tabulationCardHeaderStyles,
+  tabulationCardStyles,
+  tabulationChartHeight,
+  tabulationDonutCenterY,
+  tabulationDonutChartMargin,
+  tabulationDonutInnerRadius,
+  tabulationDonutOuterRadius,
+  shouldShowTabulationPieArcLabels,
+  TabulationPieArcLabel,
+} from "../../utils/tabulation-card-layout";
+import PieCenterLabel from "../Reporting/PieChartCenterLabel";
+import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
+import { formatTabulationMetric } from "../../utils/tabulation-display";
 
 interface VotingActivityCardProps {
-  meetingId: string;
+  readonly meetingId: string;
   /** Pre-computed registered-holder method counts to render instead of fetching by `meetingId`. */
-  registeredVotingMethodsOverride?: RegisteredVotingMethods | null;
-  loadingOverride?: boolean;
+  readonly registeredVotingMethodsOverride?: RegisteredVotingMethods | null;
+  readonly loadingOverride?: boolean;
 }
+
+interface VotingMethodData {
+  readonly id: string;
+  readonly label: string;
+  readonly value: number;
+  readonly sharesVoted: number;
+  readonly color: string;
+}
+
+const buildVotingMethodsData = (
+  resolvedMethods: RegisteredVotingMethods | null
+): VotingMethodData[] => {
+  if (resolvedMethods === null) return [];
+
+  const methods: VotingMethodData[] = [];
+
+  if (resolvedMethods.web > 0) {
+    methods.push({
+      id: "web",
+      label: "Web",
+      value: resolvedMethods.web,
+      color: "var(--mui-palette-primary-main)",
+      sharesVoted: 34,
+    });
+  }
+
+  if (resolvedMethods.paper > 0) {
+    methods.push({
+      id: "print",
+      label: "Print",
+      value: resolvedMethods.paper,
+      color: "var(--mui-palette-secondary-main)",
+      sharesVoted: 12,
+    });
+  }
+
+  if (resolvedMethods.phone > 0) {
+    methods.push({
+      id: "ivr",
+      label: "IVR",
+      value: resolvedMethods.phone,
+      color: "var(--mui-palette-primary-light)",
+      sharesVoted: 4,
+    });
+  }
+
+  return methods;
+};
 
 /**
  * Donut chart of vote submissions by method (Web / Print / IVR) scoped to
@@ -35,68 +89,33 @@ const VotingActivityCard = ({
   registeredVotingMethodsOverride,
   loadingOverride = false,
 }: VotingActivityCardProps) => {
+  const { displayMode } = useTabulationDisplay();
   const { registeredVotingMethods, loading } = useVotingTabulation(meetingId);
   const resolvedMethods =
     registeredVotingMethodsOverride ?? registeredVotingMethods;
 
-  const votingMethodsData = useMemo(() => {
-    if (!resolvedMethods) return [];
-
-    const methods: {
-      id: string;
-      label: string;
-      value: number;
-      color: string;
-    }[] = [];
-
-    if (resolvedMethods.web > 0) {
-      methods.push({
-        id: "web",
-        label: "Web",
-        value: resolvedMethods.web,
-        color: "var(--mui-palette-chartSeries-0-main)",
-      });
-    }
-
-    if (resolvedMethods.paper > 0) {
-      methods.push({
-        id: "print",
-        label: "Print",
-        value: resolvedMethods.paper,
-        color: "var(--mui-palette-chartSeries-1-main)",
-      });
-    }
-
-    if (resolvedMethods.phone > 0) {
-      methods.push({
-        id: "ivr",
-        label: "IVR",
-        value: resolvedMethods.phone,
-        color: "var(--mui-palette-chartSeries-2-main)",
-      });
-    }
-
-    return methods;
-  }, [resolvedMethods]);
+  const votingMethodsData = buildVotingMethodsData(resolvedMethods);
 
   const total = votingMethodsData.reduce((sum, item) => sum + item.value, 0);
+  const totalMetric = formatTabulationMetric(total, total, displayMode);
+  const showArcLabels = shouldShowTabulationPieArcLabels(
+    votingMethodsData.length
+  );
 
   const pieChartData = votingMethodsData.map((item, index) => ({
     ...item,
+    votes: item.value,
     id: index,
   }));
 
   return (
-    <Card sx={{ flex: 1, height: "100%" }}>
+    <Card sx={tabulationCardStyles}>
       <CardHeader
-        title="Voting Activity — Registered Holders"
-        subheader={
-          <Typography variant="caption" color="text.secondary">
-            Reflects Registered Holder voting only
-          </Typography>
-        }
+        title="Voting Activity"
+        subheader="Reflects Registered Holder voting only"
+        sx={tabulationCardHeaderStyles}
       />
-      <CardContent>
+      <CardContent sx={tabulationCardContentStyles}>
         {loading || loadingOverride ? (
           <Skeleton variant="rectangular" height={250} />
         ) : votingMethodsData.length === 0 ? (
@@ -125,25 +144,54 @@ const VotingActivityCard = ({
               series={[
                 {
                   data: pieChartData,
-                  innerRadius: 75,
-                  outerRadius: 100,
+                  cy: tabulationDonutCenterY,
+                  innerRadius: tabulationDonutInnerRadius,
+                  outerRadius: tabulationDonutOuterRadius,
                   highlightScope: { fade: "global", highlight: "item" },
+                  arcLabel: showArcLabels
+                    ? (item) => {
+                        const votingMethod = pieChartData.find(
+                          (currentMethod) => currentMethod.id === item.id
+                        );
+                        if (votingMethod === undefined) return "";
+
+                        const metric = formatTabulationMetric(
+                          votingMethod.value,
+                          total,
+                          displayMode
+                        );
+                        return `${votingMethod.label}: ${metric.display}`;
+                      }
+                    : undefined,
+                  arcLabelMinAngle: showArcLabels ? 5 : undefined,
+                  valueFormatter: (value, context) => {
+                    const item = votingMethodsData[context.dataIndex];
+                    const metric = formatTabulationMetric(
+                      value.value,
+                      total,
+                      displayMode
+                    );
+                    return `${item.label}: ${metric.display} (${metric.alternate})`;
+                  },
                 },
               ]}
-              width={250}
-              height={250}
-              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+              width={300}
+              height={tabulationChartHeight}
+              margin={tabulationDonutChartMargin}
               slotProps={{
                 legend: {
                   direction: "horizontal",
                   position: { vertical: "bottom", horizontal: "center" },
                 },
               }}
+              slots={{ pieArcLabel: TabulationPieArcLabel }}
             >
               <PieCenterLabel
                 data={{
                   total,
-                  label: "Registered Votes",
+                  centerTooltip: totalMetric.alternate,
+                  centerValue: totalMetric.display,
+                  label: "Votes",
                   sliceData: pieChartData,
                 }}
               />

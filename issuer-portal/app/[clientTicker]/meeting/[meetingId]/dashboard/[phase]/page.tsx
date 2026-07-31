@@ -5,16 +5,11 @@ import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 
 import { useMeeting } from "@/contexts/MeetingContext";
+import { TabulationDisplayProvider } from "@/contexts/TabulationDisplayContext";
 
 // Dynamically load layout & tracker to reduce initial JS bundle
-const Phase1Layout = dynamic(
-  () => import("@/components/Meeting/Phase1Layout"),
-  {}
-);
-const TabulationTracker = dynamic(
-  () => import("@/components/Meeting/TabulationTracker"),
-  {}
-);
+const Phase1Layout = dynamic(() => import("@/components/Meeting/Phase1Layout"), {});
+const TabulationTracker = dynamic(() => import("@/components/Meeting/TabulationTracker"), {});
 
 const PhasePage = () => {
   const params = useParams();
@@ -46,7 +41,9 @@ const PhasePage = () => {
       >
         <TabulationTracker meetingId={meetingId} phase={phase} />
 
-        <Phase1Layout meeting={meetingForPhase} />
+        <TabulationDisplayProvider>
+          <Phase1Layout meeting={meetingForPhase} />
+        </TabulationDisplayProvider>
       </Box>
     </Container>
   );

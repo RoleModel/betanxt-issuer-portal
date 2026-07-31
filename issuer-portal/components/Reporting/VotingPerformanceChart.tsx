@@ -17,7 +17,7 @@ import React, { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import SkeletonChart from "@/components/ui/SkeletonChart";
 import buildApiClient from "@/domain-models/apiClient";
-import { abbreviateNumber } from "@/utils/numberUtils";
+import { abbreviateNumber } from "@/utils/number-utilities";
 
 import { CustomLegend } from "./index";
 

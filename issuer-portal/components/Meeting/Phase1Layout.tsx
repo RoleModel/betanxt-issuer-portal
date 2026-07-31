@@ -9,7 +9,6 @@ import type { Meeting } from "@/types/api-exports";
 
 import DocumentHostingCard from "@/components/Meeting/DocumentHostingCard";
 import KeyDatesCard from "@/components/Meeting/KeyDatesCard";
-import MeetingTaskTimeline from "@/components/Meeting/MeetingTaskTimeline";
 import QuorumGaugeCard from "@/components/Meeting/QuorumGaugeCard";
 import buildApiClient from "@/domain-models/apiClient";
 import { buildQuorumGaugeModel } from "@/utils/quorum";
@@ -17,8 +16,8 @@ import { buildQuorumGaugeModel } from "@/utils/quorum";
 type TabulationReport = components["schemas"]["TabulationReport"];
 
 interface Phase1LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
+  readonly meetingId?: string;
+  readonly meeting?: Meeting;
 }
 
 const Phase1Layout = ({ meeting }: Phase1LayoutProps) => {
@@ -27,22 +26,17 @@ const Phase1Layout = ({ meeting }: Phase1LayoutProps) => {
     async () => {
       if (!meeting?.id) return null;
       const apiClient = await buildApiClient();
-      const result = await apiClient.GET(
-        "/meetings/{meetingId}/tabulation-report",
-        {
-          params: { path: { meetingId: meeting.id } },
-        }
-      );
+      const result = await apiClient.GET("/meetings/{meetingId}/tabulation-report", {
+        params: { path: { meetingId: meeting.id } },
+      });
       return result.data ?? null;
     },
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false },
   );
 
   const representedShares = tabulationReport?.positionsVoted?.votedShares ?? 0;
   const totalOutstandingShares =
-    tabulationReport?.positionsVoted?.totalShares ??
-    meeting?.totalSharesOutstanding ??
-    0;
+    tabulationReport?.positionsVoted?.totalShares ?? meeting?.totalSharesOutstanding ?? 0;
 
   const quorumGaugeModel = buildQuorumGaugeModel({
     totalOutstandingShares,
@@ -53,9 +47,6 @@ const Phase1Layout = ({ meeting }: Phase1LayoutProps) => {
   return (
     <Suspense>
       <Grid container spacing={{ xs: 2, md: 3 }}>
-        <Grid size={12}>
-          <MeetingTaskTimeline />
-        </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <KeyDatesCard meeting={meeting} />
         </Grid>

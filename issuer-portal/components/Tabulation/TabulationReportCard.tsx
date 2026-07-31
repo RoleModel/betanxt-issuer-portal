@@ -1,6 +1,11 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable @typescript-eslint/strict-void-return */
+/* eslint-disable react-doctor/js-tosorted-immutable */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable react-doctor/rerender-state-only-in-handlers */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
@@ -8,43 +13,32 @@ import FeatureTile from "@/components/FeatureTile";
 import { useClient } from "@/contexts/ClientContext";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
-import {
-  formatQuorumRequirementPercentLabel,
-  quorumRequiredShares,
-} from "@/utils/quorum";
+import { formatQuorumRequirementPercentLabel, quorumRequiredShares } from "@/utils/quorum";
 
 interface TabulationReportCardProps {
-  variant?: "default" | "primary" | "secondary" | "tertiary" | "base";
+  readonly variant?: "default" | "primary" | "secondary" | "tertiary" | "base";
 }
 
-const TabulationReportCard = ({
-  variant = "tertiary",
-}: TabulationReportCardProps) => {
+const TabulationReportCard = ({ variant = "tertiary" }: TabulationReportCardProps) => {
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
-  const { proposals: votingProposals } = useVotingTabulation(
-    currentMeeting?.id
-  );
-  const [rawProposals, setRawProposals] = useState<
-    components["schemas"]["Proposal"][]
-  >([]);
+  const { proposals: votingProposals } = useVotingTabulation(currentMeeting?.id);
+  const [rawProposals, setRawProposals] = useState<components["schemas"]["Proposal"][]>([]);
 
   // Fetch raw proposal data to get all fields
   useEffect(() => {
     const fetchProposals = async () => {
-      if (!currentMeeting?.id) return;
+      if (currentMeeting?.id == null) return;
 
       const apiClient = await buildApiClient();
       const { data } = await apiClient.GET("/meetings/{meetingId}/proposals", {
         params: { path: { meetingId: currentMeeting.id } },
       });
 
-      if (data) {
-        const proposals = Array.isArray(data) ? data : [];
-        setRawProposals(proposals);
-      }
+      const proposals = Array.isArray(data) ? data : [];
+      setRawProposals(proposals);
     };
 
     void fetchProposals();
@@ -60,7 +54,7 @@ const TabulationReportCard = ({
     // Use raw proposal data which contains the actual totals from the CSV
     // Sort by proposal number so director elections appear in order (1.01, 1.02, ...)
     const sortedRawProposals = [...rawProposals].sort(
-      (a, b) => (a.proposalNumber ?? 0) - (b.proposalNumber ?? 0)
+      (a, b) => (a.proposalNumber ?? 0) - (b.proposalNumber ?? 0),
     );
     const proposalsForExport = sortedRawProposals.map((rp) => {
       const totalVotesFor = rp.totalVotesFor ?? 0;
@@ -78,10 +72,8 @@ const TabulationReportCard = ({
         totalVotesAgainst,
         totalVotesAbstain,
         forPercentage: totalVotes > 0 ? (totalVotesFor / totalVotes) * 100 : 0,
-        againstPercentage:
-          totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0,
-        abstainPercentage:
-          totalVotes > 0 ? (totalVotesAbstain / totalVotes) * 100 : 0,
+        againstPercentage: totalVotes > 0 ? (totalVotesAgainst / totalVotes) * 100 : 0,
+        abstainPercentage: totalVotes > 0 ? (totalVotesAbstain / totalVotes) * 100 : 0,
       };
     });
 
@@ -89,40 +81,31 @@ const TabulationReportCard = ({
     const firstProposal =
       sortedRawProposals.find(
         (rp) =>
-          (rp.totalVotesFor ?? 0) +
-            (rp.totalVotesAgainst ?? 0) +
-            (rp.totalVotesAbstain ?? 0) >
-          0
+          (rp.totalVotesFor ?? 0) + (rp.totalVotesAgainst ?? 0) + (rp.totalVotesAbstain ?? 0) > 0,
       ) ?? sortedRawProposals[0];
-    const votesRepresented = firstProposal
-      ? (firstProposal.totalVotesFor ?? 0) +
-        (firstProposal.totalVotesAgainst ?? 0) +
-        (firstProposal.totalVotesAbstain ?? 0)
-      : 0;
+    const votesRepresented =
+      (firstProposal?.totalVotesFor ?? 0) +
+      (firstProposal?.totalVotesAgainst ?? 0) +
+      (firstProposal?.totalVotesAbstain ?? 0);
 
     // Prefer proposal.totalSharesEligible — it reflects the actual eligible share count
     // used when votes were recorded, which may differ from meeting.totalSharesOutstanding
-    const proposalSharesEligible = Number(
-      firstProposal?.totalSharesEligible ?? 0
-    );
+    const proposalSharesEligible = firstProposal?.totalSharesEligible ?? 0;
     const totalOutstanding =
       proposalSharesEligible > 0
         ? proposalSharesEligible
         : Number(currentMeeting.totalSharesOutstanding ?? 0);
 
-    const quorumPercentage =
-      totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0;
-    const quorumRequirement = formatQuorumRequirementPercentLabel(
-      currentMeeting.quorumRequirement
-    );
+    const quorumPercentage = totalOutstanding > 0 ? (votesRepresented / totalOutstanding) * 100 : 0;
+    const quorumRequirement = formatQuorumRequirementPercentLabel(currentMeeting.quorumRequirement);
     const votesOverUnderQuorum =
-      votesRepresented -
-      quorumRequiredShares(totalOutstanding, currentMeeting.quorumRequirement);
+      votesRepresented - quorumRequiredShares(totalOutstanding, currentMeeting.quorumRequirement);
 
     // Determine if meeting has concluded
-    const isMeetingConcluded = currentMeeting.meetingDate
-      ? new Date(currentMeeting.meetingDate) < new Date()
-      : false;
+    const isMeetingConcluded =
+      currentMeeting.meetingDate != null
+        ? new Date(currentMeeting.meetingDate) < new Date()
+        : false;
 
     const reportTitle = isMeetingConcluded
       ? "Final Tabulation Results"
@@ -130,8 +113,7 @@ const TabulationReportCard = ({
 
     // Prepare tabulation data in the format expected by the PDF export
     const tabulationData = {
-      companyName:
-        currentClient?.company_name ?? currentClient?.short_name ?? "Company",
+      companyName: currentClient?.company_name ?? currentClient?.short_name ?? "Company",
       meetingType: currentMeeting.meetingType ?? "Annual Meeting",
       meetingDate: currentMeeting.meetingDate ?? "",
       recordDate: currentMeeting.recordDate ?? "",
@@ -144,8 +126,7 @@ const TabulationReportCard = ({
       reportTitle, // Pass the dynamic title
       brokerNonVote: currentMeeting.brokerNonVote ?? 0,
       proposals: proposalsForExport.map((p) => {
-        const totalVotes =
-          p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain;
+        const totalVotes = p.totalVotesFor + p.totalVotesAgainst + p.totalVotesAbstain;
 
         return {
           proposalNumber: p.proposalNumber.toString(),
@@ -157,10 +138,8 @@ const TabulationReportCard = ({
           percentFor: p.forPercentage,
           percentAgainst: p.againstPercentage,
           percentAbstain: p.abstainPercentage,
-          percentOfOutstanding:
-            totalOutstanding > 0 ? (totalVotes / totalOutstanding) * 100 : 0,
-          percentOfTotalVoted:
-            votesRepresented > 0 ? (totalVotes / votesRepresented) * 100 : 0,
+          percentOfOutstanding: totalOutstanding > 0 ? (totalVotes / totalOutstanding) * 100 : 0,
+          percentOfTotalVoted: votesRepresented > 0 ? (totalVotes / votesRepresented) * 100 : 0,
           percentOfProposalVotes: 100,
         };
       }),
@@ -168,16 +147,15 @@ const TabulationReportCard = ({
 
     await exportTabulationPdf({
       tabulationData,
-      clientTicker: currentMeeting.ticker || undefined,
+      clientTicker: currentMeeting.ticker,
     });
   };
 
   const isDataReady = !!(currentMeeting && votingProposals.length > 0);
 
   // Determine if meeting has concluded (meeting date has passed)
-  const isMeetingConcluded = currentMeeting?.meetingDate
-    ? new Date(currentMeeting.meetingDate) < new Date()
-    : false;
+  const isMeetingConcluded =
+    currentMeeting?.meetingDate != null ? new Date(currentMeeting.meetingDate) < new Date() : false;
 
   const reportTitle = isMeetingConcluded
     ? "Final Tabulation Results"
@@ -188,10 +166,11 @@ const TabulationReportCard = ({
       height="100%"
       title={reportTitle}
       variant={variant}
+      titleVariant="h3"
       flex={true}
       description="Results for each proposal, showing vote counts, percentages, and quorum status."
       actionText={isDataReady ? "Download" : "Loading..."}
-      onClick={isDataReady ? handleDownload : undefined}
+      onClick={handleDownload}
       sx={{
         opacity: isDataReady ? 1 : 0.6,
         cursor: isDataReady ? "pointer" : "default",

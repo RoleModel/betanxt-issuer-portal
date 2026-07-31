@@ -15,8 +15,8 @@ import {
 import React from "react";
 
 import { useMeeting } from "@/contexts/MeetingContext";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
-import { formatNumber } from "@/utils/numberUtils";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
+import { formatNumber } from "@/utils/number-utilities";
 import { getVotingOptions } from "@/utils/votingOptions";
 
 interface DetailedTabulationTableProps {

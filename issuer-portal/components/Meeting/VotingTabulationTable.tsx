@@ -1,152 +1,338 @@
 "use client";
 
-import {
-  Box,
-  LinearProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
+import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+
+import { Box, LinearProgress, Tooltip, Typography } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
 
 import type { ProposalVoting } from "@/types/phases";
 
-import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import { useMeeting } from "@/contexts/MeetingContext";
+import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
+import {
+  getDistinctStringValues,
+  numericFilterOperators,
+  singleSelectFilterOperators,
+  textFilterOperators,
+} from "@/utils/tabulation-grid-filter-operators";
+import {
+  formatTabulationMetric,
+  formatTabulationPercentage,
+} from "@/utils/tabulation-display";
 import { getTabulationHeaders } from "@/utils/votingOptions";
 
-import SkeletonTable from "../ui/SkeletonTable";
-
 interface VotingTabulationTableProps {
-  proposals: ProposalVoting[];
-  loading?: boolean;
+  readonly proposals: readonly ProposalVoting[];
+  readonly loading?: boolean;
 }
 
-/**
- * Per-proposal voting results table showing the For / Against / Abstain share
- * buckets with percentages. The aggregate "Total Votes" column was removed in
- * favor of the per-bucket breakdown (002-tabulation-enhancements).
- */
+interface ProposalGridRow {
+  readonly id: string;
+  readonly proposal: string;
+  readonly isSubProposal: boolean;
+  readonly recommendation: string;
+  readonly forPercentage: number;
+  readonly forShares: number;
+  readonly againstPercentage: number;
+  readonly againstShares: number;
+  readonly abstainPercentage: number;
+  readonly abstainShares: number;
+  readonly brokerNonVote: number;
+  readonly totalSharesVoted: number;
+}
+
+const VotingMetricCell = ({
+  percentage,
+  shares,
+  totalShares,
+  color,
+}: {
+  readonly percentage: number;
+  readonly shares: number;
+  readonly totalShares: number;
+  readonly color:
+    "chartSeries[0].main" | "chartSeries[2].main" | "chartSeries[3].main";
+}) => {
+  const { displayMode } = useTabulationDisplay();
+  const isPercentage = displayMode === "percentages";
+  const display = isPercentage
+    ? formatTabulationPercentage(percentage)
+    : formatTabulationMetric(shares, 1, "numbers").display;
+  const alternate = isPercentage
+    ? formatTabulationMetric(shares, 1, "numbers").display
+    : formatTabulationPercentage(percentage);
+  const accessibleValue =
+    displayMode === "numbers"
+      ? `${display} shares (${alternate})`
+      : `${display} (${alternate} shares)`;
+  const modeLabel = isPercentage ? "Percentage" : "Shares";
+  const progressValue = isPercentage
+    ? percentage
+    : totalShares > 0
+      ? (shares / totalShares) * 100
+      : 0;
+
+  return (
+    <Tooltip title={alternate}>
+      <Box sx={{ width: "100%" }}>
+        <Typography
+          component="div"
+          sx={{
+            color: "text.secondary",
+            fontSize: "0.625rem",
+            fontWeight: 700,
+            letterSpacing: "0.04em",
+            lineHeight: 1.2,
+            textTransform: "uppercase",
+          }}
+        >
+          {modeLabel}
+        </Typography>
+        <Typography variant="body3" fontWeight="medium">
+          {display}
+        </Typography>
+        <LinearProgress
+          aria-valuetext={accessibleValue}
+          color={color}
+          variant="determinate"
+          value={progressValue}
+        />
+      </Box>
+    </Tooltip>
+  );
+};
+
+const ShareCountCell = ({ shares }: { readonly shares: number }) => (
+  <Typography component="span" fontWeight="medium" variant="body3">
+    {formatTabulationMetric(shares, 1, "numbers").display}
+  </Typography>
+);
+
+const isSubProposal = (proposalNumber: number): boolean =>
+  !Number.isInteger(proposalNumber);
+
+const getAutoRowHeight = () => "auto" as const;
+
+const getEstimatedRowHeight = () => 72;
+
 const VotingTabulationTable = ({
   proposals,
   loading = false,
 }: VotingTabulationTableProps) => {
   const { currentMeeting } = useMeeting();
+  const { displayMode } = useTabulationDisplay();
+  const votingLabels = getTabulationHeaders(
+    Array.from(proposals),
+    currentMeeting?.ticker
+  );
 
-  const formatPercentage = (percentage: number) => {
-    return `${percentage.toFixed(2)}%`;
-  };
+  const sortedProposals = Array.from(proposals).sort(
+    (firstProposal, secondProposal) =>
+      firstProposal.proposalNumber - secondProposal.proposalNumber
+  );
 
-  // Get appropriate headers based on proposal types in this table
-  const votingLabels = getTabulationHeaders(proposals, currentMeeting?.ticker);
+  const rows: ProposalGridRow[] = sortedProposals.map((proposal) => ({
+    abstainPercentage: proposal.votingResults.abstain.percentage,
+    abstainShares: proposal.votingResults.abstain.shares,
+    againstPercentage: proposal.votingResults.against.percentage,
+    againstShares: proposal.votingResults.against.shares,
+    brokerNonVote: currentMeeting?.brokerNonVote ?? 0,
+    forPercentage: proposal.votingResults.for.percentage,
+    forShares: proposal.votingResults.for.shares,
+    id: proposal.proposalId,
+    isSubProposal: isSubProposal(proposal.proposalNumber),
+    proposal: `${proposal.proposalNumber}. ${proposal.description}`,
+    recommendation: proposal.recommendation ?? "N/A",
+    totalSharesVoted: proposal.totalShares,
+  }));
+  const gridHeight = Math.max(520, Math.min(rows.length, 25) * 52 + 168);
+  const proposalPageSize = Math.max(rows.length, 1);
+  const recommendationOptions = getDistinctStringValues(
+    rows,
+    (row) => row.recommendation
+  );
 
-  if (loading) {
-    return (
-      <TableContainer>
-        <SkeletonTable rows={4} columns={5} />
-      </TableContainer>
-    );
-  }
+  const columns: GridColDef<ProposalGridRow>[] = [
+    {
+      field: "proposal",
+      filterOperators: textFilterOperators,
+      flex: 1,
+      headerName: "Proposals",
+      minWidth: 320,
+      renderCell: (
+        parameters: GridRenderCellParams<ProposalGridRow, string>
+      ) => (
+        <Typography
+          component="span"
+          variant="body3"
+          sx={{
+            alignItems: "center",
+            alignSelf: "stretch",
+            display: "flex",
+            lineHeight: 1.35,
+            minWidth: 0,
+            overflowWrap: "anywhere",
+            pl: parameters.row.isSubProposal ? 3 : 0,
+            py: 1,
+            whiteSpace: "normal",
+            width: "100%",
+          }}
+        >
+          {parameters.value}
+        </Typography>
+      ),
+    },
+    {
+      field: "recommendation",
+      filterOperators: singleSelectFilterOperators,
+      headerName: "Management Recommendation",
+      minWidth: 190,
+      type: "singleSelect",
+      valueOptions: recommendationOptions,
+      renderCell: (
+        parameters: GridRenderCellParams<ProposalGridRow, string>
+      ) => (
+        <Typography component="span" variant="body3">
+          {parameters.value}
+        </Typography>
+      ),
+    },
+    {
+      field: "forPercentage",
+      filterOperators: numericFilterOperators,
+      headerName: votingLabels.for,
+      minWidth: 160,
+      type: "number",
+      valueGetter: (value, row) => {
+        void value;
+        return displayMode === "numbers" ? row.forShares : row.forPercentage;
+      },
+      renderCell: (
+        parameters: GridRenderCellParams<ProposalGridRow, number>
+      ) => (
+        <VotingMetricCell
+          color="chartSeries[0].main"
+          percentage={parameters.row.forPercentage}
+          shares={parameters.row.forShares}
+          totalShares={parameters.row.totalSharesVoted}
+        />
+      ),
+    },
+    {
+      field: "againstPercentage",
+      filterOperators: numericFilterOperators,
+      headerName: votingLabels.against,
+      minWidth: 160,
+      type: "number",
+      valueGetter: (value, row) => {
+        void value;
+        return displayMode === "numbers"
+          ? row.againstShares
+          : row.againstPercentage;
+      },
+      renderCell: (
+        parameters: GridRenderCellParams<ProposalGridRow, number>
+      ) => (
+        <VotingMetricCell
+          color="chartSeries[3].main"
+          percentage={parameters.row.againstPercentage}
+          shares={parameters.row.againstShares}
+          totalShares={parameters.row.totalSharesVoted}
+        />
+      ),
+    },
+    {
+      field: "abstainPercentage",
+      filterOperators: numericFilterOperators,
+      headerName: votingLabels.abstain,
+      minWidth: 160,
+      type: "number",
+      valueGetter: (value, row) => {
+        void value;
+        return displayMode === "numbers"
+          ? row.abstainShares
+          : row.abstainPercentage;
+      },
+      renderCell: (
+        parameters: GridRenderCellParams<ProposalGridRow, number>
+      ) => (
+        <VotingMetricCell
+          color="chartSeries[2].main"
+          percentage={parameters.row.abstainPercentage}
+          shares={parameters.row.abstainShares}
+          totalShares={parameters.row.totalSharesVoted}
+        />
+      ),
+    },
+    {
+      field: "totalSharesVoted",
+      filterOperators: numericFilterOperators,
+      headerName: "Total Shares Voted",
+      minWidth: 170,
+      type: "number",
+      renderCell: (
+        parameters: GridRenderCellParams<ProposalGridRow, number>
+      ) => <ShareCountCell shares={parameters.value ?? 0} />,
+    },
+    {
+      field: "brokerNonVote",
+      filterOperators: numericFilterOperators,
+      headerName: "BNV",
+      minWidth: 120,
+      type: "number",
+      renderCell: (
+        parameters: GridRenderCellParams<ProposalGridRow, number>
+      ) => <ShareCountCell shares={parameters.value ?? 0} />,
+    },
+  ];
 
   return (
-    <TableContainer>
-      <Table>
-        <SROnlyTableCaption>
-          Voting tabulation for proposals.
-        </SROnlyTableCaption>
-        <TableHead>
-          <TableRow>
-            <TableCell>Proposals</TableCell>
-            <TableCell sx={{ width: "100px" }}>
-              Management Recommendation
-            </TableCell>
-            <TableCell align="right">{votingLabels.for}</TableCell>
-            <TableCell align="right">{votingLabels.against}</TableCell>
-            <TableCell align="right">{votingLabels.abstain}</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {proposals.map((proposal) => (
-            <TableRow
-              key={proposal.proposalId}
-              sx={{ "&:hover": { backgroundColor: "action.hover" } }}
-            >
-              <TableCell>
-                <Box>
-                  <Typography variant="body3" sx={{ fontWeight: "medium" }}>
-                    {proposal.proposalNumber}. {proposal.description}
-                  </Typography>
-                </Box>
-              </TableCell>
-
-              <TableCell>
-                <Typography variant="body3">
-                  {proposal.recommendation || "N/A"}
-                </Typography>
-              </TableCell>
-
-              <TableCell align="right">
-                <Box>
-                  <Typography
-                    variant="body3"
-                    fontWeight="medium"
-                    sx={{ textAlign: "left" }}
-                  >
-                    {formatPercentage(proposal.votingResults.for.percentage)}
-                  </Typography>
-                  <LinearProgress
-                    color="chartSeries[0].main"
-                    variant="determinate"
-                    value={proposal.votingResults.for.percentage}
-                  />
-                </Box>
-              </TableCell>
-
-              <TableCell align="right">
-                <Box>
-                  <Typography
-                    variant="body3"
-                    fontWeight="medium"
-                    sx={{ textAlign: "left" }}
-                  >
-                    {formatPercentage(
-                      proposal.votingResults.against.percentage
-                    )}
-                  </Typography>
-                  <LinearProgress
-                    color="chartSeries[3].main"
-                    variant="determinate"
-                    value={proposal.votingResults.against.percentage}
-                  />
-                </Box>
-              </TableCell>
-
-              <TableCell align="right">
-                <Box>
-                  <Typography
-                    variant="body3"
-                    fontWeight="medium"
-                    sx={{ textAlign: "left" }}
-                  >
-                    {formatPercentage(
-                      proposal.votingResults.abstain.percentage
-                    )}
-                  </Typography>
-                  <LinearProgress
-                    color="chartSeries[2].main"
-                    variant="determinate"
-                    value={proposal.votingResults.abstain.percentage}
-                  />
-                </Box>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Box sx={{ height: gridHeight, width: "100%" }}>
+      <DataGrid
+        columns={columns}
+        rows={rows}
+        loading={loading}
+        getEstimatedRowHeight={getEstimatedRowHeight}
+        getRowHeight={getAutoRowHeight}
+        showToolbar
+        disableRowSelectionOnClick
+        disableVirtualization
+        paginationModel={{
+          page: 0,
+          pageSize: proposalPageSize,
+        }}
+        pageSizeOptions={[proposalPageSize]}
+        slotProps={{
+          toolbar: {
+            quickFilterProps: {
+              debounceMs: 300,
+            },
+            showQuickFilter: true,
+          },
+        }}
+        sx={{
+          border: 0,
+          "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": {
+            outline: "none",
+          },
+          "& .MuiDataGrid-cell, & .MuiDataGrid-columnHeader, & .MuiDataGrid-footerContainer, & .MuiDataGrid-toolbarContainer":
+            {
+              typography: "body3",
+            },
+          "& .MuiDataGrid-cell, & .MuiDataGrid-cellContent": {
+            alignItems: "center !important",
+            display: "flex !important",
+          },
+          "&.MuiDataGrid-root--densityCompact .MuiDataGrid-cell": { py: "8px" },
+          "&.MuiDataGrid-root--densityStandard .MuiDataGrid-cell": {
+            py: "15px",
+          },
+          "&.MuiDataGrid-root--densityComfortable .MuiDataGrid-cell": {
+            py: "22px",
+          },
+        }}
+      />
+    </Box>
   );
 };
 

@@ -12,7 +12,7 @@ import React, { useState } from "react";
 
 import { EmptyState } from "@/components/EmptyState";
 import SkeletonChart from "@/components/ui/SkeletonChart";
-import { truncateNumber } from "@/utils/numberUtils";
+import { truncateNumber } from "@/utils/number-utilities";
 
 interface BrokerVotingData {
   broker: string;

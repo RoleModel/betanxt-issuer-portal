@@ -1,5 +1,7 @@
 "use client";
 
+import type { SelectChangeEvent } from "@mui/material/Select";
+
 import {
   Box,
   Card,
@@ -11,7 +13,6 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import type { SelectChangeEvent } from "@mui/material/Select";
 import { ChartsReferenceLine } from "@mui/x-charts/ChartsReferenceLine";
 import { useDrawingArea, useXScale } from "@mui/x-charts/hooks";
 import { LineChart } from "@mui/x-charts/LineChart";
