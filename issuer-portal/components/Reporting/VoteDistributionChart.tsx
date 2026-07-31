@@ -16,6 +16,7 @@ import {
   tabulationDonutChartMargin,
   tabulationDonutInnerRadius,
   tabulationDonutOuterRadius,
+  tabulationMinArcLabelAngle,
   TabulationPieArcLabel,
   tabulationVoteDistributionColors,
 } from "@/utils/tabulation-card-layout";
@@ -126,7 +127,7 @@ const VoteDistributionChart = ({
                       return `${item.label ?? ""}: ${metric.display}`;
                     }
                   : undefined,
-                arcLabelMinAngle: 5,
+                arcLabelMinAngle: tabulationMinArcLabelAngle,
                 cy: tabulationDonutCenterY,
                 data: pieChartData,
                 highlightScope: { fade: "global", highlight: "item" },

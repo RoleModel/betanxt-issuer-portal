@@ -20,8 +20,11 @@ export const TabulationDisplayProvider = ({
   readonly children: ReactNode;
 }) => {
   const [displayMode, setDisplayMode] =
-    useState<TabulationDisplayMode>("numbers");
+    useState<TabulationDisplayMode>("percentages");
 
+  // React Compiler is deliberately not enabled (see issuer-portal/next.config.ts),
+  // so this memo is load-bearing for context consumer stability.
+  // eslint-disable-next-line react-doctor/react-compiler-no-manual-memoization -- see comment above
   const value = useMemo<TabulationDisplayContextValue>(
     () => ({ displayMode, setDisplayMode }),
     [displayMode]

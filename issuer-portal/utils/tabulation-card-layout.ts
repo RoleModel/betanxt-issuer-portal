@@ -7,9 +7,23 @@ export const tabulationCardHeaderMinHeight = 10;
 export const tabulationChartHeight = 300;
 export const tabulationDonutInnerRadius = 80;
 export const tabulationDonutOuterRadius = 105;
-export const tabulationSmallArcLabelAngle = 20;
 /** Distance from the outer edge of the donut to the arc label baseline. */
 export const tabulationArcLabelGap = 10;
+
+/**
+ * Smallest rendered arc angle that still gets a label.
+ *
+ * Labels are placed at their slice's mid-angle, so two adjacent slices need
+ * roughly 7 degrees between mid-angles before a 12px line of text stops
+ * overlapping its neighbour. Anything under about 4% of the circle is therefore
+ * unlabelable in practice. Suppressed slices are still named in the legend and
+ * carry their exact number and percentage in the tooltip.
+ *
+ * This also covers charts that inflate slivers to a minimum visual width: a
+ * slice pinned to that floor renders at or below this angle, so it is caught
+ * here rather than needing a separate rule.
+ */
+export const tabulationMinArcLabelAngle = 15;
 
 export const shouldShowTabulationPieArcLabels = (
   dataPointCount: number
@@ -19,8 +33,8 @@ export const tabulationDonutCenterY = 120;
 // side-anchored text was clipped at the edges of the card.
 export const tabulationDonutChartMargin = {
   bottom: 40,
-  left: 90,
-  right: 90,
+  left: 110,
+  right: 110,
   top: 20,
 } as const;
 
@@ -64,14 +78,18 @@ export const tabulationCardContentStartStyles = {
 } as const;
 
 /**
- * Renders pie arc labels entirely outside the donut.
+ * Renders pie arc labels just outside the donut, hugging their own slice.
  *
- * Labels are never drawn over the arc itself. MUI's default `arcLabelRadius`
- * sits at the midpoint of the ring, so text landed on the fill and lost
- * contrast against saturated colours such as primary.main — unreadable for
- * some users regardless of the text colour chosen. Every label is therefore
- * pushed past `outerRadius` and anchored away from the chart, with a
- * collision-safe vertical nudge for adjacent small arcs.
+ * MUI's default `arcLabelRadius` sits at the midpoint of the ring, so text was
+ * drawn onto the fill and lost contrast against saturated colours such as
+ * primary.main. Labels are placed radially at `outerRadius` plus a small gap
+ * and anchored away from the centre, which keeps each one next to the slice it
+ * describes while never crossing the arc.
+ *
+ * That it cannot cross the arc holds for every angle: the anchor sits at
+ * (sin0 * R, -cos0 * R) and the text runs outward, so it clears the ring when
+ * sin0 * R >= sqrt(r^2 - (cos0 * R)^2), which reduces to R^2 >= r^2 — true for
+ * any R greater than the outer radius.
  */
 export const TabulationPieArcLabel = ({
   endAngle,
@@ -84,24 +102,10 @@ export const TabulationPieArcLabel = ({
   }
 
   const middleAngle = (startAngle + endAngle) / 2;
-  const arcAngle = ((endAngle - startAngle) * 180) / Math.PI;
-  const isSmallArc = arcAngle <= tabulationSmallArcLabelAngle;
   const labelRadius = outerRadius + tabulationArcLabelGap;
-  const isOnRightSide = Math.sin(middleAngle) >= 0;
-  // Pin x to a column beside the donut rather than following the arc radially.
-  // Radial placement collapses x towards 0 near the 12 and 6 o'clock positions,
-  // which put the text straight across the top or bottom of the ring even when
-  // the radius cleared it. Anchoring outward from a fixed column means the text
-  // always runs away from the chart and can never cross the arc.
-  const labelX = (isOnRightSide ? 1 : -1) * labelRadius;
+  const labelX = Math.sin(middleAngle) * labelRadius;
   const labelY = -Math.cos(middleAngle) * labelRadius;
-  // Adjacent thin slices resolve to nearly the same y; fan them apart a little.
-  // Exact de-collision would need to lay out every label at once, which a
-  // per-label slot cannot do — raise `arcLabelMinAngle` to drop labels for
-  // slices too thin to annotate.
-  const verticalOffset = isSmallArc
-    ? Math.max(-30, Math.min(30, -Math.sin(middleAngle) * labelRadius))
-    : 0;
+  const isOnRightSide = labelX >= 0;
 
   return createElement(
     "text",
@@ -112,7 +116,7 @@ export const TabulationPieArcLabel = ({
       pointerEvents: "none",
       textAnchor: isOnRightSide ? "start" : "end",
       x: labelX,
-      y: labelY + verticalOffset,
+      y: labelY,
     },
     formattedArcLabel
   );

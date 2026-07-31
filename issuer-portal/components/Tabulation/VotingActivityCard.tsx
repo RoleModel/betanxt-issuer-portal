@@ -16,6 +16,7 @@ import {
   tabulationDonutChartMargin,
   tabulationDonutInnerRadius,
   tabulationDonutOuterRadius,
+  tabulationMinArcLabelAngle,
   shouldShowTabulationPieArcLabels,
   TabulationPieArcLabel,
 } from "../../utils/tabulation-card-layout";
@@ -199,7 +200,9 @@ const VotingActivityCard = ({
                         return `${votingMethod.label}: ${metric.display}`;
                       }
                     : undefined,
-                  arcLabelMinAngle: showArcLabels ? 5 : undefined,
+                  arcLabelMinAngle: showArcLabels
+                    ? tabulationMinArcLabelAngle
+                    : undefined,
                   valueFormatter: (value, context) => {
                     const item = pieChartData[context.dataIndex];
                     if (item?.label === undefined) {
@@ -217,7 +220,6 @@ const VotingActivityCard = ({
                   },
                 },
               ]}
-              width={300}
               height={tabulationChartHeight}
               margin={tabulationDonutChartMargin}
               slotProps={{

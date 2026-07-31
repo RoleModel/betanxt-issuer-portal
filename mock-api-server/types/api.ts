@@ -347,6 +347,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/tasks": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List tasks across meetings
+     * @description Cross-meeting task query. Exists so callers that need task state for many meetings at once (for example, deriving which events are behind schedule on the events index) can issue a single request instead of one request per meeting. Filters are applied server-side so the response stays small.
+     */
+    get: operations["listAllTasks"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/tasks/{id}": {
     parameters: {
       query?: never;
@@ -3329,6 +3349,40 @@ export interface operations {
       400: components["responses"]["BadRequest"];
       401: components["responses"]["Unauthorized"];
       403: components["responses"]["Forbidden"];
+    };
+  };
+  listAllTasks: {
+    parameters: {
+      query?: {
+        page?: number;
+        limit?: number;
+        /** @description Comma-separated list of meeting ids to restrict the query to. */
+        meetingId?: string;
+        status?: components["schemas"]["TaskStatus"];
+        /** @description Only return tasks with a due date strictly before this date. */
+        dueBefore?: string;
+        /** @description Exclude tasks in a completion status. The completion set is the same one phase advancement uses, so "open" here means the task is still holding its meeting up. */
+        openOnly?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Tasks retrieved successfully */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            tasks?: components["schemas"]["Task"][];
+            pagination?: components["schemas"]["Pagination"];
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
     };
   };
   getTaskById: {

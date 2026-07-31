@@ -50,7 +50,7 @@ import betanxtTheme from "@rolemodel/betanxt-design-system/themes/betanxtTheme";
 import { createClientThemeOptions } from "@rolemodel/client-theming/theme";
 
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
-import { clientBranding } from "@/utils/clientBranding";
+import { clientBranding } from "@/utils/client-branding";
 
 const hasMainColor = (
   color: PaletteColorOptions

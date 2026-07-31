@@ -29,6 +29,7 @@ import {
   tabulationDonutChartMargin,
   tabulationDonutInnerRadius,
   tabulationDonutOuterRadius,
+  tabulationMinArcLabelAngle,
   shouldShowTabulationPieArcLabels,
   TabulationPieArcLabel,
 } from "../../utils/tabulation-card-layout";
@@ -264,7 +265,9 @@ const SharesVotedChart = ({
                         return `${slice.label}: ${metric.display}`;
                       }
                     : undefined,
-                  arcLabelMinAngle: showArcLabels ? 5 : undefined,
+                  arcLabelMinAngle: showArcLabels
+                    ? tabulationMinArcLabelAngle
+                    : undefined,
                   // Use originalShares for the hover tooltips
                   valueFormatter: (_value, context) => {
                     const item = pieChartData[context.dataIndex];

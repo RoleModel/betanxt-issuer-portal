@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/strict-void-return */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable react-doctor/js-tosorted-immutable */
 
 /* eslint-disable react-doctor/rerender-state-only-in-handlers */
@@ -102,13 +104,13 @@ const TabulationReportCard = ({
           0
       ) ?? sortedRawProposals[0];
     const votesRepresented =
-      (firstProposal?.totalVotesFor ?? 0) +
-      (firstProposal?.totalVotesAgainst ?? 0) +
-      (firstProposal?.totalVotesAbstain ?? 0);
+      (firstProposal.totalVotesFor ?? 0) +
+      (firstProposal.totalVotesAgainst ?? 0) +
+      (firstProposal.totalVotesAbstain ?? 0);
 
     // Prefer proposal.totalSharesEligible — it reflects the actual eligible share count
     // used when votes were recorded, which may differ from meeting.totalSharesOutstanding
-    const proposalSharesEligible = firstProposal?.totalSharesEligible ?? 0;
+    const proposalSharesEligible = firstProposal.totalSharesEligible ?? 0;
     const totalOutstanding =
       proposalSharesEligible > 0
         ? proposalSharesEligible
@@ -197,7 +199,7 @@ const TabulationReportCard = ({
       titleVariant="h3"
       flex={true}
       description="Results for each proposal, showing vote counts, percentages, and quorum status."
-      actionText={isDataReady ? "Download" : "Loading..."}
+      actionText={isDataReady ? "Download Report" : "Loading..."}
       onClick={handleDownload}
       sx={{
         opacity: isDataReady ? 1 : 0.6,

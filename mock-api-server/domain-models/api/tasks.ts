@@ -95,6 +95,101 @@ export async function listTasks(
   }
 }
 
+/**
+ * Statuses that mean a task is no longer holding its meeting up. Mirrors the
+ * phase-advancement completion set documented in CLAUDE.md. Kept server-side so
+ * clients never have to encode this business rule themselves.
+ */
+const COMPLETION_STATUSES: readonly string[] = [
+  "COMPLETE",
+  "AUTHORIZED",
+  "SUBMITTED_AWAITING_RECORD_DATE",
+  "WAITING_FOR_FORM_RETURN",
+  "REQUEST_FORM_TO_FOLLOW",
+  "PENDING_AUTHORIZATION",
+  "CANCELLED",
+];
+
+export interface ListAllTasksOptions {
+  page?: number;
+  limit?: number;
+  meetingIds?: string[];
+  status?: string;
+  dueBefore?: string;
+  openOnly?: boolean;
+}
+
+export interface ListAllTasksResult {
+  tasks: Task[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+/**
+ * Cross-meeting task query. Filtering happens in the database so a caller
+ * asking "which meetings are behind schedule" gets a small response rather than
+ * every task in the system.
+ */
+export async function listAllTasks(
+  options?: ListAllTasksOptions
+): Promise<ApiResponse<ListAllTasksResult>> {
+  try {
+    const page = Math.max(1, options?.page ?? 1);
+    const limit = Math.min(1000, Math.max(1, options?.limit ?? 100));
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    let query = supabase.from("task").select("*", { count: "exact" });
+
+    if (options?.meetingIds && options.meetingIds.length > 0) {
+      query = query.in("meeting_id", options.meetingIds);
+    }
+    if (options?.status) {
+      query = query.eq("status", options.status);
+    }
+    if (options?.dueBefore) {
+      query = query
+        .not("due_date", "is", null)
+        .lt("due_date", options.dueBefore);
+    }
+    if (options?.openOnly) {
+      query = query.not("status", "in", `(${COMPLETION_STATUSES.join(",")})`);
+    }
+
+    const { data, error, count } = await query.range(from, to);
+
+    if (error) {
+      return {
+        error: { message: error.message ?? "Failed to fetch tasks" },
+      };
+    }
+
+    const total = count ?? 0;
+
+    return {
+      data: {
+        tasks: data.map(transformTask),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: limit > 0 ? Math.ceil(total / limit) : 0,
+        },
+      },
+    };
+  } catch (error) {
+    return {
+      error: {
+        message: Error.isError(error) ? error.message : "Failed to fetch tasks",
+      },
+    };
+  }
+}
+
 export async function createTask(
   meetingId: string,
   body: CreateTaskRequest

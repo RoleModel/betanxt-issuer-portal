@@ -22,6 +22,7 @@ import FileUploadDialog from "@/components/FileUpload/FileUploadDialog";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
+import { asRecord } from "@/utils/typeUtils";
 import { useDocuments } from "@/hooks/useDocuments";
 
 interface MeetingAccessItem {
@@ -41,6 +42,30 @@ interface MeetingRolesCardProps {
   readonly meetingId?: string;
 }
 
+interface DsmConfigFlags {
+  readonly dsmEnabled: boolean;
+  readonly ioeEnabled: boolean;
+  readonly isConfirmed: boolean;
+}
+
+/**
+ * Reads the boolean flags off a dsm-config response.
+ *
+ * The generated client types this payload loosely, so validate it once here
+ * rather than asserting a shape at each read site.
+ */
+const readDsmConfigFlags = (payload: unknown): DsmConfigFlags => {
+  const record = asRecord(payload);
+  const asBoolean = (value: unknown, fallback: boolean): boolean =>
+    typeof value === "boolean" ? value : fallback;
+
+  return {
+    dsmEnabled: asBoolean(record?.dsmEnabled, true),
+    ioeEnabled: asBoolean(record?.ioeEnabled, true),
+    isConfirmed: asBoolean(record?.isConfirmed, false),
+  };
+};
+
 const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
   className,
   meetingId,
@@ -51,7 +76,7 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
   const [uploadType, setUploadType] = useState<string>("");
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, string>>({}); // label -> documentId
   const [isEditMode, setIsEditMode] = useState(false);
-  const [_isConfirmed, setIsConfirmed] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { uploadDSMDocument, getDocumentsByMeeting } = useDocuments();
   const { currentMeeting } = useMeeting();
@@ -111,14 +136,26 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
     setUploadDialogOpen(true);
   };
 
+  /**
+   * The meeting this card is operating on: the explicit prop when present,
+   * otherwise whatever meeting the context is pointing at. An empty prop falls
+   * through to the context, matching the original `||` behaviour. Derived
+   * during render so the effect below can depend on the resolved id directly.
+   */
+  const activeMeetingId =
+    meetingId !== undefined && meetingId.length > 0
+      ? meetingId
+      : currentMeeting?.id;
+
   // Load DSM config and existing uploaded documents on mount
   useEffect(() => {
     // Guard against stale writes when the effect re-runs before completion
     let ignore = false;
 
     const loadData = async () => {
-      const activeMeetingId = meetingId || currentMeeting?.id;
-      if (!activeMeetingId) return;
+      if (activeMeetingId === undefined || activeMeetingId.length === 0) {
+        return;
+      }
 
       try {
         setIsLoading(true);
@@ -132,20 +169,18 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
           }
         );
 
-        if (ignore) return;
+        if (ignore) {
+          return;
+        }
 
         if (!dsmError && dsmData) {
-          setDsm((dsmData as { dsmEnabled?: boolean }).dsmEnabled ?? true);
-          setIoe((dsmData as { ioeEnabled?: boolean }).ioeEnabled ?? true);
-          setIsConfirmed(
-            (dsmData as { isConfirmed?: boolean }).isConfirmed || false
-          );
+          const flags = readDsmConfigFlags(dsmData);
 
-          if ((dsmData as { isConfirmed?: boolean }).isConfirmed) {
-            setIsEditMode(false);
-          } else {
-            setIsEditMode(true);
-          }
+          setDsm(flags.dsmEnabled);
+          setIoe(flags.ioeEnabled);
+          setIsConfirmed(flags.isConfirmed);
+          // An unconfirmed config opens straight into edit mode.
+          setIsEditMode(!flags.isConfirmed);
         }
 
         // Load uploaded documents
@@ -163,13 +198,15 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
           });
 
           setUploadedDocs(uploaded);
+          setIsLoading(false);
         }
       } catch (error) {
-        if (ignore) return;
+        if (ignore) {
+          return;
+        }
         console.error("Error loading data:", error);
         setIsEditMode(true);
-      } finally {
-        if (!ignore) setIsLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -178,14 +215,19 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
     return () => {
       ignore = true;
     };
-  }, [meetingId, currentMeeting?.id, getDocumentsByMeeting]);
+  }, [activeMeetingId, getDocumentsByMeeting]);
 
   const handleUploadComplete = async (files: File[]) => {
-    const activeMeetingId = meetingId || currentMeeting?.id;
-    if (!activeMeetingId || files.length === 0) return;
+    if (
+      activeMeetingId === undefined ||
+      activeMeetingId.length === 0 ||
+      files.length === 0
+    ) {
+      return;
+    }
 
     try {
-      const file = files[0];
+      const [file] = files;
       const result = await uploadDSMDocument(activeMeetingId, uploadType, file);
 
       if (result?.id) {
@@ -204,15 +246,17 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
   const handleDelete = (label: string) => {
     // TODO: Implement delete functionality when needed
     setUploadedDocs((prev) => {
-      const updated = { ...prev };
-      delete updated[label];
-      return updated;
+      // Rebuild without the key rather than `delete` on a computed property.
+      return Object.fromEntries(
+        Object.entries(prev).filter(([key]) => key !== label)
+      );
     });
   };
 
   const handleConfirm = async () => {
-    const activeMeetingId = meetingId || currentMeeting?.id;
-    if (!activeMeetingId) return;
+    if (activeMeetingId === undefined || activeMeetingId.length === 0) {
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -249,9 +293,9 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
         setIsConfirmed(true);
         setIsEditMode(false);
       }
+      setIsLoading(false);
     } catch (error) {
       console.error("Error saving config:", error);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -261,8 +305,9 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
   };
 
   const handleCancel = async () => {
-    const activeMeetingId = meetingId || currentMeeting?.id;
-    if (!activeMeetingId) return;
+    if (activeMeetingId === undefined || activeMeetingId.length === 0) {
+      return;
+    }
 
     try {
       const apiClient = await buildApiClient();
@@ -271,8 +316,10 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
       });
 
       if (data) {
-        setDsm((data as { dsmEnabled?: boolean }).dsmEnabled ?? true);
-        setIoe((data as { ioeEnabled?: boolean }).ioeEnabled ?? true);
+        const flags = readDsmConfigFlags(data);
+
+        setDsm(flags.dsmEnabled);
+        setIoe(flags.ioeEnabled);
       }
     } catch (error) {
       console.error("Error reloading config:", error);
@@ -297,10 +344,14 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
 
       <MeetingRolesFooter
         isEditMode={isEditMode}
-        isConfirmed={_isConfirmed}
+        isConfirmed={isConfirmed}
         isLoading={isLoading}
-        onCancel={handleCancel}
-        onConfirm={handleConfirm}
+        onCancel={() => {
+          void handleCancel();
+        }}
+        onConfirm={() => {
+          void handleConfirm();
+        }}
         onEdit={handleEdit}
       />
 
@@ -380,17 +431,22 @@ const MeetingRolesTable: React.FC<MeetingRolesTableProps> = ({
                 {isEditMode ? (
                   <>
                     <Switch
-                      checked={item.value || false}
-                      onChange={(e) => {
-                        onToggle(item.label, e.target.checked);
+                      checked={item.value ?? false}
+                      onChange={(event) => {
+                        onToggle(item.label, event.target.checked);
                       }}
                       size="small"
+                      slotProps={{ input: { "aria-label": item.label } }}
                     />
-                    <Typography variant="body3">Yes</Typography>
+                    {/* Track the switch rather than hardcoding "Yes", which
+                        previously kept reading Yes after toggling off. */}
+                    <Typography variant="body3">
+                      {item.value === true ? "Yes" : "No"}
+                    </Typography>
                   </>
                 ) : (
                   <Typography variant="body3">
-                    {item.value ? "Yes" : "No"}
+                    {item.value === true ? "Yes" : "No"}
                   </Typography>
                 )}
               </Box>
@@ -426,9 +482,11 @@ const MeetingRolesTable: React.FC<MeetingRolesTableProps> = ({
                 <Button
                   variant="text"
                   onClick={() => {
-                    uploadedDocs[item.label]
-                      ? onDelete(item.label)
-                      : onUpload(item.label);
+                    if (uploadedDocs[item.label]) {
+                      onDelete(item.label);
+                    } else {
+                      onUpload(item.label);
+                    }
                   }}
                   disabled={!isEditMode}
                 >

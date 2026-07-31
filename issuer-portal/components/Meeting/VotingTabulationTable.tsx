@@ -10,15 +10,15 @@ import type { ProposalVoting } from "@/types/phases";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
 import {
+  formatTabulationMetric,
+  formatTabulationPercentage,
+} from "@/utils/tabulation-display";
+import {
   getDistinctStringValues,
   numericFilterOperators,
   singleSelectFilterOperators,
   textFilterOperators,
 } from "@/utils/tabulation-grid-filter-operators";
-import {
-  formatTabulationMetric,
-  formatTabulationPercentage,
-} from "@/utils/tabulation-display";
 import { getTabulationHeaders } from "@/utils/votingOptions";
 
 interface VotingTabulationTableProps {
@@ -50,8 +50,7 @@ const VotingMetricCell = ({
   readonly percentage: number;
   readonly shares: number;
   readonly totalShares: number;
-  readonly color:
-    "chartSeries[0].main" | "chartSeries[2].main" | "chartSeries[3].main";
+  readonly color: "primary" | "secondary" | "warning";
 }) => {
   const { displayMode } = useTabulationDisplay();
   const isPercentage = displayMode === "percentages";
@@ -131,7 +130,7 @@ const VotingTabulationTable = ({
     recommendation: proposal.recommendation ?? "N/A",
     totalSharesVoted: proposal.totalShares,
   }));
-  const gridHeight = Math.max(520, Math.min(rows.length, 25) * 52 + 168);
+  const gridHeight = Math.max(520, Math.min(rows.length, 25) * 52 + 388);
   const proposalPageSize = Math.max(rows.length, 1);
   const recommendationOptions = getDistinctStringValues(
     rows,
@@ -197,7 +196,7 @@ const VotingTabulationTable = ({
         parameters: GridRenderCellParams<ProposalGridRow, number>
       ) => (
         <VotingMetricCell
-          color="chartSeries[0].main"
+          color="primary"
           percentage={parameters.row.forPercentage}
           shares={parameters.row.forShares}
           totalShares={parameters.row.totalSharesVoted}
@@ -220,7 +219,7 @@ const VotingTabulationTable = ({
         parameters: GridRenderCellParams<ProposalGridRow, number>
       ) => (
         <VotingMetricCell
-          color="chartSeries[3].main"
+          color="secondary"
           percentage={parameters.row.againstPercentage}
           shares={parameters.row.againstShares}
           totalShares={parameters.row.totalSharesVoted}
@@ -243,7 +242,7 @@ const VotingTabulationTable = ({
         parameters: GridRenderCellParams<ProposalGridRow, number>
       ) => (
         <VotingMetricCell
-          color="chartSeries[2].main"
+          color="warning"
           percentage={parameters.row.abstainPercentage}
           shares={parameters.row.abstainShares}
           totalShares={parameters.row.totalSharesVoted}

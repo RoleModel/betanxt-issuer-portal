@@ -546,13 +546,11 @@ export const useMeeting = () => {
   return context;
 };
 
-export const useMeetingSafe = () => {
-  const context = useContext(MeetingContext);
-  // Return the context if available, otherwise return a safe default
-  return useMemo(
-    () => context || { meetings: [] as { id?: string; status?: string }[] },
-    [context]
-  );
-};
+// Non-throwing variant for optional consumers (e.g. EventTabs, which renders on
+// pages outside a MeetingProvider). Calls the hook unconditionally per the Rules
+// of Hooks and returns undefined when no provider is present, so callers get the
+// full context type rather than a narrowed stand-in object.
+export const useMeetingSafe = (): MeetingContextType | undefined =>
+  useContext(MeetingContext);
 
 export default MeetingContext;

@@ -1132,6 +1132,66 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /tasks:
+    get:
+      operationId: listAllTasks
+      summary: List tasks across meetings
+      description: >
+        Cross-meeting task query. Exists so callers that need task state for many meetings at once (for example, deriving which events are behind schedule on the events index) can issue a single request instead of one request per meeting. Filters are applied server-side so the response stays small.
+      tags: [Tasks]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: meetingId
+          in: query
+          description: Comma-separated list of meeting ids to restrict the query to.
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/TaskStatus"
+        - name: dueBefore
+          in: query
+          description: Only return tasks with a due date strictly before this date.
+          schema:
+            type: string
+            format: date
+        - name: openOnly
+          in: query
+          description: >
+            Exclude tasks in a completion status. The completion set is the same one phase advancement uses, so "open" here means the task is still holding its meeting up.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /tasks/{id}:
     get:
       operationId: getTaskById

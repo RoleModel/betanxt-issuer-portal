@@ -117,6 +117,13 @@ export interface paths {
     /** Create new task */
     post: operations["createTask"];
   };
+  "/tasks": {
+    /**
+     * List tasks across meetings
+     * @description Cross-meeting task query. Exists so callers that need task state for many meetings at once (for example, deriving which events are behind schedule on the events index) can issue a single request instead of one request per meeting. Filters are applied server-side so the response stays small.
+     */
+    get: operations["listAllTasks"];
+  };
   "/tasks/{id}": {
     /** Get task by ID */
     get: operations["getTaskById"];
@@ -2561,6 +2568,37 @@ export interface operations {
       400: components["responses"]["BadRequest"];
       401: components["responses"]["Unauthorized"];
       403: components["responses"]["Forbidden"];
+    };
+  };
+  /**
+   * List tasks across meetings
+   * @description Cross-meeting task query. Exists so callers that need task state for many meetings at once (for example, deriving which events are behind schedule on the events index) can issue a single request instead of one request per meeting. Filters are applied server-side so the response stays small.
+   */
+  listAllTasks: {
+    parameters: {
+      query?: {
+        page?: number;
+        limit?: number;
+        /** @description Comma-separated list of meeting ids to restrict the query to. */
+        meetingId?: string;
+        status?: components["schemas"]["TaskStatus"];
+        /** @description Only return tasks with a due date strictly before this date. */
+        dueBefore?: string;
+        /** @description Exclude tasks in a completion status. The completion set is the same one phase advancement uses, so "open" here means the task is still holding its meeting up. */
+        openOnly?: boolean;
+      };
+    };
+    responses: {
+      /** @description Tasks retrieved successfully */
+      200: {
+        content: {
+          "application/json": {
+            tasks?: components["schemas"]["Task"][];
+            pagination?: components["schemas"]["Pagination"];
+          };
+        };
+      };
+      401: components["responses"]["Unauthorized"];
     };
   };
   /** Get task by ID */

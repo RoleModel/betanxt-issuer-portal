@@ -1,66 +1,22 @@
+/* eslint-disable unicorn/filename-case, github/filenames-match-regex -- Filename intentionally stays camelCase: every other hook in `hooks/` (and the import in app/events/page.tsx) follows `useXxx.ts`, so renaming this one file to kebab-case would make the directory less consistent, not more. */
 "use client";
 
 import useSWR from "swr";
 
-import { getBrowserSupabase } from "@/lib/browserSupabase";
+import { buildApiClient } from "@/domain-models/apiClient";
+import { asRecord, asString } from "@/utils/typeUtils";
 
 export type EventRiskLevel = "AT_RISK" | "ON_SCHEDULE";
 
-/**
- * Statuses that count as done for risk purposes. Mirrors the phase-advancement
- * completion statuses documented in CLAUDE.md — a task in any of these is not
- * holding the event up, even if its due date has passed.
- */
-const COMPLETION_STATUSES: ReadonlySet<string> = new Set([
-  "COMPLETE",
-  "AUTHORIZED",
-  "SUBMITTED_AWAITING_RECORD_DATE",
-  "WAITING_FOR_FORM_RETURN",
-  "REQUEST_FORM_TO_FOLLOW",
-  "PENDING_AUTHORIZATION",
-  "CANCELLED",
-]);
-
-interface RiskTaskRow {
-  readonly meeting_id: string | null;
-  readonly due_date: string | null;
-  readonly status: string | null;
-}
-
-const isRiskTaskRow = (value: unknown): value is RiskTaskRow => {
-  if (value === null || typeof value !== "object") {
-    return false;
-  }
-
-  const row: Record<string, unknown> = { ...value };
-  const hasNullableString = (field: unknown): boolean =>
-    field === null || field === undefined || typeof field === "string";
-
-  return (
-    hasNullableString(row.meeting_id) &&
-    hasNullableString(row.due_date) &&
-    hasNullableString(row.status)
-  );
-};
-
-/** Midnight today, so a task due today is not yet considered late. */
-const startOfToday = (): number => {
+/** Local date as YYYY-MM-DD. A task due today is not yet late. */
+const todayIsoDate = (): string => {
   const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
 };
 
-const isOverdue = (dueDate: string | null, todayStart: number): boolean => {
-  if (dueDate === null || dueDate.length === 0) {
-    return false;
-  }
-
-  const parsed = new Date(dueDate);
-  if (Number.isNaN(parsed.getTime())) {
-    return false;
-  }
-
-  return parsed.getTime() < todayStart;
-};
+const pageLimit = 1000;
 
 interface UseEventRiskResult {
   /** Meeting ids that have at least one overdue, unfinished task. */
@@ -71,45 +27,67 @@ interface UseEventRiskResult {
 /**
  * Resolves which meetings are behind schedule.
  *
- * The task API is per-meeting only, so asking it for an events list of several
- * hundred rows would mean one request per row. This reads the task table
- * directly in a single query instead — the same "OpenAPI first, direct Supabase
- * as fallback" arrangement the document repository uses. If a bulk or
- * aggregated tasks endpoint is added later, this is the only place to change.
+ * Uses the cross-meeting `GET /tasks` endpoint so the events index costs one
+ * request rather than one per row. The "still open" rule (which statuses count
+ * as done) lives on the server behind `openOnly`, and the overdue cutoff is
+ * pushed down as `dueBefore` — so the response only ever contains tasks that
+ * actually put a meeting at risk.
  */
-export function useEventRisk(): UseEventRiskResult {
+export const useEventRisk = (): UseEventRiskResult => {
   const { data, isLoading } = useSWR(
     "/event-risk/overdue-tasks",
     async (): Promise<ReadonlySet<string>> => {
-      const supabase = getBrowserSupabase();
-      const { data: rows, error } = await supabase
-        .from("task")
-        .select("meeting_id, due_date, status");
-
-      if (error || !Array.isArray(rows)) {
-        return new Set<string>();
-      }
-
-      const todayStart = startOfToday();
+      const api = await buildApiClient();
       const atRisk = new Set<string>();
+      let page = 1;
+      let hasMorePages = true;
 
-      for (const row of rows) {
-        if (!isRiskTaskRow(row)) {
-          continue;
+      while (hasMorePages) {
+        // Pagination is inherently sequential here: the next page number is only
+        // worth requesting once the previous response reports how many pages
+        // exist, so these requests cannot be issued in parallel.
+        // eslint-disable-next-line no-await-in-loop -- sequential pagination, see comment above
+        const { data: payload, error } = await api.GET("/tasks", {
+          params: {
+            query: {
+              dueBefore: todayIsoDate(),
+              limit: pageLimit,
+              openOnly: true,
+              page,
+            },
+          },
+        });
+
+        // `CombinedPaths` in domain-models/apiClient.ts intersects two path maps,
+        // which collapses openapi-fetch's response union so TypeScript infers
+        // both `payload` and `error` as `undefined`. That inference is wrong at
+        // runtime (a 401/500 really does populate `error`), so this guard is live
+        // defensive code, not a dead branch.
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions -- degenerate openapi-fetch types, see comment above
+        if (error || !payload) {
+          break;
         }
 
-        const meetingId = row.meeting_id;
-        if (meetingId === null || meetingId.length === 0) {
-          continue;
-        }
-        if (COMPLETION_STATUSES.has(row.status ?? "")) {
-          continue;
-        }
-        if (!isOverdue(row.due_date, todayStart)) {
-          continue;
+        const payloadRecord = asRecord(payload);
+        const tasks = Array.isArray(payloadRecord?.tasks)
+          ? payloadRecord.tasks
+          : [];
+
+        for (const task of tasks) {
+          const meetingId = asString(asRecord(task)?.meetingId);
+          if (meetingId !== null && meetingId.length > 0) {
+            atRisk.add(meetingId);
+          }
         }
 
-        atRisk.add(meetingId);
+        const pagination = asRecord(payloadRecord?.pagination);
+        const totalPages =
+          typeof pagination?.totalPages === "number"
+            ? pagination.totalPages
+            : 1;
+
+        hasMorePages = tasks.length >= pageLimit && page < totalPages;
+        page += 1;
       }
 
       return atRisk;
@@ -121,4 +99,4 @@ export function useEventRisk(): UseEventRiskResult {
     atRiskMeetingIds: data ?? new Set<string>(),
     loading: isLoading,
   };
-}
+};

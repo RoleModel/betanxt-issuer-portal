@@ -154,7 +154,10 @@
       "Bash(awk 'NR>=1040 && NR<=1075' node_modules/next/dist/server/config-shared.d.ts)",
       "Bash(timeout 560 pnpm build)",
       "Bash(git checkout *)",
-      "Bash(echo \"ultracite check exit: $?\")"
+      "Bash(echo \"ultracite check exit: $?\")",
+      "Bash(node -e ' *)",
+      "Bash(perl -0pi -e 's/const \\\\[_isConfirmed, setIsConfirmed\\\\]/const [isConfirmed, setIsConfirmed]/; s/isConfirmed=\\\\{_isConfirmed\\\\}/isConfirmed={isConfirmed}/' issuer-portal/components/Meeting/MeetingRolesCard.tsx)",
+      "Bash(perl -0pi -e 's/\\(import buildApiClient from \"\\\\@\\\\/domain-models\\\\/apiClient\";\\\\n\\)/$1import { asRecord } from \"\\\\@\\\\/utils\\\\/typeUtils\";\\\\n/' issuer-portal/components/Meeting/MeetingRolesCard.tsx)"
     ]
   },
   "enabledMcpjsonServers": [

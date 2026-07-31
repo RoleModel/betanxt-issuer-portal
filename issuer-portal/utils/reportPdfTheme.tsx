@@ -10,7 +10,7 @@ import {
 import React from "react";
 
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
-import { loadImageAsPngDataUrl } from "@/utils/clientBranding";
+import { loadImageAsPngDataUrl } from "@/utils/client-branding";
 
 /**
  * Shared @react-pdf/renderer theme for all generated portal reports.

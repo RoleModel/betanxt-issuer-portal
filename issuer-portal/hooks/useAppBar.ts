@@ -1,5 +1,8 @@
 "use client";
 
+import type { User } from "next-auth";
+import type React from "react";
+
 import { useColorScheme } from "@mui/material/styles";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
@@ -12,10 +15,8 @@ import buildApiClient from "@/domain-models/apiClient";
 import { useClients } from "@/hooks/useClients";
 import { useEvents } from "@/hooks/useEvents";
 import { getBrandConfigByTicker, getBrandLogoPath } from "@/utils/brandConfig";
-import { computeClientLogoSrc } from "@/utils/clientBranding";
+import { computeClientLogoSrc } from "@/utils/client-branding";
 import { formatMeetingDate } from "@/utils/meetingUtils";
-import type { User } from "next-auth";
-import type React from "react";
 
 // --- Hoisted regex constants ---
 const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//;

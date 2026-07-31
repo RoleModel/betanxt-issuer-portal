@@ -2,40 +2,40 @@
 
 export const clientBranding = [
   {
-    ticker: "WEN",
     primaryColor: "#0078A3",
     secondaryColor: "#DAD55E",
     tertiaryColor: "#DB163A",
+    ticker: "WEN",
   },
   {
-    ticker: "PAYC",
-    primaryColor: "#005C2B",
+    primaryColor: "#02833F",
     secondaryColor: "#193E2D",
     tertiaryColor: "#193E2D",
+    ticker: "PAYC",
   },
   {
-    ticker: "WWD",
-    primaryColor: "#6D6E71",
+    primaryColor: "#920128",
     secondaryColor: "#24272A",
     tertiaryColor: "#24272A",
+    ticker: "WWD",
   },
   {
-    ticker: "ELVN",
     primaryColor: "#243E89",
     secondaryColor: "#F8EF76",
     tertiaryColor: "#1A1C45",
+    ticker: "ELVN",
   },
   {
-    ticker: "DFIN",
     primaryColor: "#7600E1",
     secondaryColor: "#2d235a",
     tertiaryColor: "#00FFBC",
+    ticker: "DFIN",
   },
   {
-    ticker: "MRSO",
     primaryColor: "#ff6400",
     secondaryColor: "#0b232d",
     tertiaryColor: "#98b9e4",
+    ticker: "MRSO",
   },
 ];
 
@@ -51,7 +51,7 @@ export const computeClientLogoBase = (
   }
 
   if (clientName) {
-    const nameLower = clientName.toLowerCase().replaceAll(/[^a-z0-9]/g, "");
+    const nameLower = clientName.toLowerCase().replaceAll(/[^a-z0-9]/gu, "");
     return `/logos/${nameLower}_logo`;
   }
 
@@ -74,6 +74,55 @@ export const computeClientLogoSrc = (
   return defaultSource;
 };
 
+const blobToDataUrl = async (blob: Blob): Promise<string> =>
+  await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error("Expected string result from readAsDataURL"));
+      }
+    });
+    reader.addEventListener("error", () => {
+      reject(new Error("Failed to read image blob"));
+    });
+    reader.readAsDataURL(blob);
+  });
+
+const loadImage = async (source: string): Promise<HTMLImageElement> =>
+  await new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => {
+      resolve(image);
+    });
+    image.addEventListener("error", () => {
+      reject(new Error("Image load error"));
+    });
+    image.src = source;
+  });
+
+// Rasterize any image blob (SVG or otherwise) to PNG via canvas
+const rasterizeImageToPng = async (blob: Blob): Promise<string> => {
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const image = await loadImage(objectUrl);
+    const width = image.naturalWidth || 300;
+    const height = image.naturalHeight || 60;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Canvas 2D context unavailable");
+    }
+    context.drawImage(image, 0, 0, width, height);
+    return canvas.toDataURL("image/png");
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+};
+
 // Load the client logo as a PNG base64 string. Tries PNG first, then converts SVG to PNG, then falls back.
 export const loadClientLogoAsPngBase64 = async (options: {
   clientName?: string;
@@ -88,42 +137,39 @@ export const loadClientLogoAsPngBase64 = async (options: {
     ? overrideSrc.replace(/\.(svg|png)$/i, "")
     : computeClientLogoBase(clientName, ticker);
 
-  const candidates: { url: string; type: "png" | "svg" | "default" }[] = [];
+  // Only the URL matters — whether to rasterize is decided from the response's
+  // actual blob type, not from the extension we asked for.
+  const candidates: string[] = [];
 
   // If override or base under /logos, try PNG then SVG
   if (base) {
-    candidates.push(
-      { url: `${base}.png`, type: "png" },
-      { url: `${base}.svg`, type: "svg" }
-    );
+    candidates.push(`${base}.png`, `${base}.svg`);
   }
 
   // Always add default PNG fallback
-  candidates.push({ url: defaultPng, type: "png" });
+  candidates.push(defaultPng);
 
-  // Attempt to load candidates
-  for (const c of candidates) {
+  // Attempt candidates in order, stopping at the first that resolves. Awaiting
+  // in sequence is deliberate: this is a preference chain, so fetching every
+  // candidate up front would request logos that are never used.
+  /* eslint-disable no-await-in-loop -- ordered fallback chain */
+  for (const candidate of candidates) {
     try {
-      const res = await fetch(c.url);
-      if (!res.ok) {
+      const response = await fetch(candidate);
+      if (!response.ok) {
         continue;
       }
 
-      if (c.type === "png") {
-        const blob = await res.blob();
-        if (blob.type !== "image/png") {
-          // Convert non-png (rare) to PNG via canvas
-          return await rasterizeImageToPng(blob);
-        }
-        return await blobToDataUrl(blob);
-      }
-      // SVG → rasterize to PNG
-      const blob = await res.blob();
-      return await rasterizeImageToPng(blob);
+      // Rasterize anything that is not already a PNG, SVG included.
+      const blob = await response.blob();
+      return blob.type === "image/png"
+        ? await blobToDataUrl(blob)
+        : await rasterizeImageToPng(blob);
     } catch {
       // try next candidate
     }
   }
+  /* eslint-enable no-await-in-loop */
 
   // Last resort
   const fallbackResponse = await fetch(defaultPng);
@@ -142,12 +188,12 @@ export const loadImageAsPngDataUrl = async (
   url: string
 ): Promise<string | undefined> => {
   try {
-    const res = await fetch(url);
-    if (!res.ok) {
+    const response = await fetch(url);
+    if (!response.ok) {
       return undefined;
     }
 
-    const blob = await res.blob();
+    const blob = await response.blob();
     if (blob.type === "image/png") {
       return await blobToDataUrl(blob);
     }
@@ -156,52 +202,3 @@ export const loadImageAsPngDataUrl = async (
     return undefined;
   }
 };
-
-const blobToDataUrl = async (blob: Blob): Promise<string> =>
-  await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-      } else {
-        reject(new Error("Expected string result from readAsDataURL"));
-      }
-    });
-    reader.onerror = () => {
-      reject(new Error("Failed to read image blob"));
-    };
-    reader.readAsDataURL(blob);
-  });
-
-// Rasterize any image blob (SVG or otherwise) to PNG via canvas
-const rasterizeImageToPng = async (blob: Blob): Promise<string> => {
-  const url = URL.createObjectURL(blob);
-  try {
-    const img = await loadImage(url);
-    const width = img.naturalWidth || 300;
-    const height = img.naturalHeight || 60;
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext("2d");
-    if (!context) {
-      throw new Error("Canvas 2D context unavailable");
-    }
-    context.drawImage(img, 0, 0, width, height);
-    return canvas.toDataURL("image/png");
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-};
-
-const loadImage = async (source: string): Promise<HTMLImageElement> =>
-  await new Promise((resolve, reject) => {
-    const img = new Image();
-    img.addEventListener("load", () => {
-      resolve(img);
-    });
-    img.onerror = () => {
-      reject(new Error("Image load error"));
-    };
-    img.src = source;
-  });

@@ -4,8 +4,10 @@ import { CalendarTodayOutlined as CalendarIcon } from "@mui/icons-material";
 import { Box, Fade, Grid, Paper, useTheme } from "@mui/material";
 import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BNTypographyPair";
 
+import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { calculateDaysUntil } from "@/utils/dateUtils";
+import { formatTabulationMetric } from "@/utils/tabulation-display";
 
 import type { TabulationTrackerProps } from "./tabulation-tracker/useTabulationTrackerData";
 
@@ -25,6 +27,9 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
     voteCutoffDate,
   } = useTabulationTrackerData(props);
   const { enableTabulationTrackerColors } = useFeatureFlags().flags;
+  // Dashboard figures follow the same Percentage/Count toggle as the tabulation
+  // views, so switching the toggle reformats the tracker too.
+  const { displayMode } = useTabulationDisplay();
 
   const shouldUseUpdatedColors = enableTabulationTrackerColors;
   const currentData = data?.meeting_id === currentMeetingId ? data : null;
@@ -56,6 +61,10 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
     currentMeetingSeriesIndex > 0
       ? historicalData[currentMeetingSeriesIndex - 1]
       : null;
+  // Shares are a two-part split, so each side is a percentage of the pair.
+  const totalShares = currentData
+    ? Number(currentData.shares_voted) + Number(currentData.shares_unvoted)
+    : 0;
   const summaryMetrics = [
     {
       label: isCompleted ? "Meeting Date" : "Days to Meeting",
@@ -84,7 +93,11 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
           {
             label: "Positions Voted",
             value: currentData
-              ? currentData.positions_voted.toLocaleString()
+              ? formatTabulationMetric(
+                  currentData.positions_voted,
+                  currentData.total_positions,
+                  displayMode
+                ).display
               : "--",
             secondarySx: { whiteSpace: "nowrap" } as Record<string, unknown>,
           },
@@ -219,7 +232,13 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
       </Grid>
       <HistoricalShareCard
         currentValue={
-          currentData ? Number(currentData.shares_voted).toLocaleString() : "--"
+          currentData
+            ? formatTabulationMetric(
+                Number(currentData.shares_voted),
+                totalShares,
+                displayMode
+              ).display
+            : "--"
         }
         label="Shares Voted"
         previousValue={previousComparablePoint?.votedShares ?? null}
@@ -229,7 +248,11 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
       <HistoricalShareCard
         currentValue={
           currentData
-            ? Number(currentData.shares_unvoted).toLocaleString()
+            ? formatTabulationMetric(
+                Number(currentData.shares_unvoted),
+                totalShares,
+                displayMode
+              ).display
             : "--"
         }
         label="Shares Not Voted"
