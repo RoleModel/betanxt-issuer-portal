@@ -7,7 +7,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { useClient } from "@/contexts/ClientContext";
 import MeetingContext from "@/contexts/MeetingContext";
-import { useNotifications } from "@/contexts/NotificationContext";
+import { useNotificationsSafe } from "@/contexts/NotificationContext";
 import buildApiClient from "@/domain-models/apiClient";
 import { useClients } from "@/hooks/useClients";
 import { useEvents } from "@/hooks/useEvents";
@@ -103,14 +103,8 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
     [meetingContext.meetings]
   );
 
-  // Notification context (may not be available)
-  let unreadCount = 0;
-  try {
-    const notificationContext = useNotifications();
-    unreadCount = notificationContext.unreadCount;
-  } catch {
-    // NotificationProvider not available
-  }
+  // Notification context (may not be available outside a NotificationProvider)
+  const unreadCount = useNotificationsSafe()?.unreadCount ?? 0;
 
   // --- User type derivation ---
   const userType = session?.user?.type;

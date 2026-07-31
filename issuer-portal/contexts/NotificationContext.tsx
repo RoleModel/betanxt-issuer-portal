@@ -283,3 +283,10 @@ export function useNotifications() {
   }
   return context;
 }
+
+// Non-throwing variant for optional consumers (e.g. the AppBar, which can render
+// outside a NotificationProvider). Calls the hook unconditionally per the Rules
+// of Hooks and returns undefined when no provider is present.
+export function useNotificationsSafe(): NotificationContextType | undefined {
+  return useContext(NotificationContext);
+}

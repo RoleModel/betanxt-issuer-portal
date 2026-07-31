@@ -198,9 +198,7 @@ export const {
   signOut,
 } = NextAuth({
   trustHost: true,
-  secret:
-    process.env.NEXTAUTH_SECRET ??
-    "fallback-secret-for-development-only-change-in-production",
+  secret: process.env.NEXTAUTH_SECRET,
 
   useSecureCookies: process.env.NODE_ENV === "production",
 
