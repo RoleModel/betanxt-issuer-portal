@@ -3,6 +3,11 @@ import { useDrawingArea } from "@mui/x-charts";
 
 import { floorAndFormatNumber } from "@/utils/number-utilities";
 
+import {
+  centerLabelOffset,
+  centerLalbeSecondaryOffset,
+} from "../../utils/tabulation-card-layout";
+
 export interface PieChartData {
   total: number;
   label: string;
@@ -41,7 +46,7 @@ const PieCenterLabel = ({ data }: { readonly data: PieChartData }) => {
       <StyledNumberText
         tabIndex={0}
         x={left + width / 2}
-        y={top + height / 2.2}
+        y={top + height / centerLabelOffset}
         data-testid="totalCount"
         style={{ fontSize: 37 }}
       >
@@ -51,7 +56,7 @@ const PieCenterLabel = ({ data }: { readonly data: PieChartData }) => {
       <StyledDescriptionText
         tabIndex={0}
         x={left + width / 2}
-        y={top + height / 1.75}
+        y={top + height / centerLalbeSecondaryOffset}
       >
         {data.label}
       </StyledDescriptionText>

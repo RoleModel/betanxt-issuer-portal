@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/function-name */
 import { createElement } from "react";
 import type { PieArcLabelProps } from "@mui/x-charts/PieChart";
 import type { ReactElement } from "react";
@@ -9,6 +10,8 @@ export const tabulationDonutInnerRadius = 80;
 export const tabulationDonutOuterRadius = 105;
 /** Distance from the outer edge of the donut to the arc label baseline. */
 export const tabulationArcLabelGap = 10;
+export const centerLabelOffset = 2;
+export const centerLalbeSecondaryOffset = 1.6;
 
 /**
  * Smallest rendered arc angle that still gets a label.
@@ -35,7 +38,7 @@ export const tabulationDonutChartMargin = {
   bottom: 40,
   left: 110,
   right: 110,
-  top: 20,
+  top: 30,
 } as const;
 
 export const tabulationVoteDistributionColors: Readonly<
