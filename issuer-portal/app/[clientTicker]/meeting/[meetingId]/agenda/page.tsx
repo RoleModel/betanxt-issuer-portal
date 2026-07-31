@@ -10,7 +10,7 @@ import AgendaTable from "@/components/Agenda/AgendaTable";
 import EmptyState from "@/components/EmptyState";
 import FileUploadDialog from "@/components/FileUpload/FileUploadDialog";
 import { useMeeting } from "@/contexts/MeetingContext";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 
 interface ExcelRow {
   "Proposal Number"?: string | number;

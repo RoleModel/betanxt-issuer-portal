@@ -16,7 +16,7 @@ import {
 import React from "react";
 
 import { useMeeting } from "@/contexts/MeetingContext";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import { getVotingOptionsDisplay } from "@/utils/votingOptions";
 
 interface AgendaTableProps {

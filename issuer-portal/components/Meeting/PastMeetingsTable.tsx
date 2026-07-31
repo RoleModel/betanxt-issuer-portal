@@ -25,7 +25,7 @@ import type { components } from "@/domain-models/generated-schema";
 import CusipValue from "@/components/ui/CusipValue";
 import SkeletonTable from "@/components/ui/SkeletonTable";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
-import { truncateNumber } from "@/utils/numberUtils";
+import { truncateNumber } from "@/utils/number-utilities";
 
 type Meeting = components["schemas"]["Meeting"];
 

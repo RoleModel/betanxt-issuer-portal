@@ -2,7 +2,6 @@
 
 import { Container } from "@mui/material";
 import { usePathname } from "next/navigation";
-import React from "react";
 
 import SecureFileTransferTable from "@/components/Meeting/SecureFileTransferTable";
 

@@ -15,12 +15,12 @@ import { useSWRConfig } from "swr";
 
 import { useClient } from "@/contexts/ClientContext";
 import buildApiClient from "@/domain-models/apiClient";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import {
   ALL_FEATURE_KEYS,
   type ClientFeatureKey,
   DEFAULT_FEATURE_KEYS,
 } from "@/hooks/useClients";
-import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { FEATURE_KEYS, FEATURE_LABELS } from "@/utils/clientFeatures";
 
 interface ClientFeaturesCardProps {

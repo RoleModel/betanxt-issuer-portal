@@ -35,7 +35,7 @@ import buildApiClient from "@/domain-models/apiClient";
 import { documentRepository } from "@/domain-models/documentRepository";
 import { getBrowserSupabase } from "@/lib/browserSupabase";
 import { getStoragePublicUrl } from "@/utils/documentUtils";
-import { bytesToSize } from "@/utils/numberUtils";
+import { bytesToSize } from "@/utils/number-utilities";
 
 type Meeting = components["schemas"]["Meeting"];
 type Document = components["schemas"]["Document"];

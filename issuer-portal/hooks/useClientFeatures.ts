@@ -3,11 +3,11 @@
 import { useMemo } from "react";
 
 import { useClient } from "@/contexts/ClientContext";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import {
   type ClientFeatureKey,
   DEFAULT_FEATURE_KEYS,
 } from "@/hooks/useClients";
-import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { FEATURE_KEYS } from "@/utils/clientFeatures";
 
 interface UseClientFeaturesResult {

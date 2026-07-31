@@ -3,7 +3,7 @@
 import { CalendarMonthOutlined } from "@mui/icons-material";
 import { Box, Grid, Stack } from "@mui/material";
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 
 import type { Meeting } from "@/types/api-exports";
 
@@ -29,11 +29,7 @@ const Phase5Layout = ({ meetingId, meeting }: Phase5LayoutProps) => {
       </Suspense>
       <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }}>
-          <Stack
-            direction={{ sm: "row", lg: "column" }}
-            spacing={2}
-            useFlexGap={true}
-          >
+          <Stack direction={{ sm: "row", lg: "column" }} spacing={2} useFlexGap={true}>
             <MeetingDocuments meetingId={meetingId} meeting={meeting} />
             {meetingId && <VotingSharesCard meetingId={meetingId} />}
           </Stack>
@@ -45,11 +41,7 @@ const Phase5Layout = ({ meetingId, meeting }: Phase5LayoutProps) => {
           flexDirection="column"
           gap={3}
         >
-          <Stack
-            direction={{ sm: "row", lg: "row" }}
-            spacing={2}
-            useFlexGap={true}
-          >
+          <Stack direction={{ sm: "row", lg: "row" }} spacing={2} useFlexGap={true}>
             <FeatureTile
               flex={true}
               title="2025 Meeting Material Quantities"

@@ -67,8 +67,7 @@ const mailingStatuses: MailingStatus[] = [
   "Mailing Completed",
 ];
 
-const toDateInputValue = (value: string | null | undefined): string =>
-  value ?? "";
+const toDateInputValue = (value: string | null | undefined): string => value ?? "";
 
 const toForm = (meeting: Meeting): EventForm => ({
   title: meeting.title ?? "",
@@ -81,17 +80,10 @@ const toForm = (meeting: Meeting): EventForm => ({
   meetingType: meeting.meetingType ?? "Annual Meeting",
   status: meeting.status ?? "ACTIVE",
   quorumRequirement:
-    typeof meeting.quorumRequirement === "number"
-      ? String(meeting.quorumRequirement)
-      : "",
+    typeof meeting.quorumRequirement === "number" ? String(meeting.quorumRequirement) : "",
   totalSharesOutstanding:
-    meeting.totalSharesOutstanding != null
-      ? String(meeting.totalSharesOutstanding)
-      : "",
-  brokerNonVote:
-    typeof meeting.brokerNonVote === "number"
-      ? String(meeting.brokerNonVote)
-      : "",
+    meeting.totalSharesOutstanding != null ? String(meeting.totalSharesOutstanding) : "",
+  brokerNonVote: typeof meeting.brokerNonVote === "number" ? String(meeting.brokerNonVote) : "",
   mailingStatus: (meeting.mailingStatus as MailingStatus | null) ?? "",
 });
 
@@ -122,12 +114,9 @@ const EditEventPage = () => {
   const { mutate } = useSWRConfig();
 
   const returnUrl = searchParams.get("returnUrl");
-  const isFromMeeting = returnUrl
-    ? /\/(?:past-)?meeting\//.test(returnUrl)
-    : false;
+  const isFromMeeting = returnUrl ? /\/(?:past-)?meeting\//.test(returnUrl) : false;
   const backLabel = isFromMeeting ? "Back to Event" : "Back to Events";
-  const handleBack = () =>
-    router.push(returnUrl && isFromMeeting ? returnUrl : "/events");
+  const handleBack = () => router.push(returnUrl && isFromMeeting ? returnUrl : "/events");
 
   const [meeting, setMeeting] = useState<Meeting | null>(null);
   const [form, setForm] = useState<EventForm | null>(null);
@@ -161,12 +150,9 @@ const EditEventPage = () => {
 
       try {
         const api = await buildApiClient();
-        const { data, error: fetchError } = await api.GET(
-          "/meetings/{meetingId}",
-          {
-            params: { path: { meetingId: eventId } },
-          }
-        );
+        const { data, error: fetchError } = await api.GET("/meetings/{meetingId}", {
+          params: { path: { meetingId: eventId } },
+        });
 
         const rawMeeting: unknown = data;
         if (fetchError || !isMeetingResponse(rawMeeting)) {
@@ -203,17 +189,13 @@ const EditEventPage = () => {
         const { data } = await api.GET("/positions", {
           params: { query: { meetingId: eventId, limit: 50000 } },
         });
-        const responseData = data as
-          { positions?: Position[] } | Position[] | undefined;
+        const responseData = data as { positions?: Position[] } | Position[] | undefined;
         const raw = Array.isArray(responseData)
           ? responseData
           : ((responseData as { positions?: Position[] })?.positions ?? []);
         setPositions(raw.map(toPositionEdit));
 
-        const totalShares = raw.reduce(
-          (sum, p) => sum + (Number(p.shares) || 0),
-          0
-        );
+        const totalShares = raw.reduce((sum, p) => sum + (Number(p.shares) || 0), 0);
         const totalVoted = raw
           .filter((p) => p.voteStatus === "Voted")
           .reduce((sum, p) => sum + (Number(p.sharesVoted) || 0), 0);
@@ -240,9 +222,7 @@ const EditEventPage = () => {
     (field: keyof EventForm) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const value = event.target.value;
-      setForm((current) =>
-        current ? { ...current, [field]: value } : current
-      );
+      setForm((current) => (current ? { ...current, [field]: value } : current));
       setSuccess(false);
     };
 
@@ -260,9 +240,7 @@ const EditEventPage = () => {
     setError(null);
     setSuccess(false);
 
-    const brokerNonVote = form.brokerNonVote.trim()
-      ? Number(form.brokerNonVote)
-      : undefined;
+    const brokerNonVote = form.brokerNonVote.trim() ? Number(form.brokerNonVote) : undefined;
 
     const updateBody: UpdateMeetingRequest = {
       title: form.title.trim(),
@@ -275,21 +253,17 @@ const EditEventPage = () => {
       meetingType: form.meetingType,
       status: form.status,
       quorumRequirement,
-      totalSharesOutstanding:
-        String(form.totalSharesOutstanding).trim() || undefined,
+      totalSharesOutstanding: String(form.totalSharesOutstanding).trim() || undefined,
       brokerNonVote: brokerNonVote ?? null,
       mailingStatus: form.mailingStatus || null,
     };
 
     try {
       const api = await buildApiClient();
-      const { data, error: updateError } = await api.PUT(
-        "/meetings/{meetingId}",
-        {
-          params: { path: { meetingId: eventId } },
-          body: updateBody,
-        }
-      );
+      const { data, error: updateError } = await api.PUT("/meetings/{meetingId}", {
+        params: { path: { meetingId: eventId } },
+        body: updateBody,
+      });
 
       const rawMeeting: unknown = data;
       if (updateError || !isMeetingResponse(rawMeeting)) {
@@ -301,9 +275,7 @@ const EditEventPage = () => {
         rawMeeting.title !== updateBody.title ||
         rawMeeting.meetingType !== updateBody.meetingType
       ) {
-        throw new Error(
-          "Event update did not persist. Check the configured API server."
-        );
+        throw new Error("Event update did not persist. Check the configured API server.");
       }
 
       setMeeting(rawMeeting);
@@ -335,7 +307,7 @@ const EditEventPage = () => {
         } else {
           // No voted positions — promote the largest position
           const largest = [...positions].sort(
-            (a, b) => (Number(b.shares) || 0) - (Number(a.shares) || 0)
+            (a, b) => (Number(b.shares) || 0) - (Number(a.shares) || 0),
           )[0];
           targetId = largest.id;
           newSharesVoted = newTotal;
@@ -353,13 +325,9 @@ const EditEventPage = () => {
         setVotingSharesDirty(false);
       }
 
-      await mutate(
-        (key) => Array.isArray(key) && key[0] === "/events-list",
-        undefined,
-        {
-          revalidate: true,
-        }
-      );
+      await mutate((key) => Array.isArray(key) && key[0] === "/events-list", undefined, {
+        revalidate: true,
+      });
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save event");
@@ -392,31 +360,18 @@ const EditEventPage = () => {
             />
             <CardContent>
               {loading ? (
-                <Box
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  minHeight={240}
-                >
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight={240}>
                   <CircularProgress />
                 </Box>
               ) : !canEdit ? (
-                <Alert severity="warning">
-                  Only CSM users can edit events.
-                </Alert>
+                <Alert severity="warning">Only CSM users can edit events.</Alert>
               ) : error && !form ? (
                 <Alert severity="error">{error}</Alert>
               ) : form ? (
-                <Box
-                  component="form"
-                  id="edit-event-form"
-                  onSubmit={handleSubmit}
-                >
+                <Box component="form" id="edit-event-form" onSubmit={handleSubmit}>
                   <Stack spacing={2}>
                     {error && <Alert severity="error">{error}</Alert>}
-                    {success && (
-                      <Alert severity="success">Event updated.</Alert>
-                    )}
+                    {success && <Alert severity="success">Event updated.</Alert>}
 
                     <TextField
                       label="Meeting Title"
@@ -569,11 +524,7 @@ const EditEventPage = () => {
 
                     {/* Voting Shares Section */}
                     <Box>
-                      <Typography
-                        variant="subtitle1"
-                        fontWeight={600}
-                        gutterBottom
-                      >
+                      <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                         Voting Shares
                       </Typography>
 
@@ -624,12 +575,7 @@ const EditEventPage = () => {
             </CardContent>
             {form && canEdit && (
               <CardActions sx={{ justifyContent: "flex-end", px: 2, pb: 2 }}>
-                <Button
-                  type="submit"
-                  form="edit-event-form"
-                  variant="contained"
-                  disabled={saving}
-                >
+                <Button type="submit" form="edit-event-form" variant="contained" disabled={saving}>
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>
               </CardActions>

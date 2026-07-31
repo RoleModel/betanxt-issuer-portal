@@ -11,7 +11,7 @@ import type { Meeting } from "@/types/api-exports";
 
 import FeatureTile from "@/components/FeatureTile";
 import { useClient } from "@/contexts/ClientContext";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
 import {
   formatQuorumRequirementPercentLabel,

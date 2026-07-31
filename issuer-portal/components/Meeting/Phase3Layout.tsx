@@ -1,7 +1,7 @@
 "use client";
 
 import { Grid } from "@mui/material";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 
 import type { Meeting } from "@/types/api-exports";
 
