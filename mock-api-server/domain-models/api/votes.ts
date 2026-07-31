@@ -1,6 +1,7 @@
 import type { components } from "@/types/api";
 import type { Database } from "@/utils/supabase/database.types";
 
+import { apiClient } from "../apiClient";
 import { supabase } from "@/utils/supabase/client";
 
 // Use generated types from OpenAPI schema

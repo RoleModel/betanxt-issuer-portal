@@ -27,8 +27,8 @@ interface ApiResponse<T> {
 // Transform snake_case database fields to camelCase API fields
 export function transformDSMConfig(dbConfig: DSMConfigRow): DSMConfig {
   return {
-    id: dbConfig.id,
-    meetingId: dbConfig.meeting_id,
+    id: dbConfig.id ?? "",
+    meetingId: dbConfig.meeting_id ?? "",
     liveQa: dbConfig.live_qa || false,
     audioOnly: dbConfig.audio_only || false,
     meetingRecording: dbConfig.meeting_recording || false,

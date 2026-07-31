@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 
 import type { components } from "@/types/api";
+import type { Database } from "@/utils/supabase/database.types";
 
 import { supabase } from "@/utils/supabase/client";
 
@@ -8,6 +9,8 @@ import { supabase } from "@/utils/supabase/client";
 type Client = components["schemas"]["Clients"];
 type CreateClientRequest = components["schemas"]["CreateClientRequest"];
 type UpdateClientRequest = components["schemas"]["UpdateClientRequest"];
+type ClientInsert = Database["public"]["Tables"]["clients"]["Insert"];
+type ClientUpdate = Database["public"]["Tables"]["clients"]["Update"];
 
 interface ApiResponse<T> {
   data?: T;
@@ -109,7 +112,7 @@ export async function listClients(
 export async function createClient(
   clientData: CreateClientRequest
 ): Promise<ApiResponse<Client>> {
-  const dbInsert: Record<string, unknown> = { id: randomUUID() };
+  const dbInsert: ClientInsert = { id: randomUUID() };
   if (clientData.ticker !== undefined) dbInsert.ticker = clientData.ticker;
   if (clientData.companyName !== undefined)
     dbInsert.company_name = clientData.companyName;
@@ -186,7 +189,7 @@ export async function updateClient(
   ticker: string,
   clientData: UpdateClientRequest
 ): Promise<ApiResponse<Client>> {
-  const dbUpdate: Record<string, unknown> = {};
+  const dbUpdate: ClientUpdate = {};
   if (clientData.companyName !== undefined)
     dbUpdate.company_name = clientData.companyName;
   if (clientData.shortName !== undefined)

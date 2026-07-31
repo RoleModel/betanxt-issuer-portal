@@ -23,6 +23,7 @@ type MeetingRow = Database["public"]["Tables"]["meeting"]["Row"] & {
   cutoff_date?: string | null;
 };
 type ClientRow = Database["public"]["Tables"]["clients"]["Row"];
+type MeetingUpdate = Database["public"]["Tables"]["meeting"]["Update"];
 type MeetingRowWithRelations = Omit<MeetingRow, "client"> & {
   client?: ClientRow | Meeting["client"] | string | null;
 };
@@ -262,9 +263,7 @@ export async function listMeetings(
     if (uniqueClientIds.length > 0) {
       const { data: clientsData } = await supabase
         .from("clients")
-        .select(
-          "id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, enabled_features, created_at, updated_at"
-        )
+        .select("*")
         .in("id", uniqueClientIds);
 
       for (const c of clientsData ?? []) {
@@ -456,7 +455,7 @@ export async function updateMeeting(
 ): Promise<ApiResponse<Meeting>> {
   try {
     // Transform camelCase to snake_case for database
-    const dbUpdate: Record<string, unknown> = {};
+    const dbUpdate: MeetingUpdate = {};
     if (meetingData.title !== undefined) dbUpdate.title = meetingData.title;
     if (meetingData.cusip !== undefined) dbUpdate.cusip = meetingData.cusip;
     if (meetingData.brokerSearchDate !== undefined)

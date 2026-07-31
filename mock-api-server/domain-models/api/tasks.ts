@@ -29,7 +29,7 @@ interface ApiResponse<T> {
 // Transform snake_case database fields to camelCase API fields
 function transformTask(dbTask: TaskRow): Task {
   return {
-    id: dbTask.id,
+    id: dbTask.id ?? "",
     title: nullToUndefined(dbTask.title),
     description: nullToUndefined(dbTask.description),
     dueDate: nullToUndefined(dbTask.due_date),
@@ -112,7 +112,7 @@ export async function createTask(
         description: request.description,
         due_date: request.dueDate,
         owner: request.owner,
-        status: request.status ?? "INCOMPLETE",
+        status: "INCOMPLETE",
         phase_id: request.phaseId,
         phase_number: request.phaseNumber,
         type: request.type,
@@ -188,7 +188,13 @@ export async function updateTask(
     if (request.type !== undefined) updateData.type = request.type;
     if (request.documentId !== undefined)
       updateData.document_id = request.documentId;
-    if (request.links !== undefined) updateData.links = request.links ?? null;
+    if (request.links !== undefined) {
+      updateData.links = request.links
+        ? (JSON.parse(
+            JSON.stringify(request.links)
+          ) as Database["public"]["Tables"]["task"]["Row"]["links"])
+        : null;
+    }
 
     const { data, error } = await supabase
       .from("task")

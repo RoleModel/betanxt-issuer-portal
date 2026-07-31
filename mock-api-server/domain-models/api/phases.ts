@@ -29,7 +29,7 @@ interface ApiResponse<T> {
 // Transform snake_case database fields to camelCase API fields
 function transformPhase(dbPhase: PhaseRow): Phase {
   return {
-    id: dbPhase.id,
+    id: dbPhase.id ?? "",
     meetingId: nullToUndefined(dbPhase.meeting_id),
     name: nullToUndefined(dbPhase.name),
     orderIndex: nullToUndefined(dbPhase.order_index),
