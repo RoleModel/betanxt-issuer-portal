@@ -1,6 +1,6 @@
 import core from "ultracite/eslint/core";
-import react from "ultracite/eslint/react";
 import next from "ultracite/eslint/next";
+import react from "ultracite/eslint/react";
 
 const typescriptConfig = core.find(
   (config) => config.plugins?.["@typescript-eslint"]
@@ -77,6 +77,17 @@ export default [
     files: ["**/eslint.config.{js,mjs}"],
     rules: {
       "import-x/no-rename-default": "off",
+    },
+  },
+  {
+    // These rules autofix to JS features that do not exist in our runtime
+    // (Node 24 / current browsers), so applying them breaks working code.
+    // `Iterator.concat` and `Iterator.zip` are still TC39 stage-2 proposals.
+    rules: {
+      "unicorn/prefer-iterator-concat": "off",
+      "unicorn/prefer-iterator-helpers": "off",
+      "unicorn/prefer-iterator-to-array": "off",
+      "unicorn/prefer-iterator-to-array-at-end": "off",
     },
   },
 ];
