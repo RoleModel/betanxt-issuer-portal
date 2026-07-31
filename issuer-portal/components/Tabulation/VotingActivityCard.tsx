@@ -211,7 +211,9 @@ const VotingActivityCard = ({
                       total,
                       displayMode
                     );
-                    return `${item.label}: ${metric.display} (${metric.alternate})`;
+                    // The tooltip already renders the series label, so return
+                    // only the value. Active display mode leads.
+                    return `${metric.display} (${metric.alternate})`;
                   },
                 },
               ]}

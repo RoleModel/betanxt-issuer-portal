@@ -302,22 +302,21 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       Object.keys(currentPhaseData.keyDates).length > 0
     ) {
       // If phase has specific key dates in the phase data, use those
-      const result = Object.entries(currentPhaseData.keyDates).reduce<KeyDate[]>(
-        (accumulated, [key, value]) => {
-          if (value) {
-            accumulated.push({
-              id: key,
-              title: key
-                .replace(/([A-Z])/g, " $1")
-                .replace(/^./, (str) => str.toUpperCase()),
-              phaseNumber: currentPhaseNumber,
-              date: value,
-            });
-          }
-          return accumulated;
-        },
-        []
-      );
+      const result = Object.entries(currentPhaseData.keyDates).reduce<
+        KeyDate[]
+      >((accumulated, [key, value]) => {
+        if (value) {
+          accumulated.push({
+            id: key,
+            title: key
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase()),
+            phaseNumber: currentPhaseNumber,
+            date: value,
+          });
+        }
+        return accumulated;
+      }, []);
       if (result.length > 0) {
         return result;
       }

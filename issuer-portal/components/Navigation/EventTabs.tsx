@@ -779,14 +779,15 @@ const MeetingNavigationBar = ({
             {navigationTabs.map((tab) => {
               const isActive = activeTab === tab.label;
               // Use ticker from currentMeeting if available, fallback to currentClient
-              const ticker = currentMeeting?.ticker || currentClientTicker;
+              const ticker =
+                currentMeeting?.ticker != null || currentClientTicker;
               // Detect if we're on a past-meeting route from the current pathname
               const isPastMeetingRoute = pathname.includes("/past-meeting/");
               const meetingType = isPastMeetingRoute
                 ? "past-meeting"
                 : "meeting";
               const tabHref =
-                currentMeeting && ticker
+                currentMeeting && ticker != null
                   ? `/${ticker}/${meetingType}/${currentMeeting.id}${tab.route}`
                   : "#";
 
@@ -842,14 +843,14 @@ const MeetingNavigationBar = ({
             }}
             sx={{ flexShrink: 0 }}
           >
-            <DisplayToggleButton value="numbers" aria-label="View as Numbers">
-              Count
-            </DisplayToggleButton>
             <DisplayToggleButton
               value="percentages"
               aria-label="View as Percentages"
             >
               Percentage
+            </DisplayToggleButton>
+            <DisplayToggleButton value="numbers" aria-label="View as Numbers">
+              Count
             </DisplayToggleButton>
           </ToggleButtonGroup>
         </Box>

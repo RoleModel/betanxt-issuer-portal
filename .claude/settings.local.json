@@ -148,7 +148,13 @@
       "Bash(awk 'NR>=83 && /^};/{print NR\": \"$0; exit}' cli/validate-seed.ts)",
       "Bash(timeout 540 pnpm build)",
       "Bash(npx prettier *)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(node -p \"require\\('./issuer-portal/node_modules/next/package.json'\\).version\")",
+      "Bash(node -p \"require\\('./node_modules/next/package.json'\\).version\")",
+      "Bash(awk 'NR>=1040 && NR<=1075' node_modules/next/dist/server/config-shared.d.ts)",
+      "Bash(timeout 560 pnpm build)",
+      "Bash(git checkout *)",
+      "Bash(echo \"ultracite check exit: $?\")"
     ]
   },
   "enabledMcpjsonServers": [

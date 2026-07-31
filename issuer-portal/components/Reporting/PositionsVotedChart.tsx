@@ -41,6 +41,18 @@ interface DonutChartProps {
   readonly centerLabel: string;
 }
 
+const positionCountFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0,
+});
+
+const formatPositionCount = (value: number): string =>
+  positionCountFormatter.format(value);
+
+const formatPositionPercentage = (value: number, total: number): string => {
+  const percentage = total > 0 ? (value / total) * 100 : 0;
+  return `${percentage.toFixed(2)}%`;
+};
+
 const DonutChart = ({ data, centerValue, centerLabel }: DonutChartProps) => {
   return (
     <Box>
@@ -54,6 +66,13 @@ const DonutChart = ({ data, centerValue, centerLabel }: DonutChartProps) => {
               innerRadius: 75,
               outerRadius: 100,
               highlightScope: { fade: "global", highlight: "item" },
+              // This chart renders outside TabulationDisplayProvider, so there
+              // is no display mode to follow; always lead with the count.
+              valueFormatter: (item) =>
+                `${formatPositionCount(item.value)} (${formatPositionPercentage(
+                  item.value,
+                  centerValue
+                )})`,
             },
           ]}
           width={300}
@@ -116,25 +135,18 @@ const PositionsVotedChart = ({
   const totalBeneficial =
     selectedData.beneficial.voted + selectedData.beneficial.notVoted;
 
-  const registeredVotedPercentage =
-    totalRegistered > 0
-      ? (selectedData.registered.voted / totalRegistered) * 100
-      : 0;
-  const beneficialVotedPercentage =
-    totalBeneficial > 0
-      ? (selectedData.beneficial.voted / totalBeneficial) * 100
-      : 0;
-
+  // Percentages live in the tooltip alongside the count, so the legend labels
+  // stay plain and are not repeated in the hover text.
   const registeredData = [
     {
       id: "voted",
-      label: `Voted (${registeredVotedPercentage.toFixed(2)}%)`,
+      label: "Voted",
       value: selectedData.registered.voted,
       color: "var(--mui-palette-chartSeries-1-main)",
     },
     {
       id: "not-voted",
-      label: `Unvoted (${(100 - registeredVotedPercentage).toFixed(2)}%)`,
+      label: "Unvoted",
       value: selectedData.registered.notVoted,
       color: "var(--mui-palette-chartSeries-4-main)",
     },
@@ -143,13 +155,13 @@ const PositionsVotedChart = ({
   const beneficialData = [
     {
       id: "voted",
-      label: `Voted (${beneficialVotedPercentage.toFixed(2)}%)`,
+      label: "Voted",
       value: selectedData.beneficial.voted,
       color: "var(--mui-palette-chartSeries-1-main)",
     },
     {
       id: "not-voted",
-      label: `Unvoted (${(100 - beneficialVotedPercentage).toFixed(2)}%)`,
+      label: "Unvoted",
       value: selectedData.beneficial.notVoted,
       color: "var(--mui-palette-chartSeries-4-main)",
     },

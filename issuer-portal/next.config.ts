@@ -24,6 +24,12 @@ const nextConfig = {
     NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
   },
   productionBrowserSourceMaps: true,
+  // Deliberately NOT enabling `reactCompiler`. It forces Next to configure
+  // babel-loader even under Turbopack (see `turbopackUseBuiltinBabel`), which
+  // replaces the SWC transform path for every file and made route compilation
+  // slow enough that navigation stalled on loading states. Manual useMemo /
+  // useCallback in this codebase is therefore load-bearing — do not strip it
+  // on the assumption that the compiler handles memoization.
   reactStrictMode: false,
   turbopack: {
     root: repoRoot,

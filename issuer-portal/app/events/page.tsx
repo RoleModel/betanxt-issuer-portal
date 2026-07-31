@@ -1,3 +1,4 @@
+/* eslint-disable react-doctor/js-tosorted-immutable */
 "use client";
 
 import type {
@@ -14,6 +15,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Chip,
   Container,
   IconButton,
   Stack,
@@ -27,6 +29,7 @@ import { useState, useSyncExternalStore } from "react";
 import type { EventRow } from "@/utils/eventData";
 
 import { NewClientDrawer } from "@/components/Clients/NewClientDrawer";
+import { useEventRisk } from "@/hooks/useEventRisk";
 import { useEvents } from "@/hooks/useEvents";
 import { getMeetingUrl } from "@/utils/eventData";
 
@@ -47,6 +50,21 @@ const parseEventDate = (date: string): Date | null => {
 
 const formatEventTitle = (event: EventRow): string =>
   `${event.eventType} · ${event.eventDate}`;
+
+const AT_RISK_LABEL = "At Risk";
+const ON_SCHEDULE_LABEL = "On Schedule";
+
+/**
+ * An event is at risk when it still has an overdue, unfinished task. Completed
+ * events are always on schedule — there is nothing left to fall behind on.
+ */
+const getEventRiskLabel = (
+  event: EventRow,
+  atRiskMeetingIds: ReadonlySet<string>
+): string =>
+  event.meetingStatus === "ACTIVE" && atRiskMeetingIds.has(event.meetingId)
+    ? AT_RISK_LABEL
+    : ON_SCHEDULE_LABEL;
 
 const subscribeToClientRender = (): (() => void) => () => {};
 const getClientRenderSnapshot = (): boolean => true;
@@ -84,6 +102,7 @@ const EventsDataGrid = ({
     getClientRenderSnapshot,
     getServerRenderSnapshot
   );
+  const { atRiskMeetingIds } = useEventRisk();
   const initialFilterModel: GridFilterModel =
     assignedTickers === null || assignedTickers.size === 0
       ? { items: [] }
@@ -113,7 +132,13 @@ const EventsDataGrid = ({
         const event = parameters.row;
 
         return (
-          <Typography noWrap variant="body3">
+          <Typography
+            noWrap
+            variant="body3"
+            component="a"
+            color="primary"
+            href={`${getMeetingUrl(event)}/dashboard`}
+          >
             {event.event} ({event.clientTicker})
           </Typography>
         );
@@ -132,18 +157,7 @@ const EventsDataGrid = ({
         const event = parameters.row;
 
         return (
-          <Typography
-            color="primary"
-            component="a"
-            href={`${getMeetingUrl(event)}/dashboard`}
-            noWrap
-            sx={{
-              fontWeight: 600,
-              textDecoration: "none",
-              "&:hover": { textDecoration: "underline" },
-            }}
-            variant="body3"
-          >
+          <Typography noWrap variant="body3">
             {formatEventTitle(event)}
           </Typography>
         );
@@ -180,6 +194,25 @@ const EventsDataGrid = ({
           ? null
           : parseEventDate(row.mailingDate);
       },
+    },
+    {
+      field: "riskStatus",
+      headerName: "Status",
+      minWidth: 150,
+      type: "singleSelect",
+      valueOptions: [ON_SCHEDULE_LABEL, AT_RISK_LABEL],
+      valueGetter: (value, row) => {
+        void value;
+        return getEventRiskLabel(row, atRiskMeetingIds);
+      },
+      renderCell: (parameters: GridRenderCellParams<EventRow, string>) => (
+        <Chip
+          color={parameters.value === AT_RISK_LABEL ? "error" : "success"}
+          label={parameters.value}
+          size="small"
+          variant="outlined"
+        />
+      ),
     },
     {
       align: "right",
