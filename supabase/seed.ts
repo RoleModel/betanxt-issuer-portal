@@ -4594,8 +4594,6 @@ SELECT
   // 002-tabulation-enhancements: holder population + geography enrichment
   appendHolderEnrichment(sqlStatements);
 
-  sqlStatements.push("");
-
   // Output all SQL statements
   console.log(sqlStatements.join("\n"));
 };
@@ -4779,13 +4777,14 @@ FROM (
 ) m
 CROSS JOIN generate_series(1, 40) AS gs(i);`);
 
-  // holder_category backfill. CEDE/DTC omnibus rows stay REGISTERED to match the
-  // legacy accountType convention; individual holders split deterministically
-  // 55% REGISTERED / 15% PLAN / 30% BENEFICIAL so every population has data.
+  // holder_category backfill. CEDE/DTC omnibus rows stay REGISTERED, while
+  // Non-DTC records retain their beneficial-holder semantics. Remaining
+  // individual holders split deterministically so every population has data.
   sqlStatements.push(`
 UPDATE "position"
 SET holder_category = CASE
   WHEN account_type = 'DTC/CDS' THEN 'REGISTERED'::position_holder_category
+  WHEN account_type = 'Non-DTC' THEN 'BENEFICIAL'::position_holder_category
   WHEN account_number LIKE 'ACC%' OR account_number LIKE 'CSV%'
     THEN 'REGISTERED'::position_holder_category
   WHEN account_number LIKE 'NDTC%'

@@ -1,0 +1,173 @@
+"use client";
+
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import EditIcon from "@mui/icons-material/Edit";
+import {
+  Timeline,
+  TimelineConnector,
+  TimelineContent,
+  TimelineDot,
+  TimelineItem,
+  TimelineSeparator,
+  timelineItemClasses,
+} from "@mui/lab";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+
+import {
+  type WorkflowStep,
+  WORKFLOW_STEPS,
+} from "@/components/meeting/mailingTimeline";
+
+interface MailingStatusTimelineProps {
+  readonly activeIndex: number;
+  readonly formattedDate: string | null;
+  readonly isCSM: boolean;
+  readonly isUpdatingStatus: boolean;
+  readonly meetingId?: string;
+  readonly onStepClick: (step: WorkflowStep) => void;
+}
+
+const MailingStatusTimeline = ({
+  activeIndex,
+  formattedDate,
+  isCSM,
+  isUpdatingStatus,
+  meetingId,
+  onStepClick,
+}: MailingStatusTimelineProps) => {
+  const isClickable = isCSM && Boolean(meetingId) && !isUpdatingStatus;
+
+  return (
+    <Card sx={{ height: "100%" }}>
+      <CardHeader
+        title="Mailing Timeline"
+        action={
+          isCSM && meetingId != null ? (
+            <Tooltip title="Click a step to update status">
+              <EditIcon
+                fontSize="small"
+                color="action"
+                sx={{ mt: 1.5, mr: 0.5 }}
+              />
+            </Tooltip>
+          ) : undefined
+        }
+      />
+      <CardContent sx={{ pt: 0 }}>
+        <Timeline
+          sx={{
+            p: 0,
+            m: 0,
+            [`& .${timelineItemClasses.root}:before`]: {
+              flex: 0,
+              padding: 0,
+            },
+          }}
+        >
+          {WORKFLOW_STEPS.map((step, index) => {
+            const isCompleted = activeIndex >= 0 && index <= activeIndex;
+            const isCurrent = index === activeIndex;
+            const isLast = index === WORKFLOW_STEPS.length - 1;
+
+            return (
+              <TimelineItem
+                key={step.label}
+                onClick={() => isClickable && onStepClick(step)}
+                sx={
+                  isClickable
+                    ? {
+                        cursor: "pointer",
+                        borderRadius: 1,
+                        mx: -1,
+                        px: 1,
+                        "&:hover": { bgcolor: "action.hover" },
+                      }
+                    : undefined
+                }
+              >
+                <TimelineSeparator sx={{ marginBottom: "-0.5rem" }}>
+                  <TimelineDot
+                    variant={isCompleted ? "filled" : "outlined"}
+                    sx={{
+                      mt: 1,
+                      bgcolor: isCompleted ? step.paletteVar : "transparent",
+                      borderColor: step.paletteVar,
+                    }}
+                  />
+                  {!isLast ? (
+                    <TimelineConnector
+                      sx={{
+                        bgcolor: isCompleted
+                          ? step.paletteVar
+                          : (theme) => theme.vars.palette.divider,
+                      }}
+                    />
+                  ) : null}
+                </TimelineSeparator>
+                <TimelineContent sx={{ py: 0.8, px: 2 }}>
+                  <Typography
+                    variant="body3"
+                    color="text.secondary"
+                    sx={{ display: "block", mb: 0.25 }}
+                  >
+                    {formattedDate}
+                  </Typography>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    {isCurrent ? (
+                      <Chip
+                        icon={
+                          isLast && isCompleted ? (
+                            <CheckCircleIcon
+                              sx={{
+                                "--mui-palette-Chip-defaultIconColor":
+                                  "var(--mui-palette-success-contrastText)",
+                                fontSize: 16,
+                                boxSizing: "content-box",
+                              }}
+                            />
+                          ) : undefined
+                        }
+                        label={step.label}
+                        size="small"
+                        sx={{
+                          bgcolor:
+                            isLast && isCompleted
+                              ? "var(--mui-palette-success-main)"
+                              : step.paletteVar,
+                          color:
+                            isLast && isCompleted
+                              ? "var(--mui-palette-success-contrastText)"
+                              : step.color,
+                          fontWeight: 600,
+                          fontSize: "0.75rem",
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        variant="body3"
+                        fontWeight={500}
+                        color="text.secondary"
+                      >
+                        {step.label}
+                      </Typography>
+                    )}
+                  </Stack>
+                </TimelineContent>
+              </TimelineItem>
+            );
+          })}
+        </Timeline>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MailingStatusTimeline;
