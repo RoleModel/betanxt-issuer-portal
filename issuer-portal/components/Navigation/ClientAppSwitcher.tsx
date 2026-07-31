@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 "use client";
 
 import { ArrowDropDownOutlined } from "@mui/icons-material";
@@ -38,7 +39,7 @@ const USER_TYPE_BRAND_LABELS: Record<string, string> = {
  * - For CSM: additionally shows a searchable Autocomplete for all clients
  *   and a "Covering for…" Chip when viewing a non-assigned client.
  */
-const EventSwitchButton = ({ userType }: { userType: string }) => {
+const EventSwitchButton = ({ userType }: { readonly userType: string }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [csmInputValue, setCsmInputValue] = useState("");
   const pathname = usePathname();
@@ -316,8 +317,12 @@ const EventSwitchButton = ({ userType }: { userType: string }) => {
               <MenuItem
                 key="csm-search"
                 disableRipple
-                onClick={(event) => event.stopPropagation()}
-                onKeyDown={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                }}
+                onKeyDown={(event) => {
+                  event.stopPropagation();
+                }}
                 sx={{
                   cursor: "default",
                   display: "block",
@@ -330,33 +335,38 @@ const EventSwitchButton = ({ userType }: { userType: string }) => {
               >
                 <Autocomplete<Client>
                   options={allClients.filter(
-                    (c) => !assignedTickers?.has(c.ticker.toUpperCase())
+                    (c) =>
+                      !(assignedTickers?.has(c.ticker.toUpperCase()) ?? false)
                   )}
                   getOptionLabel={(option) =>
                     option.company_name ?? option.short_name ?? option.ticker
                   }
                   inputValue={csmInputValue}
-                  onInputChange={(_, value) => setCsmInputValue(value)}
+                  onInputChange={(_, value) => {
+                    setCsmInputValue(value);
+                  }}
                   value={null}
-                  onChange={(_, client) => handleCsmClientSelect(client)}
+                  onChange={(_, client) => {
+                    handleCsmClientSelect(client);
+                  }}
                   isOptionEqualToValue={(option, value) =>
                     option.id === value.id
                   }
                   size="small"
                   slotProps={{
                     popper: {
-                      disablePortal: true,
                       placement: "bottom-start",
+                      sx: (theme) => ({ zIndex: theme.zIndex.modal + 1 }),
                     },
                     paper: {
                       sx: {
-                        background: (theme) =>
-                          theme.vars?.palette?.secondary?.main,
+                        backgroundColor: (theme) =>
+                          theme.vars.palette.appSwitcher.background,
                         color: (theme) =>
-                          theme.vars?.palette?.secondary?.contrastText,
+                          theme.vars.palette.appSwitcher.contrastText,
                         "& .MuiAutocomplete-noOptions": {
                           color: (theme) =>
-                            theme.vars?.palette?.appSwitcher?.contrastText,
+                            theme.vars.palette.appSwitcher.contrastText,
                           fontSize: (theme) => theme.typography.body3.fontSize,
                         },
                       },
@@ -367,13 +377,17 @@ const EventSwitchButton = ({ userType }: { userType: string }) => {
                       {...params}
                       size="small"
                       placeholder="Switch to another client..."
-                      onClick={(event) => event.stopPropagation()}
-                      onKeyDown={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                      }}
+                      onKeyDown={(event) => {
+                        event.stopPropagation();
+                      }}
                       sx={(theme) => ({
                         "& .MuiInputBase-root": {
                           color: "inherit",
                           backgroundColor:
-                            theme.vars.palette.appSwitcher?.background,
+                            theme.vars.palette.appSwitcher.background,
                           "& fieldset": {
                             borderColor: theme.vars.palette.grey[700],
                           },
@@ -401,16 +415,18 @@ const EventSwitchButton = ({ userType }: { userType: string }) => {
         {clientOptions.map((row) => (
           <MenuItem
             key={row.clientTicker}
-            onClick={() => handleEventSelect(row)}
+            onClick={() => {
+              handleEventSelect(row);
+            }}
             selected={row.clientTicker === currentClientOption?.clientTicker}
             sx={{
               "&:hover": {
                 backgroundColor: (theme) =>
-                  theme.vars.palette.appSwitcher?.hover,
+                  theme.vars.palette.appSwitcher.hover,
               },
               "&.Mui-selected": {
                 backgroundColor: (theme) =>
-                  theme.vars.palette.appSwitcher?.hover,
+                  theme.vars.palette.appSwitcher.hover,
               },
             }}
           >
@@ -558,7 +574,9 @@ const SwitchButton = () => {
         {availableClients.map((client) => (
           <MenuItem
             key={client.id}
-            onClick={() => handleClientSelect(client)}
+            onClick={() => {
+              handleClientSelect(client);
+            }}
             selected={client.id === currentClient?.id}
             sx={{
               "&:hover": {

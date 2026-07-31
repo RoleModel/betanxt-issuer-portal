@@ -14,7 +14,9 @@ import { asNumber, asRecord, asString } from "@/utils/typeUtils";
 
 function extractClientCompanyName(client: unknown): string | null {
   const record = asRecord(client);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
   // Supabase join returns snake_case; handle both forms
   return (
     asString(record.companyName) ??
@@ -45,7 +47,9 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
   const status = asString(meeting.status);
   const cusip = asString(meeting.cusip) ?? "";
 
-  if (!id || !ticker || !meetingDate || !meetingType) return null;
+  if (!id || !ticker || !meetingDate || !meetingType) {
+    return null;
+  }
 
   // Prefer joined client object → brand config lookup → ticker as last resort
   const companyName =
@@ -54,7 +58,9 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     ticker;
 
   const eventDate = formatMeetingDate(meetingDate);
-  if (eventDate === null) return null;
+  if (eventDate === null) {
+    return null;
+  }
 
   const isAnnual = meetingType.toLowerCase().includes("annual");
   const eventType: "Annual Meeting" | "Special Meeting" = isAnnual
@@ -112,7 +118,7 @@ interface UseEventsResult {
 
 export function useEvents(): UseEventsResult {
   const { data: session } = useSession();
-  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
+  const isBypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
 
   const userType = session?.user?.type;
   const isUnrestrictedRole = userType === "CSM" || userType === "ADMIN";
@@ -120,15 +126,19 @@ export function useEvents(): UseEventsResult {
   // CSM / ADMIN fetch all meetings; page-level filters apply for CSM.
   // ISSUER / PARENT_CLIENT / SOLICITOR are scoped to their ticker allow-list.
   const allowedTickers = useMemo(() => {
-    if (isUnrestrictedRole) return undefined;
+    if (isUnrestrictedRole) {
+      return;
+    }
 
     const sessionTickers = session?.user?.clientTickers;
-    if (sessionTickers && sessionTickers.length > 0) return sessionTickers;
+    if (sessionTickers && sessionTickers.length > 0) {
+      return sessionTickers;
+    }
 
     const issuerTicker = session?.user?.client_ticker;
-    if (issuerTicker) return [issuerTicker];
-
-    return undefined;
+    if (issuerTicker) {
+      return [issuerTicker];
+    }
   }, [
     isUnrestrictedRole,
     session?.user?.clientTickers,
@@ -136,23 +146,30 @@ export function useEvents(): UseEventsResult {
   ]);
 
   const eventsFetcher = async (): Promise<EventRow[]> => {
-    if (!bypassAuth && !session) return [];
+    if (!isBypassAuth && !session) {
+      return [];
+    }
 
     const api = await buildApiClient();
     const allEvents: EventRow[] = [];
     let page = 1;
-    // PostgREST returns 0 rows when limit is exactly 250; stay below that ceiling.
-    const PAGE_SIZE = 200;
+    // The deployed mock API returns an empty page for oversized limits. Keep
+    // requests at the API's reliable 100-row page size and continue paging.
+    const PAGE_SIZE = 100;
 
     while (true) {
       const { data, error } = await api.GET("/meetings", {
         params: { query: { page, limit: PAGE_SIZE } },
       });
 
-      if (error || !data) break;
+      if (error || !data) {
+        break;
+      }
 
       const dataRecord = asRecord(data);
-      if (!dataRecord) break;
+      if (!dataRecord) {
+        break;
+      }
 
       const meetings = Array.isArray(dataRecord.meetings)
         ? dataRecord.meetings
@@ -160,9 +177,13 @@ export function useEvents(): UseEventsResult {
 
       for (const meeting of meetings) {
         const record = asRecord(meeting);
-        if (!record) continue;
+        if (!record) {
+          continue;
+        }
         const row = meetingToEventRow(record);
-        if (!row) continue;
+        if (!row) {
+          continue;
+        }
         allEvents.push(row);
       }
 
@@ -172,7 +193,9 @@ export function useEvents(): UseEventsResult {
           ? paginationRecord.total
           : 0;
 
-      if (meetings.length < PAGE_SIZE || allEvents.length >= totalCount) break;
+      if (meetings.length < PAGE_SIZE || allEvents.length >= totalCount) {
+        break;
+      }
       page++;
     }
 
@@ -185,11 +208,11 @@ export function useEvents(): UseEventsResult {
     isLoading,
     mutate,
   } = useSWR(
-    session || bypassAuth ? ["/events-list", session?.user?.id] : null,
+    session || isBypassAuth ? ["/events-list", session?.user?.id] : null,
     eventsFetcher,
     {
       ...clientsSWRConfig,
-      dedupingInterval: 120000,
+      dedupingInterval: 120_000,
     }
   );
 
@@ -197,15 +220,19 @@ export function useEvents(): UseEventsResult {
   // This prevents stale cached data (fetched before clientTickers was hydrated) from leaking
   // through to restricted users.
   const events = useMemo(() => {
-    if (!rawData) return [];
-    if (!allowedTickers) return rawData;
+    if (!rawData) {
+      return [];
+    }
+    if (!allowedTickers) {
+      return rawData;
+    }
     return rawData.filter((row) => allowedTickers.includes(row.clientTicker));
   }, [rawData, allowedTickers]);
 
   return {
     events,
     loading: isLoading,
-    error: error instanceof Error ? error.message : null,
+    error: Error.isError(error) ? error.message : null,
     revalidate: mutate,
   };
 }

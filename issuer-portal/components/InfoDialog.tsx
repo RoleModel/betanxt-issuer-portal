@@ -1,343 +1,423 @@
-import type { SelectChangeEvent } from "@mui/material/Select";
+"use client";
 
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import FormControl from "@mui/material/FormControl";
-import IconButton from "@mui/material/IconButton";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import Typography from "@mui/material/Typography";
-import React, { useEffect, useMemo, useState } from "react";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+  Box,
+  Button,
+  Divider,
+  Drawer,
+  IconButton,
+  InputAdornment,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
+import { useEffect, useState } from "react";
 
 import { termsDefinitions } from "@/lib/termsDefinitions";
 
 interface InfoDialogProps {
-  open: boolean;
-  onClose: () => void;
-  term: string;
-  definition: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly term: string;
+  readonly definition: string;
 }
 
-export const InfoDialog: React.FC<InfoDialogProps> = ({
+interface GlossaryTerm {
+  readonly category: string;
+  readonly id: string;
+  readonly term: string;
+}
+
+interface GlossaryTreeItem {
+  readonly children?: GlossaryTreeItem[];
+  readonly id: string;
+  readonly label: string;
+}
+
+const categoryItemId = (category: string): string => `category:${category}`;
+const termItemId = (termId: string): string => `term:${termId}`;
+
+const glossaryTerms = Object.entries(termsDefinitions)
+  .map(([id, item]) => ({
+    category: item.category,
+    id,
+    term: item.term,
+  }))
+  .sort((firstTerm, secondTerm) =>
+    firstTerm.term.localeCompare(secondTerm.term)
+  );
+
+const glossaryTreeItems = Array.from(
+  new Set(glossaryTerms.map((item) => item.category))
+)
+  .sort((firstCategory, secondCategory) =>
+    firstCategory.localeCompare(secondCategory)
+  )
+  .map<GlossaryTreeItem>((category) => ({
+    children: glossaryTerms
+      .filter((item) => item.category === category)
+      .map((item) => ({
+        id: termItemId(item.id),
+        label: item.term,
+      })),
+    id: categoryItemId(category),
+    label: category,
+  }));
+
+const getGlossaryDefinition = (termId: string): string | undefined =>
+  termsDefinitions[termId as keyof typeof termsDefinitions]?.definition;
+
+const getGlossaryTerm = (termId: string): GlossaryTerm | undefined =>
+  glossaryTerms.find((item) => item.id === termId);
+
+const filterGlossaryTreeItems = (searchQuery: string): GlossaryTreeItem[] => {
+  const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
+
+  if (normalizedQuery.length === 0) {
+    return glossaryTreeItems;
+  }
+
+  return glossaryTreeItems.reduce<GlossaryTreeItem[]>(
+    (matchingCategories, category) => {
+      const categoryMatches = category.label
+        .toLocaleLowerCase()
+        .includes(normalizedQuery);
+      const matchingTerms = categoryMatches
+        ? category.children
+        : category.children?.filter((termItem) =>
+            termItem.label.toLocaleLowerCase().includes(normalizedQuery)
+          );
+
+      if (matchingTerms === undefined || matchingTerms.length === 0) {
+        return matchingCategories;
+      }
+
+      matchingCategories.push({ ...category, children: matchingTerms });
+      return matchingCategories;
+    },
+    []
+  );
+};
+
+export const InfoDialog = ({
   open,
   onClose,
   term,
   definition,
-}) => {
-  // Create an array of unique categories from termsDefinitions
-  const categoriesSet = new Set<string>();
-  Object.values(termsDefinitions).forEach((term) =>
-    categoriesSet.add(term.category)
-  );
-  const categories = Array.from(categoriesSet);
+}: InfoDialogProps) => {
+  const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedTerm, setSelectedTerm] = useState("");
-  const [currentTerms, setCurrentTerms] = useState<
-    { id: string; term: string }[]
-  >([]);
-  const [currentDefinition, setCurrentDefinition] = useState("");
+  const matchingTerm = glossaryTerms.find((item) => item.term === term);
+  const initialTermId = matchingTerm?.id ?? glossaryTerms[0]?.id ?? null;
 
-  // Create a memoized, sorted list of all terms
-  const allTermsOrdered = useMemo(() => {
-    return Object.entries(termsDefinitions)
-      .map(([id, termObj]) => ({
-        id,
-        term: termObj.term,
-        category: termObj.category,
-      }))
-      .sort((a, b) => a.term.localeCompare(b.term)); // Sort alphabetically by term
-  }, []);
-
-  // Initialize with provided term when modal opens, or default to first term
   useEffect(() => {
-    if (open) {
-      if (term) {
-        // If a specific term is provided, use it
-        const termKey = Object.keys(termsDefinitions).find(
-          (key) =>
-            termsDefinitions[key as keyof typeof termsDefinitions].term === term
-        );
-        if (termKey) {
-          const termObj =
-            termsDefinitions[termKey as keyof typeof termsDefinitions];
-          setSelectedCategory(termObj.category);
-          setSelectedTerm(termKey);
-          setCurrentDefinition(definition); // Use initial definition prop
-        } else {
-          // If initial term not found, default to first term overall
-          if (allTermsOrdered.length > 0) {
-            const firstTerm = allTermsOrdered[0];
-            setSelectedCategory(firstTerm.category);
-            setSelectedTerm(firstTerm.id);
-            setCurrentDefinition(
-              termsDefinitions[firstTerm.id as keyof typeof termsDefinitions]
-                .definition
-            );
-          }
-        }
-      } else {
-        // If no specific term provided, default to first term overall
-        if (allTermsOrdered.length > 0) {
-          const firstTerm = allTermsOrdered[0];
-          setSelectedCategory(firstTerm.category);
-          setSelectedTerm(firstTerm.id);
-          setCurrentDefinition(
-            termsDefinitions[firstTerm.id as keyof typeof termsDefinitions]
-              .definition
-          );
-        }
-      }
-    }
-  }, [open, term, definition, allTermsOrdered]);
-
-  // Update available terms for the dropdown when category changes
-  useEffect(() => {
-    if (selectedCategory) {
-      const filteredTerms = allTermsOrdered.filter(
-        (termObj) => termObj.category === selectedCategory
-      );
-      setCurrentTerms(filteredTerms.map(({ id, term }) => ({ id, term })));
-      // No need to auto-select first term here anymore for navigation
-    } else {
-      setCurrentTerms([]);
-    }
-  }, [selectedCategory, allTermsOrdered]);
-
-  // Handle category change
-  const handleCategoryChange = (event: SelectChangeEvent) => {
-    const newCategory = event.target.value;
-    setSelectedCategory(newCategory);
-    // When category changes via dropdown, select the first term in that category
-    const firstTermInCategory = allTermsOrdered.find(
-      (t) => t.category === newCategory
-    );
-    if (firstTermInCategory) {
-      setSelectedTerm(firstTermInCategory.id);
-      setCurrentDefinition(
-        termsDefinitions[
-          firstTermInCategory.id as keyof typeof termsDefinitions
-        ].definition
-      );
-    }
-  };
-
-  // Handle term change (from dropdown)
-  const handleTermChange = (event: SelectChangeEvent) => {
-    const newTermKey = event.target.value;
-    if (newTermKey) {
-      const termObj =
-        termsDefinitions[newTermKey as keyof typeof termsDefinitions];
-      setSelectedTerm(newTermKey);
-      setCurrentDefinition(termObj.definition);
-      // Ensure category is synced if term changes via dropdown
-      if (selectedCategory !== termObj.category) {
-        setSelectedCategory(termObj.category);
-      }
-    }
-  };
-
-  // Handle navigation using the full ordered list
-  const handlePrevious = () => {
-    const currentIndex = allTermsOrdered.findIndex(
-      (t) => t.id === selectedTerm
-    );
-    if (currentIndex > 0) {
-      const prevTermData = allTermsOrdered[currentIndex - 1];
-      setSelectedTerm(prevTermData.id);
-      setSelectedCategory(prevTermData.category); // Sync category
-      setCurrentDefinition(
-        termsDefinitions[prevTermData.id as keyof typeof termsDefinitions]
-          .definition
-      );
-    }
-  };
-
-  const handleNext = () => {
-    const currentIndex = allTermsOrdered.findIndex(
-      (t) => t.id === selectedTerm
-    );
-    if (currentIndex < allTermsOrdered.length - 1) {
-      const nextTermData = allTermsOrdered[currentIndex + 1];
-      setSelectedTerm(nextTermData.id);
-      setSelectedCategory(nextTermData.category); // Sync category
-      setCurrentDefinition(
-        termsDefinitions[nextTermData.id as keyof typeof termsDefinitions]
-          .definition
-      );
-    }
-  };
-
-  // Handle Copy to Clipboard
-  const handleCopyToClipboard = async () => {
-    const textToCopy = currentDefinition || definition;
-    if (!textToCopy) {
+    if (!open || initialTermId === null) {
       return;
     }
+
+    const initialTerm = getGlossaryTerm(initialTermId);
+    setSelectedTermId(initialTermId);
+    setExpandedItems(
+      initialTerm === undefined ? [] : [categoryItemId(initialTerm.category)]
+    );
+  }, [initialTermId, open]);
+
+  const filteredTreeItems = filterGlossaryTreeItems(searchQuery);
+
+  const selectedTerm = selectedTermId
+    ? getGlossaryTerm(selectedTermId)
+    : undefined;
+  const selectedTermIndex = selectedTermId
+    ? glossaryTerms.findIndex((item) => item.id === selectedTermId)
+    : -1;
+  const currentDefinition = selectedTermId
+    ? getGlossaryDefinition(selectedTermId)
+    : undefined;
+  const displayedDefinition =
+    selectedTerm?.term === term && definition.length > 0
+      ? definition
+      : (currentDefinition ?? definition);
+
+  useEffect(() => {
+    if (searchQuery.trim().length > 0) {
+      setExpandedItems(filteredTreeItems.map((item) => item.id));
+      return;
+    }
+
+    if (selectedTerm) {
+      setExpandedItems([categoryItemId(selectedTerm.category)]);
+    }
+  }, [filteredTreeItems, searchQuery, selectedTerm]);
+
+  const selectTerm = (termId: string) => {
+    const nextTerm = getGlossaryTerm(termId);
+    if (nextTerm === undefined) {
+      return;
+    }
+
+    setSelectedTermId(termId);
+    setExpandedItems((currentItems) => {
+      const categoryId = categoryItemId(nextTerm.category);
+      return currentItems.includes(categoryId)
+        ? currentItems
+        : [...currentItems, categoryId];
+    });
+  };
+
+  const handleSelectedItemsChange = (
+    _event: React.SyntheticEvent | null,
+    itemId: string | null
+  ) => {
+    if (!itemId?.startsWith("term:")) {
+      return;
+    }
+
+    selectTerm(itemId.slice("term:".length));
+  };
+
+  const handleCopyToClipboard = async () => {
+    if (displayedDefinition.length === 0) {
+      return;
+    }
+
     try {
-      await navigator.clipboard.writeText(textToCopy);
-      // Optional: Add user feedback here (e.g., Snackbar, temporary icon change)
+      await navigator.clipboard.writeText(displayedDefinition);
     } catch {
-      // Optional: Add user feedback for failure here
+      // The browser may deny clipboard access; the definition remains selectable.
     }
   };
 
-  // Update disabled logic based on the full ordered list
-  const currentIndexInAll = allTermsOrdered.findIndex(
-    (t) => t.id === selectedTerm
-  );
-  const canGoPrevious = currentIndexInAll > 0;
-  const canGoNext = currentIndexInAll < allTermsOrdered.length - 1;
-
-  // Current displayed term title
-  const displayedTerm = selectedTerm
-    ? termsDefinitions[selectedTerm as keyof typeof termsDefinitions]?.term
-    : "";
+  const previousTerm =
+    selectedTermIndex > 0 ? glossaryTerms[selectedTermIndex - 1] : undefined;
+  const nextTerm =
+    selectedTermIndex >= 0 && selectedTermIndex < glossaryTerms.length - 1
+      ? glossaryTerms[selectedTermIndex + 1]
+      : undefined;
 
   return (
-    <Dialog
-      onClose={onClose}
+    <Drawer
+      anchor="bottom"
+      aria-describedby="glossary-definition"
+      aria-labelledby="glossary-drawer-title"
       open={open}
-      maxWidth="md"
-      fullWidth
-      aria-labelledby="info-modal-title"
-      aria-describedby="info-modal-description"
+      onClose={onClose}
+      slotProps={{
+        paper: {
+          sx: {
+            borderTopLeftRadius: 2,
+            borderTopRightRadius: 2,
+            height: "75dvh",
+            maxHeight: "75dvh",
+            overflow: "hidden",
+          },
+        },
+      }}
     >
-      <DialogTitle
-        id="info-modal-title"
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        Terms and Definitions
-        <IconButton
-          aria-label="Close terms and definitions dialog"
-          onClick={onClose}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+      <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <Box sx={{ px: { xs: 2, sm: 3 }, py: 1.5 }}>
+          <Stack
+            alignItems={{ sm: "center" }}
+            direction={{ sm: "row" }}
+            justifyContent="space-between"
+            spacing={1.5}
+          >
+            <Box>
+              <Typography
+                component="h2"
+                id="glossary-drawer-title"
+                variant="h6"
+              >
+                Terms and Definitions
+              </Typography>
+              <Typography color="text.secondary" variant="body3">
+                Browse by category, then select a term to view its definition.
+              </Typography>
+            </Box>
+            <Stack alignItems="center" direction="row" spacing={1}>
+              <TextField
+                placeholder="Search terms"
+                size="small"
+                value={searchQuery}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                }}
+                slotProps={{
+                  htmlInput: {
+                    "aria-label": "Search glossary terms",
+                  },
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={{ minWidth: { sm: 260 }, width: { xs: "100%", sm: 300 } }}
+              />
+              <IconButton
+                aria-label="Close terms and definitions"
+                onClick={onClose}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Stack>
+          </Stack>
+        </Box>
+        <Divider />
 
-      <DialogContent dividers sx={{ p: 3 }} id="info-modal-description">
         <Box
           sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            gap: 2,
-            mb: 2,
+            display: "grid",
+            flex: 1,
+            gridTemplateColumns: {
+              md: "minmax(260px, 0.32fr) minmax(0, 1fr)",
+              xs: "1fr",
+            },
+            gridTemplateRows: {
+              md: "minmax(0, 1fr)",
+              xs: "minmax(180px, 0.35fr) minmax(0, 1fr)",
+            },
+            minHeight: 0,
           }}
-          role="region"
-          aria-label="Terms and definitions navigation controls"
         >
-          {/* Category Select */}
-          <FormControl size="small" sx={{ minWidth: 150, flex: 1 }}>
-            <InputLabel id="category-select-label" htmlFor="category-select">
-              Category
-            </InputLabel>
-            <Select
-              labelId="category-select-label"
-              value={selectedCategory}
-              label="Category"
-              onChange={handleCategoryChange}
-              size="small"
-              native={false}
-              aria-labelledby="category-select-label"
-              slotProps={{
-                input: {
-                  id: "category-select",
+          <Box
+            aria-label="Glossary categories"
+            component="nav"
+            sx={{
+              borderBottom: { md: 0, xs: 1 },
+              borderColor: "divider",
+              borderRight: { md: 1, xs: 0 },
+              minHeight: 0,
+              overflowY: "auto",
+              p: 1.5,
+            }}
+          >
+            <RichTreeView<GlossaryTreeItem>
+              expandedItems={expandedItems}
+              items={filteredTreeItems}
+              itemChildrenIndentation={20}
+              onExpandedItemsChange={(_event, itemIds) => {
+                setExpandedItems(itemIds);
+              }}
+              onSelectedItemsChange={handleSelectedItemsChange}
+              selectedItems={
+                selectedTermId === null ? null : termItemId(selectedTermId)
+              }
+              sx={{
+                "& .MuiTreeItem-content": {
+                  borderRadius: 1,
+                },
+                "& .MuiTreeItem-label": {
+                  typography: "body3",
                 },
               }}
-            >
-              {categories.map((category) => (
-                <MenuItem key={category} value={category}>
-                  {category}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Term Select */}
-          <FormControl size="small" sx={{ minWidth: 150, flex: 1 }}>
-            <InputLabel id="term-select-label" htmlFor="term-select">
-              Term
-            </InputLabel>
-            <Select
-              labelId="term-select-label"
-              value={selectedTerm}
-              label="Term"
-              onChange={handleTermChange}
-              disabled={!selectedCategory}
-              size="small"
-              native={false}
-              slotProps={{
-                input: {
-                  id: "term-select",
-                },
-              }}
-            >
-              {currentTerms.map(({ id, term }) => (
-                <MenuItem key={id} value={id}>
-                  {term}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {/* Navigation Buttons */}
-          <Button
-            variant="text"
-            onClick={handlePrevious}
-            disabled={!canGoPrevious}
-            startIcon={<NavigateBeforeIcon />}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="text"
-            onClick={handleNext}
-            disabled={!canGoNext}
-            endIcon={<NavigateNextIcon />}
-          >
-            Next
-          </Button>
-        </Box>
-
-        <Box sx={{ height: 300, overflow: "auto" }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <Typography variant="body2" fontWeight="bold" gutterBottom>
-              {displayedTerm}
-            </Typography>
-            <IconButton
-              size="small"
-              sx={{ ml: 1, visibility: selectedTerm ? "visible" : "hidden" }}
-              onClick={handleCopyToClipboard}
-              aria-label={`Copy definition of ${displayedTerm} to clipboard`}
-            >
-              <ContentCopyIcon />
-            </IconButton>
+            />
+            {filteredTreeItems.length === 0 ? (
+              <Typography
+                color="text.secondary"
+                sx={{ px: 1, py: 2 }}
+                variant="body3"
+              >
+                No glossary terms match your search.
+              </Typography>
+            ) : null}
           </Box>
-          <Typography variant="body2">
-            {currentDefinition || definition}
-          </Typography>
-        </Box>
-      </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined" size="large">
-          Close
-        </Button>
-      </DialogActions>
-    </Dialog>
+          <Box
+            id="glossary-definition"
+            sx={{
+              minHeight: 0,
+              overflowY: "auto",
+              p: { xs: 2, sm: 3 },
+            }}
+          >
+            <Stack spacing={2} sx={{ height: "100%" }}>
+              <Box
+                sx={{
+                  alignItems: "flex-start",
+                  display: "flex",
+                  gap: 1,
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box>
+                  <Typography component="h3" variant="h5">
+                    {selectedTerm?.term ?? "Glossary"}
+                  </Typography>
+                  {selectedTerm ? (
+                    <Typography color="text.secondary" variant="body3">
+                      {selectedTerm.category}
+                    </Typography>
+                  ) : null}
+                </Box>
+                <Tooltip title="Copy definition">
+                  <span>
+                    <IconButton
+                      aria-label={`Copy definition of ${selectedTerm?.term ?? "glossary term"}`}
+                      disabled={displayedDefinition.length === 0}
+                      onClick={() => {
+                        void handleCopyToClipboard();
+                      }}
+                    >
+                      <ContentCopyIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Box>
+              <Typography
+                sx={{ maxWidth: 920, whiteSpace: "pre-wrap" }}
+                variant="body2"
+              >
+                {displayedDefinition}
+              </Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <Stack direction="row" justifyContent="space-between" spacing={1}>
+                <Button
+                  disabled={previousTerm === undefined}
+                  onClick={() => {
+                    if (previousTerm) {
+                      selectTerm(previousTerm.id);
+                    }
+                  }}
+                  startIcon={<NavigateBeforeIcon />}
+                  variant="text"
+                >
+                  Previous
+                </Button>
+                <Button
+                  disabled={nextTerm === undefined}
+                  endIcon={<NavigateNextIcon />}
+                  onClick={() => {
+                    if (nextTerm) {
+                      selectTerm(nextTerm.id);
+                    }
+                  }}
+                  variant="text"
+                >
+                  Next
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
+        </Box>
+
+        <Divider />
+        <Box sx={{ display: "flex", justifyContent: "flex-end", p: 1.5 }}>
+          <Button onClick={onClose} variant="outlined">
+            Close
+          </Button>
+        </Box>
+      </Box>
+    </Drawer>
   );
 };

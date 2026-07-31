@@ -22,11 +22,11 @@ import { useClient } from "@/contexts/ClientContext";
 import Loading from "../../app/loading";
 
 interface LayoutProps {
-  activeNavLinkTitle?: string;
-  appSwitcher?: boolean;
-  apps?: string;
-  navBar?: boolean;
-  eventTabs?: boolean;
+  readonly activeNavLinkTitle?: string;
+  readonly appSwitcher?: boolean;
+  readonly apps?: string;
+  readonly navBar?: boolean;
+  readonly eventTabs?: boolean;
 }
 
 const Layout = ({
@@ -175,36 +175,28 @@ const Layout = ({
   return (
     <Suspense fallback={<Loading />}>
       <Stack sx={{ minHeight: "100vh" }}>
-        {navBar && (
-          <Box
+        {navBar ? <Box
             sx={{
               flexShrink: 0,
             }}
           >
             <BNAppBarClient appSwitcher={true} user={bnUser} />
-          </Box>
-        )}
-        {eventTabs && (
-          <Box sx={{ flexShrink: 0 }}>
+          </Box> : null}
+        {eventTabs ? <Box sx={{ flexShrink: 0 }}>
             <EventTabs />
-          </Box>
-        )}
+          </Box> : null}
 
         <Box component="main" flex="1 0 auto">
           {children}
         </Box>
-        {navBar && (
-          <IssuerSpeedDial
+        {navBar ? <IssuerSpeedDial
             ariaLabel="Support Contacts"
             icon={<SupportAgentOutlined />}
             closeIcon={<CloseOutlined />}
-            tooltipTitle="Support Contacts"
-            placement="top"
             onAssistantClick={handleAssistantClick}
             onGlossaryClick={handleGlossaryClick}
             onContactsClick={handleContactsClick}
-          />
-        )}
+          /> : null}
         <SupportContactsPopover
           open={open}
           anchorEl={anchorEl}
@@ -228,12 +220,12 @@ const Layout = ({
         <Snackbar
           open={phaseCompleteSnackbar.open}
           autoHideDuration={6000}
-          onClose={() => setPhaseCompleteSnackbar({ open: false, message: "" })}
+          onClose={() => { setPhaseCompleteSnackbar({ open: false, message: "" }); }}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
           <Alert
             onClose={() =>
-              setPhaseCompleteSnackbar({ open: false, message: "" })
+              { setPhaseCompleteSnackbar({ open: false, message: "" }); }
             }
             severity="success"
             sx={{
