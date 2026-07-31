@@ -16,7 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useTasks } from "@/hooks/useTasks";
@@ -30,10 +30,14 @@ type TaskStatus =
 type TaskType = "upload" | "signature" | "external" | "authorize" | "approve";
 
 interface TaskAddModalProps {
-  open: boolean;
-  activeMeeting?: { id: string; meetingDate?: string | null; title?: string };
-  onClose: () => void;
-  onTaskAdded: () => void;
+  readonly open: boolean;
+  readonly activeMeeting?: {
+    id: string;
+    meetingDate?: string | null;
+    title?: string;
+  };
+  readonly onClose: () => void;
+  readonly onTaskAdded: () => void;
 }
 
 const statusOptions: TaskStatus[] = [
@@ -52,8 +56,13 @@ const typeOptions: TaskType[] = [
   "approve",
 ];
 
-export const TaskAddModal: React.FC<TaskAddModalProps> = ({
-  open,
+interface TaskAddModalContentProps {
+  readonly activeMeeting?: TaskAddModalProps["activeMeeting"];
+  readonly onClose: () => void;
+  readonly onTaskAdded: () => void;
+}
+
+const TaskAddModalContent: React.FC<TaskAddModalContentProps> = ({
   activeMeeting: activeMeetingProp,
   onClose,
   onTaskAdded,
@@ -74,22 +83,6 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Reset form when modal opens
-  useEffect(() => {
-    if (open) {
-      setFormData({
-        title: "",
-        description: "",
-        status: "Incomplete",
-        type: "",
-        due_date: "",
-        assignee: "",
-        phase: 1,
-      });
-      setError(null);
-    }
-  }, [open]);
 
   const handleChange =
     (field: keyof typeof formData) =>
@@ -119,12 +112,12 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
 
       // Don't proceed if no active meeting
       const activeMeeting = activeMeetingProp || currentMeeting;
-      if (!activeMeeting) {
+      if (!activeMeeting?.id) {
         throw new Error("No active meeting selected");
       }
 
       // Use our hook instead of direct Supabase call
-      await createNewTask(activeMeeting.id!, {
+      await createNewTask(activeMeeting.id, {
         taskId: taskId,
         phaseNumber: formData.phase,
         title: formData.title,
@@ -149,21 +142,11 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
   };
 
   const handleCancel = () => {
-    setFormData({
-      title: "",
-      description: "",
-      status: "Incomplete",
-      type: "",
-      due_date: "",
-      assignee: "",
-      phase: 1,
-    });
-    setError(null);
     onClose();
   };
 
   return (
-    <Dialog open={open} onClose={handleCancel} maxWidth="md" fullWidth>
+    <>
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           Add New Task
@@ -291,7 +274,7 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
             />
           </Box>
 
-          {error && (
+          {error ? (
             <Typography
               color="error"
               variant="body3"
@@ -299,7 +282,7 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
             >
               {error}
             </Typography>
-          )}
+          ) : null}
         </Box>
       </DialogContent>
 
@@ -315,6 +298,23 @@ export const TaskAddModal: React.FC<TaskAddModalProps> = ({
           {loading ? "Creating..." : "Create Task"}
         </Button>
       </DialogActions>
+    </>
+  );
+};
+
+export const TaskAddModal: React.FC<TaskAddModalProps> = ({
+  open,
+  activeMeeting,
+  onClose,
+  onTaskAdded,
+}) => {
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <TaskAddModalContent
+        activeMeeting={activeMeeting}
+        onClose={onClose}
+        onTaskAdded={onTaskAdded}
+      />
     </Dialog>
   );
 };

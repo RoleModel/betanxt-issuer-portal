@@ -40,6 +40,8 @@ interface ProposalVote {
   percentAbstain: number;
   percentOfOutstanding: number;
   percentOfProposalVotes: number;
+  /** Supplied by callers; not currently rendered in the PDF. */
+  percentOfTotalVoted?: number;
 }
 
 interface TabulationData {
@@ -85,11 +87,11 @@ const formatSignedNumber = (num: number): string => {
 };
 
 interface VoteRowProps {
-  label: string;
-  votes: number;
-  percentOfProposal: number;
-  totalOutstanding: number;
-  votesRepresentedForQuorum: number;
+  readonly label: string;
+  readonly votes: number;
+  readonly percentOfProposal: number;
+  readonly totalOutstanding: number;
+  readonly votesRepresentedForQuorum: number;
 }
 
 /** One For/Against/Abstain row with hairline separator and derived percents. */
@@ -144,9 +146,9 @@ const VoteRow: React.FC<VoteRowProps> = ({
 );
 
 interface ProposalSectionProps {
-  proposal: ProposalVote;
-  totalOutstanding: number;
-  votesRepresentedForQuorum: number;
+  readonly proposal: ProposalVote;
+  readonly totalOutstanding: number;
+  readonly votesRepresentedForQuorum: number;
 }
 
 /** Gray proposal band plus its For/Against/Abstain rows; kept on one page. */
@@ -193,10 +195,10 @@ const ProposalSection: React.FC<ProposalSectionProps> = ({
 };
 
 interface TabulationPDFDocumentProps {
-  tabulationData: TabulationData;
-  clientTicker?: string;
-  clientLogoUrl?: string;
-  betanxtLogoUrl?: string;
+  readonly tabulationData: TabulationData;
+  readonly clientTicker?: string;
+  readonly clientLogoUrl?: string;
+  readonly betanxtLogoUrl?: string;
 }
 
 // Tabulation PDF Document Component
@@ -333,9 +335,9 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                     {directorGroupTitle}
                   </Text>
                 </View>
-                {directorProposals.map((proposal, index) => (
+                {directorProposals.map((proposal) => (
                   <ProposalSection
-                    key={`director-${index}`}
+                    key={`director-${proposal.proposalNumber}`}
                     proposal={proposal}
                     totalOutstanding={totalOutstanding}
                     votesRepresentedForQuorum={votesRepresentedForQuorum}
@@ -343,9 +345,9 @@ export const TabulationPDFDocument: React.FC<TabulationPDFDocumentProps> = ({
                 ))}
               </>
             )}
-            {otherProposals.map((proposal, index) => (
+            {otherProposals.map((proposal) => (
               <ProposalSection
-                key={`other-${index}`}
+                key={`other-${proposal.proposalNumber}`}
                 proposal={proposal}
                 totalOutstanding={totalOutstanding}
                 votesRepresentedForQuorum={votesRepresentedForQuorum}

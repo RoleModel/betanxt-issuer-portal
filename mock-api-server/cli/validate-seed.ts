@@ -1,6 +1,3 @@
-#!/usr/bin/env tsx
-import type { Database } from "@/utils/supabase/database.types";
-
 import { supabase } from "@/utils/supabase/client";
 
 /**
@@ -41,7 +38,7 @@ interface TableValidationSummary {
 
 type ValidationResultsMap = Record<
   string,
-  { error: string } | TableValidationSummary
+  TableValidationSummary | { error: string }
 >;
 
 // Minimal structural interfaces (original richer forms were removed during cleanup).
@@ -491,20 +488,32 @@ const TABLE_SCHEMAS: Record<string, TableSchema> = {
   },
 };
 
+/**
+ * The tables validated by this script, as literals so that `supabase.from()`
+ * type-checks against the generated schema. Keep in sync with TABLE_SCHEMAS.
+ */
+const VALIDATED_TABLE_NAMES = [
+  "account",
+  "user",
+  "meeting",
+  "phase",
+  "task",
+  "document",
+  "comment",
+  "signature",
+  "position",
+  "position_vote",
+  "proposal",
+  "notification",
+] as const;
+
 // Validation functions
 const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-const validateUrl = (url: string): boolean => {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-};
+const validateUrl = (url: string): boolean => URL.canParse(url);
 
 const validateType = (
   value: unknown,
@@ -515,53 +524,61 @@ const validateType = (
   }
 
   switch (type) {
-    case "string":
+    case "string": {
       if (typeof value !== "string") {
         return { valid: false, error: `Expected string, got ${typeof value}` };
       }
       break;
-    case "number":
+    }
+    case "number": {
       if (typeof value !== "number" || isNaN(value)) {
         return { valid: false, error: `Expected number, got ${typeof value}` };
       }
       break;
-    case "boolean":
+    }
+    case "boolean": {
       if (typeof value !== "boolean") {
         return { valid: false, error: `Expected boolean, got ${typeof value}` };
       }
       break;
-    case "email":
+    }
+    case "email": {
       if (typeof value !== "string" || !validateEmail(value)) {
         return { valid: false, error: `Invalid email format` };
       }
       break;
-    case "url":
+    }
+    case "url": {
       if (typeof value !== "string" || !validateUrl(value)) {
         return { valid: false, error: `Invalid URL format` };
       }
       break;
-    case "date":
+    }
+    case "date": {
       if (typeof value !== "string" || isNaN(Date.parse(value))) {
         return { valid: false, error: `Invalid date format` };
       }
       break;
-    case "timestamp":
+    }
+    case "timestamp": {
       if (typeof value !== "string" || isNaN(Date.parse(value))) {
         return { valid: false, error: `Invalid timestamp format` };
       }
       break;
-    case "decimal":
+    }
+    case "decimal": {
       if (typeof value !== "number" && typeof value !== "string") {
         return {
           valid: false,
           error: `Expected decimal (number or string), got ${typeof value}`,
         };
       }
-      if (typeof value === "string" && isNaN(parseFloat(value))) {
+      if (typeof value === "string" && Number.isNaN(Number.parseFloat(value))) {
         return { valid: false, error: `Invalid decimal format` };
       }
       break;
-    case "json":
+    }
+    case "json": {
       if (typeof value !== "object" && typeof value !== "string") {
         return {
           valid: false,
@@ -576,7 +593,8 @@ const validateType = (
         }
       }
       break;
-    case "enum":
+    }
+    case "enum": {
       if (typeof value !== "string") {
         return {
           valid: false,
@@ -584,6 +602,7 @@ const validateType = (
         };
       }
       break;
+    }
   }
 
   return { valid: true };
@@ -620,13 +639,13 @@ const validateTableData = (
 
   // Initialize column stats
   const allColumns = [...schema.required, ...schema.optional];
-  allColumns.forEach((col) => {
+  for (const col of allColumns) {
     columnStats[col] = { nullCount: 0, totalCount: 0, typeErrors: 0 };
-  });
+  }
 
-  data.forEach((row, index) => {
+  for (const [index, row] of data.entries()) {
     // Check required fields
-    schema.required.forEach((field) => {
+    for (const field of schema.required) {
       columnStats[field].totalCount++;
 
       if (
@@ -648,34 +667,36 @@ const validateTableData = (
           );
         }
       }
-    });
+    }
 
     // Check optional fields (type validation only)
-    schema.optional.forEach((field) => {
-      if (row[field] !== undefined) {
-        columnStats[field].totalCount++;
+    for (const field of schema.optional) {
+      if (row[field] === undefined) {
+        continue;
+      }
 
-        if (row[field] === null || row[field] === undefined) {
-          columnStats[field].nullCount++;
-        } else {
-          const typeValidation = validateType(row[field], schema.types[field]);
-          if (!typeValidation.valid) {
-            columnStats[field].typeErrors++;
-            errors.push(
-              `Row ${index + 1}: Field '${field}' ${typeValidation.error}`
-            );
-          }
+      columnStats[field].totalCount++;
+
+      if (row[field] === null || row[field] === undefined) {
+        columnStats[field].nullCount++;
+      } else {
+        const typeValidation = validateType(row[field], schema.types[field]);
+        if (!typeValidation.valid) {
+          columnStats[field].typeErrors++;
+          errors.push(
+            `Row ${index + 1}: Field '${field}' ${typeValidation.error}`
+          );
         }
       }
-    });
+    }
 
     // Check for unexpected fields
-    Object.keys(row).forEach((field) => {
+    for (const field of Object.keys(row)) {
       if (!allColumns.includes(field)) {
         warnings.push(`Row ${index + 1}: Unexpected field '${field}' found`);
       }
-    });
-  });
+    }
+  }
 
   return {
     valid: errors.length === 0,
@@ -695,11 +716,11 @@ async function validateSeedData() {
   let totalWarnings = 0;
 
   try {
-    // Validate each table
-    for (const [tableName] of Object.entries(TABLE_SCHEMAS)) {
-      const { data, error } = await supabase
-        .from(tableName as keyof Database["public"]["Tables"])
-        .select("*");
+    // Validate each table. Iterated from a literal list rather than
+    // Object.entries so `supabase.from` receives a known table name instead of
+    // a widened `string`.
+    for (const tableName of VALIDATED_TABLE_NAMES) {
+      const { data, error } = await supabase.from(tableName).select("*");
 
       if (error) {
         validationResults[tableName] = { error: error.message };
@@ -729,7 +750,7 @@ async function validateSeedData() {
       }
 
       // Show column statistics
-      Object.entries(validation.columnStats).forEach(([_col, stats]) => {
+      for (const stats of Object.values(validation.columnStats)) {
         const _nullPercent =
           stats.totalCount > 0
             ? ((stats.nullCount / stats.totalCount) * 100).toFixed(1)
@@ -746,14 +767,14 @@ async function validateSeedData() {
             : stats.nullCount > stats.totalCount * 0.5
               ? "⚠️"
               : "✅";
-      });
+      }
 
       // Show first few errors if any
       if (validation.errors.length > 0) {
         console.log("   First 5 errors:");
-        validation.errors.slice(0, 5).forEach((error) => {
+        for (const error of validation.errors.slice(0, 5)) {
           console.log(`     - ${error}`);
-        });
+        }
         if (validation.errors.length > 5) {
           console.log(
             `     ... and ${validation.errors.length - 5} more errors`
@@ -974,18 +995,18 @@ async function validateSeedData() {
       // Create phase lookup map
       const phaseById: Record<string, Phase> = phases.reduce<
         Record<string, Phase>
-      >((acc, p) => {
-        acc[p.id] = p;
-        return acc;
+      >((accumulator, p) => {
+        accumulator[p.id] = p;
+        return accumulator;
       }, {});
 
       // Validate each task
-      tasks.forEach((task) => {
+      for (const task of tasks) {
         const phase = phaseById[task.phase_id];
 
         if (!phase) {
           taskPhaseErrors++;
-          return;
+          continue;
         }
 
         if (phase.order_index > 0 && task.phase_number !== phase.order_index) {
@@ -1006,14 +1027,14 @@ async function validateSeedData() {
         if (!phaseById[task.phase_id]) {
           taskPhaseErrors++;
         }
-      });
+      }
 
       // Validate phase structure for each meeting
-      const meetingIds = Array.from(new Set(phases.map((p) => p.meeting_id)));
-      meetingIds.forEach((meetingId) => {
+      const meetingIds = [...new Set(phases.map((p) => p.meeting_id))];
+      for (const meetingId of meetingIds) {
         const meetingPhases = phases.filter((p) => p.meeting_id === meetingId);
 
-        EXPECTED_PHASE_STRUCTURE.forEach((expectedPhase) => {
+        for (const expectedPhase of EXPECTED_PHASE_STRUCTURE) {
           const actualPhase = meetingPhases.find(
             (p) => p.order_index === expectedPhase.orderIndex
           );
@@ -1023,41 +1044,43 @@ async function validateSeedData() {
           } else if (actualPhase.name !== expectedPhase.name) {
             taskPhaseWarnings++;
           }
-        });
+        }
 
         // Unexpected phases
-        meetingPhases.forEach((phase) => {
+        for (const phase of meetingPhases) {
           const expectedPhase = EXPECTED_PHASE_STRUCTURE.find(
             (ep) => Math.abs(phase.order_index - ep.orderIndex) < 0.01
           );
           if (!expectedPhase) {
             taskPhaseWarnings++;
           }
-        });
+        }
 
         // Task distribution per phase
         const meetingTasks = tasks.filter((t) => t.meeting_id === meetingId);
         const tasksByPhaseNumber = new Map<number, Task[]>();
 
-        meetingTasks.forEach((task) => {
-          if (task.phase_number) {
-            if (!tasksByPhaseNumber.has(task.phase_number)) {
-              tasksByPhaseNumber.set(task.phase_number, []);
-            }
-            tasksByPhaseNumber.get(task.phase_number)!.push(task);
+        for (const task of meetingTasks) {
+          if (!task.phase_number) {
+            continue;
           }
-        });
 
-        Object.entries(EXPECTED_TASKS_BY_PHASE).forEach(
-          ([phaseNum, expectedTasks]) => {
-            const phaseNumber = parseInt(phaseNum, 10);
-            const actualTasks = tasksByPhaseNumber.get(phaseNumber) || [];
-            if (actualTasks.length !== expectedTasks.length) {
-              taskPhaseWarnings++;
-            }
+          if (!tasksByPhaseNumber.has(task.phase_number)) {
+            tasksByPhaseNumber.set(task.phase_number, []);
           }
-        );
-      });
+          tasksByPhaseNumber.get(task.phase_number)!.push(task);
+        }
+
+        for (const [phaseNumber_, expectedTasks] of Object.entries(
+          EXPECTED_TASKS_BY_PHASE
+        )) {
+          const phaseNumber = parseInt(phaseNumber_, 10);
+          const actualTasks = tasksByPhaseNumber.get(phaseNumber) || [];
+          if (actualTasks.length !== expectedTasks.length) {
+            taskPhaseWarnings++;
+          }
+        }
+      }
 
       if (taskPhaseErrors === 0 && taskPhaseWarnings === 0) {
         console.log("✅ Task-Phase Assignment: All validations passed");
@@ -1112,13 +1135,15 @@ async function validateSeedData() {
     // Aggregate record count (kept for potential future metrics)
     let _totalRecords = 0;
     console.log("\n📊 Summary by Table:");
-    Object.entries(validationResults).forEach(([tableName, result]) => {
-      if ("recordCount" in result) {
-        _totalRecords += result.recordCount;
-        const status = result.validation.valid ? "✅" : "❌";
-        console.log(`   ${status} ${tableName}: ${result.recordCount} records`);
+    for (const [tableName, result] of Object.entries(validationResults)) {
+      if (!("recordCount" in result)) {
+        continue;
       }
-    });
+
+      _totalRecords += result.recordCount;
+      const status = result.validation.valid ? "✅" : "❌";
+      console.log(`   ${status} ${tableName}: ${result.recordCount} records`);
+    }
     console.log(
       `🎯 Key Tables: ${positions.length} positions, ${positionVotes.length} position votes`
     );

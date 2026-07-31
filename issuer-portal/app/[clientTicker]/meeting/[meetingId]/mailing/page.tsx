@@ -18,6 +18,7 @@ import FeatureTile from "@/components/FeatureTile";
 import AdditionalMailingSummaryCard from "@/components/Meeting/AdditionalMailingSummaryCard";
 import MailingDataCard from "@/components/Meeting/MailingDataCard";
 import MailingTimelineCard from "@/components/Meeting/MailingTimelineCard";
+import { toMailingStatus } from "@/components/Meeting/mailingTimeline";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useMailing } from "@/hooks/useMailing";
 
@@ -117,22 +118,13 @@ const MailingPage = () => {
               </CardContent>
             </Card>
             <MailingDataCard meetingId={meetingId} />
-            <AdditionalMailingSummaryCard
-              meetingId={meetingId}
-              ticker={currentMeeting?.ticker}
-            />
+            <AdditionalMailingSummaryCard meetingId={meetingId} />
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, md: 12, lg: 3 }}>
           <Stack direction="column" spacing={2}>
             <MailingTimelineCard
-              currentStatus={
-                currentMeeting?.mailingStatus as
-                  | React.ComponentProps<
-                      typeof MailingTimelineCard
-                    >["currentStatus"]
-                  | undefined
-              }
+              currentStatus={toMailingStatus(currentMeeting?.mailingStatus)}
               preFilingDate={currentMeeting?.preFilingDate}
               brokerSearchDate={currentMeeting?.brokerSearchDate}
               recordDate={currentMeeting?.recordDate}
@@ -163,7 +155,7 @@ const MailingPage = () => {
                       <FeatureTile
                         titleVariant="h4"
                         bodyVariant="body3"
-                        title={"12"}
+                        title="12"
                         subtitle="Bounceback"
                         gutterBottom={false}
                         height="90px"
@@ -185,7 +177,7 @@ const MailingPage = () => {
                       <FeatureTile
                         titleVariant="h4"
                         bodyVariant="body3"
-                        title={"10"}
+                        title="10"
                         subtitle="Adhoc"
                         gutterBottom={false}
                         height="90px"

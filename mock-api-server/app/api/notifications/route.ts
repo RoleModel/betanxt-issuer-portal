@@ -1,6 +1,5 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import type { components } from "@/types/api";
 
@@ -31,26 +30,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .limit(50);
 
     type NotificationType = "info" | "warning" | "error" | "success";
-    const validQueryTypes: NotificationType[] = [
+    const validQueryTypes = new Set<string>([
       "info",
       "warning",
       "error",
       "success",
-    ];
+    ]);
+    // Predicate rather than an assertion so the query below sees the narrowed type.
+    const isNotificationType = (value: string): value is NotificationType =>
+      validQueryTypes.has(value);
 
-    if (resolvedUserId) query = query.eq("user_id", resolvedUserId);
-    if (meetingId) query = query.eq("meeting_id", meetingId);
-    if (type && validQueryTypes.includes(type as NotificationType))
-      query = query.eq("type", type as NotificationType);
+    if (resolvedUserId) {
+      query = query.eq("user_id", resolvedUserId);
+    }
+    if (meetingId) {
+      query = query.eq("meeting_id", meetingId);
+    }
+    if (type && isNotificationType(type)) {
+      query = query.eq("type", type);
+    }
 
     if (clientTicker) {
       const meetingIds = await getMeetingIdsForTicker(clientTicker);
       const normalizedTicker = clientTicker.trim().toUpperCase();
-      if (meetingIds.length > 0) {
-        query = query.in("meeting_id", meetingIds);
-      } else {
-        query = query.ilike("action_url", `%/${normalizedTicker}/%`);
-      }
+      query =
+        meetingIds.length > 0
+          ? query.in("meeting_id", meetingIds)
+          : query.ilike("action_url", `%/${normalizedTicker}/%`);
     }
 
     const { data, error } = await query;
@@ -86,7 +92,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "listNotifications",
         },
         { status: 500 }
@@ -177,7 +183,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
         },
         { status: 500 }
       )

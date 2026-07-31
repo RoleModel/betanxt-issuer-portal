@@ -29,36 +29,32 @@ interface Proposal {
 }
 
 interface BrokerVotingChartProps {
-  meetingId?: string;
-  proposals?: Proposal[];
-  brokerData?: Record<string, BrokerVotingData[]>;
-  loading?: boolean;
+  readonly meetingId?: string;
+  readonly proposals?: readonly Proposal[];
+  readonly brokerData?: Record<string, BrokerVotingData[]>;
+  readonly loading?: boolean;
   /** Optional card subheader, e.g. the currently selected event. */
-  subheader?: string;
+  readonly subheader?: string;
 }
 
+const EMPTY_PROPOSALS: readonly Proposal[] = [];
+const EMPTY_BROKER_DATA: Record<string, BrokerVotingData[]> = {};
+
 const BrokerVotingChart = ({
-  meetingId,
-  proposals = [],
-  brokerData = {},
+  proposals = EMPTY_PROPOSALS,
+  brokerData = EMPTY_BROKER_DATA,
   loading = false,
   subheader,
 }: BrokerVotingChartProps) => {
   const [selectedProposalId, setSelectedProposalId] = useState<string>("");
 
-  // Reset selectedProposalId when meetingId changes or when current selection is invalid
-  React.useEffect(() => {
-    if (proposals.length > 0) {
-      const currentProposalExists = proposals.some(
-        (p) => p.id === selectedProposalId
-      );
-      if (!currentProposalExists) {
-        setSelectedProposalId(proposals[0].id);
-      }
-    } else {
-      setSelectedProposalId("");
-    }
-  }, [proposals, selectedProposalId, meetingId]);
+  // Derive the effective selection during render: keep the user's choice while
+  // it is still valid, otherwise fall back to the first available proposal.
+  const effectiveProposalId =
+    selectedProposalId &&
+    proposals.some((proposal) => proposal.id === selectedProposalId)
+      ? selectedProposalId
+      : (proposals[0]?.id ?? "");
 
   // Map generic proposal keys (proposal1, proposal2) to actual proposal IDs based on order
   const mappedBrokerData = React.useMemo(() => {
@@ -87,8 +83,8 @@ const BrokerVotingChart = ({
 
   // Get broker data for selected proposal
   const data =
-    selectedProposalId && mappedBrokerData[selectedProposalId]
-      ? mappedBrokerData[selectedProposalId]
+    effectiveProposalId && mappedBrokerData[effectiveProposalId]
+      ? mappedBrokerData[effectiveProposalId]
       : [];
   const hasData = Object.keys(mappedBrokerData).length > 0;
 
@@ -113,8 +109,10 @@ const BrokerVotingChart = ({
             select
             size="small"
             label="Proposal"
-            value={selectedProposalId}
-            onChange={(e) => setSelectedProposalId(e.target.value)}
+            value={effectiveProposalId}
+            onChange={(e) => {
+              setSelectedProposalId(e.target.value);
+            }}
             sx={{ minWidth: 200 }}
           >
             {proposals.map((proposal) => (

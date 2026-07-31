@@ -42,6 +42,20 @@ export const hasNonEmptyString = (
   value: string | null | undefined
 ): value is string => value !== null && value !== undefined && value.length > 0;
 
+/**
+ * The API models `mailingStatus` as a plain string, so it has to be validated
+ * against the workflow before it can be treated as a `MailingStatus`.
+ */
+export const isMailingStatus = (
+  value: string | null | undefined
+): value is MailingStatus =>
+  WORKFLOW_STEPS.some((step) => step.label === value);
+
+/** Narrows an API-supplied status, discarding values outside the workflow. */
+export const toMailingStatus = (
+  value: string | null | undefined
+): MailingStatus | null => (isMailingStatus(value) ? value : null);
+
 export const formatMailingStatusDate = (
   statusDate: string | null | undefined
 ): string | null =>
