@@ -18,7 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { termsDefinitions } from "@/lib/termsDefinitions";
 
@@ -61,12 +61,11 @@ const glossaryTreeItems = Array.from(
     firstCategory.localeCompare(secondCategory)
   )
   .map<GlossaryTreeItem>((category) => ({
-    children: glossaryTerms
-      .filter((item) => item.category === category)
-      .map((item) => ({
-        id: termItemId(item.id),
-        label: item.term,
-      })),
+    children: glossaryTerms.flatMap((item) =>
+      item.category === category
+        ? [{ id: termItemId(item.id), label: item.term }]
+        : []
+    ),
     id: categoryItemId(category),
     label: category,
   }));
@@ -131,7 +130,13 @@ export const InfoDialog = ({
     );
   }, [initialTermId, open]);
 
-  const filteredTreeItems = filterGlossaryTreeItems(searchQuery);
+  // Memoized because a non-empty query rebuilds the array on every render, and
+  // this value is a dependency of the effect below that sets `expandedItems` —
+  // an unstable reference there re-triggers the effect endlessly.
+  const filteredTreeItems = useMemo(
+    () => filterGlossaryTreeItems(searchQuery),
+    [searchQuery]
+  );
 
   const selectedTerm = selectedTermId
     ? getGlossaryTerm(selectedTermId)
@@ -243,27 +248,6 @@ export const InfoDialog = ({
               </Typography>
             </Box>
             <Stack alignItems="center" direction="row" spacing={1}>
-              <TextField
-                placeholder="Search terms"
-                size="small"
-                value={searchQuery}
-                onChange={(event) => {
-                  setSearchQuery(event.target.value);
-                }}
-                slotProps={{
-                  htmlInput: {
-                    "aria-label": "Search glossary terms",
-                  },
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-                sx={{ minWidth: { sm: 260 }, width: { xs: "100%", sm: 300 } }}
-              />
               <IconButton
                 aria-label="Close terms and definitions"
                 onClick={onClose}
@@ -290,125 +274,24 @@ export const InfoDialog = ({
             minHeight: 0,
           }}
         >
-          <Box
-            aria-label="Glossary categories"
-            component="nav"
-            sx={{
-              borderBottom: { md: 0, xs: 1 },
-              borderColor: "divider",
-              borderRight: { md: 1, xs: 0 },
-              minHeight: 0,
-              overflowY: "auto",
-              p: 1.5,
-            }}
-          >
-            <RichTreeView<GlossaryTreeItem>
-              expandedItems={expandedItems}
-              items={filteredTreeItems}
-              itemChildrenIndentation={20}
-              onExpandedItemsChange={(_event, itemIds) => {
-                setExpandedItems(itemIds);
-              }}
-              onSelectedItemsChange={handleSelectedItemsChange}
-              selectedItems={
-                selectedTermId === null ? null : termItemId(selectedTermId)
-              }
-              sx={{
-                "& .MuiTreeItem-content": {
-                  borderRadius: 1,
-                },
-                "& .MuiTreeItem-label": {
-                  typography: "body3",
-                },
-              }}
-            />
-            {filteredTreeItems.length === 0 ? (
-              <Typography
-                color="text.secondary"
-                sx={{ px: 1, py: 2 }}
-                variant="body3"
-              >
-                No glossary terms match your search.
-              </Typography>
-            ) : null}
-          </Box>
+          <GlossaryNav
+            expandedItems={expandedItems}
+            filteredTreeItems={filteredTreeItems}
+            onExpandedItemsChange={setExpandedItems}
+            onSearchQueryChange={setSearchQuery}
+            onSelectedItemsChange={handleSelectedItemsChange}
+            searchQuery={searchQuery}
+            selectedTermId={selectedTermId}
+          />
 
-          <Box
-            id="glossary-definition"
-            sx={{
-              minHeight: 0,
-              overflowY: "auto",
-              p: { xs: 2, sm: 3 },
-            }}
-          >
-            <Stack spacing={2} sx={{ height: "100%" }}>
-              <Box
-                sx={{
-                  alignItems: "flex-start",
-                  display: "flex",
-                  gap: 1,
-                  justifyContent: "space-between",
-                }}
-              >
-                <Box>
-                  <Typography component="h3" variant="h5">
-                    {selectedTerm?.term ?? "Glossary"}
-                  </Typography>
-                  {selectedTerm ? (
-                    <Typography color="text.secondary" variant="body3">
-                      {selectedTerm.category}
-                    </Typography>
-                  ) : null}
-                </Box>
-                <Tooltip title="Copy definition">
-                  <span>
-                    <IconButton
-                      aria-label={`Copy definition of ${selectedTerm?.term ?? "glossary term"}`}
-                      disabled={displayedDefinition.length === 0}
-                      onClick={() => {
-                        void handleCopyToClipboard();
-                      }}
-                    >
-                      <ContentCopyIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              </Box>
-              <Typography
-                sx={{ maxWidth: 920, whiteSpace: "pre-wrap" }}
-                variant="body2"
-              >
-                {displayedDefinition}
-              </Typography>
-              <Box sx={{ flexGrow: 1 }} />
-              <Stack direction="row" justifyContent="space-between" spacing={1}>
-                <Button
-                  disabled={previousTerm === undefined}
-                  onClick={() => {
-                    if (previousTerm) {
-                      selectTerm(previousTerm.id);
-                    }
-                  }}
-                  startIcon={<NavigateBeforeIcon />}
-                  variant="text"
-                >
-                  Previous
-                </Button>
-                <Button
-                  disabled={nextTerm === undefined}
-                  endIcon={<NavigateNextIcon />}
-                  onClick={() => {
-                    if (nextTerm) {
-                      selectTerm(nextTerm.id);
-                    }
-                  }}
-                  variant="text"
-                >
-                  Next
-                </Button>
-              </Stack>
-            </Stack>
-          </Box>
+          <GlossaryDefinitionPanel
+            displayedDefinition={displayedDefinition}
+            nextTerm={nextTerm}
+            onCopy={handleCopyToClipboard}
+            onSelectTerm={selectTerm}
+            previousTerm={previousTerm}
+            selectedTerm={selectedTerm}
+          />
         </Box>
 
         <Divider />
@@ -421,3 +304,182 @@ export const InfoDialog = ({
     </Drawer>
   );
 };
+
+interface GlossaryNavProps {
+  readonly expandedItems: string[];
+  readonly filteredTreeItems: GlossaryTreeItem[];
+  readonly onExpandedItemsChange: (itemIds: string[]) => void;
+  readonly onSearchQueryChange: (value: string) => void;
+  readonly onSelectedItemsChange: (
+    event: React.SyntheticEvent | null,
+    itemId: string | null
+  ) => void;
+  readonly searchQuery: string;
+  readonly selectedTermId: string | null;
+}
+
+const GlossaryNav = ({
+  expandedItems,
+  filteredTreeItems,
+  onExpandedItemsChange,
+  onSearchQueryChange,
+  onSelectedItemsChange,
+  searchQuery,
+  selectedTermId,
+}: GlossaryNavProps) => (
+  <Box
+    aria-label="Glossary categories"
+    component="nav"
+    sx={{
+      borderBottom: { md: 0, xs: 1 },
+      borderColor: "divider",
+      borderRight: { md: 1, xs: 0 },
+      minHeight: 0,
+      overflowY: "auto",
+      p: 1.5,
+    }}
+  >
+    <TextField
+      placeholder="Search terms"
+      size="small"
+      margin="normal"
+      value={searchQuery}
+      onChange={(event) => {
+        onSearchQueryChange(event.target.value);
+      }}
+      slotProps={{
+        htmlInput: {
+          "aria-label": "Search glossary terms",
+        },
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" />
+            </InputAdornment>
+          ),
+        },
+      }}
+      sx={{ minWidth: { sm: 260 }, width: { xs: "100%", sm: 300 } }}
+    />
+    <RichTreeView<GlossaryTreeItem>
+      expandedItems={expandedItems}
+      items={filteredTreeItems}
+      itemChildrenIndentation={20}
+      onExpandedItemsChange={(_event, itemIds) => {
+        onExpandedItemsChange(itemIds);
+      }}
+      onSelectedItemsChange={onSelectedItemsChange}
+      selectedItems={
+        selectedTermId === null ? null : termItemId(selectedTermId)
+      }
+      sx={{
+        "& .MuiTreeItem-content": {
+          borderRadius: 1,
+        },
+        "& .MuiTreeItem-label": {
+          typography: "body3",
+        },
+      }}
+    />
+    {filteredTreeItems.length === 0 ? (
+      <Typography color="text.secondary" sx={{ px: 1, py: 2 }} variant="body3">
+        No glossary terms match your search.
+      </Typography>
+    ) : null}
+  </Box>
+);
+
+interface GlossaryDefinitionPanelProps {
+  readonly displayedDefinition: string;
+  readonly nextTerm: GlossaryTerm | undefined;
+  readonly onCopy: () => Promise<void>;
+  readonly onSelectTerm: (termId: string) => void;
+  readonly previousTerm: GlossaryTerm | undefined;
+  readonly selectedTerm: GlossaryTerm | undefined;
+}
+
+const GlossaryDefinitionPanel = ({
+  displayedDefinition,
+  nextTerm,
+  onCopy,
+  onSelectTerm,
+  previousTerm,
+  selectedTerm,
+}: GlossaryDefinitionPanelProps) => (
+  <Box
+    id="glossary-definition"
+    sx={{
+      minHeight: 0,
+      overflowY: "auto",
+      p: { xs: 2, sm: 3 },
+    }}
+  >
+    <Stack spacing={2} sx={{ height: "100%" }}>
+      <Box
+        sx={{
+          alignItems: "flex-start",
+          display: "flex",
+          gap: 1,
+          justifyContent: "space-between",
+        }}
+      >
+        <Box>
+          <Typography component="h3" variant="h5">
+            {selectedTerm?.term ?? "Glossary"}
+          </Typography>
+          {selectedTerm ? (
+            <Typography color="text.secondary" variant="body3">
+              {selectedTerm.category}
+            </Typography>
+          ) : null}
+        </Box>
+        <Tooltip title="Copy definition">
+          <span>
+            <IconButton
+              aria-label={`Copy definition of ${selectedTerm?.term ?? "glossary term"}`}
+              disabled={displayedDefinition.length === 0}
+              onClick={() => {
+                void onCopy();
+              }}
+            >
+              <ContentCopyIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Box>
+      <Typography
+        sx={{ maxWidth: 920, whiteSpace: "pre-wrap" }}
+        variant="body2"
+      >
+        {displayedDefinition}
+      </Typography>
+      <Box sx={{ flexGrow: 1 }} />
+      <Stack direction="row" justifyContent="space-between" spacing={1}>
+        <Button
+          disabled={previousTerm === undefined}
+          onClick={() => {
+            if (previousTerm) {
+              onSelectTerm(previousTerm.id);
+            }
+          }}
+          startIcon={<NavigateBeforeIcon />}
+          variant="text"
+        >
+          Previous
+        </Button>
+        <Button
+          disabled={nextTerm === undefined}
+          endIcon={<NavigateNextIcon />}
+          onClick={() => {
+            if (nextTerm) {
+              onSelectTerm(nextTerm.id);
+            }
+          }}
+          variant="text"
+        >
+          Next
+        </Button>
+      </Stack>
+    </Stack>
+  </Box>
+);

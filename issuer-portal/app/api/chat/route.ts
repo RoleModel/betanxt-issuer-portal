@@ -1,6 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import {
-  type UIMessage,
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -8,6 +7,7 @@ import {
   streamText,
 } from "ai";
 import { z } from "zod";
+import type { UIMessage } from "ai";
 
 import { auth } from "@/auth";
 import { enqueueChatbotAction } from "@/lib/chatbotActionsStore";
@@ -120,15 +120,13 @@ const getCurrentPath = (request: Request): string => {
   }
 };
 
-const asRecord = (value: unknown): Record<string, unknown> | null => {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null;
-};
 
-const asString = (value: unknown): string | null => {
-  return typeof value === "string" ? value : null;
-};
+const asString = (value: unknown): string | null =>
+  typeof value === "string" ? value : null;
 
 const asNumber = (value: unknown): number => {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -139,37 +137,40 @@ const asNumber = (value: unknown): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const asStringArray = (value: unknown): string[] => {
-  return Array.isArray(value)
+const asStringArray = (value: unknown): string[] =>
+  Array.isArray(value)
     ? value
         .map((item) => asString(item))
         .filter((item): item is string => Boolean(item))
     : [];
-};
 
-const asArray = (value: unknown): unknown[] => {
-  return Array.isArray(value) ? value : [];
-};
+const asArray = (value: unknown): unknown[] =>
+  Array.isArray(value) ? value : [];
 
-const normalizeText = (value: string): string => {
-  return value
+const normalizeText = (value: string): string =>
+  value
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
+    .replaceAll(/[^a-z0-9]+/g, " ")
     .trim();
-};
 
 const extractMeetingYearFromSearch = (search?: string): number | undefined => {
-  if (!search) return undefined;
+  if (!search) {
+    return undefined;
+  }
 
   const match = /\b(19|20)\d{2}\b/.exec(search);
-  if (!match) return undefined;
+  if (!match) {
+    return undefined;
+  }
 
   const year = Number.parseInt(match[0], 10);
   return Number.isFinite(year) ? year : undefined;
 };
 
 const extractMeetingTypeFromSearch = (search?: string): string | undefined => {
-  if (!search) return undefined;
+  if (!search) {
+    return undefined;
+  }
 
   const normalizedSearch = normalizeText(search);
 
@@ -191,7 +192,9 @@ const extractMeetingSearchTerm = (
   meetingYear: number | undefined,
   meetingType: string | undefined
 ): string => {
-  if (!search) return "";
+  if (!search) {
+    return "";
+  }
 
   const removalTerms = new Set(
     [
@@ -287,8 +290,12 @@ const isTickerAllowed = (
   ticker: string | null | undefined,
   allowedTickers: string[] | null
 ): boolean => {
-  if (!ticker) return true;
-  if (allowedTickers === null) return true;
+  if (!ticker) {
+    return true;
+  }
+  if (allowedTickers === null) {
+    return true;
+  }
   return allowedTickers.includes(ticker.toUpperCase());
 };
 
@@ -337,9 +344,10 @@ const getClientAliases = (row: Record<string, unknown>): string[] => {
     asString(row.company_name),
   ];
 
-  return aliases.filter((value, index, values): value is string => {
-    return Boolean(value) && values.indexOf(value) === index;
-  });
+  return aliases.filter(
+    (value, index, values): value is string =>
+      Boolean(value) && values.indexOf(value) === index
+  );
 };
 
 const inferTickerFromSearch = async (
@@ -347,7 +355,9 @@ const inferTickerFromSearch = async (
   accessContext: ChatAccessContext
 ): Promise<string | null> => {
   const normalizedSearch = normalizeText(search);
-  if (!normalizedSearch) return null;
+  if (!normalizedSearch) {
+    return null;
+  }
 
   const payload = await fetchPortalJson("/clients");
   const root = asRecord(payload);
@@ -360,9 +370,11 @@ const inferTickerFromSearch = async (
       ticker: (asString(row.ticker) ?? "").toUpperCase(),
       aliases: getClientAliases(row),
     }))
-    .filter((client) => client.ticker && client.aliases.length > 0)
-    .filter((client) =>
-      isTickerAllowed(client.ticker, accessContext.allowedTickers)
+    .filter(
+      (client) =>
+        client.ticker &&
+        client.aliases.length > 0 &&
+        isTickerAllowed(client.ticker, accessContext.allowedTickers)
     );
 
   const directTickerMatch = clients.find((client) =>
@@ -373,22 +385,22 @@ const inferTickerFromSearch = async (
     return directTickerMatch.ticker;
   }
 
-  const bestNameMatch = clients.find((client) => {
-    return client.aliases.some((alias) => {
+  const bestNameMatch = clients.find((client) =>
+    client.aliases.some((alias) => {
       const normalizedAlias = normalizeText(alias);
       return (
         normalizedSearch.includes(normalizedAlias) ||
         normalizedAlias.includes(normalizedSearch)
       );
-    });
-  });
+    })
+  );
 
   if (bestNameMatch) {
     return bestNameMatch.ticker;
   }
 
-  const tokenMatchedClient = clients.find((client) => {
-    return client.aliases.some((alias) => {
+  const tokenMatchedClient = clients.find((client) =>
+    client.aliases.some((alias) => {
       const normalizedAlias = normalizeText(alias);
       const aliasTokens = normalizedAlias
         .split(" ")
@@ -401,8 +413,8 @@ const inferTickerFromSearch = async (
         aliasTokens.length > 0 &&
         aliasTokens.every((token) => normalizedSearch.includes(token))
       );
-    });
-  });
+    })
+  );
 
   return tokenMatchedClient?.ticker ?? null;
 };
@@ -422,9 +434,11 @@ const getClientNameForTicker = async (
       ticker: (asString(row.ticker) ?? "").toUpperCase(),
       aliases: getClientAliases(row),
     }))
-    .filter((client) => client.ticker && client.aliases.length > 0)
-    .filter((client) =>
-      isTickerAllowed(client.ticker, accessContext.allowedTickers)
+    .filter(
+      (client) =>
+        client.ticker &&
+        client.aliases.length > 0 &&
+        isTickerAllowed(client.ticker, accessContext.allowedTickers)
     )
     .find((client) => client.ticker === ticker.toUpperCase());
 
@@ -555,9 +569,7 @@ const resolveClientTicker = (
 const resolveMeetingId = (
   requestedMeetingId: string | undefined,
   accessContext: ChatAccessContext
-): string | null => {
-  return requestedMeetingId ?? accessContext.currentMeetingId;
-};
+): string | null => requestedMeetingId ?? accessContext.currentMeetingId;
 
 const isAllowedNavigationPath = (
   path: string,
@@ -588,16 +600,14 @@ const buildMeetingRoute = (
   return `/${clientTicker}/${meetingScope}/${meetingId}/${nextSegment}`;
 };
 
-const getMessageText = (message: UIMessage): string => {
-  return message.parts
-    .filter((part) => part.type === "text")
-    .map((part) => part.text)
+const getMessageText = (message: UIMessage): string =>
+  message.parts
+    .flatMap((part) => (part.type === "text" ? [part.text] : []))
     .join("\n")
     .trim();
-};
 
-const sanitizeMessagesForModel = (messages: UIMessage[]): UIMessage[] => {
-  return messages.slice(-MAX_CONTEXT_MESSAGES).map((message) => {
+const sanitizeMessagesForModel = (messages: UIMessage[]): UIMessage[] =>
+  messages.slice(-MAX_CONTEXT_MESSAGES).map((message) => {
     const text = getMessageText(message);
 
     return {
@@ -613,7 +623,6 @@ const sanitizeMessagesForModel = (messages: UIMessage[]): UIMessage[] => {
         : [],
     };
   });
-};
 
 const getFallbackAssistantReply = (
   messages: UIMessage[],
@@ -976,12 +985,16 @@ const executePortalQuery = async ({
             asString(row.short_name) ??
             "",
         }))
-        .filter((client) => client.id && client.ticker && client.name)
-        .filter((client) =>
-          isTickerAllowed(client.ticker, accessContext.allowedTickers)
-        )
         .filter((client) => {
-          if (!normalizedSearch) return true;
+          if (!(client.id && client.ticker && client.name)) {
+            return false;
+          }
+          if (!isTickerAllowed(client.ticker, accessContext.allowedTickers)) {
+            return false;
+          }
+          if (!normalizedSearch) {
+            return true;
+          }
           return (
             client.name.toLowerCase().includes(normalizedSearch) ||
             client.ticker.toLowerCase().includes(normalizedSearch)
@@ -1030,17 +1043,20 @@ const executePortalQuery = async ({
         requestedMeetingType
       );
 
-      const queryParams = new URLSearchParams({ ticker: resolvedTicker });
+      const queryParameters = new URLSearchParams({ ticker: resolvedTicker });
 
       if (
         typeof resolvedMeetingYear === "number" &&
         Number.isFinite(resolvedMeetingYear)
       ) {
-        queryParams.set("meetingYear", String(Math.trunc(resolvedMeetingYear)));
+        queryParameters.set(
+          "meetingYear",
+          String(Math.trunc(resolvedMeetingYear))
+        );
       }
 
       const payload = await fetchPortalJson(
-        `/meetings?${queryParams.toString()}`
+        `/meetings?${queryParameters.toString()}`
       );
       const root = asRecord(payload);
       const rows = Array.isArray(root?.meetings) ? root.meetings : [];
@@ -1057,24 +1073,26 @@ const executePortalQuery = async ({
             asString(row.meeting_type) ??
             "Meeting",
           meetingYear:
-            row.meetingYear !== undefined
-              ? asNumber(row.meetingYear)
-              : row.meeting_year !== undefined
-                ? asNumber(row.meeting_year)
-                : null,
+            row.meetingYear === undefined
+              ? asNumber(row.meeting_year)
+              : asNumber(row.meetingYear),
           meetingDate:
             asString(row.meetingDate) ?? asString(row.meeting_date) ?? null,
         }))
-        .filter((meeting) => meeting.id && meeting.title)
         .filter((meeting) => {
-          if (!requestedMeetingType) return true;
-          return (
-            normalizeText(meeting.meetingType) ===
-            normalizeText(requestedMeetingType)
-          );
-        })
-        .filter((meeting) => {
-          if (!normalizedMeetingSearch) return true;
+          if (!(meeting.id && meeting.title)) {
+            return false;
+          }
+          if (
+            requestedMeetingType &&
+            normalizeText(meeting.meetingType) !==
+              normalizeText(requestedMeetingType)
+          ) {
+            return false;
+          }
+          if (!normalizedMeetingSearch) {
+            return true;
+          }
           return (
             normalizeText(meeting.title).includes(normalizedMeetingSearch) ||
             normalizeText(meeting.id).includes(normalizedMeetingSearch) ||
@@ -1185,9 +1203,13 @@ const executePortalQuery = async ({
           finalResult:
             asString(row.finalResult) ?? asString(row.final_result) ?? "",
         }))
-        .filter((proposal) => proposal.id || proposal.title)
         .filter((proposal) => {
-          if (!normalizedSearch) return true;
+          if (!(proposal.id || proposal.title)) {
+            return false;
+          }
+          if (!normalizedSearch) {
+            return true;
+          }
           return (
             proposal.title.toLowerCase().includes(normalizedSearch) ||
             proposal.proposalNumber.toLowerCase().includes(normalizedSearch) ||
@@ -1235,15 +1257,17 @@ const executePortalQuery = async ({
           dueDate: asString(row.dueDate) ?? asString(row.due_date) ?? null,
           owner: asString(row.owner) ?? "",
           phaseNumber:
-            row.phaseNumber !== undefined
-              ? asNumber(row.phaseNumber)
-              : row.phase_number !== undefined
-                ? asNumber(row.phase_number)
-                : null,
+            row.phaseNumber === undefined
+              ? asNumber(row.phase_number)
+              : asNumber(row.phaseNumber),
         }))
-        .filter((task) => task.taskId || task.title)
         .filter((task) => {
-          if (!normalizedSearch) return true;
+          if (!(task.taskId || task.title)) {
+            return false;
+          }
+          if (!normalizedSearch) {
+            return true;
+          }
           return (
             task.title.toLowerCase().includes(normalizedSearch) ||
             task.status.toLowerCase().includes(normalizedSearch) ||
@@ -1289,9 +1313,13 @@ const executePortalQuery = async ({
           controlNumber:
             asString(row.controlNumber) ?? asString(row.control_number) ?? "",
         }))
-        .filter((position) => position.name)
         .filter((position) => {
-          if (!normalizedSearch) return true;
+          if (!position.name) {
+            return false;
+          }
+          if (!normalizedSearch) {
+            return true;
+          }
           return (
             position.name.toLowerCase().includes(normalizedSearch) ||
             position.accountType.toLowerCase().includes(normalizedSearch) ||
@@ -1529,10 +1557,9 @@ export async function POST(request: Request) {
             });
           } catch (error) {
             return {
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "The portal data query failed.",
+              error: Error.isError(error)
+                ? error.message
+                : "The portal data query failed.",
             };
           }
         },
