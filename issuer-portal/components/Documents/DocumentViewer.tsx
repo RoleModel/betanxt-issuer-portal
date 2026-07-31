@@ -1708,6 +1708,13 @@ const DocumentContentArea: React.FC<DocumentContentAreaProps> = ({
   onCustomSignature,
   onPositionUpdate,
 }) => {
+  // Render a stable width on the server and first client paint, then read the
+  // real window width after mount to avoid an SSR/client hydration mismatch.
+  const [mounted, setMounted] = useState<boolean>(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <Box
       sx={{
@@ -1820,7 +1827,7 @@ const DocumentContentArea: React.FC<DocumentContentAreaProps> = ({
                         pageNumber={pageNumber}
                         width={Math.min(
                           800,
-                          typeof window !== "undefined"
+                          mounted
                             ? window.innerWidth -
                                 (showComments || showHistory ? 500 : 100)
                             : 800

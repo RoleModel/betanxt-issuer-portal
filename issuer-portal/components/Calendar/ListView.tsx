@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import type { KeyDate, Task } from "@/types/api-exports";
 import type { ContextMenuPosition } from "@/types/common";
@@ -161,8 +161,7 @@ export const ListView: React.FC<ListViewProps> = ({
   const [contextMenuOpen, setContextMenuOpen] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] =
     useState<ContextMenuPosition | null>(null);
-  const [selectedTaskForContext, setSelectedTaskForContext] =
-    useState<Task | null>(null);
+  const selectedTaskForContext = useRef<Task | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
@@ -202,17 +201,23 @@ export const ListView: React.FC<ListViewProps> = ({
 
     if (selectedPhase !== "all") {
       // Filter tasks by phase_number directly
-      tasksToShow = dbTasks
-        .filter((task) => {
-          const matches = task.phaseNumber === selectedPhase;
-          return matches;
-        })
-        .map(prepareTaskForDisplay);
+      tasksToShow = dbTasks.reduce<Task[]>((accumulated, task) => {
+        if (task.phaseNumber === selectedPhase) {
+          accumulated.push(prepareTaskForDisplay(task));
+        }
+        return accumulated;
+      }, []);
 
       // Filter key dates by phase_number for specific phase
-      keyDatesToShow = dbKeyDates
-        .filter((keyDate) => keyDate.phaseNumber === selectedPhase)
-        .map(convertKeyDateToDisplayKeyDate);
+      keyDatesToShow = dbKeyDates.reduce<DisplayKeyDate[]>(
+        (accumulated, keyDate) => {
+          if (keyDate.phaseNumber === selectedPhase) {
+            accumulated.push(convertKeyDateToDisplayKeyDate(keyDate));
+          }
+          return accumulated;
+        },
+        []
+      );
     } else {
       // When showing all tasks, deduplicate multi-phase tasks by showing only the earliest phase
       const taskMap = new Map<string, Task>();
@@ -287,7 +292,7 @@ export const ListView: React.FC<ListViewProps> = ({
       return;
     }
 
-    setSelectedTaskForContext(dbTask);
+    selectedTaskForContext.current = dbTask;
     setContextMenuPosition({ x: event.clientX, y: event.clientY });
     setContextMenuOpen(true);
   };
@@ -296,12 +301,12 @@ export const ListView: React.FC<ListViewProps> = ({
   const handleContextMenuClose = () => {
     setContextMenuOpen(false);
     setContextMenuPosition(null);
-    setSelectedTaskForContext(null);
+    selectedTaskForContext.current = null;
   };
 
   const handleEditTask = () => {
-    if (selectedTaskForContext) {
-      setTaskToEdit(prepareTaskForDisplay(selectedTaskForContext));
+    if (selectedTaskForContext.current) {
+      setTaskToEdit(prepareTaskForDisplay(selectedTaskForContext.current));
       setEditModalOpen(true);
     }
   };
@@ -544,7 +549,7 @@ export const ListView: React.FC<ListViewProps> = ({
                     return combinedItems.map((combinedItem, index) => {
                       if (combinedItem.type === "keyDate") {
                         const keyDate = combinedItem.item as DisplayKeyDate;
-                        const uniqueKey = `keydate-${keyDate.id || keyDate.title || index}`;
+                        const uniqueKey = `keydate-${keyDate.id || keyDate.title || combinedItem.date.getTime()}`;
                         return (
                           <motion.li
                             layout
@@ -612,7 +617,7 @@ export const ListView: React.FC<ListViewProps> = ({
                           taskPhase = selectedPhase;
                         }
                         const taskPhaseColor: string = getPhaseColor(taskPhase);
-                        const uniqueKey = `task-${task.id || task.taskId || task.title || index}`;
+                        const uniqueKey = `task-${task.id || task.taskId || task.title || combinedItem.date.getTime()}`;
                         return (
                           <motion.li
                             key={uniqueKey}

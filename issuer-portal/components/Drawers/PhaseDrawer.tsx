@@ -25,7 +25,7 @@ import { styled, useTheme } from "@mui/material/styles";
 import { jsPDF } from "jspdf";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 import type { KeyDate, Task } from "@/types/api-exports";
@@ -77,6 +77,9 @@ interface PhaseUrl {
   description?: string;
   url?: string;
 }
+
+// URLs would come from phase data if available (currently not in our schema)
+const PHASE_URLS: PhaseUrl[] = [];
 
 // Swipeable drawer constants
 const drawerBleeding = 60;
@@ -207,9 +210,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   } = useDrawerDocuments();
 
   const [uploadTaskTitle, setUploadTaskTitle] = useState("");
-  const [currentTaskForUpload, setCurrentTaskForUpload] = useState<Task | null>(
-    null
-  );
+  const currentTaskForUpload = useRef<Task | null>(null);
   const [isSubmittingUpload, setIsSubmittingUpload] = useState(false);
   const [mobileUploadOpen, setMobileUploadOpen] = useState(false);
   const [currentTaskForDocument, setCurrentTaskForDocument] =
@@ -301,16 +302,22 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       Object.keys(currentPhaseData.keyDates).length > 0
     ) {
       // If phase has specific key dates in the phase data, use those
-      const result = Object.entries(currentPhaseData.keyDates)
-        .filter(([, value]) => value)
-        .map(([key, value]) => ({
-          id: key,
-          title: key
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase()),
-          phaseNumber: currentPhaseNumber,
-          date: value!,
-        }));
+      const result = Object.entries(currentPhaseData.keyDates).reduce<KeyDate[]>(
+        (accumulated, [key, value]) => {
+          if (value) {
+            accumulated.push({
+              id: key,
+              title: key
+                .replace(/([A-Z])/g, " $1")
+                .replace(/^./, (str) => str.toUpperCase()),
+              phaseNumber: currentPhaseNumber,
+              date: value,
+            });
+          }
+          return accumulated;
+        },
+        []
+      );
       if (result.length > 0) {
         return result;
       }
@@ -349,69 +356,67 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     return filtered;
   }, [currentPhaseData, meetingKeyDates, currentPhaseNumber]);
 
-  // URLs would come from phase data if available (currently not in our schema)
-  const urls: PhaseUrl[] = [];
-
   const handleUploadSubmit = async () => {
-    if (
-      !currentTaskForUpload ||
-      !currentMeeting?.id ||
-      uploadFiles.length === 0
-    ) {
+    const taskForUpload = currentTaskForUpload.current;
+    if (!taskForUpload || !currentMeeting?.id || uploadFiles.length === 0) {
       return;
     }
+
+    const meetingId = currentMeeting.id;
 
     try {
       setIsSubmittingUpload(true);
 
-      // Upload each file to document repository
-      for (const uploadFile of uploadFiles) {
-        // Update file status to uploading
-        setUploadFiles((prev) =>
-          prev.map((f) =>
-            f.id === uploadFile.id
-              ? { ...f, status: "uploading" as const, progress: 0 }
-              : f
-          )
-        );
-
-        const documentType = getDocumentTypeFromTask(currentTaskForUpload);
-        const uploadPath = await uploadDocument(
-          uploadFile.file,
-          documentType,
-          currentMeeting.id,
-          uploadFile.file.name,
-          currentTaskForUpload.id
-        );
-
-        if (uploadPath === null) {
-          // Mark file as error
+      // Upload files to document repository concurrently
+      await Promise.all(
+        uploadFiles.map(async (uploadFile) => {
+          // Update file status to uploading
           setUploadFiles((prev) =>
             prev.map((f) =>
               f.id === uploadFile.id
-                ? { ...f, status: "error" as const, error: "Upload failed" }
+                ? { ...f, status: "uploading" as const, progress: 0 }
                 : f
             )
           );
-          throw new Error(`Failed to upload file: ${uploadFile.file.name}`);
-        }
 
-        // Mark file as complete
-        setUploadFiles((prev) =>
-          prev.map((f) =>
-            f.id === uploadFile.id
-              ? { ...f, status: "complete" as const, progress: 100 }
-              : f
-          )
-        );
-      }
+          const documentType = getDocumentTypeFromTask(taskForUpload);
+          const uploadPath = await uploadDocument(
+            uploadFile.file,
+            documentType,
+            meetingId,
+            uploadFile.file.name,
+            taskForUpload.id
+          );
+
+          if (uploadPath === null) {
+            // Mark file as error
+            setUploadFiles((prev) =>
+              prev.map((f) =>
+                f.id === uploadFile.id
+                  ? { ...f, status: "error" as const, error: "Upload failed" }
+                  : f
+              )
+            );
+            throw new Error(`Failed to upload file: ${uploadFile.file.name}`);
+          }
+
+          // Mark file as complete
+          setUploadFiles((prev) =>
+            prev.map((f) =>
+              f.id === uploadFile.id
+                ? { ...f, status: "complete" as const, progress: 100 }
+                : f
+            )
+          );
+        })
+      );
 
       // Determine appropriate status based on task type
-      const newStatus = determineTaskStatus(currentTaskForUpload.title ?? "");
+      const newStatus = determineTaskStatus(taskForUpload.title ?? "");
 
       // Update task status
-      if (currentTaskForUpload.id) {
-        await updateTaskById(currentTaskForUpload.id, { status: newStatus });
+      if (taskForUpload.id) {
+        await updateTaskById(taskForUpload.id, { status: newStatus });
       }
 
       // Update meeting completion percentage
@@ -452,11 +457,11 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       }
 
       // Check if all tasks in the current phase are complete
-      await checkAndCompletePhase(currentTaskForUpload);
+      await checkAndCompletePhase(taskForUpload);
 
       // Clear state and close upload view
       clearUploadFiles();
-      setCurrentTaskForUpload(null);
+      currentTaskForUpload.current = null;
       setUploadTaskTitle("");
       void refreshMeetingData?.();
 
@@ -759,7 +764,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
         case "upload":
           setUploadTaskTitle(taskTitle);
-          setCurrentTaskForUpload(task ?? null);
+          currentTaskForUpload.current = task ?? null;
           if (isMobile) {
             setMobileUploadOpen(true);
           } else {
@@ -769,7 +774,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
 
         case "download":
           if (link.url) {
-            window.open(link.url, "_blank");
+            window.open(link.url, "_blank", "noopener");
           } else if (link.label === "Download") {
             // Use appropriate handler based on task type
             if (isPlanFileRequestTask) {
@@ -786,7 +791,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         case "external":
         default:
           if (link.url) {
-            window.open(link.url, "_blank");
+            window.open(link.url, "_blank", "noopener");
           }
           break;
       }
@@ -826,7 +831,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     setCurrentView("overview");
     clearUploadFiles();
     setUploadTaskTitle("");
-    setCurrentTaskForUpload(null);
+    currentTaskForUpload.current = null;
     setMobileUploadOpen(false);
   };
 
@@ -834,7 +839,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     setMobileUploadOpen(false);
     clearUploadFiles();
     setUploadTaskTitle("");
-    setCurrentTaskForUpload(null);
+    currentTaskForUpload.current = null;
   };
 
   const toggleMobileUpload = (newOpen: boolean) => () => {
@@ -845,7 +850,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
     setCurrentView("overview");
     clearUploadFiles();
     setUploadTaskTitle("");
-    setCurrentTaskForUpload(null);
+    currentTaskForUpload.current = null;
     onClose();
   };
 
@@ -1301,11 +1306,11 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             </Stack>
 
             {/* URLs Section */}
-            {urls.length > 0 && (
+            {PHASE_URLS.length > 0 && (
               <>
                 <Divider />
-                {urls.map((urlItem: PhaseUrl, index: number) => (
-                  <Box key={index}>
+                {PHASE_URLS.map((urlItem: PhaseUrl) => (
+                  <Box key={urlItem.url ?? urlItem.title}>
                     <Typography variant="body3" fontWeight={500} sx={{ mb: 1 }}>
                       {urlItem.title}
                     </Typography>

@@ -15,7 +15,7 @@ import {
   styled,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import React, { useLayoutEffect, useMemo, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 import type { components } from "@/types/api";
 
@@ -141,6 +141,12 @@ export const NotificationPopper = ({
   } = useNotifications();
   const [tabValue, setTabValue] = useState("0");
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  // Render a stable fallback position on the server and first client paint,
+  // then read the real window width after mount to avoid a hydration mismatch.
+  const [mounted, setMounted] = useState<boolean>(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Convert DB notifications to UI format
   const notifications = useMemo(
@@ -215,7 +221,7 @@ export const NotificationPopper = ({
       anchorPosition={
         pos ?? {
           top: 64,
-          left: typeof window !== "undefined" ? window.innerWidth : 0,
+          left: mounted ? window.innerWidth : 0,
         }
       }
       anchorOrigin={{ vertical: "top", horizontal: "right" }}

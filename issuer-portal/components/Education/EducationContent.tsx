@@ -263,8 +263,8 @@ const EducationPapersSection: React.FC<EducationPapersSectionProps> = ({
     <Card>
       <CardContent>
         <Grid container spacing={2}>
-          {items.map((item, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+          {items.map((item) => (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.title}>
               <FeatureTile
                 brandFont={true}
                 titleVariant="h1"
@@ -293,8 +293,8 @@ const ServicePapersSection: React.FC<ServicePapersSectionProps> = ({
         <Card>
           <CardContent>
             <Grid container spacing={2} alignItems="stretch">
-              {services.map((service, index) => (
-                <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
+              {services.map((service) => (
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={service.title}>
                   <FeatureTile
                     brandFont={true}
                     flex={true}
@@ -325,8 +325,12 @@ const ResourceScrollerCard: React.FC<ResourceScrollerCardProps> = ({
     <CardContent sx={{ p: 0 }}>
       <ScrollContainer direction="horizontal">
         <Stack spacing={2} direction="row" sx={{ p: 2, flexWrap: "nowrap" }}>
-          {resources.map((resource, index) => (
-            <ResourceTitle key={index} {...resource} minWidth="200px" />
+          {resources.map((resource) => (
+            <ResourceTitle
+              key={resource.title}
+              {...resource}
+              minWidth="200px"
+            />
           ))}
         </Stack>
       </ScrollContainer>

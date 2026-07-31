@@ -372,6 +372,7 @@ const ConversationsView = ({
                             year: "numeric",
                             month: "long",
                             day: "numeric",
+                            timeZone: "UTC",
                           }
                         )}{" "}
                         {new Date(conversation.updatedAt).toLocaleTimeString(
@@ -380,6 +381,7 @@ const ConversationsView = ({
                             hour: "numeric",
                             minute: "2-digit",
                             hour12: true,
+                            timeZone: "UTC",
                           }
                         )}
                       </Typography>
