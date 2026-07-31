@@ -29,6 +29,7 @@
         "POSTGRES_HOST",
         "POSTGRES_PASSWORD",
         "NEXT_PUBLIC_MUI_X_LICENSE",
+        "FLAGS",
         "FLAGS_SECRET",
         "POSTGRES_DATABASE",
         "SEED_SQL_URL",
