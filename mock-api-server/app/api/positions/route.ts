@@ -1,9 +1,8 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.941Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import type { components } from "@/types/api";
 
@@ -15,10 +14,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Extract query parameters
     const { searchParams } = new URL(request.url);
     const meetingId = searchParams.get("meetingId") || undefined;
-    const voteStatusParam = searchParams.get("voteStatus") || undefined;
+    const voteStatusParameter = searchParams.get("voteStatus") || undefined;
     const voteStatus: "Voted" | "Unvoted" | undefined =
-      voteStatusParam && ["Voted", "Unvoted"].includes(voteStatusParam)
-        ? (voteStatusParam as "Voted" | "Unvoted")
+      voteStatusParameter && ["Voted", "Unvoted"].includes(voteStatusParameter)
+        ? (voteStatusParameter as "Voted" | "Unvoted")
         : undefined;
     const accountType = searchParams.get("accountType") || undefined;
     const order = searchParams.get("order") || undefined;
@@ -54,7 +53,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "listPositions",
         },
         { status: 500 }
@@ -87,7 +86,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "createPosition",
         },
         { status: 500 }

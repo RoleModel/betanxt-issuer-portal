@@ -665,14 +665,15 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
     const { meetingId, id: taskId, title: taskTitle } = taskToUse;
     if (meetingId) {
       await Promise.all(
-        uploadResults.map((result) =>
-          createNewDocument(meetingId, {
-            title: result.fileName,
-            description: `Document uploaded for task: ${taskTitle}`,
-            type: "supporting-document",
-            file: result.filePath,
-            taskId,
-          })
+        uploadResults.map(
+          async (result) =>
+            await createNewDocument(meetingId, {
+              title: result.fileName,
+              description: `Document uploaded for task: ${taskTitle}`,
+              type: "supporting-document",
+              file: result.filePath,
+              taskId,
+            })
         )
       );
     }

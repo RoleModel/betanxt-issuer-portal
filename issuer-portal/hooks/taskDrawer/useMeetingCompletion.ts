@@ -1,9 +1,8 @@
 import { useCallback } from "react";
 
-import type { components } from "@/types/api";
-
 import buildApiClient from "@/domain-models/apiClient";
 import { calculateOverallCompletion } from "@/utils/taskControl";
+import type { components } from "@/types/api";
 
 type Task = components["schemas"]["Task"];
 
@@ -11,7 +10,7 @@ interface Meeting {
   id?: string;
 }
 
-interface UseMeetingCompletionProps {
+interface UseMeetingCompletionProperties {
   currentMeeting: Meeting | null;
   tasks: Task[];
   refetch: () => void;
@@ -21,9 +20,11 @@ export const useMeetingCompletion = ({
   currentMeeting,
   tasks,
   refetch,
-}: UseMeetingCompletionProps) => {
+}: UseMeetingCompletionProperties) => {
   const updateMeetingCompletion = useCallback(async () => {
-    if (!currentMeeting?.id) return;
+    if (!currentMeeting?.id) {
+      return;
+    }
 
     try {
       const client = await buildApiClient();
@@ -40,7 +41,7 @@ export const useMeetingCompletion = ({
           path: { meetingId: currentMeeting.id },
         },
         body: {
-          overallCompletion: overallCompletion,
+          overallCompletion,
         },
       });
     } catch {

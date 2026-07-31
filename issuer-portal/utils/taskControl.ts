@@ -59,7 +59,7 @@ export const shouldShowStatusChip = (task: Task): boolean => {
     TASK_TYPES.FINAL_RESULTS,
   ];
 
-  return !hideForTasks.some((taskType) => title.includes(taskType));
+  return hideForTasks.every((taskType) => !title.includes(taskType));
 };
 
 /**
@@ -94,17 +94,27 @@ export const getDateLabel = (task: Task, formattedDate: string): string => {
 export const getDocumentTypeFromTask = (task: Task): string => {
   const title = (task.title ?? "").toLowerCase();
 
-  if (title.includes(TASK_TYPES.DRAFT_PROXY_STATEMENT))
+  if (title.includes(TASK_TYPES.DRAFT_PROXY_STATEMENT)) {
     return "draft-proxy-statement";
-  if (title.includes(TASK_TYPES.PROXY_CARD)) return "proxy-card";
-  if (title.includes(TASK_TYPES.NOTICE_ACCESS) && title.includes("access"))
+  }
+  if (title.includes(TASK_TYPES.PROXY_CARD)) {
+    return "proxy-card";
+  }
+  if (title.includes(TASK_TYPES.NOTICE_ACCESS) && title.includes("access")) {
     return "notice-access-form";
-  if (title.includes(TASK_TYPES.VOTING_INSTRUCTION))
+  }
+  if (title.includes(TASK_TYPES.VOTING_INSTRUCTION)) {
     return "voting-instruction-form";
-  if (title.includes(TASK_TYPES.TRANSFER_AGENT))
+  }
+  if (title.includes(TASK_TYPES.TRANSFER_AGENT)) {
     return "transfer-agent-request";
-  if (title.includes(TASK_TYPES.PLAN_FILE)) return "plan-file-request";
-  if (title.includes(TASK_TYPES.BROADRIDGE)) return "broadridge-form";
+  }
+  if (title.includes(TASK_TYPES.PLAN_FILE)) {
+    return "plan-file-request";
+  }
+  if (title.includes(TASK_TYPES.BROADRIDGE)) {
+    return "broadridge-form";
+  }
 
   // Fallback to task type or 'upload'
   return task.type ?? "upload";
@@ -119,18 +129,16 @@ export const shouldShowTaskInPhase = (
   excludeOwners: string[] = ["BetaNXT", "DFIN"]
 ): boolean => {
   // Special case: Phase 4 includes BetaNXT delivery tasks
-  if (currentPhase === 4) {
-    if (task.owner === "BetaNXT" && task.phaseNumber === 4) {
-      return true;
-    }
+  if (
+    currentPhase === 4 &&
+    task.owner === "BetaNXT" &&
+    task.phaseNumber === 4
+  ) {
+    return true;
   }
 
   // Exclude specified owners for other phases
-  if (excludeOwners.includes(task.owner ?? "")) {
-    return false;
-  }
-
-  return true;
+  return !excludeOwners.includes(task.owner ?? "");
 };
 
 /**
@@ -164,7 +172,7 @@ export const isCarryoverTask = (taskTitle: string): boolean => {
 export const syncCarryoverTaskStatus = async (
   updatedTask: Task,
   allTasks: Task[],
-  updateTaskFn: (
+  updateTaskFunction: (
     taskId: string,
     updates: { status: TaskStatus }
   ) => Promise<void>
@@ -183,18 +191,25 @@ export const syncCarryoverTaskStatus = async (
       task.phaseNumber !== updatedTask.phaseNumber // Only sync across different phases
   );
 
-  // Update all matching tasks with the new status
-  const updatedIds: string[] = [];
-  for (const task of tasksToSync) {
-    if (task.id && updatedTask.status) {
-      try {
-        await updateTaskFn(task.id, { status: updatedTask.status });
-        updatedIds.push(task.id);
-      } catch (error) {
-        console.error(`Failed to sync task ${task.id}:`, error);
+  // Update all matching tasks with the new status concurrently
+  const syncResults: (string | null)[] = await Promise.all(
+    tasksToSync.map(async (task: Task): Promise<string | null> => {
+      if (task.id && updatedTask.status) {
+        try {
+          await updateTaskFunction(task.id, { status: updatedTask.status });
+          return task.id;
+        } catch (error) {
+          console.error(`Failed to sync task ${task.id}:`, error);
+          return null;
+        }
       }
-    }
-  }
+      return null;
+    })
+  );
+
+  const updatedIds: string[] = syncResults.filter(
+    (id: string | null): id is string => id !== null
+  );
 
   return updatedIds;
 };
@@ -262,7 +277,9 @@ export const SIGNED_DOCUMENT_STATUSES: TaskStatus[] = [
  * Check if a task status indicates a signed document exists
  */
 export const hasSignedDocumentStatus = (status?: string | null): boolean => {
-  if (!status) return false;
+  if (!status) {
+    return false;
+  }
   return SIGNED_DOCUMENT_STATUSES.includes(status as TaskStatus);
 };
 
@@ -294,7 +311,9 @@ export const calculateOverallCompletion = (
   tasks: { status?: string | null }[],
   completedStatuses: TaskStatus[] = COMPLETED_STATUSES
 ): number => {
-  if (tasks.length === 0) return 0;
+  if (tasks.length === 0) {
+    return 0;
+  }
 
   const completedTasks = tasks.filter((t) =>
     completedStatuses.includes(t.status as TaskStatus)

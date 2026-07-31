@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 import type { components } from "@/types/api";
 import type { Database } from "@/utils/supabase/database.types";
@@ -27,14 +27,14 @@ interface ApiResponse<T> {
 }
 
 // Transform snake_case database fields to camelCase API fields
-function transformTask(dbTask: TaskRow): Task {
+function transformTask(databaseTask: TaskRow): Task {
   return {
-    id: dbTask.id ?? "",
-    title: nullToUndefined(dbTask.title),
-    description: nullToUndefined(dbTask.description),
-    dueDate: nullToUndefined(dbTask.due_date),
-    owner: nullToUndefined(dbTask.owner),
-    status: nullToUndefined(dbTask.status) as
+    id: databaseTask.id ?? "",
+    title: nullToUndefined(databaseTask.title),
+    description: nullToUndefined(databaseTask.description),
+    dueDate: nullToUndefined(databaseTask.due_date),
+    owner: nullToUndefined(databaseTask.owner),
+    status: nullToUndefined(databaseTask.status) as
       | "COMPLETE"
       | "INCOMPLETE"
       | "CANCELLED"
@@ -46,33 +46,33 @@ function transformTask(dbTask: TaskRow): Task {
       | "SUBMITTED_AWAITING_RECORD_DATE"
       | "REQUEST_FORM_TO_FOLLOW"
       | undefined,
-    meetingId: nullToUndefined(dbTask.meeting_id),
-    phaseId: nullToUndefined(dbTask.phase_id),
-    phaseNumber: nullToUndefined(dbTask.phase_number),
-    type: nullToUndefined(dbTask.type),
-    documentId: nullToUndefined(dbTask.document_id),
-    links: dbTask.links as Record<string, never> | null,
-    createdAt: nullToUndefined(dbTask.created_at),
-    updatedAt: nullToUndefined(dbTask.updated_at),
+    meetingId: nullToUndefined(databaseTask.meeting_id),
+    phaseId: nullToUndefined(databaseTask.phase_id),
+    phaseNumber: nullToUndefined(databaseTask.phase_number),
+    type: nullToUndefined(databaseTask.type),
+    documentId: nullToUndefined(databaseTask.document_id),
+    links: databaseTask.links as Record<string, never> | null,
+    createdAt: nullToUndefined(databaseTask.created_at),
+    updatedAt: nullToUndefined(databaseTask.updated_at),
   };
 }
 
 export async function listTasks(
   meetingId: string,
-  opts?: { phaseId?: string; status?: string; owner?: string }
+  options?: { phaseId?: string; status?: string; owner?: string }
 ): Promise<ApiResponse<Task[]>> {
   try {
     let query = supabase.from("task").select("*").eq("meeting_id", meetingId);
 
     // Apply filters
-    if (opts?.phaseId) {
-      query = query.eq("phase_id", opts.phaseId);
+    if (options?.phaseId) {
+      query = query.eq("phase_id", options.phaseId);
     }
-    if (opts?.status) {
-      query = query.eq("status", opts.status);
+    if (options?.status) {
+      query = query.eq("status", options.status);
     }
-    if (opts?.owner) {
-      query = query.eq("owner", opts.owner);
+    if (options?.owner) {
+      query = query.eq("owner", options.owner);
     }
 
     const { data, error } = await query;
@@ -89,8 +89,7 @@ export async function listTasks(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch tasks",
+        message: Error.isError(error) ? error.message : "Failed to fetch tasks",
       },
     };
   }
@@ -134,8 +133,7 @@ export async function createTask(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to create task",
+        message: Error.isError(error) ? error.message : "Failed to create task",
       },
     };
   }
@@ -161,8 +159,7 @@ export async function getTaskById(id: string): Promise<ApiResponse<Task>> {
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch task",
+        message: Error.isError(error) ? error.message : "Failed to fetch task",
       },
     };
   }
@@ -177,17 +174,30 @@ export async function updateTask(
     const updateData: Partial<TaskUpdate> = {
       updated_at: new Date().toISOString(),
     };
-    if (request.title !== undefined) updateData.title = request.title;
-    if (request.description !== undefined)
+    if (request.title !== undefined) {
+      updateData.title = request.title;
+    }
+    if (request.description !== undefined) {
       updateData.description = request.description;
-    if (request.dueDate !== undefined) updateData.due_date = request.dueDate;
-    if (request.owner !== undefined) updateData.owner = request.owner;
-    if (request.status !== undefined) updateData.status = request.status;
-    if (request.phaseNumber !== undefined)
+    }
+    if (request.dueDate !== undefined) {
+      updateData.due_date = request.dueDate;
+    }
+    if (request.owner !== undefined) {
+      updateData.owner = request.owner;
+    }
+    if (request.status !== undefined) {
+      updateData.status = request.status;
+    }
+    if (request.phaseNumber !== undefined) {
       updateData.phase_number = request.phaseNumber;
-    if (request.type !== undefined) updateData.type = request.type;
-    if (request.documentId !== undefined)
+    }
+    if (request.type !== undefined) {
+      updateData.type = request.type;
+    }
+    if (request.documentId !== undefined) {
       updateData.document_id = request.documentId;
+    }
     if (request.links !== undefined) {
       updateData.links = request.links
         ? (JSON.parse(
@@ -215,8 +225,7 @@ export async function updateTask(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to update task",
+        message: Error.isError(error) ? error.message : "Failed to update task",
       },
     };
   }
@@ -226,5 +235,5 @@ export async function updateTask(
 export async function listTasksByMeetingId(
   meetingId: string
 ): Promise<ApiResponse<Task[]>> {
-  return listTasks(meetingId);
+  return await listTasks(meetingId);
 }

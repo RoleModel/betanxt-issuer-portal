@@ -28,48 +28,56 @@ export interface Phase {
 
 // Removed unused type definitions to fix linter warnings
 
-const asString = (val: unknown): string | null =>
-  typeof val === "string" ? val : null;
-const asNumber = (val: unknown): number | null =>
-  typeof val === "number" && Number.isFinite(val) ? val : null;
-const asRecord = (val: unknown): Record<string, unknown> | null =>
-  typeof val === "object" && val !== null
-    ? (val as Record<string, unknown>)
+const asString = (value: unknown): string | null =>
+  typeof value === "string" ? value : null;
+const asNumber = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
     : null;
 
-const getStr = (
-  obj: Record<string, unknown>,
+const getString = (
+  object: Record<string, unknown>,
   keys: string[]
 ): string | null => {
   for (const k of keys) {
-    const v = asString(obj[k]);
-    if (v !== null) return v;
+    const v = asString(object[k]);
+    if (v !== null) {
+      return v;
+    }
   }
   return null;
 };
 
-const getNum = (
-  obj: Record<string, unknown>,
+const getNumber = (
+  object: Record<string, unknown>,
   keys: string[]
 ): number | null => {
   for (const k of keys) {
-    const v = asNumber(obj[k]);
-    if (v !== null) return v;
+    const v = asNumber(object[k]);
+    if (v !== null) {
+      return v;
+    }
   }
   return null;
 };
 
 const normalizePhase = (raw: unknown): Phase | null => {
   const rec = asRecord(raw);
-  if (!rec) return null;
+  if (!rec) {
+    return null;
+  }
 
-  const id = getStr(rec, ["id"]);
-  const name = getStr(rec, ["name", "phase_name"]);
-  if (!id || !name) return null;
+  const id = getString(rec, ["id"]);
+  const name = getString(rec, ["name", "phase_name"]);
+  if (!id || !name) {
+    return null;
+  }
 
-  const meetingId = getStr(rec, ["meetingId", "meeting_id"]) || "";
-  const orderIndex = getNum(rec, ["orderIndex", "order_index"]) ?? 0;
-  const rawStatus = getStr(rec, ["status"]) || "";
+  const meetingId = getString(rec, ["meetingId", "meeting_id"]) || "";
+  const orderIndex = getNumber(rec, ["orderIndex", "order_index"]) ?? 0;
+  const rawStatus = getString(rec, ["status"]) || "";
   const status: Phase["status"] =
     rawStatus === "COMPLETE"
       ? "COMPLETE"
@@ -79,20 +87,23 @@ const normalizePhase = (raw: unknown): Phase | null => {
 
   const kdRec = asRecord(rec.keyDates) || asRecord(rec.key_dates) || {};
   const keyDates: Phase["keyDates"] = {
-    startDate: getStr(kdRec, ["startDate", "start_date"]),
-    endDate: getStr(kdRec, ["endDate", "end_date"]),
-    dueDate: getStr(kdRec, ["dueDate", "due_date"]),
-    completionDate: getStr(kdRec, ["completionDate", "completion_date"]),
-    recordDate: getStr(kdRec, ["recordDate", "record_date"]),
-    mailingDate: getStr(kdRec, ["mailingDate", "mailing_date"]),
-    meetingDate: getStr(kdRec, ["meetingDate", "meeting_date"]),
-    preFilingDate: getStr(kdRec, ["preFilingDate", "pre_filing_date"]),
-    filingDate: getStr(kdRec, ["filingDate", "filing_date"]),
-    brokerSearchDate: getStr(kdRec, ["brokerSearchDate", "broker_search_date"]),
+    startDate: getString(kdRec, ["startDate", "start_date"]),
+    endDate: getString(kdRec, ["endDate", "end_date"]),
+    dueDate: getString(kdRec, ["dueDate", "due_date"]),
+    completionDate: getString(kdRec, ["completionDate", "completion_date"]),
+    recordDate: getString(kdRec, ["recordDate", "record_date"]),
+    mailingDate: getString(kdRec, ["mailingDate", "mailing_date"]),
+    meetingDate: getString(kdRec, ["meetingDate", "meeting_date"]),
+    preFilingDate: getString(kdRec, ["preFilingDate", "pre_filing_date"]),
+    filingDate: getString(kdRec, ["filingDate", "filing_date"]),
+    brokerSearchDate: getString(kdRec, [
+      "brokerSearchDate",
+      "broker_search_date",
+    ]),
   };
 
-  const createdAt = getStr(rec, ["createdAt", "created_at"]);
-  const updatedAt = getStr(rec, ["updatedAt", "updated_at"]);
+  const createdAt = getString(rec, ["createdAt", "created_at"]);
+  const updatedAt = getString(rec, ["updatedAt", "updated_at"]);
 
   return {
     id,
@@ -111,13 +122,17 @@ const fetchPhases = async (meetingId: string): Promise<Phase[]> => {
   const { data, error } = await apiClient.GET("/meetings/{meetingId}/phases", {
     params: { path: { meetingId } },
   });
-  if (error) throw new Error("Failed to fetch phases");
+  if (error) {
+    throw new Error("Failed to fetch phases");
+  }
 
   const items: unknown[] = Array.isArray(data) ? (data as unknown[]) : [];
   const normalized: Phase[] = [];
   for (const item of items) {
     const n = normalizePhase(item);
-    if (n) normalized.push(n);
+    if (n) {
+      normalized.push(n);
+    }
   }
   return normalized;
 };
@@ -133,10 +148,10 @@ export const usePhases = (meetingId?: string): UsePhasesResult => {
   // Use SWR to cache the phases data and prevent duplicate fetches
   const { data, error, isLoading, mutate } = useSWR(
     meetingId ? `/meetings/${meetingId}/phases` : null,
-    () => fetchPhases(meetingId!),
+    async () => await fetchPhases(meetingId!),
     {
       // Cache for 30 seconds
-      refreshInterval: 30000,
+      refreshInterval: 30_000,
       // Revalidate on focus
       revalidateOnFocus: false,
       // Don't revalidate on mount if data exists

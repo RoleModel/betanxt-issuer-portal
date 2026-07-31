@@ -2,7 +2,11 @@
 
 import React from "react";
 
-const ProfileLayout = ({ children }: { children: React.ReactNode }) => {
+const ProfileLayout = ({
+  children,
+}: {
+  readonly children: React.ReactNode;
+}) => {
   return <>{children}</>;
 };
 

@@ -7,4 +7,4 @@ if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSource;
 }
 
-export { pdfjs };
+export { pdfjs } from "react-pdf";

@@ -1,3 +1,6 @@
+/* eslint-disable react-doctor/no-chain-state-updates */
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-doctor/react-compiler-no-manual-memoization */
 "use client";
 
 import { EditOutlined as EditOutlinedIcon } from "@mui/icons-material";
@@ -11,6 +14,8 @@ import {
   Stack,
   Tab,
   Tabs,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   styled,
   useMediaQuery,
@@ -30,9 +35,11 @@ import React, {
 } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
+import type { TabulationDisplayMode } from "@/utils/tabulation-display";
 
 import { useClient } from "@/contexts/ClientContext";
 import { useMeeting } from "@/contexts/MeetingContext";
+import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
 import { useClientFeatures } from "@/hooks/useClientFeatures";
 import { useRoutePreload } from "@/hooks/useRoutePreload";
 import { formatDateWithYear } from "@/lib/formats";
@@ -60,6 +67,12 @@ interface MeetingTab {
  */
 type FeatureGate =
   "agenda" | "mailing" | "tabulation" | "reports" | "nobo" | null;
+
+interface NavigationTab {
+  label: string;
+  route: string;
+  featureGate: FeatureGate;
+}
 
 const ALL_NAVIGATION_TABS = (currentPhase: number) => [
   {
@@ -114,6 +127,26 @@ const ScrollButton = styled(IconButton, {
   },
 }));
 
+const DisplayToggleButton = styled(ToggleButton)(({ theme }) => ({
+  "&&": {
+    color: theme.vars.palette.text.primary,
+    backgroundColor: "transparent",
+    borderColor: theme.vars.palette.divider,
+    blockSize: 32,
+  },
+  "&&:hover": {
+    backgroundColor: theme.vars.palette.action.hover,
+  },
+  "&&.Mui-selected": {
+    color: theme.vars.palette.text.primary,
+    backgroundColor: theme.vars.palette.background.paper,
+    borderColor: theme.vars.palette.primary.main,
+    "&:hover": {
+      backgroundColor: theme.vars.palette.action.hover,
+    },
+  },
+}));
+
 const parsePhaseNumber = (
   phase: string | number | null | undefined
 ): number => {
@@ -144,205 +177,295 @@ const getCusipDisplayValue = (value: string): string => {
   return `${cusips[0]} +${cusips.length - 1}`;
 };
 
-export const EventTabs = () => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [isPending] = useTransition();
+const ActiveMeetingDetails = ({
+  meeting,
+}: {
+  readonly meeting: MeetingTab;
+}) => {
+  return (
+    <Box sx={{ display: "flex", color: "text.primary" }}>
+      <Stack direction="row" spacing={2} alignItems="start">
+        <BNTypographyPair
+          sx={{ whiteSpace: "nowrap" }}
+          primary={{
+            color: "text.secondary",
+            variant: "caption",
+            fontWeight: 500,
+            text: getCusipLabel(meeting.cusip),
+          }}
+          secondary={{
+            variant: "body3",
+            fontWeight: 500,
+            text: getCusipDisplayValue(meeting.cusip),
+          }}
+        />
+        <BNTypographyPair
+          sx={{ whiteSpace: "nowrap" }}
+          primary={{
+            color: "text.secondary",
+            variant: "caption",
+            fontWeight: 500,
+            text: "Record Date",
+          }}
+          secondary={{
+            variant: "body3",
+            fontWeight: 500,
+            text: meeting.recordDate,
+          }}
+        />
+        <BNTypographyPair
+          sx={{ whiteSpace: "nowrap" }}
+          primary={{
+            color: "text.secondary",
+            variant: "caption",
+            fontWeight: 500,
+            text: "Mailing Date",
+          }}
+          secondary={{
+            variant: "body3",
+            fontWeight: 500,
+            text: meeting.mailingDate,
+          }}
+        />
+        <BNTypographyPair
+          sx={{ whiteSpace: "nowrap" }}
+          primary={{
+            color: "text.secondary",
+            variant: "caption",
+            fontWeight: 500,
+            text: "Meeting Date",
+          }}
+          secondary={{
+            variant: "body3",
+            fontWeight: 500,
+            text: `${meeting.meetingDate} 11:00 AM Local Time`,
+          }}
+        />
+      </Stack>
+    </Box>
+  );
+};
+
+const InactiveMeetingDetails = ({
+  meeting,
+}: {
+  readonly meeting: MeetingTab;
+}) => {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+      }}
+    >
+      <Stack sx={{ alignItems: "flex-end" }}>
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 500,
+            lineHeight: 1.5,
+            color: "inherit",
+          }}
+        >
+          Meeting Date
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 500,
+            lineHeight: 1.286,
+            color: "inherit",
+          }}
+        >
+          {meeting.meetingDate}
+        </Typography>
+      </Stack>
+    </Box>
+  );
+};
+
+interface MeetingTabItemProps {
+  readonly meeting: MeetingTab;
+  readonly src: components["schemas"]["Meeting"];
+  readonly index: number;
+  readonly currentMeetingId: string | undefined;
+  readonly ticker: string | undefined;
+  readonly pathname: string;
+  readonly isMobile: boolean;
+  readonly isCSM: boolean;
+}
+
+const MeetingTabItem = React.memo(function MeetingTabItem({
+  meeting,
+  src,
+  index,
+  currentMeetingId,
+  ticker,
+  pathname,
+  isMobile,
+  isCSM,
+}: MeetingTabItemProps) {
+  const isActive = currentMeetingId === meeting.id;
+  const meetingId = meeting.id;
+  const isPastMeeting = src.status === "COMPLETE";
+  const meetingType = isPastMeeting ? "past-meeting" : "meeting";
+
+  // Remove both /meeting/ and /past-meeting/ from current path
+  const currentPath = pathname.replace(/\/[^/]+\/(?:past-)?meeting\/[^/]+/, "");
+
+  // If on dashboard with phase, navigate to the target meeting's phase
+  const targetPath = useMemo(() => {
+    if (/^\/dashboard(\/\d+)?$/.exec(currentPath)) {
+      const targetPhase = parsePhaseNumber(meeting.currentPhase);
+      return `/${ticker}/${meetingType}/${meetingId}/dashboard/${targetPhase}`;
+    } else if (currentPath === "") {
+      return `/${ticker}/${meetingType}/${meetingId}`;
+    } else {
+      return `/${ticker}/${meetingType}/${meetingId}${currentPath}`;
+    }
+  }, [currentPath, ticker, meetingId, meetingType, meeting.currentPhase]);
+
+  return (
+    <Stack
+      sx={{
+        position: "relative",
+        "&:hover .edit-tab-button": { opacity: 1 },
+      }}
+    >
+      <NextLink
+        href={targetPath}
+        key={meeting.id || index}
+        passHref
+        style={{
+          textDecoration: "none",
+          color: "inherit",
+        }}
+      >
+        <Box
+          data-tab-index={index}
+          tabIndex={0}
+          role="tab"
+          aria-selected={isActive}
+          sx={(theme) => ({
+            display: "flex",
+            flexDirection: "column",
+            cursor: isActive ? "default" : "pointer",
+            overflowX: "hidden",
+            backgroundColor: isActive
+              ? theme.vars.palette.background.default
+              : theme.vars.palette.common.white,
+            ...theme.applyStyles("dark", {
+              backgroundColor: isActive
+                ? theme.vars.palette.background.default
+                : theme.vars.palette.common.black,
+            }),
+            color: isActive
+              ? theme.vars.palette.primary.main
+              : theme.vars.palette.text.secondary,
+            position: "relative",
+            borderRight: `1px solid ${theme.vars.palette.divider}`,
+            minWidth: "fit-content",
+            transition: theme.transitions.create(["color"]),
+            "&:hover": { color: theme.vars.palette.primary.main },
+          })}
+        >
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Stack>
+              <Typography
+                variant="h1"
+                sx={{
+                  fontFamily:
+                    "var(--font-roboto-condensed), Roboto Condensed, sans-serif",
+                  fontWeight: 500,
+                  fontSize: "2rem",
+                  lineHeight: 1.125,
+                  letterSpacing: "0.47%",
+                  textDecoration: "none",
+                  color: "inherit",
+                  mb: 1,
+                  fontDisplay: "swap",
+                }}
+              >
+                {meeting.title}
+              </Typography>
+
+              {isActive && !isMobile ? (
+                <ActiveMeetingDetails meeting={meeting} />
+              ) : (
+                !isActive &&
+                !isMobile && <InactiveMeetingDetails meeting={meeting} />
+              )}
+            </Stack>
+          </Box>
+        </Box>
+      </NextLink>
+
+      {isCSM ? (
+        <IconButton
+          className="edit-tab-button"
+          component={NextLink}
+          href={`/edit/${meetingId}?returnUrl=${encodeURIComponent(pathname)}`}
+          size="small"
+          aria-label={`Edit ${meeting.title}`}
+          sx={(theme) => ({
+            position: "absolute",
+            top: 6,
+            right: 6,
+            zIndex: 2,
+            opacity: 0,
+            transition: theme.transitions.create("opacity"),
+            backgroundColor: theme.vars.palette.background.paper,
+            "&:hover": {
+              backgroundColor: theme.vars.palette.action.hover,
+            },
+          })}
+        >
+          <EditOutlinedIcon fontSize="small" />
+        </IconButton>
+      ) : null}
+    </Stack>
+  );
+});
+
+MeetingTabItem.displayName = "MeetingTabItem";
+
+interface MeetingTabsScrollerProps {
+  readonly transformedMeetings: readonly {
+    tab: MeetingTab;
+    src: components["schemas"]["Meeting"];
+  }[];
+  readonly currentMeetingId: string | undefined;
+  readonly ticker: string | undefined;
+  readonly pathname: string;
+  readonly isMobile: boolean;
+  readonly isCSM: boolean;
+}
+
+const MeetingTabsScroller = ({
+  transformedMeetings,
+  currentMeetingId,
+  ticker,
+  pathname,
+  isMobile,
+  isCSM,
+}: MeetingTabsScrollerProps) => {
   const [activeMeetingTab, setActiveMeetingTab] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { data: session, status: sessionStatus } = useSession();
-  const userType = session?.user?.type ?? "PARENT_CLIENT";
-  const isCSM = userType === "CSM";
-
-  // Try to get meeting context, but handle pages without MeetingProvider
-  let meetingContextValue = null;
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    meetingContextValue = useMeeting();
-  } catch {
-    // No MeetingProvider available (e.g., on past-meetings page)
-  }
-
-  const meetings = useMemo(
-    () => meetingContextValue?.meetings ?? [],
-    [meetingContextValue?.meetings]
-  );
-  const loading = meetingContextValue?.isLoading ?? false;
-  const activeMeeting = meetingContextValue?.currentMeeting ?? null;
-
-  const {
-    currentClient,
-    loading: clientLoading,
-    error: clientError,
-  } = useClient();
-  const { isEnabled } = useClientFeatures();
-  const theme = useTheme();
-  const meetingIdFromUrl = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname)?.[1];
-  // The ticker the URL is currently pointing at — the source of truth for which
-  // client's tabs should render. Guards against showing the previously-viewed
-  // client's meetings while the new client's data is still loading after a switch.
-  const urlTicker = /^\/([A-Za-z]{2,5})\//.exec(pathname)?.[1]?.toUpperCase();
-  const isClientResolving =
-    sessionStatus === "loading" ||
-    clientLoading ||
-    !currentClient ||
-    Boolean(urlTicker && currentClient.ticker !== urlTicker);
-  // Only consider meetings that belong to the client in the URL. Stale meetings
-  // from a prior client are filtered out until the correct ones load.
-  const scopedMeetings = useMemo(
-    () =>
-      urlTicker
-        ? meetings.filter((m) => (m.ticker ?? "").toUpperCase() === urlTicker)
-        : meetings,
-    [meetings, urlTicker]
-  );
-  const currentMeeting =
-    (activeMeeting &&
-    (!urlTicker || (activeMeeting.ticker ?? "").toUpperCase() === urlTicker)
-      ? activeMeeting
-      : null) || scopedMeetings.find((m) => m.id === meetingIdFromUrl);
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
-  // (Optimization) Memoize current phase parsing
-  const currentPhase = useMemo(
-    () => parsePhaseNumber(currentMeeting?.currentPhase),
-    [currentMeeting?.currentPhase]
-  );
-
-  // Memoize navigation tabs with current phase, filtered by client feature flags
-  const navigationTabs = useMemo(
-    () =>
-      getNavigationTabs(currentPhase).filter(
-        (tab) => tab.featureGate === null || isEnabled(tab.featureGate)
-      ),
-    [currentPhase, isEnabled]
-  );
-
-  // Preload routes for the current meeting
-  useRoutePreload(currentMeeting?.id);
-
-  // (Optimization) Debounced prefetch to reduce immediate burst on mount/meeting change
-  // Only prefetch when not currently loading to avoid excessive API calls
-  useEffect(() => {
-    if (
-      currentMeeting?.id &&
-      currentClient?.ticker &&
-      !loading &&
-      !clientLoading
-    ) {
-      const timeout = setTimeout(() => {
-        navigationTabs.forEach((tab) => {
-          const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`;
-          router.prefetch(route);
-        });
-      }, 120);
-      return () => clearTimeout(timeout);
-    }
-  }, [
-    currentMeeting?.id,
-    currentClient?.ticker,
-    router,
-    navigationTabs,
-    loading,
-    clientLoading,
-  ]);
-
-  // Get active tab from current pathname (memoized to prevent re-renders)
-  const currentRoute = useMemo(
-    () => pathname.replace(/^\/[^/]+\/(?:past-)?meeting\/[^/]+/, ""),
-    [pathname]
-  );
-  const activeTab = useMemo(
-    () =>
-      navigationTabs.find((tab) => tab.route === currentRoute)?.label ??
-      "Meeting Dashboard",
-    [navigationTabs, currentRoute]
-  );
-
-  // Handle URL-based meeting selection for past meetings
-  useEffect(() => {
-    const handleMeetingFromURL = () => {
-      const pathMatch = /^\/[^/]+\/(?:past-)?meeting\/([^/]+)/.exec(pathname);
-      if (pathMatch) {
-        const meetingIdFromURL = pathMatch[1];
-
-        // Check if the current active meeting matches the URL
-        if (activeMeeting?.id !== meetingIdFromURL) {
-          // If we have meetings loaded and none match the URL ID, it might be a past meeting
-          const meetingsArray = meetings || [];
-          const existingMeeting = meetingsArray.find(
-            (m) => m.id === meetingIdFromURL
-          );
-          if (!existingMeeting && meetingsArray.length > 0) {
-            // This could be a past meeting - let the MeetingContext handle it
-            // The context will fetch the meeting from the database
-          }
-        }
-      }
-    };
-
-    handleMeetingFromURL();
-  }, [pathname, activeMeeting, meetings, currentMeeting]);
-
-  // Helper: map API/Context meeting to simplified tab data
-  const mapToMeetingTab = useCallback(
-    (m: components["schemas"]["Meeting"]): MeetingTab => ({
-      id: m.id ?? "",
-      title: m.title ?? "Meeting",
-      ticker: m.ticker ?? "",
-      cusip: m.cusip ?? "",
-      recordDate: formatDateWithYear(m.recordDate ?? ""),
-      mailingDate: formatDateWithYear(m.mailingDate ?? ""),
-      meetingDate: formatDateWithYear(m.meetingDate ?? ""),
-      status: m.status! ?? "ACTIVE",
-      currentPhase: m.currentPhase ?? "Phase 1",
-      overallCompletion: m.overallCompletion ?? 0,
-      client: currentClient?.company_name ?? "",
-    }),
-    [currentClient?.company_name]
-  );
-
-  // Show only active meetings OR the currently selected past meeting
-  const transformedMeetings: {
-    tab: MeetingTab;
-    src: components["schemas"]["Meeting"];
-  }[] = useMemo(() => {
-    const meetingsArray = scopedMeetings;
-    const completedMeeting =
-      currentMeeting?.status === "COMPLETE" ? currentMeeting : null;
-    if (completedMeeting) {
-      return [
-        {
-          tab: mapToMeetingTab(completedMeeting),
-          src: completedMeeting,
-        },
-      ];
-    }
-    const activeMeetings = meetingsArray.filter((m) => m.status === "ACTIVE");
-    activeMeetings.sort((a, b) => {
-      const dateA = a.meetingDate ? new Date(a.meetingDate).getTime() : 0;
-      const dateB = b.meetingDate ? new Date(b.meetingDate).getTime() : 0;
-      if (dateA === dateB) {
-        return (a.title ?? "").localeCompare(b.title ?? "");
-      }
-      return dateA - dateB;
-    });
-    return activeMeetings.map((m) => ({ tab: mapToMeetingTab(m), src: m }));
-  }, [scopedMeetings, currentMeeting, mapToMeetingTab]);
 
   // Sync activeMeetingTab with current meeting
   useEffect(() => {
-    if (currentMeeting && transformedMeetings.length > 0) {
+    if (currentMeetingId && transformedMeetings.length > 0) {
       const meetingIndex = transformedMeetings.findIndex(
-        (m) => m.src.id === currentMeeting.id
+        (m) => m.src.id === currentMeetingId
       );
       if (meetingIndex !== -1 && meetingIndex !== activeMeetingTab) {
         setActiveMeetingTab(meetingIndex);
       }
     }
-  }, [currentMeeting, transformedMeetings, activeMeetingTab]);
+  }, [currentMeetingId, transformedMeetings, activeMeetingTab]);
 
   // Check scroll position and update button visibility (memoized)
   const checkScrollButtons = useCallback(() => {
@@ -379,9 +502,13 @@ export const EventTabs = () => {
   // Initial check and setup
   useEffect(() => {
     checkScrollButtons();
-    const handleResize = () => checkScrollButtons();
+    const handleResize = () => {
+      checkScrollButtons();
+    };
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, [checkScrollButtons]);
 
   // Scroll functions (memoized)
@@ -505,243 +632,420 @@ export const EventTabs = () => {
     }
   }, [checkScrollButtons]);
 
-  // Subcomponents for active/inactive meeting detail sections
-  const ActiveMeetingDetails = ({ meeting }: { meeting: MeetingTab }) => {
-    return (
-      <Box sx={{ display: "flex", color: "text.primary" }}>
-        <Stack direction="row" spacing={2} alignItems="start">
-          <BNTypographyPair
-            sx={{ whiteSpace: "nowrap" }}
-            primary={{
-              color: "text.secondary",
-              variant: "caption",
-              fontWeight: 500,
-              text: getCusipLabel(meeting.cusip),
-            }}
-            secondary={{
-              variant: "body3",
-              fontWeight: 500,
-              text: getCusipDisplayValue(meeting.cusip),
-            }}
-          />
-          <BNTypographyPair
-            sx={{ whiteSpace: "nowrap" }}
-            primary={{
-              color: "text.secondary",
-              variant: "caption",
-              fontWeight: 500,
-              text: "Record Date",
-            }}
-            secondary={{
-              variant: "body3",
-              fontWeight: 500,
-              text: meeting.recordDate,
-            }}
-          />
-          <BNTypographyPair
-            sx={{ whiteSpace: "nowrap" }}
-            primary={{
-              color: "text.secondary",
-              variant: "caption",
-              fontWeight: 500,
-              text: "Mailing Date",
-            }}
-            secondary={{
-              variant: "body3",
-              fontWeight: 500,
-              text: meeting.mailingDate,
-            }}
-          />
-          <BNTypographyPair
-            sx={{ whiteSpace: "nowrap" }}
-            primary={{
-              color: "text.secondary",
-              variant: "caption",
-              fontWeight: 500,
-              text: "Meeting Date",
-            }}
-            secondary={{
-              variant: "body3",
-              fontWeight: 500,
-              text: `${meeting.meetingDate} 11:00 AM Local Time`,
-            }}
-          />
-        </Stack>
-      </Box>
-    );
-  };
-
-  const InactiveMeetingDetails = ({ meeting }: { meeting: MeetingTab }) => {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          alignItems: "center",
-        }}
-      >
-        <Stack sx={{ alignItems: "flex-end" }}>
-          <Typography
-            variant="caption"
-            sx={{
-              fontWeight: 500,
-              lineHeight: 1.5,
-              color: "inherit",
-            }}
+  return (
+    <Paper
+      sx={(theme) => ({
+        borderBottom: "1px solid",
+        borderColor: theme.vars.palette.divider,
+        borderRadius: 0,
+        boxShadow: "none",
+        background: theme.vars.palette.tableCellRow.fill,
+        position: "relative", // Add relative positioning
+        "& .MuiPaper-root": {
+          borderRadius: 0,
+        },
+      })}
+    >
+      <Container maxWidth="xl" sx={{ position: "relative" }}>
+        {/* Left Scroll Button - Only show for active meetings with multiple tabs */}
+        {canScrollLeft && transformedMeetings.length > 1 ? (
+          <ScrollButton
+            direction="left"
+            onClick={scrollLeft}
+            aria-label="Scroll meetings left"
           >
-            Meeting Date
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 500,
-              lineHeight: 1.286,
-              color: "inherit",
-            }}
+            <ArrowDropDownIcon />
+          </ScrollButton>
+        ) : null}
+
+        {/* Right Scroll Button - Only show for active meetings with multiple tabs */}
+        {canScrollRight && transformedMeetings.length > 1 ? (
+          <ScrollButton
+            direction="right"
+            onClick={scrollRight}
+            aria-label="Scroll meetings right"
           >
-            {meeting.meetingDate}
-          </Typography>
-        </Stack>
-      </Box>
-    );
-  };
+            <ArrowDropDownIcon />
+          </ScrollButton>
+        ) : null}
 
-  const MeetingTab = React.memo(
-    ({
-      meeting,
-      src,
-      index,
-    }: {
-      meeting: MeetingTab;
-      src: components["schemas"]["Meeting"];
-      index: number;
-    }) => {
-      const isActive = currentMeeting?.id === meeting.id;
-      const ticker = currentClient?.ticker;
-      const meetingId = meeting.id;
-      const isPastMeeting = src.status === "COMPLETE";
-      const meetingType = isPastMeeting ? "past-meeting" : "meeting";
-
-      // Remove both /meeting/ and /past-meeting/ from current path
-      const currentPath = pathname.replace(
-        /\/[^/]+\/(?:past-)?meeting\/[^/]+/,
-        ""
-      );
-
-      // If on dashboard with phase, navigate to the target meeting's phase
-      const targetPath = useMemo(() => {
-        if (/^\/dashboard(\/\d+)?$/.exec(currentPath)) {
-          const targetPhase = parsePhaseNumber(meeting.currentPhase);
-          return `/${ticker}/${meetingType}/${meetingId}/dashboard/${targetPhase}`;
-        } else if (currentPath === "") {
-          return `/${ticker}/${meetingType}/${meetingId}`;
-        } else {
-          return `/${ticker}/${meetingType}/${meetingId}${currentPath}`;
-        }
-      }, [currentPath, ticker, meetingId, meetingType, meeting.currentPhase]);
-
-      return (
-        <Stack
+        <Box
+          ref={scrollContainerRef}
+          onScroll={checkScrollButtons}
           sx={{
-            position: "relative",
-            "&:hover .edit-tab-button": { opacity: 1 },
+            py: 0,
+            px: { xs: 1, sm: 0 },
+            maxWidth: "100%",
+            overflowX: "auto",
+            overflowY: "visible", // Allow vertical overflow for the covering line
+            scrollBehavior: "smooth",
+            "&::-webkit-scrollbar": {
+              display: "none",
+            },
+            msOverflowStyle: "none",
+            scrollbarWidth: "none",
           }}
         >
-          <NextLink
-            href={targetPath}
-            key={meeting.id || index}
-            passHref
-            style={{
-              textDecoration: "none",
-              color: "inherit",
+          <Stack
+            direction="row"
+            sx={(theme) => ({
+              borderLeft: "1px solid",
+              borderColor: theme.vars.palette.divider,
+            })}
+          >
+            {transformedMeetings.map(({ tab, src }, index) => (
+              <MeetingTabItem
+                key={tab.id}
+                meeting={tab}
+                src={src}
+                index={index}
+                currentMeetingId={currentMeetingId}
+                ticker={ticker}
+                pathname={pathname}
+                isMobile={isMobile}
+                isCSM={isCSM}
+              />
+            ))}
+          </Stack>
+        </Box>
+      </Container>
+    </Paper>
+  );
+};
+
+interface MeetingNavigationBarProps {
+  readonly isPending: boolean;
+  readonly activeTab: string;
+  readonly navigationTabs: readonly NavigationTab[];
+  readonly currentMeeting: components["schemas"]["Meeting"] | null | undefined;
+  readonly currentClientTicker: string | undefined;
+  readonly pathname: string;
+  readonly displayMode: TabulationDisplayMode;
+  readonly setDisplayMode: (displayMode: TabulationDisplayMode) => void;
+}
+
+const MeetingNavigationBar = ({
+  isPending,
+  activeTab,
+  navigationTabs,
+  currentMeeting,
+  currentClientTicker,
+  pathname,
+  displayMode,
+  setDisplayMode,
+}: MeetingNavigationBarProps) => {
+  return (
+    <Paper
+      elevation={0}
+      sx={(theme) => ({
+        boxShadow: "none",
+        backgroundColor: "var(--mui-palette-background-default)",
+        borderBottom: "1px solid",
+        borderColor: theme.vars.palette.divider,
+        borderRadius: 0,
+        position: "relative",
+      })}
+    >
+      {/* Loading indicator when navigation is pending */}
+      {isPending ? (
+        <LinearProgress
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            height: 2,
+          }}
+        />
+      ) : null}
+      <Container maxWidth="xl" sx={{ px: { xs: 0, sm: 0, md: 3 }, py: 0 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Tabs
+            value={activeTab}
+            variant="scrollable"
+            allowScrollButtonsMobile
+            scrollButtons="auto"
+            aria-label="Meeting Navigation"
+            sx={{
+              position: "relative",
+              pointerEvents: "auto",
+              opacity: isPending ? 0.6 : 1,
+              transition: "opacity 0.2s",
+              flex: 1,
+              minWidth: 0,
             }}
           >
-            <Box
-              data-tab-index={index}
-              tabIndex={0}
-              role="tab"
-              aria-selected={isActive}
-              sx={(theme) => ({
-                display: "flex",
-                flexDirection: "column",
-                cursor: isActive ? "default" : "pointer",
-                overflowX: "hidden",
-                backgroundColor: isActive
-                  ? theme.vars.palette.background.default
-                  : theme.vars.palette.common.white,
-                ...theme.applyStyles("dark", {
-                  backgroundColor: isActive
-                    ? theme.vars.palette.background.default
-                    : theme.vars.palette.common.black,
-                }),
-                color: isActive
-                  ? theme.vars.palette.primary.main
-                  : theme.vars.palette.text.secondary,
-                position: "relative",
-                borderRight: `1px solid ${theme.vars.palette.divider}`,
-                minWidth: "fit-content",
-                transition: theme.transitions.create(["color"]),
-                "&:hover": { color: theme.vars.palette.primary.main },
-              })}
-            >
-              <Box sx={{ px: 2, py: 1.5 }}>
-                <Stack>
-                  <Typography
-                    variant="h1"
-                    sx={{
-                      fontFamily:
-                        "var(--font-roboto-condensed), Roboto Condensed, sans-serif",
-                      fontWeight: 500,
-                      fontSize: "2rem",
-                      lineHeight: 1.125,
-                      letterSpacing: "0.47%",
-                      textDecoration: "none",
-                      color: "inherit",
-                      mb: 1,
-                      fontDisplay: "swap",
-                    }}
-                  >
-                    {meeting.title}
-                  </Typography>
+            {navigationTabs.map((tab) => {
+              const isActive = activeTab === tab.label;
+              // Use ticker from currentMeeting if available, fallback to currentClient
+              const ticker = currentMeeting?.ticker || currentClientTicker;
+              // Detect if we're on a past-meeting route from the current pathname
+              const isPastMeetingRoute = pathname.includes("/past-meeting/");
+              const meetingType = isPastMeetingRoute
+                ? "past-meeting"
+                : "meeting";
+              const tabHref =
+                currentMeeting && ticker
+                  ? `/${ticker}/${meetingType}/${currentMeeting.id}${tab.route}`
+                  : "#";
 
-                  {isActive && !isMobile ? (
-                    <ActiveMeetingDetails meeting={meeting} />
-                  ) : (
-                    !isActive &&
-                    !isMobile && <InactiveMeetingDetails meeting={meeting} />
-                  )}
-                </Stack>
-              </Box>
-            </Box>
-          </NextLink>
-
-          {isCSM && (
-            <IconButton
-              className="edit-tab-button"
-              component={NextLink}
-              href={`/edit/${meetingId}?returnUrl=${encodeURIComponent(pathname)}`}
-              size="small"
-              aria-label={`Edit ${meeting.title}`}
-              sx={(theme) => ({
-                position: "absolute",
-                top: 6,
-                right: 6,
-                zIndex: 2,
-                opacity: 0,
-                transition: theme.transitions.create("opacity"),
-                backgroundColor: theme.vars.palette.background.paper,
-                "&:hover": {
-                  backgroundColor: theme.vars.palette.action.hover,
-                },
-              })}
+              return (
+                <Tab
+                  key={tab.label}
+                  value={tab.label}
+                  label={tab.label}
+                  component={NextLink}
+                  href={tabHref}
+                  sx={(theme) => ({
+                    color: isActive
+                      ? "var(--mui-palette-primary-main)"
+                      : "var(--mui-palette-text-secondary)",
+                    fontWeight: 500,
+                    fontSize: "0.875rem",
+                    textTransform: "none",
+                    textDecoration: "none",
+                    px: 2,
+                    py: 1.125,
+                    minWidth: "fit-content",
+                    borderRadius: 0,
+                    cursor: "pointer",
+                    pointerEvents: "auto",
+                    "&:hover": {
+                      backgroundColor: "transparent",
+                      color: theme.vars?.palette.primary.main,
+                    },
+                  })}
+                />
+              );
+            })}
+          </Tabs>
+          <Typography
+            variant="overline"
+            sx={{ color: "text.secondary", flexShrink: 0 }}
+          >
+            Display as:
+          </Typography>
+          <ToggleButtonGroup
+            exclusive
+            aria-label="Tabulation display format"
+            size="small"
+            value={displayMode}
+            onChange={(event, nextDisplayMode: string | null) => {
+              void event;
+              if (
+                nextDisplayMode === "numbers" ||
+                nextDisplayMode === "percentages"
+              ) {
+                setDisplayMode(nextDisplayMode);
+              }
+            }}
+            sx={{ flexShrink: 0 }}
+          >
+            <DisplayToggleButton value="numbers" aria-label="View as Numbers">
+              Count
+            </DisplayToggleButton>
+            <DisplayToggleButton
+              value="percentages"
+              aria-label="View as Percentages"
             >
-              <EditOutlinedIcon fontSize="small" />
-            </IconButton>
-          )}
-        </Stack>
-      );
-    }
+              Percentage
+            </DisplayToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+      </Container>
+    </Paper>
   );
+};
+
+export const EventTabs = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isPending] = useTransition();
+  const { displayMode, setDisplayMode } = useTabulationDisplay();
+  const { data: session, status: sessionStatus } = useSession();
+  const userType = session?.user?.type ?? "PARENT_CLIENT";
+  const isCSM = userType === "CSM";
+
+  // Try to get meeting context, but handle pages without MeetingProvider
+  let meetingContextValue = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    meetingContextValue = useMeeting();
+  } catch {
+    // No MeetingProvider available (e.g., on past-meetings page)
+  }
+
+  const meetings = useMemo(
+    () => meetingContextValue?.meetings ?? [],
+    [meetingContextValue?.meetings]
+  );
+  const loading = meetingContextValue?.isLoading ?? false;
+  const activeMeeting = meetingContextValue?.currentMeeting ?? null;
+
+  const {
+    currentClient,
+    loading: clientLoading,
+    error: clientError,
+  } = useClient();
+  const { isEnabled } = useClientFeatures();
+  const theme = useTheme();
+  const meetingIdFromUrl = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname)?.[1];
+  // The ticker the URL is currently pointing at — the source of truth for which
+  // client's tabs should render. Guards against showing the previously-viewed
+  // client's meetings while the new client's data is still loading after a switch.
+  const urlTicker = /^\/([A-Za-z]{2,5})\//.exec(pathname)?.[1]?.toUpperCase();
+  const isClientResolving =
+    sessionStatus === "loading" ||
+    clientLoading ||
+    !currentClient ||
+    Boolean(urlTicker && currentClient.ticker !== urlTicker);
+  // Only consider meetings that belong to the client in the URL. Stale meetings
+  // from a prior client are filtered out until the correct ones load.
+  const scopedMeetings = useMemo(
+    () =>
+      urlTicker
+        ? meetings.filter((m) => (m.ticker ?? "").toUpperCase() === urlTicker)
+        : meetings,
+    [meetings, urlTicker]
+  );
+  const currentMeeting =
+    (activeMeeting &&
+    (!urlTicker || (activeMeeting.ticker ?? "").toUpperCase() === urlTicker)
+      ? activeMeeting
+      : null) || scopedMeetings.find((m) => m.id === meetingIdFromUrl);
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // (Optimization) Memoize current phase parsing
+  const currentPhase = useMemo(
+    () => parsePhaseNumber(currentMeeting?.currentPhase),
+    [currentMeeting?.currentPhase]
+  );
+
+  // Memoize navigation tabs with current phase, filtered by client feature flags
+  const navigationTabs = useMemo(
+    () =>
+      getNavigationTabs(currentPhase).filter(
+        (tab) => tab.featureGate === null || isEnabled(tab.featureGate)
+      ),
+    [currentPhase, isEnabled]
+  );
+
+  // Preload routes for the current meeting
+  useRoutePreload(currentMeeting?.id);
+
+  // (Optimization) Debounced prefetch to reduce immediate burst on mount/meeting change
+  // Only prefetch when not currently loading to avoid excessive API calls
+  useEffect(() => {
+    if (
+      currentMeeting?.id &&
+      currentClient?.ticker &&
+      !loading &&
+      !clientLoading
+    ) {
+      const timeout = setTimeout(() => {
+        navigationTabs.forEach((tab) => {
+          const route = `/${currentClient.ticker}/meeting/${currentMeeting.id}${tab.route}`;
+          router.prefetch(route);
+        });
+      }, 120);
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [
+    currentMeeting?.id,
+    currentClient?.ticker,
+    router,
+    navigationTabs,
+    loading,
+    clientLoading,
+  ]);
+
+  // Get active tab from current pathname (memoized to prevent re-renders)
+  const currentRoute = useMemo(
+    () => pathname.replace(/^\/[^/]+\/(?:past-)?meeting\/[^/]+/, ""),
+    [pathname]
+  );
+  const activeTab = useMemo(
+    () =>
+      navigationTabs.find((tab) => tab.route === currentRoute)?.label ??
+      "Meeting Dashboard",
+    [navigationTabs, currentRoute]
+  );
+
+  // Handle URL-based meeting selection for past meetings
+  useEffect(() => {
+    const handleMeetingFromURL = () => {
+      const pathMatch = /^\/[^/]+\/(?:past-)?meeting\/([^/]+)/.exec(pathname);
+      if (pathMatch) {
+        const meetingIdFromURL = pathMatch[1];
+
+        // Check if the current active meeting matches the URL
+        if (activeMeeting?.id !== meetingIdFromURL) {
+          // If we have meetings loaded and none match the URL ID, it might be a past meeting
+          const meetingsArray = meetings || [];
+          const existingMeeting = meetingsArray.find(
+            (m) => m.id === meetingIdFromURL
+          );
+          if (!existingMeeting && meetingsArray.length > 0) {
+            // This could be a past meeting - let the MeetingContext handle it
+            // The context will fetch the meeting from the database
+          }
+        }
+      }
+    };
+
+    handleMeetingFromURL();
+  }, [pathname, activeMeeting, meetings, currentMeeting]);
+
+  // Helper: map API/Context meeting to simplified tab data
+  const mapToMeetingTab = useCallback(
+    (m: components["schemas"]["Meeting"]): MeetingTab => ({
+      id: m.id ?? "",
+      title: m.title ?? "Meeting",
+      ticker: m.ticker ?? "",
+      cusip: m.cusip ?? "",
+      recordDate: formatDateWithYear(m.recordDate ?? ""),
+      mailingDate: formatDateWithYear(m.mailingDate ?? ""),
+      meetingDate: formatDateWithYear(m.meetingDate ?? ""),
+      status: m.status ?? "ACTIVE",
+      currentPhase: m.currentPhase ?? "Phase 1",
+      overallCompletion: m.overallCompletion ?? 0,
+      client: currentClient?.company_name ?? "",
+    }),
+    [currentClient?.company_name]
+  );
+
+  // Show only active meetings OR the currently selected past meeting
+  const transformedMeetings: {
+    tab: MeetingTab;
+    src: components["schemas"]["Meeting"];
+  }[] = useMemo(() => {
+    const meetingsArray = scopedMeetings;
+    const completedMeeting =
+      currentMeeting?.status === "COMPLETE" ? currentMeeting : null;
+    if (completedMeeting) {
+      return [
+        {
+          tab: mapToMeetingTab(completedMeeting),
+          src: completedMeeting,
+        },
+      ];
+    }
+    const activeMeetings = meetingsArray.filter((m) => m.status === "ACTIVE");
+    activeMeetings.sort((a, b) => {
+      const dateA =
+        a.meetingDate != null ? new Date(a.meetingDate).getTime() : 0;
+      const dateB =
+        b.meetingDate != null ? new Date(b.meetingDate).getTime() : 0;
+      if (dateA === dateB) {
+        return (a.title ?? "").localeCompare(b.title ?? "");
+      }
+      return dateA - dateB;
+    });
+    return activeMeetings.map((m) => ({ tab: mapToMeetingTab(m), src: m }));
+  }, [scopedMeetings, currentMeeting, mapToMeetingTab]);
 
   // Show error state if there's a client error
   if (clientError) {
@@ -796,163 +1100,25 @@ export const EventTabs = () => {
   return (
     <Box component="nav">
       {/* Meeting Tabs Section */}
-      <Paper
-        sx={{
-          borderBottom: "1px solid",
-          borderColor: (theme) => theme.vars.palette.divider,
-          borderRadius: 0,
-          boxShadow: "none",
-          background: (theme) => theme.vars.palette.tableCellRow.fill,
-          position: "relative", // Add relative positioning
-          "& .MuiPaper-root": {
-            borderRadius: 0,
-          },
-        }}
-      >
-        <Container maxWidth="xl" sx={{ position: "relative" }}>
-          {/* Left Scroll Button - Only show for active meetings with multiple tabs */}
-          {canScrollLeft && transformedMeetings.length > 1 && (
-            <ScrollButton
-              direction="left"
-              onClick={scrollLeft}
-              aria-label="Scroll meetings left"
-            >
-              <ArrowDropDownIcon />
-            </ScrollButton>
-          )}
+      <MeetingTabsScroller
+        transformedMeetings={transformedMeetings}
+        currentMeetingId={currentMeeting?.id}
+        ticker={currentClient?.ticker}
+        pathname={pathname}
+        isMobile={isMobile}
+        isCSM={isCSM}
+      />
 
-          {/* Right Scroll Button - Only show for active meetings with multiple tabs */}
-          {canScrollRight && transformedMeetings.length > 1 && (
-            <ScrollButton
-              direction="right"
-              onClick={scrollRight}
-              aria-label="Scroll meetings right"
-            >
-              <ArrowDropDownIcon />
-            </ScrollButton>
-          )}
-
-          <Box
-            ref={scrollContainerRef}
-            onScroll={checkScrollButtons}
-            sx={{
-              py: 0,
-              px: { xs: 1, sm: 0 },
-              maxWidth: "100%",
-              overflowX: "auto",
-              overflowY: "visible", // Allow vertical overflow for the covering line
-              scrollBehavior: "smooth",
-              "&::-webkit-scrollbar": {
-                display: "none",
-              },
-              msOverflowStyle: "none",
-              scrollbarWidth: "none",
-            }}
-          >
-            <Stack
-              direction="row"
-              sx={{
-                borderLeft: "1px solid",
-                borderColor: (theme) => theme.vars.palette.divider,
-              }}
-            >
-              {transformedMeetings.map(({ tab, src }, index) => (
-                <MeetingTab
-                  key={tab.id || index}
-                  meeting={tab}
-                  src={src}
-                  index={index}
-                />
-              ))}
-            </Stack>
-          </Box>
-        </Container>
-      </Paper>
-
-      <Paper
-        elevation={0}
-        sx={{
-          boxShadow: "none",
-          backgroundColor: "var(--mui-palette-background-default)",
-          borderBottom: "1px solid",
-          borderColor: (theme) => theme.vars.palette.divider,
-          borderRadius: 0,
-          position: "relative",
-        }}
-      >
-        {/* Loading indicator when navigation is pending */}
-        {isPending && (
-          <LinearProgress
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 1,
-              height: 2,
-            }}
-          />
-        )}
-        <Container maxWidth="xl" sx={{ px: { xs: 0, sm: 0, md: 3 }, py: 0 }}>
-          <Tabs
-            value={activeTab}
-            variant="scrollable"
-            allowScrollButtonsMobile
-            scrollButtons="auto"
-            aria-label="Meeting Navigation"
-            sx={{
-              position: "relative",
-              pointerEvents: "auto",
-              opacity: isPending ? 0.6 : 1,
-              transition: "opacity 0.2s",
-            }}
-          >
-            {navigationTabs.map((tab) => {
-              const isActive = activeTab === tab.label;
-              // Use ticker from currentMeeting if available, fallback to currentClient
-              const ticker = currentMeeting?.ticker || currentClient?.ticker;
-              // Detect if we're on a past-meeting route from the current pathname
-              const isPastMeetingRoute = pathname.includes("/past-meeting/");
-              const meetingType = isPastMeetingRoute
-                ? "past-meeting"
-                : "meeting";
-              const tabHref =
-                currentMeeting && ticker
-                  ? `/${ticker}/${meetingType}/${currentMeeting.id}${tab.route}`
-                  : "#";
-
-              return (
-                <Tab
-                  key={tab.label}
-                  value={tab.label}
-                  label={tab.label}
-                  component={NextLink}
-                  href={tabHref}
-                  sx={(theme) => ({
-                    color: isActive
-                      ? "var(--mui-palette-primary-main)"
-                      : "var(--mui-palette-text-secondary)",
-                    fontWeight: 500,
-                    fontSize: "0.875rem",
-                    textTransform: "none",
-                    textDecoration: "none",
-                    px: 2,
-                    py: 1.125,
-                    minWidth: "fit-content",
-                    borderRadius: 0,
-                    cursor: "pointer",
-                    pointerEvents: "auto",
-                    "&:hover": {
-                      backgroundColor: "transparent",
-                      color: theme.vars?.palette.primary.main,
-                    },
-                  })}
-                />
-              );
-            })}
-          </Tabs>
-        </Container>
-      </Paper>
+      <MeetingNavigationBar
+        isPending={isPending}
+        activeTab={activeTab}
+        navigationTabs={navigationTabs}
+        currentMeeting={currentMeeting}
+        currentClientTicker={currentClient?.ticker}
+        pathname={pathname}
+        displayMode={displayMode}
+        setDisplayMode={setDisplayMode}
+      />
     </Box>
   );
 };

@@ -15,11 +15,11 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import React, { useState } from "react";
 
 interface ScheduleDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSchedule: (date: Date, notes?: string) => void;
-  title: string;
-  description: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onSchedule: (date: Date, notes?: string) => void;
+  readonly title: string;
+  readonly description: string;
 }
 
 const ScheduleDialog = ({
@@ -56,7 +56,9 @@ const ScheduleDialog = ({
             <DateTimePicker
               label="Select Date and Time"
               value={selectedDate}
-              onChange={(newValue) => setSelectedDate(newValue)}
+              onChange={(newValue) => {
+                setSelectedDate(newValue);
+              }}
               slotProps={{
                 textField: {
                   fullWidth: true,
@@ -70,7 +72,9 @@ const ScheduleDialog = ({
               rows={4}
               fullWidth
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => {
+                setNotes(e.target.value);
+              }}
               placeholder={description}
             />
           </Box>

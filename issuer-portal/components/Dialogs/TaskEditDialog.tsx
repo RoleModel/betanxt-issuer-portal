@@ -26,7 +26,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import type { Document, Task } from "@/types/api-exports";
 import type { TaskLink as BaseTaskLink } from "@/utils/taskLinks";
@@ -86,13 +86,23 @@ interface TaskLink extends BaseTaskLink {
   id?: string; // Add id field for editing purposes
 }
 
+interface TaskFormData {
+  title: string;
+  description: string;
+  status: TaskStatus;
+  type: TaskType | "";
+  phase: number;
+  due_date: string;
+  assignee: string;
+}
+
 interface TaskEditDialogProps {
-  open: boolean;
-  onClose: () => void;
-  task: Task | null;
-  onTaskUpdated: (updatedTask: Task) => void;
-  onRefresh?: () => void;
-  enableLinkEditing?: boolean;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly task: Task | null;
+  readonly onTaskUpdated: (updatedTask: Task) => void;
+  readonly onRefresh?: () => void;
+  readonly enableLinkEditing?: boolean;
 }
 
 const statusOptions: TaskStatus[] = [
@@ -153,6 +163,67 @@ const actionOptions: LinkAction[] = [
   "external",
 ];
 
+// Helper function to convert display date to YYYY-MM-DD format
+const convertToDbDate = (displayDate: string): string => {
+  if (!displayDate) return "";
+
+  // If already in YYYY-MM-DD format, return as is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(displayDate)) {
+    return displayDate;
+  }
+
+  // Convert from "Sep 10" or similar format to YYYY-MM-DD
+  try {
+    const currentYear = new Date().getFullYear();
+    const date = new Date(`${displayDate}, ${currentYear}`);
+    if (isNaN(date.getTime())) return "";
+
+    return date.toISOString().split("T")[0];
+  } catch {
+    return "";
+  }
+};
+
+// Derive the initial form values directly from the task prop. Called from a
+// lazy useState initializer so the values are computed once per mount.
+const computeInitialFormData = (task: Task): TaskFormData => ({
+  title: task.title ?? "",
+  description: task.description ?? "",
+  status: (task.status as TaskStatus) || "Incomplete",
+  type: (task.type as TaskType) || "",
+  phase: task.phaseNumber || 1,
+  due_date: convertToDbDate(task.dueDate ?? ""),
+  assignee: task.owner ?? "",
+});
+
+const computeInitialLinks = (
+  task: Task,
+  enableLinkEditing: boolean
+): TaskLink[] => {
+  if (!enableLinkEditing || !task.links) return [];
+
+  // Convert links object to array if needed
+  const linksArray = Array.isArray(task.links)
+    ? task.links
+    : Object.values(task.links);
+
+  if (!Array.isArray(linksArray) || linksArray.length === 0) return [];
+
+  return (linksArray as BaseTaskLink[]).map((link, index) => ({
+    id: `link-${index}`, // Generate a stable ID for editing
+    label: link.label,
+    url: link.url ?? "",
+    action: link.action as LinkAction,
+  }));
+};
+
+const computeInitialDocumentId = (task: Task): string => {
+  if ("document" in task) {
+    return String(task.document) || "";
+  }
+  return "";
+};
+
 export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   open,
   onClose,
@@ -161,83 +232,67 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   onRefresh,
   enableLinkEditing = false,
 }) => {
+  if (!task) return null;
+
+  // The form state is initialized from `task` via lazy useState in
+  // TaskEditForm. Keying by task.id (and unmounting on close, since
+  // keepMounted is false) resets that state when the task changes, so no
+  // prop-syncing effects are needed.
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      keepMounted={false}
+    >
+      <TaskEditForm
+        key={task.id}
+        task={task}
+        onClose={onClose}
+        onTaskUpdated={onTaskUpdated}
+        onRefresh={onRefresh}
+        enableLinkEditing={enableLinkEditing}
+      />
+    </Dialog>
+  );
+};
+
+interface TaskEditFormProps {
+  readonly task: Task;
+  readonly onClose: () => void;
+  readonly onTaskUpdated: (updatedTask: Task) => void;
+  readonly onRefresh?: () => void;
+  readonly enableLinkEditing: boolean;
+}
+
+const TaskEditForm: React.FC<TaskEditFormProps> = ({
+  task,
+  onClose,
+  onTaskUpdated,
+  onRefresh,
+  enableLinkEditing,
+}) => {
   // Use our hooks instead of direct Supabase calls
   const { updateTaskById } = useTasks();
   const { createNewDocument } = useDocuments();
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    status: "Incomplete" as TaskStatus,
-    type: "" as TaskType | "",
-    phase: 1, // Use phase number instead of phase_id
-    due_date: "",
-    assignee: "",
-  });
-
-  const [links, setLinks] = useState<TaskLink[]>([]);
+  const [formData, setFormData] = useState<TaskFormData>(() =>
+    computeInitialFormData(task)
+  );
+  const [links, setLinks] = useState<TaskLink[]>(() =>
+    computeInitialLinks(task, enableLinkEditing)
+  );
 
   // Document management state - using document masters (templates)
   const [availableDocuments, setAvailableDocuments] = useState<Document[]>([]);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string>("");
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string>(() =>
+    computeInitialDocumentId(task)
+  );
   const [uploadingFile, setUploadingFile] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Helper function to convert display date to YYYY-MM-DD format
-  const convertToDbDate = (displayDate: string): string => {
-    if (!displayDate) return "";
-
-    // If already in YYYY-MM-DD format, return as is
-    if (/^\d{4}-\d{2}-\d{2}$/.test(displayDate)) {
-      return displayDate;
-    }
-
-    // Convert from "Sep 10" or similar format to YYYY-MM-DD
-    try {
-      const currentYear = new Date().getFullYear();
-      const date = new Date(`${displayDate}, ${currentYear}`);
-      if (isNaN(date.getTime())) return "";
-
-      return date.toISOString().split("T")[0];
-    } catch {
-      return "";
-    }
-  };
-
-  // Memoize initial form data calculation - much simpler now with direct phase_number
-  const initialFormData = useMemo(() => {
-    if (!task) return null;
-    return {
-      title: task.title ?? "",
-      description: task.description ?? "",
-      status: (task.status as TaskStatus) || "Incomplete",
-      type: (task.type as TaskType) || "",
-      phase: task.phaseNumber || 1,
-      due_date: convertToDbDate(task.dueDate ?? ""),
-      assignee: task.owner ?? "",
-    };
-  }, [task]);
-
-  // Memoize initial links calculation
-  const initialLinks = useMemo(() => {
-    if (!task || !enableLinkEditing || !task.links) return [];
-
-    // Convert links object to array if needed
-    const linksArray = Array.isArray(task.links)
-      ? task.links
-      : Object.values(task.links);
-
-    if (!Array.isArray(linksArray) || linksArray.length === 0) return [];
-
-    return (linksArray as BaseTaskLink[]).map((link, index) => ({
-      id: `link-${index}`, // Generate a temporary ID for editing
-      label: link.label,
-      url: link.url ?? "",
-      action: link.action as LinkAction,
-    }));
-  }, [task, enableLinkEditing]);
 
   // Load available document masters (templates) - now using API
   const loadAvailableDocuments = useCallback(() => {
@@ -250,29 +305,8 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     }
   }, []);
 
-  // Initialize form data when task changes or dialog opens
-  useEffect(() => {
-    if (!open) return;
-
-    if (initialFormData) {
-      setFormData(initialFormData);
-    }
-    setLinks(initialLinks);
-    setError(null);
-    loadAvailableDocuments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, task?.id]); // Only re-run when dialog opens or task changes
-
-  // Set current document when task loads
-  useEffect(() => {
-    if (!open) return;
-    if (task && "document" in task) {
-      setSelectedDocumentId(String(task.document) || "");
-    }
-  }, [open, task]);
-
   const handleChange =
-    (field: keyof typeof formData) =>
+    (field: keyof TaskFormData) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFormData((prev) => ({
         ...prev,
@@ -282,7 +316,10 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
   // Link management functions
   const handleAddLink = useCallback(() => {
-    setLinks((prev) => [...prev, { label: "", url: "", action: "external" }]);
+    setLinks((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), label: "", url: "", action: "external" },
+    ]);
   }, []);
 
   const handleRemoveLink = useCallback((index: number) => {
@@ -304,7 +341,7 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   const handleFilesSelected = useCallback(
     async (files: File[]) => {
       const file = files[0]; // Only handle one file for signature tasks
-      if (!file || !task) return;
+      if (!file) return;
 
       setUploadingFile(true);
       setError(null);
@@ -366,8 +403,6 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
   );
 
   const handleSave = async () => {
-    if (!task) return;
-
     setLoading(true);
     setError(null);
 
@@ -386,14 +421,24 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
       // Add links if link editing is enabled
       if (enableLinkEditing) {
-        // Filter and process links for saving
-        const processedLinks = links
-          .filter((link) => link.label.trim()) // Only save links with labels
-          .map((link) => ({
-            label: link.label,
-            url: link.url || undefined,
-            action: link.action || undefined,
-          }));
+        // Filter and process links for saving in a single pass
+        const processedLinks = links.reduce<
+          {
+            label: string;
+            url: string | undefined;
+            action: string | undefined;
+          }[]
+        >((acc, link) => {
+          if (link.label.trim()) {
+            // Only save links with labels
+            acc.push({
+              label: link.label,
+              url: link.url || undefined,
+              action: link.action || undefined,
+            });
+          }
+          return acc;
+        }, []);
         taskUpdates.links = processedLinks;
       }
 
@@ -435,48 +480,13 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
     }
   };
 
-  const handleCancel = useCallback(() => {
-    if (initialFormData) {
-      setFormData(initialFormData);
-    }
-    setLinks(initialLinks);
-    setError(null);
-    onClose();
-  }, [initialFormData, initialLinks, onClose]);
-
-  if (!task) return null;
-
-  // Show loading state if form data isn't ready yet
-  if (!initialFormData) {
-    return (
-      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogContent>
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            py={4}
-          >
-            <Typography>Loading...</Typography>
-          </Box>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   return (
-    <Dialog
-      open={open}
-      onClose={handleCancel}
-      maxWidth="sm"
-      fullWidth
-      keepMounted={false}
-    >
+    <>
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           Edit Task
           <IconButton
-            onClick={handleCancel}
+            onClick={onClose}
             size="small"
             sx={{ color: "text.secondary" }}
           >
@@ -605,195 +615,27 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
 
           {/* Document Management Section - Only show for signature tasks */}
           {formData.type === "signature" && (
-            <Box sx={{ mt: 3 }}>
-              <Typography
-                variant="h6"
-                sx={{ fontSize: "16px", fontWeight: 500, mb: 2 }}
-              >
-                Document
-              </Typography>
-
-              {/* Current Document Selection */}
-              <TextField
-                fullWidth
-                select
-                label="Select Document"
-                size="small"
-                value={selectedDocumentId}
-                onChange={(e) => setSelectedDocumentId(e.target.value)}
-                variant="outlined"
-                sx={{ mb: 2 }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {availableDocuments.map((doc) => (
-                  <MenuItem key={doc.id} value={doc.id}>
-                    <Box>
-                      <Typography variant="body3">{doc.title}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {doc.filePath ?? "N/A"} • {doc.type}
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              {/* Current Document Info */}
-              {selectedDocumentId && (
-                <Box sx={{ mb: 2 }}>
-                  {(() => {
-                    const selectedDoc = availableDocuments.find(
-                      (d) => d.id === selectedDocumentId
-                    );
-                    if (!selectedDoc) return null;
-
-                    return (
-                      <Alert severity="info" sx={{ mb: 2 }}>
-                        <Typography variant="body3">
-                          <strong>{selectedDoc.title}</strong>
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          File: {selectedDoc.filePath ?? "N/A"} • Type:{" "}
-                          {selectedDoc.type}
-                        </Typography>
-                        <br />
-                        <Typography variant="caption" color="text.secondary">
-                          Storage URL:{" "}
-                          {selectedDoc.filePath
-                            ? getStoragePublicUrl(selectedDoc.filePath)
-                            : "No file path"}
-                        </Typography>
-                      </Alert>
-                    );
-                  })()}
-                </Box>
-              )}
-
-              {/* Upload New Document */}
-              <Typography variant="body3" color="text.secondary" sx={{ mb: 1 }}>
-                Or upload a new document:
-              </Typography>
-
-              <Box sx={{ height: 120 }}>
-                <BNFileDropzone
-                  onFilesSelected={handleFilesSelected}
-                  onFileRejections={handleFileRejections}
-                  maxFiles={1}
-                  multiple={false}
-                  acceptedFileTypes={[".pdf"]}
-                  disabled={uploadingFile}
-                  linkText={uploadingFile ? "Uploading..." : "Upload PDF"}
-                />
-              </Box>
-            </Box>
+            <DocumentSection
+              availableDocuments={availableDocuments}
+              selectedDocumentId={selectedDocumentId}
+              onSelectDocument={setSelectedDocumentId}
+              uploadingFile={uploadingFile}
+              onFilesSelected={handleFilesSelected}
+              onFileRejections={handleFileRejections}
+            />
           )}
 
           {/* Conditional Link Editing Section */}
-          {enableLinkEditing && (
-            <Box sx={{ mt: 3 }}>
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-                sx={{ mb: 2 }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{ fontSize: "16px", fontWeight: 500 }}
-                >
-                  Links
-                </Typography>
-                <Button
-                  startIcon={<AddIcon />}
-                  onClick={handleAddLink}
-                  variant="text"
-                >
-                  Add Link
-                </Button>
-              </Box>
+          {enableLinkEditing ? (
+            <LinksSection
+              links={links}
+              onAddLink={handleAddLink}
+              onRemoveLink={handleRemoveLink}
+              onLinkChange={handleLinkChange}
+            />
+          ) : null}
 
-              {links.length === 0 ? (
-                <Typography variant="body3" color="text.secondary">
-                  No links added yet
-                </Typography>
-              ) : (
-                <Stack spacing={2}>
-                  {links.map((link, index) => (
-                    <Card key={index} variant="outlined">
-                      <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-                        <Box display="flex" alignItems="flex-start" gap={1}>
-                          <Box flex={1}>
-                            <Box display="flex" gap={2} sx={{ mb: 2 }}>
-                              <TextField
-                                label="Link Label"
-                                value={link.label}
-                                onChange={(e) =>
-                                  handleLinkChange(
-                                    index,
-                                    "label",
-                                    e.target.value
-                                  )
-                                }
-                                size="small"
-                                fullWidth
-                                required
-                              />
-                              <FormControl size="small" sx={{ minWidth: 120 }}>
-                                <InputLabel id="action-label">
-                                  Action
-                                </InputLabel>
-                                <Select
-                                  labelId="action-label"
-                                  size="small"
-                                  value={link.action ?? ""}
-                                  label="Action"
-                                  onChange={(e) =>
-                                    handleLinkChange(
-                                      index,
-                                      "action",
-                                      e.target.value
-                                    )
-                                  }
-                                >
-                                  {actionOptions.map((action) => (
-                                    <MenuItem key={action} value={action}>
-                                      {action.charAt(0).toUpperCase() +
-                                        action.slice(1)}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            </Box>
-                            <TextField
-                              label="URL (optional)"
-                              value={link.url ?? ""}
-                              onChange={(e) =>
-                                handleLinkChange(index, "url", e.target.value)
-                              }
-                              size="small"
-                              fullWidth
-                              placeholder="https://..."
-                            />
-                          </Box>
-                          <IconButton
-                            onClick={() => handleRemoveLink(index)}
-                            size="small"
-                            color="error"
-                            sx={{ mt: 0.5 }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Stack>
-              )}
-            </Box>
-          )}
-
-          {error && (
+          {error ? (
             <Typography
               color="error"
               variant="body3"
@@ -801,12 +643,12 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
             >
               {error}
             </Typography>
-          )}
+          ) : null}
         </Box>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleCancel} variant="outlined" disabled={loading}>
+        <Button onClick={onClose} variant="outlined" disabled={loading}>
           Cancel
         </Button>
         <Button
@@ -817,7 +659,211 @@ export const TaskEditDialog: React.FC<TaskEditDialogProps> = ({
           {loading ? "Saving..." : "Save Changes"}
         </Button>
       </DialogActions>
-    </Dialog>
+    </>
+  );
+};
+
+interface DocumentSectionProps {
+  readonly availableDocuments: Document[];
+  readonly selectedDocumentId: string;
+  readonly onSelectDocument: (id: string) => void;
+  readonly uploadingFile: boolean;
+  readonly onFilesSelected: (files: File[]) => void;
+  readonly onFileRejections: (fileRejections: FileRejection[]) => void;
+}
+
+const DocumentSection: React.FC<DocumentSectionProps> = ({
+  availableDocuments,
+  selectedDocumentId,
+  onSelectDocument,
+  uploadingFile,
+  onFilesSelected,
+  onFileRejections,
+}) => {
+  const selectedDoc = selectedDocumentId
+    ? availableDocuments.find((d) => d.id === selectedDocumentId)
+    : undefined;
+
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Typography
+        variant="h6"
+        sx={{ fontSize: "16px", fontWeight: 500, mb: 2 }}
+      >
+        Document
+      </Typography>
+
+      {/* Current Document Selection */}
+      <TextField
+        fullWidth
+        select
+        label="Select Document"
+        size="small"
+        value={selectedDocumentId}
+        onChange={(e) => {
+          onSelectDocument(e.target.value);
+        }}
+        variant="outlined"
+        sx={{ mb: 2 }}
+      >
+        <MenuItem value="">
+          <em>None</em>
+        </MenuItem>
+        {availableDocuments.map((doc) => (
+          <MenuItem key={doc.id} value={doc.id}>
+            <Box>
+              <Typography variant="body3">{doc.title}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {doc.filePath ?? "N/A"} • {doc.type}
+              </Typography>
+            </Box>
+          </MenuItem>
+        ))}
+      </TextField>
+
+      {/* Current Document Info */}
+      {selectedDoc ? (
+        <Box sx={{ mb: 2 }}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body3">
+              <strong>{selectedDoc.title}</strong>
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              File: {selectedDoc.filePath ?? "N/A"} • Type: {selectedDoc.type}
+            </Typography>
+            <br />
+            <Typography variant="caption" color="text.secondary">
+              Storage URL:{" "}
+              {selectedDoc.filePath
+                ? getStoragePublicUrl(selectedDoc.filePath)
+                : "No file path"}
+            </Typography>
+          </Alert>
+        </Box>
+      ) : null}
+
+      {/* Upload New Document */}
+      <Typography variant="body3" color="text.secondary" sx={{ mb: 1 }}>
+        Or upload a new document:
+      </Typography>
+
+      <Box sx={{ height: 120 }}>
+        <BNFileDropzone
+          onFilesSelected={onFilesSelected}
+          onFileRejections={onFileRejections}
+          maxFiles={1}
+          multiple={false}
+          acceptedFileTypes={[".pdf"]}
+          disabled={uploadingFile}
+          linkText={uploadingFile ? "Uploading..." : "Upload PDF"}
+        />
+      </Box>
+    </Box>
+  );
+};
+
+interface LinksSectionProps {
+  readonly links: TaskLink[];
+  readonly onAddLink: () => void;
+  readonly onRemoveLink: (index: number) => void;
+  readonly onLinkChange: (
+    index: number,
+    field: keyof TaskLink,
+    value: string
+  ) => void;
+}
+
+const LinksSection: React.FC<LinksSectionProps> = ({
+  links,
+  onAddLink,
+  onRemoveLink,
+  onLinkChange,
+}) => {
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mb: 2 }}
+      >
+        <Typography variant="h6" sx={{ fontSize: "16px", fontWeight: 500 }}>
+          Links
+        </Typography>
+        <Button startIcon={<AddIcon />} onClick={onAddLink} variant="text">
+          Add Link
+        </Button>
+      </Box>
+
+      {links.length === 0 ? (
+        <Typography variant="body3" color="text.secondary">
+          No links added yet
+        </Typography>
+      ) : (
+        <Stack spacing={2}>
+          {links.map((link, index) => (
+            <Card key={link.id} variant="outlined">
+              <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
+                <Box display="flex" alignItems="flex-start" gap={1}>
+                  <Box flex={1}>
+                    <Box display="flex" gap={2} sx={{ mb: 2 }}>
+                      <TextField
+                        label="Link Label"
+                        value={link.label}
+                        onChange={(e) => {
+                          onLinkChange(index, "label", e.target.value);
+                        }}
+                        size="small"
+                        fullWidth
+                        required
+                      />
+                      <FormControl size="small" sx={{ minWidth: 120 }}>
+                        <InputLabel id="action-label">Action</InputLabel>
+                        <Select
+                          labelId="action-label"
+                          size="small"
+                          value={link.action ?? ""}
+                          label="Action"
+                          onChange={(e) => {
+                            onLinkChange(index, "action", e.target.value);
+                          }}
+                        >
+                          {actionOptions.map((action) => (
+                            <MenuItem key={action} value={action}>
+                              {action.charAt(0).toUpperCase() + action.slice(1)}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                    <TextField
+                      label="URL (optional)"
+                      value={link.url ?? ""}
+                      onChange={(e) => {
+                        onLinkChange(index, "url", e.target.value);
+                      }}
+                      size="small"
+                      fullWidth
+                      placeholder="https://..."
+                    />
+                  </Box>
+                  <IconButton
+                    onClick={() => {
+                      onRemoveLink(index);
+                    }}
+                    size="small"
+                    color="error"
+                    sx={{ mt: 0.5 }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
+      )}
+    </Box>
   );
 };
 

@@ -5,7 +5,11 @@ import React from "react";
 
 import { PageTitle } from "@/components/PageTitle";
 
-const ProductsLayout = ({ children }: { children: React.ReactNode }) => {
+const ProductsLayout = ({
+  children,
+}: {
+  readonly children: React.ReactNode;
+}) => {
   return (
     <>
       <PageTitle>Products</PageTitle>

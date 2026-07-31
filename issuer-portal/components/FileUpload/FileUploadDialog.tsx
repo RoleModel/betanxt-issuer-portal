@@ -11,11 +11,13 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 
 import type { DSMDocumentOption, UploadFile } from "./types";
 
 import BNFileUpload from "./BNFileUpload";
+
+const EMPTY_DSM_DOCUMENT_OPTIONS: DSMDocumentOption[] = [];
 
 export interface FileUploadDialogField {
   readonly id: string;
@@ -25,32 +27,42 @@ export interface FileUploadDialogField {
 }
 
 interface FileUploadDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onUpload: (
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onUpload: (
     files: File[],
     associations?: Record<string, string>
   ) => Promise<unknown>;
-  onUploadSuccess?: () => void;
-  onUploadWithNotes?: (
+  readonly onUploadSuccess?: () => void;
+  readonly onUploadWithNotes?: (
     files: File[],
     associations?: Record<string, string>,
     description?: string
   ) => Promise<unknown>;
-  acceptedFileTypes?: string[];
-  dialogTitle?: string;
-  fields?: readonly FileUploadDialogField[];
-  fieldValues?: Readonly<Record<string, string>>;
-  maxFiles?: number;
-  meetingId?: string;
-  documentType?: string;
-  isDragging?: boolean;
-  dsmDocumentOptions?: DSMDocumentOption[];
-  multiple?: boolean;
-  onFieldChange?: (fieldId: string, value: string) => void;
-  preSelectedDocumentId?: string;
-  showDescription?: boolean;
+  readonly acceptedFileTypes?: string[];
+  readonly dialogTitle?: string;
+  readonly fields?: readonly FileUploadDialogField[];
+  readonly fieldValues?: Readonly<Record<string, string>>;
+  readonly maxFiles?: number;
+  readonly meetingId?: string;
+  readonly documentType?: string;
+  readonly isDragging?: boolean;
+  readonly dsmDocumentOptions?: DSMDocumentOption[];
+  readonly multiple?: boolean;
+  readonly onFieldChange?: (fieldId: string, value: string) => void;
+  readonly preSelectedDocumentId?: string;
+  readonly showDescription?: boolean;
 }
+
+const handleFilesSelected = (_files: File[]): void => {
+  // Files are automatically added to the upload component's state
+};
+
+const handleUpload = async (_files: File[]): Promise<void> => {
+  // This is called by BNFileUpload component to handle the actual upload
+  // The parent component should handle the real upload logic
+  await Promise.resolve();
+};
 
 const FileUploadDialog = ({
   open,
@@ -66,7 +78,7 @@ const FileUploadDialog = ({
   // meetingId,
   documentType = "dsm-document",
   // isDragging,
-  dsmDocumentOptions = [],
+  dsmDocumentOptions = EMPTY_DSM_DOCUMENT_OPTIONS,
   multiple = true,
   onFieldChange,
   preSelectedDocumentId,
@@ -75,43 +87,26 @@ const FileUploadDialog = ({
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [fileAssociations, setFileAssociations] = useState<
-    Record<string, string>
-  >({});
+  // Associations are only read inside submit handlers and never rendered, so a
+  // ref avoids re-rendering the dialog on every association change.
+  const fileAssociationsRef = useRef<Record<string, string>>({});
   const [description, setDescription] = useState("");
 
   const handleClose = () => {
     setUploadFiles([]);
     setUploadError(null);
     setIsUploading(false);
-    setFileAssociations({});
+    fileAssociationsRef.current = {};
     onClose();
-  };
-
-  const handleFilesSelected = (_files: File[]) => {
-    // Files are automatically added to the upload component's state
   };
 
   const handleFileRemove = (fileId: string) => {
     // Remove association when file is removed
-    setFileAssociations((prev) => {
-      const newAssociations = { ...prev };
-      delete newAssociations[fileId];
-      return newAssociations;
-    });
+    delete fileAssociationsRef.current[fileId];
   };
 
   const handleFileAssociationChange = (fileId: string, documentId: string) => {
-    setFileAssociations((prev) => ({
-      ...prev,
-      [fileId]: documentId,
-    }));
-  };
-
-  const handleUpload = async (_files: File[]) => {
-    // This is called by BNFileUpload component to handle the actual upload
-    // The parent component should handle the real upload logic
-    return Promise.resolve();
+    fileAssociationsRef.current[fileId] = documentId;
   };
 
   const handleSubmit = async () => {
@@ -125,8 +120,8 @@ const FileUploadDialog = ({
       // If there's a preSelectedDocumentId, use it for all files
       if (preSelectedDocumentId) {
         associations[fileKey] = preSelectedDocumentId;
-      } else if (fileAssociations[uploadFile.id]) {
-        associations[fileKey] = fileAssociations[uploadFile.id];
+      } else if (fileAssociationsRef.current[uploadFile.id]) {
+        associations[fileKey] = fileAssociationsRef.current[uploadFile.id];
       }
     });
 
@@ -178,15 +173,17 @@ const FileUploadDialog = ({
       </DialogTitle>
 
       <DialogContent>
-        {uploadError && (
+        {uploadError ? (
           <Alert
             severity="error"
             sx={{ mb: 2 }}
-            onClose={() => setUploadError(null)}
+            onClose={() => {
+              setUploadError(null);
+            }}
           >
             {uploadError}
           </Alert>
-        )}
+        ) : null}
         <Stack spacing={2} sx={{ mb: 2 }}>
           {fields.map((field) => (
             <TextField
@@ -211,7 +208,9 @@ const FileUploadDialog = ({
               label="Description"
               placeholder="Add a description (optional)"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value);
+              }}
               multiline
               minRows={2}
             />

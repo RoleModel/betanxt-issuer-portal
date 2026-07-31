@@ -65,7 +65,6 @@ const VotingMetricCell = ({
     displayMode === "numbers"
       ? `${display} shares (${alternate})`
       : `${display} (${alternate} shares)`;
-  const modeLabel = isPercentage ? "Percentage" : "Shares";
   const progressValue = isPercentage
     ? percentage
     : totalShares > 0
@@ -75,19 +74,6 @@ const VotingMetricCell = ({
   return (
     <Tooltip title={alternate}>
       <Box sx={{ width: "100%" }}>
-        <Typography
-          component="div"
-          sx={{
-            color: "text.secondary",
-            fontSize: "0.625rem",
-            fontWeight: 700,
-            letterSpacing: "0.04em",
-            lineHeight: 1.2,
-            textTransform: "uppercase",
-          }}
-        >
-          {modeLabel}
-        </Typography>
         <Typography variant="body3" fontWeight="medium">
           {display}
         </Typography>

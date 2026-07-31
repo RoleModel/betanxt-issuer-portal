@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 import type { components } from "@/types/api";
 import type { Database } from "@/utils/supabase/database.types";
@@ -27,30 +27,32 @@ interface ApiResponse<T> {
 }
 
 // Transform snake_case database fields to camelCase API fields
-function transformPhase(dbPhase: PhaseRow): Phase {
+function transformPhase(databasePhase: PhaseRow): Phase {
   return {
-    id: dbPhase.id ?? "",
-    meetingId: nullToUndefined(dbPhase.meeting_id),
-    name: nullToUndefined(dbPhase.name),
-    orderIndex: nullToUndefined(dbPhase.order_index),
-    status: nullToUndefined(dbPhase.status) as
+    id: databasePhase.id ?? "",
+    meetingId: nullToUndefined(databasePhase.meeting_id),
+    name: nullToUndefined(databasePhase.name),
+    orderIndex: nullToUndefined(databasePhase.order_index),
+    status: nullToUndefined(databasePhase.status) as
       "IN_PROGRESS" | "COMPLETE" | undefined,
-    keyDates: dbPhase.key_dates ? JSON.parse(dbPhase.key_dates) : undefined,
-    createdAt: nullToUndefined(dbPhase.created_at),
-    updatedAt: nullToUndefined(dbPhase.updated_at),
+    keyDates: databasePhase.key_dates
+      ? JSON.parse(databasePhase.key_dates)
+      : undefined,
+    createdAt: nullToUndefined(databasePhase.created_at),
+    updatedAt: nullToUndefined(databasePhase.updated_at),
   };
 }
 
 export async function listPhases(
   meetingId: string,
-  opts?: { status?: string }
+  options?: { status?: string }
 ): Promise<ApiResponse<Phase[]>> {
   try {
     let query = supabase.from("phase").select("*").eq("meeting_id", meetingId);
 
     // Apply filters
-    if (opts?.status) {
-      query = query.eq("status", opts.status);
+    if (options?.status) {
+      query = query.eq("status", options.status);
     }
 
     // Order by order_index
@@ -70,8 +72,9 @@ export async function listPhases(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch phases",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch phases",
       },
     };
   }
@@ -108,8 +111,9 @@ export async function createPhase(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to create phase",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to create phase",
       },
     };
   }
@@ -135,8 +139,7 @@ export async function getPhaseById(id: string): Promise<ApiResponse<Phase>> {
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch phase",
+        message: Error.isError(error) ? error.message : "Failed to fetch phase",
       },
     };
   }
@@ -149,12 +152,18 @@ export async function updatePhase(
   try {
     const request = body;
     const updateData: Partial<PhaseUpdate> = {};
-    if (request.name !== undefined) updateData.name = request.name;
-    if (request.orderIndex !== undefined)
+    if (request.name !== undefined) {
+      updateData.name = request.name;
+    }
+    if (request.orderIndex !== undefined) {
       updateData.order_index = request.orderIndex;
-    if (request.status !== undefined) updateData.status = request.status;
-    if (request.keyDates !== undefined)
+    }
+    if (request.status !== undefined) {
+      updateData.status = request.status;
+    }
+    if (request.keyDates !== undefined) {
       updateData.key_dates = JSON.stringify(request.keyDates);
+    }
 
     const { data, error } = await supabase
       .from("phase")
@@ -175,8 +184,9 @@ export async function updatePhase(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to update phase",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to update phase",
       },
     };
   }
@@ -186,5 +196,5 @@ export async function updatePhase(
 export async function listPhasesByMeetingId(
   meetingId: string
 ): Promise<ApiResponse<Phase[]>> {
-  return listPhases(meetingId);
+  return await listPhases(meetingId);
 }

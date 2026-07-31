@@ -1,6 +1,3 @@
-#!/usr/bin/env tsx
-import type { Stats } from "fs";
-
 /**
  * Unified document seeding script
  * Uploads PDF documents from data directories to Supabase storage and links them to database records
@@ -10,9 +7,10 @@ import type { Stats } from "fs";
  *   npm run seed:documents -- --link    # Link existing storage files to database
  *   npm run seed:documents -- --clean   # Clean all documents before uploading
  */
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import { existsSync, readFileSync, readdirSync, statSync } from "fs";
-import { join } from "path";
+import type { Stats } from "node:fs";
 
 const supabaseUrl = process.env.SUPABASE_URL ?? "http://127.0.0.1:54321";
 const supabaseServiceKey =
@@ -189,21 +187,26 @@ function determineDocumentType(filename: string): DocumentTypeMapping | null {
   };
 }
 
-function getCleanTitle(filename: string, docType: DocumentTypeMapping): string {
+function getCleanTitle(
+  filename: string,
+  documentType: DocumentTypeMapping
+): string {
   // Use custom title if provided
-  if (docType.title) return docType.title;
+  if (documentType.title) {
+    return documentType.title;
+  }
 
   // Clean up the filename
   const cleanName = filename
     .replace(/\.(pdf|docx?|xlsx?|pptx?|mp4|m4a)$/i, "") // Remove extension
     .replace(/^\d+[\s._-]+/, "") // Remove leading numbers
-    .replace(/[._-]/g, " ") // Replace delimiters with spaces
+    .replaceAll(/[._-]/g, " ") // Replace delimiters with spaces
     .trim();
 
-  return cleanName || docType.type;
+  return cleanName || documentType.type;
 }
 
-function getMimeType(ext: string): string {
+function getMimeType(extension: string): string {
   const mimeTypes: Record<string, string> = {
     pdf: "application/pdf",
     doc: "application/msword",
@@ -215,7 +218,7 @@ function getMimeType(ext: string): string {
     mp4: "video/mp4",
     m4a: "audio/mp4",
   };
-  return mimeTypes[ext.toLowerCase()] || "application/octet-stream";
+  return mimeTypes[extension.toLowerCase()] || "application/octet-stream";
 }
 
 async function cleanDocuments() {
@@ -265,16 +268,16 @@ async function uploadDocument(
     return false;
   }
 
-  const docType = determineDocumentType(filename);
-  if (!docType) {
+  const documentType = determineDocumentType(filename);
+  if (!documentType) {
     console.log(`⚠️  No mapping for: ${filename}`);
     return false;
   }
 
   try {
     // Skip non-document files
-    const ext = filename.split(".").pop() || "";
-    const supportedExts = [
+    const extension = filename.split(".").pop() || "";
+    const supportedExtensions = [
       "pdf",
       "doc",
       "docx",
@@ -285,19 +288,19 @@ async function uploadDocument(
       "mp4",
       "m4a",
     ];
-    if (!supportedExts.includes(ext.toLowerCase())) {
+    if (!supportedExtensions.includes(extension.toLowerCase())) {
       console.log(`   Skipping unsupported file type: ${filename}`);
       return false;
     }
 
     const fileBuffer = readFileSync(filePath);
     const timestamp = Date.now();
-    const storagePath = `${client.meetingId}/${docType.type.toLowerCase().replace(/\s+/g, "-")}/${timestamp}_${filename}`;
+    const storagePath = `${client.meetingId}/${documentType.type.toLowerCase().replaceAll(/\s+/g, "-")}/${timestamp}_${filename}`;
 
     console.log(`📤 Uploading: ${filename}`);
     console.log(`   Client: ${client.ticker}`);
-    console.log(`   Type: ${docType.type}`);
-    console.log(`   Category: ${docType.displayCategory}`);
+    console.log(`   Type: ${documentType.type}`);
+    console.log(`   Category: ${documentType.displayCategory}`);
     console.log(`   Storage Path: ${storagePath}`);
 
     // Upload to storage
@@ -307,7 +310,7 @@ async function uploadDocument(
     const { data: storageData, error: storageError } = await supabase.storage
       .from("documents")
       .upload(storagePath, fileBuffer, {
-        contentType: getMimeType(ext),
+        contentType: getMimeType(extension),
         upsert: true, // Allow overwriting
       });
 
@@ -331,38 +334,38 @@ async function uploadDocument(
     const publicUrl = urlData.publicUrl.replace(/^https?:\/\/[^/]+/, "");
 
     // Create database record with generated ID
-    const docId = `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const documentId = `doc_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
     // Calculate document dates relative to meeting date
     const meetingDate = new Date(client.meetingDate);
     const daysBeforeMeeting = Math.floor(Math.random() * 30) + 10; // 10-40 days before meeting
-    const docDate = new Date(meetingDate);
-    docDate.setDate(docDate.getDate() - daysBeforeMeeting);
+    const documentDate = new Date(meetingDate);
+    documentDate.setDate(documentDate.getDate() - daysBeforeMeeting);
 
-    const { data: docData, error: docError } = await supabase
+    const { data: documentData, error: documentError } = await supabase
       .from("document")
       .insert({
-        id: docId,
+        id: documentId,
         meeting_id: client.meetingId,
-        title: getCleanTitle(filename, docType),
-        type: docType.type,
-        display_category: docType.displayCategory,
+        title: getCleanTitle(filename, documentType),
+        type: documentType.type,
+        display_category: documentType.displayCategory,
         file_path: publicUrl,
-        file_type: ext.toUpperCase(),
+        file_type: extension.toUpperCase(),
         file_size: fileStats.size,
-        status: docType.status ?? "APPROVED",
-        created_at: docDate.toISOString(),
-        updated_at: docDate.toISOString(),
+        status: documentType.status ?? "APPROVED",
+        created_at: documentDate.toISOString(),
+        updated_at: documentDate.toISOString(),
       })
       .select()
       .single();
 
-    if (docError) {
-      console.error(`❌ Database error: ${docError.message}`);
+    if (documentError) {
+      console.error(`❌ Database error: ${documentError.message}`);
       return false;
     }
 
-    console.log(`✅ Uploaded: ${docData.title}`);
+    console.log(`✅ Uploaded: ${documentData.title}`);
     return true;
   } catch (error) {
     console.error(`❌ Error uploading ${filename}:`, error);
@@ -401,13 +404,15 @@ async function uploadClientDocuments(
       const fileStats = statSync(filePath);
 
       if (fileStats.isFile()) {
-        const success = await uploadDocument(
+        const isSuccess = await uploadDocument(
           clientKey,
           file,
           filePath,
           fileStats
         );
-        if (success) uploadCount++;
+        if (isSuccess) {
+          uploadCount++;
+        }
       }
     }
   } catch (error) {
@@ -436,14 +441,16 @@ async function linkExistingDocuments() {
   let linkedCount = 0;
   for (const file of files || []) {
     const pathParts = file.name.split("/");
-    if (pathParts.length < 3) continue;
+    if (pathParts.length < 3) {
+      continue;
+    }
 
     const meetingId = pathParts[0];
-    const docTypeFolder = pathParts[1];
+    const documentTypeFolder = pathParts[1];
     const filename = pathParts[2];
 
-    const docType = determineDocumentType(filename) || {
-      type: docTypeFolder
+    const documentType = determineDocumentType(filename) || {
+      type: documentTypeFolder
         .split("-")
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(" "),
@@ -459,20 +466,20 @@ async function linkExistingDocuments() {
 
     const { error: upsertError } = await supabase.from("document").upsert({
       meeting_id: meetingId,
-      title: getCleanTitle(filename, docType),
-      type: docType.type,
-      display_category: docType.displayCategory,
+      title: getCleanTitle(filename, documentType),
+      type: documentType.type,
+      display_category: documentType.displayCategory,
       file_path: publicUrl,
       file_type: (filename.split(".").pop() || "pdf").toUpperCase(),
-      status: docType.status ?? "APPROVED",
+      status: documentType.status ?? "APPROVED",
       updated_at: new Date().toISOString(),
     });
 
-    if (!upsertError) {
+    if (upsertError) {
+      console.error(`❌ Failed to link ${filename}:`, upsertError.message);
+    } else {
       linkedCount++;
       console.log(`✅ Linked: ${filename}`);
-    } else {
-      console.error(`❌ Failed to link ${filename}:`, upsertError.message);
     }
   }
 
@@ -480,9 +487,9 @@ async function linkExistingDocuments() {
 }
 
 async function main() {
-  const args = process.argv.slice(2);
-  const shouldClean = args.includes("--clean");
-  const shouldLink = args.includes("--link");
+  const arguments_ = new Set(process.argv.slice(2));
+  const shouldClean = arguments_.has("--clean");
+  const shouldLink = arguments_.has("--link");
 
   console.log("🚀 Document Seeding Tool\n");
   console.log(`   Supabase URL: ${supabaseUrl}`);
@@ -498,8 +505,8 @@ async function main() {
 
   // Clean if requested
   if (shouldClean) {
-    const cleaned = await cleanDocuments();
-    if (!cleaned) {
+    const isCleaned = await cleanDocuments();
+    if (!isCleaned) {
       console.error("❌ Failed to clean documents, aborting...");
       return;
     }

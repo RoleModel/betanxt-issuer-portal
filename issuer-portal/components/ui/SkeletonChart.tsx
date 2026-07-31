@@ -1,10 +1,10 @@
 import { Box, Card, CardContent, CardHeader, Skeleton } from "@mui/material";
 
 interface SkeletonChartProps {
-  title?: string;
-  height?: number;
-  showLegend?: boolean;
-  noCard?: boolean;
+  readonly title?: string;
+  readonly height?: number;
+  readonly showLegend?: boolean;
+  readonly noCard?: boolean;
 }
 
 const SkeletonChart = ({
@@ -24,13 +24,13 @@ const SkeletonChart = ({
       />
 
       {/* Legend area */}
-      {showLegend && (
+      {showLegend ? (
         <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
           <Skeleton variant="rectangular" width={80} height={20} />
           <Skeleton variant="rectangular" width={80} height={20} />
           <Skeleton variant="rectangular" width={80} height={20} />
         </Box>
-      )}
+      ) : null}
     </Box>
   );
 

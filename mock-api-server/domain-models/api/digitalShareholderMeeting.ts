@@ -24,7 +24,9 @@ function toRegistrantType(value: string | undefined): RegistrantType {
 }
 
 function serializeRegistrationQuestions(value: unknown): string | null {
-  if (value === undefined || value === null) return null;
+  if (value === undefined || value === null) {
+    return null;
+  }
   return typeof value === "string" ? value : JSON.stringify(value);
 }
 
@@ -94,17 +96,26 @@ export function transformToDigitalShareholderMeetingUpdate(
 ): DigitalShareholderMeetingUpdate {
   const update: DigitalShareholderMeetingUpdate = {};
 
-  if (data.registrantType !== undefined)
+  if (data.registrantType !== undefined) {
     update.registrant_type = toRegistrantType(data.registrantType);
-  if (data.firstName !== undefined) update.first_name = data.firstName;
-  if (data.lastName !== undefined) update.last_name = data.lastName;
-  if (data.emailAddress !== undefined) update.email_address = data.emailAddress;
-  if (data.registrationQuestions !== undefined)
+  }
+  if (data.firstName !== undefined) {
+    update.first_name = data.firstName;
+  }
+  if (data.lastName !== undefined) {
+    update.last_name = data.lastName;
+  }
+  if (data.emailAddress !== undefined) {
+    update.email_address = data.emailAddress;
+  }
+  if (data.registrationQuestions !== undefined) {
     update.registration_questions = serializeRegistrationQuestions(
       data.registrationQuestions
     );
-  if (data.minutesAttendedMeeting !== undefined)
+  }
+  if (data.minutesAttendedMeeting !== undefined) {
     update.minutes_attended_meeting = data.minutesAttendedMeeting;
+  }
 
   return update;
 }

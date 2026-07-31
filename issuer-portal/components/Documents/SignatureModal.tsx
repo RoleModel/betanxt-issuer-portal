@@ -62,16 +62,16 @@ const defaultSignatureData =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
 interface SignatureModalProps {
-  title?: string;
-  open: boolean;
-  onClose: () => void;
-  onSignatureInsert: (signatureData: string) => void;
+  readonly title?: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onSignatureInsert: (signatureData: string) => void;
 }
 
 interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+  readonly children?: React.ReactNode;
+  readonly index: number;
+  readonly value: number;
 }
 
 const TabPanel: React.FC<TabPanelProps> = ({
@@ -118,7 +118,7 @@ declare global {
 
 // Wrapper component for SignatureMaker with proper cleanup and configuration
 interface SignatureMakerWrapperProps {
-  onSave?: (signatureData: string) => void;
+  readonly onSave?: (signatureData: string) => void;
 }
 
 const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({
@@ -140,7 +140,8 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({
       try {
         if (target.nodeType === 1) {
           // Only call if target is a valid Element
-          return originalUnobserve.call(this, target);
+          originalUnobserve.call(this, target);
+          return;
         }
       } catch {
         // Suppress the IntersectionObserver unobserve error
@@ -255,9 +256,11 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({
         canvas.addEventListener("mousemove", checkDuringDrawing);
 
         // Touch events
-        canvas.addEventListener("touchstart", startDrawing);
+        canvas.addEventListener("touchstart", startDrawing, { passive: true });
         canvas.addEventListener("touchend", stopDrawing);
-        canvas.addEventListener("touchmove", checkDuringDrawing);
+        canvas.addEventListener("touchmove", checkDuringDrawing, {
+          passive: true,
+        });
 
         return () => {
           signatureMaker.removeEventListener("save", handleSave);
@@ -302,15 +305,126 @@ const SignatureMakerWrapper: React.FC<SignatureMakerWrapperProps> = ({
         height: "100%",
       }}
     >
-      {isComponentMounted && (
+      {isComponentMounted ? (
         <SignatureMakerConfig
           onSave={onSave}
           withTyped={false}
           withDrawn={true}
           withUpload={false}
         />
-      )}
+      ) : null}
     </Box>
+  );
+};
+
+// Typed-signature tab content extracted to keep SignatureModal focused.
+interface TypedSignaturePanelProps {
+  readonly typedSignature: string;
+  readonly currentFont: { readonly name: string; readonly family: string };
+  readonly onClear: () => void;
+  readonly onFontChange: () => void;
+}
+
+const focusTypedSignatureInput = (): void => {
+  const input = document.getElementById(
+    "typed-signature-input"
+  ) as HTMLInputElement | null;
+  input?.focus();
+};
+
+const TypedSignaturePanel: React.FC<TypedSignaturePanelProps> = ({
+  typedSignature,
+  currentFont,
+  onClear,
+  onFontChange,
+}) => {
+  return (
+    <Stack alignItems="flex-end">
+      {/* Typing Canvas */}
+      <Paper
+        variant="outlined"
+        sx={{
+          width: "100%",
+          boxSizing: "border-box",
+          height: 182.656,
+          border: 1,
+          position: "relative",
+          backgroundColor: "var(--mui-palette-common-white)",
+          borderColor: "#D3D3D3",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 2,
+          padding: 1,
+          touchAction: "auto",
+          userSelect: "auto",
+        }}
+      >
+        {/* Close button in canvas */}
+        <IconButton
+          size="small"
+          sx={{
+            position: "absolute",
+            top: 4,
+            left: 4,
+            padding: 0.5,
+            color: "rgba(0,0,0,0.54)",
+            "&:hover": {
+              backgroundColor: "rgba(0,0,0,0.04)",
+            },
+          }}
+          onClick={onClear}
+        >
+          <CloseIcon sx={{ fontSize: 20 }} />
+        </IconButton>
+
+        {/* Typed Signature Display */}
+        {typedSignature ? (
+          <Typography
+            sx={{
+              fontFamily: currentFont.family,
+              fontSize: { xs: 40, sm: 50, md: 60 },
+              lineHeight: 1.75,
+              letterSpacing: "0.25%",
+              color: "common.black",
+              textAlign: "center",
+              cursor: "pointer",
+              userSelect: "none",
+              transition: "font-family 0.3s ease-in-out",
+            }}
+            onClick={focusTypedSignatureInput}
+          >
+            {typedSignature}
+          </Typography>
+        ) : null}
+
+        {/* Placeholder when no signature */}
+        {!typedSignature && (
+          <Typography
+            sx={{
+              color: "text.disabled",
+              textAlign: "center",
+              fontStyle: "italic",
+              cursor: "pointer",
+            }}
+            onClick={focusTypedSignatureInput}
+          >
+            Click to type your signature
+          </Typography>
+        )}
+      </Paper>
+
+      {/* Font Change Button */}
+      <Button
+        variant="text"
+        color="primary"
+        size="large"
+        startIcon={<FlipCameraAndroidIcon />}
+        onClick={onFontChange}
+      >
+        Change Font
+      </Button>
+    </Stack>
   );
 };
 
@@ -321,27 +435,26 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   onSignatureInsert,
 }) => {
   const [activeTab, setActiveTab] = useState(0);
-  const [signatureData, setSignatureData] =
-    useState<string>(defaultSignatureData);
+  const signatureDataRef = useRef<string>(defaultSignatureData);
   const [typedSignature, setTypedSignature] = useState("John Parker");
   const [hasSignature, setHasSignature] = useState(true);
   const [currentFontIndex, setCurrentFontIndex] = useState(0);
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const fontsLoadedRef = useRef(false);
 
   // Load signature fonts only when modal is opened
   useEffect(() => {
-    if (open && !fontsLoaded) {
+    if (open && !fontsLoadedRef.current) {
       loadSignatureFonts();
-      setFontsLoaded(true);
+      fontsLoadedRef.current = true;
     }
-  }, [open, fontsLoaded]);
+  }, [open]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
     // Reset hasSignature when switching tabs
     if (newValue === 0) {
       // Switching to Draw tab - check if we have signature data
-      setHasSignature(!!signatureData);
+      setHasSignature(!!signatureDataRef.current);
     } else if (newValue === 1) {
       // Switching to Type tab - check if we have typed text
       setHasSignature(typedSignature.trim().length > 0);
@@ -354,7 +467,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
       if (window.__signatureMaker?.clear) {
         window.__signatureMaker.clear();
       }
-      setSignatureData("");
+      signatureDataRef.current = "";
       setHasSignature(false);
     } else {
       // Clear typed signature
@@ -364,13 +477,13 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   };
 
   const handleSignatureSave = (data: string) => {
-    setSignatureData(data);
+    signatureDataRef.current = data;
     setHasSignature(true);
   };
 
   const handleInsert = () => {
-    if (activeTab === 0 && signatureData) {
-      onSignatureInsert(signatureData);
+    if (activeTab === 0 && signatureDataRef.current) {
+      onSignatureInsert(signatureDataRef.current);
     } else if (activeTab === 1 && typedSignature.trim()) {
       // Create signature data with font information for typed signature
       const signatureInfo = {
@@ -389,7 +502,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   const handleTypedSignatureChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = event.target.value;
+    const { value } = event.target;
     setTypedSignature(value);
     setHasSignature(value.trim().length > 0);
   };
@@ -496,103 +609,12 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
             </TabPanel>
 
             <TabPanel value={activeTab} index={1}>
-              <Stack alignItems="flex-end">
-                {/* Typing Canvas */}
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    height: 182.656,
-                    border: 1,
-                    position: "relative",
-                    backgroundColor: "var(--mui-palette-common-white)",
-                    borderColor: "#D3D3D3",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: 2,
-                    padding: 1,
-                    touchAction: "auto",
-                    userSelect: "auto",
-                  }}
-                >
-                  {/* Close button in canvas */}
-                  <IconButton
-                    size="small"
-                    sx={{
-                      position: "absolute",
-                      top: 4,
-                      left: 4,
-                      padding: 0.5,
-                      color: "rgba(0,0,0,0.54)",
-                      "&:hover": {
-                        backgroundColor: "rgba(0,0,0,0.04)",
-                      },
-                    }}
-                    onClick={handleClear}
-                  >
-                    <CloseIcon sx={{ fontSize: 20 }} />
-                  </IconButton>
-
-                  {/* Typed Signature Display */}
-                  {typedSignature && (
-                    <Typography
-                      sx={{
-                        fontFamily: currentFont.family,
-                        fontSize: { xs: 40, sm: 50, md: 60 },
-                        lineHeight: 1.75,
-                        letterSpacing: "0.25%",
-                        color: "common.black",
-                        textAlign: "center",
-                        cursor: "pointer",
-                        userSelect: "none",
-                        transition: "font-family 0.3s ease-in-out",
-                      }}
-                      onClick={() => {
-                        // Focus on the hidden input for editing
-                        const input = document.getElementById(
-                          "typed-signature-input"
-                        ) as HTMLInputElement;
-                        input?.focus();
-                      }}
-                    >
-                      {typedSignature}
-                    </Typography>
-                  )}
-
-                  {/* Placeholder when no signature */}
-                  {!typedSignature && (
-                    <Typography
-                      sx={{
-                        color: "text.disabled",
-                        textAlign: "center",
-                        fontStyle: "italic",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => {
-                        const input = document.getElementById(
-                          "typed-signature-input"
-                        ) as HTMLInputElement;
-                        input?.focus();
-                      }}
-                    >
-                      Click to type your signature
-                    </Typography>
-                  )}
-                </Paper>
-
-                {/* Font Change Button */}
-                <Button
-                  variant="text"
-                  color="primary"
-                  size="large"
-                  startIcon={<FlipCameraAndroidIcon />}
-                  onClick={handleFontChange}
-                >
-                  Change Font
-                </Button>
-              </Stack>
+              <TypedSignaturePanel
+                typedSignature={typedSignature}
+                currentFont={currentFont}
+                onClear={handleClear}
+                onFontChange={handleFontChange}
+              />
             </TabPanel>
           </Box>
         </Stack>

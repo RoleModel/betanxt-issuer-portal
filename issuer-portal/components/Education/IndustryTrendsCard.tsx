@@ -11,15 +11,15 @@ import {
 } from "@mui/material";
 
 interface IndustryTrendsCardProps {
-  title?: string;
-  date?: string;
-  duration?: string;
-  content?: string;
-  actionText?: string;
-  actions?: React.ReactNode;
-  url?: string;
-  img?: string;
-  externalLink?: boolean;
+  readonly title?: string;
+  readonly date?: string;
+  readonly duration?: string;
+  readonly content?: string;
+  readonly actionText?: string;
+  readonly actions?: React.ReactNode;
+  readonly url?: string;
+  readonly img?: string;
+  readonly externalLink?: boolean;
 }
 
 export const IndustryTrendsCard = ({
@@ -35,21 +35,21 @@ export const IndustryTrendsCard = ({
   return (
     <Card>
       <CardMedia image={img} sx={{ height: 200 }} />
-      <CardHeader title={title}></CardHeader>
+      <CardHeader title={title} />
       <CardContent>
         <Box mb={1}>
           <Typography variant="caption" color="text.secondary">
             {date}
           </Typography>
-          {duration && (
+          {duration ? (
             <Typography gutterBottom variant="caption" color="text.secondary">
               Duration:{duration}
             </Typography>
-          )}
+          ) : null}
         </Box>
         {content}
       </CardContent>
-      {url && (
+      {url ? (
         <CardActions>
           <Button
             variant="outlined"
@@ -61,7 +61,7 @@ export const IndustryTrendsCard = ({
             {actionText}
           </Button>
         </CardActions>
-      )}
+      ) : null}
     </Card>
   );
 };

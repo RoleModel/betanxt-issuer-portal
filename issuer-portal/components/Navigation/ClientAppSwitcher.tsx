@@ -279,162 +279,205 @@ const EventSwitchButton = ({ userType }: { readonly userType: string }) => {
         </Button>
         {coveringChip}
       </Box>
-      <Menu
+      <EventSwitchMenu
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "left",
-        }}
-        slotProps={{
-          list: {
-            sx: {
-              maxHeight: 300,
-              overflowY: "auto",
-            },
+        isCsm={isCsm}
+        clientOptions={clientOptions}
+        currentClientOption={currentClientOption}
+        allClients={allClients}
+        assignedTickers={assignedTickers}
+        csmInputValue={csmInputValue}
+        onCsmInputChange={setCsmInputValue}
+        onCsmClientSelect={handleCsmClientSelect}
+        onEventSelect={handleEventSelect}
+      />
+    </>
+  );
+};
+
+interface EventSwitchMenuProps {
+  readonly anchorEl: null | HTMLElement;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly isCsm: boolean;
+  readonly clientOptions: readonly EventRow[];
+  readonly currentClientOption: EventRow | null;
+  readonly allClients: readonly Client[];
+  readonly assignedTickers: Set<string> | null;
+  readonly csmInputValue: string;
+  readonly onCsmInputChange: (value: string) => void;
+  readonly onCsmClientSelect: (client: Client | null) => void;
+  readonly onEventSelect: (row: EventRow) => void;
+}
+
+const EventSwitchMenu = ({
+  anchorEl,
+  open,
+  onClose,
+  isCsm,
+  clientOptions,
+  currentClientOption,
+  allClients,
+  assignedTickers,
+  csmInputValue,
+  onCsmInputChange,
+  onCsmClientSelect,
+  onEventSelect,
+}: EventSwitchMenuProps) => {
+  return (
+    <Menu
+      anchorEl={anchorEl}
+      open={open}
+      onClose={onClose}
+      anchorOrigin={{
+        vertical: "bottom",
+        horizontal: "left",
+      }}
+      transformOrigin={{
+        vertical: "top",
+        horizontal: "left",
+      }}
+      slotProps={{
+        list: {
+          sx: {
+            maxHeight: 300,
+            overflowY: "auto",
           },
-          paper: {
-            sx: {
-              backgroundColor: (theme) =>
-                theme.vars?.palette?.appSwitcher?.background ||
-                theme.palette.primary.main,
-              color: (theme) => theme.palette.common.white,
-              minWidth: isCsm ? 280 : 200,
-              overflow: isCsm ? "visible" : undefined,
-            },
+        },
+        paper: {
+          sx: {
+            backgroundColor: (theme) =>
+              theme.vars?.palette?.appSwitcher?.background ||
+              theme.palette.primary.main,
+            color: (theme) => theme.palette.common.white,
+            minWidth: isCsm ? 280 : 200,
+            overflow: isCsm ? "visible" : undefined,
           },
-        }}
-        disableAutoFocusItem={isCsm}
-      >
-        {isCsm
-          ? [
-              ...(clientOptions.length > 0 ? [] : []),
-              <MenuItem
-                key="csm-search"
-                disableRipple
-                onClick={(event) => {
-                  event.stopPropagation();
+        },
+      }}
+      disableAutoFocusItem={isCsm}
+    >
+      {isCsm
+        ? [
+            ...(clientOptions.length > 0 ? [] : []),
+            <MenuItem
+              key="csm-search"
+              disableRipple
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
+              onKeyDown={(event) => {
+                event.stopPropagation();
+              }}
+              sx={{
+                cursor: "default",
+                display: "block",
+                px: 1.5,
+                py: 1,
+                "&:hover": {
+                  backgroundColor: "transparent",
+                },
+              }}
+            >
+              <Autocomplete<Client>
+                options={allClients.filter(
+                  (c) =>
+                    !(assignedTickers?.has(c.ticker.toUpperCase()) ?? false)
+                )}
+                getOptionLabel={(option) =>
+                  option.company_name ?? option.short_name ?? option.ticker
+                }
+                inputValue={csmInputValue}
+                onInputChange={(_, value) => {
+                  onCsmInputChange(value);
                 }}
-                onKeyDown={(event) => {
-                  event.stopPropagation();
+                value={null}
+                onChange={(_, client) => {
+                  onCsmClientSelect(client);
                 }}
-                sx={{
-                  cursor: "default",
-                  display: "block",
-                  px: 1.5,
-                  py: 1,
-                  "&:hover": {
-                    backgroundColor: "transparent",
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                size="small"
+                slotProps={{
+                  popper: {
+                    placement: "bottom-start",
+                    sx: (theme) => ({ zIndex: theme.zIndex.modal + 1 }),
                   },
-                }}
-              >
-                <Autocomplete<Client>
-                  options={allClients.filter(
-                    (c) =>
-                      !(assignedTickers?.has(c.ticker.toUpperCase()) ?? false)
-                  )}
-                  getOptionLabel={(option) =>
-                    option.company_name ?? option.short_name ?? option.ticker
-                  }
-                  inputValue={csmInputValue}
-                  onInputChange={(_, value) => {
-                    setCsmInputValue(value);
-                  }}
-                  value={null}
-                  onChange={(_, client) => {
-                    handleCsmClientSelect(client);
-                  }}
-                  isOptionEqualToValue={(option, value) =>
-                    option.id === value.id
-                  }
-                  size="small"
-                  slotProps={{
-                    popper: {
-                      placement: "bottom-start",
-                      sx: (theme) => ({ zIndex: theme.zIndex.modal + 1 }),
-                    },
-                    paper: {
-                      sx: {
-                        backgroundColor: (theme) =>
-                          theme.vars.palette.appSwitcher.background,
+                  paper: {
+                    sx: {
+                      backgroundColor: (theme) =>
+                        theme.vars.palette.appSwitcher.background,
+                      color: (theme) =>
+                        theme.vars.palette.appSwitcher.contrastText,
+                      "& .MuiAutocomplete-noOptions": {
                         color: (theme) =>
                           theme.vars.palette.appSwitcher.contrastText,
-                        "& .MuiAutocomplete-noOptions": {
-                          color: (theme) =>
-                            theme.vars.palette.appSwitcher.contrastText,
-                          fontSize: (theme) => theme.typography.body3.fontSize,
-                        },
+                        fontSize: (theme) => theme.typography.body3.fontSize,
                       },
                     },
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      size="small"
-                      placeholder="Switch to another client..."
-                      onClick={(event) => {
-                        event.stopPropagation();
-                      }}
-                      onKeyDown={(event) => {
-                        event.stopPropagation();
-                      }}
-                      sx={(theme) => ({
-                        "& .MuiInputBase-root": {
-                          color: "inherit",
-                          backgroundColor:
-                            theme.vars.palette.appSwitcher.background,
-                          "& fieldset": {
-                            borderColor: theme.vars.palette.grey[700],
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "rgba(255,255,255,0.5)",
-                          },
-                          "&.Mui-focused fieldset": {
-                            borderColor: "rgba(255,255,255,0.8)",
-                          },
+                  },
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    placeholder="Switch to another client..."
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
+                    onKeyDown={(event) => {
+                      event.stopPropagation();
+                    }}
+                    sx={(theme) => ({
+                      "& .MuiInputBase-root": {
+                        color: "inherit",
+                        backgroundColor:
+                          theme.vars.palette.appSwitcher.background,
+                        "& fieldset": {
+                          borderColor: theme.vars.palette.grey[700],
                         },
-                        "& .MuiInputBase-input::placeholder": {
-                          color: "rgba(255,255,255,0.6)",
-                          opacity: 1,
+                        "&:hover fieldset": {
+                          borderColor: "rgba(255,255,255,0.5)",
                         },
-                        "& .MuiAutocomplete-endAdornment .MuiSvgIcon-root": {
-                          color: "rgba(255,255,255,0.7)",
+                        "&.Mui-focused fieldset": {
+                          borderColor: "rgba(255,255,255,0.8)",
                         },
-                      })}
-                    />
-                  )}
-                />
-              </MenuItem>,
-            ]
-          : null}
-        {clientOptions.map((row) => (
-          <MenuItem
-            key={row.clientTicker}
-            onClick={() => {
-              handleEventSelect(row);
-            }}
-            selected={row.clientTicker === currentClientOption?.clientTicker}
-            sx={{
-              "&:hover": {
-                backgroundColor: (theme) =>
-                  theme.vars.palette.appSwitcher.hover,
-              },
-              "&.Mui-selected": {
-                backgroundColor: (theme) =>
-                  theme.vars.palette.appSwitcher.hover,
-              },
-            }}
-          >
-            {row.event}
-          </MenuItem>
-        ))}
-      </Menu>
-    </>
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "rgba(255,255,255,0.6)",
+                        opacity: 1,
+                      },
+                      "& .MuiAutocomplete-endAdornment .MuiSvgIcon-root": {
+                        color: "rgba(255,255,255,0.7)",
+                      },
+                    })}
+                  />
+                )}
+              />
+            </MenuItem>,
+          ]
+        : null}
+      {clientOptions.map((row) => (
+        <MenuItem
+          key={row.clientTicker}
+          onClick={() => {
+            onEventSelect(row);
+          }}
+          selected={row.clientTicker === currentClientOption?.clientTicker}
+          sx={{
+            "&:hover": {
+              backgroundColor: (theme) => theme.vars.palette.appSwitcher.hover,
+            },
+            "&.Mui-selected": {
+              backgroundColor: (theme) => theme.vars.palette.appSwitcher.hover,
+            },
+          }}
+        >
+          {row.event}
+        </MenuItem>
+      ))}
+    </Menu>
   );
 };
 

@@ -24,9 +24,9 @@ interface VoteStatusRow {
 }
 
 interface VoteStatusSummaryTableProps {
-  title: string;
-  data: VoteStatusRow[];
-  loading?: boolean;
+  readonly title: string;
+  readonly data: VoteStatusRow[];
+  readonly loading?: boolean;
 }
 
 const formatNumber = (num: number): string => {
@@ -95,7 +95,7 @@ const VoteStatusSummaryTable = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((row, index) => {
+              {data.map((row) => {
                 const isSource = isSourceRow(row.category);
                 const isTotal = isTotalRow(row.category);
                 const shareholderPct =
@@ -107,7 +107,7 @@ const VoteStatusSummaryTable = ({
 
                 return (
                   <TableRow
-                    key={index}
+                    key={row.category}
                     sx={(theme) => ({
                       ...(isTotal && {
                         bgcolor:
@@ -130,7 +130,7 @@ const VoteStatusSummaryTable = ({
                     >
                       {formatNumber(row.shareholders)}
                     </TableCell>
-                    {isNonDtcTable && (
+                    {isNonDtcTable ? (
                       <TableCell
                         align="right"
                         sx={isTotal ? { fontWeight: "bold" } : {}}
@@ -139,14 +139,14 @@ const VoteStatusSummaryTable = ({
                           ? "-"
                           : `${shareholderPct.toFixed(2)}%`}
                       </TableCell>
-                    )}
+                    ) : null}
                     <TableCell
                       align="right"
                       sx={isTotal ? { fontWeight: "bold" } : {}}
                     >
                       {formatNumber(row.shares)}
                     </TableCell>
-                    {isNonDtcTable && (
+                    {isNonDtcTable ? (
                       <TableCell
                         align="right"
                         sx={isTotal ? { fontWeight: "bold" } : {}}
@@ -155,7 +155,7 @@ const VoteStatusSummaryTable = ({
                           ? "-"
                           : `${sharesPct.toFixed(2)}%`}
                       </TableCell>
-                    )}
+                    ) : null}
                   </TableRow>
                 );
               })}

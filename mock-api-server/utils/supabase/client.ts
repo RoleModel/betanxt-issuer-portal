@@ -29,18 +29,18 @@ export const supabase = createClient<Database>(
       persistSession: false,
     },
     global: {
-      fetch: (url, options = {}) => {
+      fetch: async (url, options = {}) => {
         const method = (options.method ?? "GET").toUpperCase();
         // Only cache read operations — Next.js data cache deduplicates identical
         // in-flight requests and revalidates on the given interval.
         if (isProduction && (method === "GET" || method === "HEAD")) {
-          return fetch(url, {
+          return await fetch(url, {
             ...options,
             next: { revalidate: CACHE_TTL.short },
           });
         }
         // Mutations (and all dev reads) must never be served from cache.
-        return fetch(url, { ...options, cache: "no-store" });
+        return await fetch(url, { ...options, cache: "no-store" });
       },
     },
   }

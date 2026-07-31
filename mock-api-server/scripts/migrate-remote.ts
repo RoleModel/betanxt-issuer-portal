@@ -1,7 +1,6 @@
-#!/usr/bin/env tsx
+import { readFile, readdir } from "node:fs/promises";
+import path from "node:path";
 import { config } from "dotenv";
-import { readFile, readdir } from "fs/promises";
-import path from "path";
 import { Client } from "pg";
 
 // Load environment variables from .env.local
@@ -78,7 +77,7 @@ async function migrateRemote() {
     } catch (endError) {
       // Ignore connection termination errors
       if (endError && typeof endError === "object" && "code" in endError) {
-        const code = (endError as { code?: string }).code;
+        const { code } = endError as { code?: string };
         if (code !== "57P01" && code !== "ECONNRESET") {
           console.error("⚠️  Warning: Error closing connection:", endError);
         }
@@ -89,12 +88,12 @@ async function migrateRemote() {
 
 // Handle connection termination errors from Supabase pooler
 const handleConnectionError = (error: unknown): boolean => {
-  const errorStr = String(error);
+  const errorString = String(error);
   if (
-    errorStr.includes("db_termination") ||
-    errorStr.includes("shutdown") ||
-    errorStr.includes("ECONNRESET") ||
-    errorStr.includes("57P01")
+    errorString.includes("db_termination") ||
+    errorString.includes("shutdown") ||
+    errorString.includes("ECONNRESET") ||
+    errorString.includes("57P01")
   ) {
     // Expected - Supabase pooler terminates connections
     return true;
@@ -119,12 +118,12 @@ process.on("unhandledRejection", (error) => {
 });
 
 migrateRemote().catch((error) => {
-  const errorStr = String(error);
+  const errorString = String(error);
   if (
-    errorStr.includes("db_termination") ||
-    errorStr.includes("shutdown") ||
-    errorStr.includes("ECONNRESET") ||
-    errorStr.includes("57P01")
+    errorString.includes("db_termination") ||
+    errorString.includes("shutdown") ||
+    errorString.includes("ECONNRESET") ||
+    errorString.includes("57P01")
   ) {
     console.log(
       "ℹ️  Database connection terminated (expected after migrations)"

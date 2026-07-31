@@ -1,8 +1,3 @@
-import type { Comment } from "./Comment";
-import type { DocumentStatus } from "./DocumentStatus";
-import type { Meeting } from "./Meeting";
-import type { Signature } from "./Signature";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -40,6 +35,10 @@ import {
   SignatureToJSON,
   SignatureToJSONTyped,
 } from "./Signature";
+import type { Signature } from "./Signature";
+import type { Meeting } from "./Meeting";
+import type { DocumentStatus } from "./DocumentStatus";
+import type { Comment } from "./Comment";
 
 /**
  *

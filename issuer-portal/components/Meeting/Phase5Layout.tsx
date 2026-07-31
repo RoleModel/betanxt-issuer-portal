@@ -16,9 +16,9 @@ import VotingSharesCard from "@/components/Meeting/VotingSharesCard";
 import KeyDatesCard from "./KeyDatesCard";
 
 interface Phase5LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
-  phase?: number;
+  readonly meetingId?: string;
+  readonly meeting?: Meeting;
+  readonly phase?: number;
 }
 
 const Phase5Layout = ({ meetingId, meeting }: Phase5LayoutProps) => {
@@ -29,9 +29,13 @@ const Phase5Layout = ({ meetingId, meeting }: Phase5LayoutProps) => {
       </Suspense>
       <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={{ xs: 12, sm: 12, md: 12, lg: 6 }}>
-          <Stack direction={{ sm: "row", lg: "column" }} spacing={2} useFlexGap={true}>
+          <Stack
+            direction={{ sm: "row", lg: "column" }}
+            spacing={2}
+            useFlexGap={true}
+          >
             <MeetingDocuments meetingId={meetingId} meeting={meeting} />
-            {meetingId && <VotingSharesCard meetingId={meetingId} />}
+            {meetingId ? <VotingSharesCard meetingId={meetingId} /> : null}
           </Stack>
         </Grid>
 
@@ -41,7 +45,11 @@ const Phase5Layout = ({ meetingId, meeting }: Phase5LayoutProps) => {
           flexDirection="column"
           gap={3}
         >
-          <Stack direction={{ sm: "row", lg: "row" }} spacing={2} useFlexGap={true}>
+          <Stack
+            direction={{ sm: "row", lg: "row" }}
+            spacing={2}
+            useFlexGap={true}
+          >
             <FeatureTile
               flex={true}
               title="2025 Meeting Material Quantities"

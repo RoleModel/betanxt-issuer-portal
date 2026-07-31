@@ -97,7 +97,7 @@ export interface TabulationReport {
 }
 
 const CSV_POSITION_TOTALS_BY_MEETING_ID: Record<string, number> = {
-  "wen-annual-meeting-2025": 17950,
+  "wen-annual-meeting-2025": 17_950,
   "wen-annual-meeting-2026": 5677,
   "payc-annual-meeting-2025": 3522,
   "wwd-annual-meeting-2025": 3521,
@@ -367,26 +367,28 @@ function normalizeReportTotals(report: TabulationReport): TabulationReport {
 
 // Transform snake_case database fields to camelCase API fields
 function transformTabulationReport(
-  dbReport: TabulationReportRow
+  databaseReport: TabulationReportRow
 ): TabulationReport {
-  const report = normalizeReportTotals({
-    id: dbReport.id,
-    meetingId: dbReport.meeting_id,
-    setKeys: dbReport.set_keys || [],
-    brokerVoting: normalizeBrokerVoting(dbReport.broker_voting),
+  return normalizeReportTotals({
+    id: databaseReport.id,
+    meetingId: databaseReport.meeting_id,
+    setKeys: databaseReport.set_keys || [],
+    brokerVoting: normalizeBrokerVoting(databaseReport.broker_voting),
     shareRangePerformance: normalizeShareRangePerformance(
-      dbReport.share_range_performance
+      databaseReport.share_range_performance
     ),
-    nonDtcVoteStatus: normalizeNonDtcVoteStatus(dbReport.non_dtc_vote_status),
-    dtcVoteStatus: normalizeDtcVoteStatus(dbReport.dtc_vote_status),
-    voteDistribution: normalizeVoteDistribution(dbReport.vote_distribution),
-    positionsVoted: normalizePositionsVoted(dbReport.positions_voted),
-    lastCalculatedAt: toIsoString(dbReport.last_calculated_at),
-    createdAt: toIsoString(dbReport.created_at),
-    updatedAt: toIsoString(dbReport.updated_at),
+    nonDtcVoteStatus: normalizeNonDtcVoteStatus(
+      databaseReport.non_dtc_vote_status
+    ),
+    dtcVoteStatus: normalizeDtcVoteStatus(databaseReport.dtc_vote_status),
+    voteDistribution: normalizeVoteDistribution(
+      databaseReport.vote_distribution
+    ),
+    positionsVoted: normalizePositionsVoted(databaseReport.positions_voted),
+    lastCalculatedAt: toIsoString(databaseReport.last_calculated_at),
+    createdAt: toIsoString(databaseReport.created_at),
+    updatedAt: toIsoString(databaseReport.updated_at),
   });
-
-  return report;
 }
 
 /**
@@ -399,7 +401,7 @@ export async function refreshTabulationReportFromPositions(
   meetingId: string
 ): Promise<void> {
   const [
-    { data: positions, error: posErr },
+    { data: positions, error: posError },
     { data: meeting },
     { data: report },
   ] = await Promise.all([
@@ -421,7 +423,9 @@ export async function refreshTabulationReportFromPositions(
       .single(),
   ]);
 
-  if (posErr || !positions || !report) return;
+  if (posError || !positions || !report) {
+    return;
+  }
 
   const votedPositions = positions.filter((p) => p.vote_status === "Voted");
   const votedShares = votedPositions.reduce(
@@ -437,9 +441,9 @@ export async function refreshTabulationReportFromPositions(
     0
   );
   const grandTotal =
-    meeting?.total_shares_outstanding != null
-      ? Number(meeting.total_shares_outstanding)
-      : positionSharesSum;
+    meeting?.total_shares_outstanding == null
+      ? positionSharesSum
+      : Number(meeting.total_shares_outstanding);
   const unvotedShares = Math.max(grandTotal - votedShares, 0);
 
   const updatedPositionsVoted = {
@@ -509,7 +513,9 @@ export async function syncTabulationReportTotalShares(
       .single(),
   ]);
 
-  if (!report) return;
+  if (!report) {
+    return;
+  }
 
   const votedShares = (positions ?? [])
     .filter((p) => p.vote_status === "Voted")
@@ -591,10 +597,9 @@ export async function getTabulationReport(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch tabulation report",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch tabulation report",
         statusCode: 500,
       },
     };

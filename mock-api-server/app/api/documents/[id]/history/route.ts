@@ -1,14 +1,13 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-22T18:38:17.317Z
 // Source: openapi-schema/openapi.yaml
+import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import type { Database, Json } from "@/utils/supabase/database.types";
 
-import { NextResponse } from "next/server";
-
 import { supabase } from "@/utils/supabase/client";
 
-interface RouteParams {
+interface RouteParameters {
   id: string;
 }
 
@@ -54,21 +53,21 @@ function toMetadata(value: Json | null): Record<string, unknown> | undefined {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParameters> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = await params;
-    const documentId = resolvedParams.id;
+    const resolvedParameters = await params;
+    const documentId = resolvedParameters.id;
 
     // Get history for this document from database
-    const { data: history, error: dbError } = await supabase
+    const { data: history, error: databaseError } = await supabase
       .from("document_history")
       .select("*")
       .eq("document_id", documentId)
       .order("created_at", { ascending: false });
 
-    if (dbError) {
-      throw new Error(`Database error: ${dbError.message}`);
+    if (databaseError) {
+      throw new Error(`Database error: ${databaseError.message}`);
     }
 
     // Transform database records to API format
@@ -85,7 +84,7 @@ export async function GET(
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: Error.isError(error) ? error.message : "Unknown error",
         operationId: "getDocumentHistory",
       },
       { status: 500 }
@@ -102,15 +101,15 @@ interface HistoryEventRequest {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParameters> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = await params;
-    const documentId = resolvedParams.id;
+    const resolvedParameters = await params;
+    const documentId = resolvedParameters.id;
     const body = (await request.json()) as HistoryEventRequest;
 
     // Insert new history event into database
-    const { data, error: dbError } = await supabase
+    const { data, error: databaseError } = await supabase
       .from("document_history")
       .insert({
         document_id: documentId,
@@ -124,9 +123,9 @@ export async function POST(
       .select()
       .single();
 
-    if (dbError || data === null) {
+    if (databaseError || data === null) {
       throw new Error(
-        `Database error: ${dbError?.message ?? "No history event returned"}`
+        `Database error: ${databaseError?.message ?? "No history event returned"}`
       );
     }
 
@@ -144,7 +143,7 @@ export async function POST(
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: Error.isError(error) ? error.message : "Unknown error",
         operationId: "addDocumentHistory",
       },
       { status: 500 }

@@ -27,8 +27,7 @@ test.describe("Tabulation Report Data Fix Validation", () => {
     expect(response.status()).toBe(200);
     const data = await response.json();
 
-    // BEFORE THE FIX: These were all 0
-    // AFTER THE FIX: These should have real values
+    // BEFORE THE FIX: These were all 0 AFTER THE FIX: These should have real values
 
     console.warn("🔍 Validating 2025 Wendy's tabulation data...");
     console.warn(
@@ -51,8 +50,8 @@ test.describe("Tabulation Report Data Fix Validation", () => {
     // Should have substantial data from CSV (Wendy's has ~17,950 positions)
     expect(
       data.positionsVoted.voted + data.positionsVoted.unvoted
-    ).toBeGreaterThan(15000);
-    expect(data.positionsVoted.totalShares).toBeGreaterThan(100000000); // Large company
+    ).toBeGreaterThan(15_000);
+    expect(data.positionsVoted.totalShares).toBeGreaterThan(100_000_000); // Large company
 
     // Should have some voting activity (not 100% unvoted)
     expect(
@@ -157,7 +156,7 @@ test.describe("Tabulation Report Data Fix Validation", () => {
       {
         id: "wen-annual-meeting-2025",
         name: "Wendy's",
-        expectedPositions: 15000,
+        expectedPositions: 15_000,
       },
       {
         id: "payc-annual-meeting-2025",

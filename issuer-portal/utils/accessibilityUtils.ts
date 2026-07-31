@@ -51,33 +51,35 @@ function targetToString(target: NodeResult["target"]): string {
 export function groupViolationsByRule(
   accessibilityScanResults: AxeCoreResults
 ): string {
+  const violationSet = new Set<AxeCoreResults["violations"][number]>(
+    accessibilityScanResults.violations
+  );
+
   const groupedViolations = [
     ...accessibilityScanResults.violations,
     ...accessibilityScanResults.incomplete.filter((issue) =>
       isBlockingIncomplete(issue.impact)
     ),
-  ].reduce<Record<string, GroupedViolation>>((acc, violation) => {
-    if (!acc[violation.id]) {
-      acc[violation.id] = {
+  ].reduce<Record<string, GroupedViolation>>((accumulator, violation) => {
+    if (!accumulator[violation.id]) {
+      accumulator[violation.id] = {
         impact: violation.impact,
         description: violation.description,
         help: violation.help,
         helpUrl: violation.helpUrl,
-        type: accessibilityScanResults.violations.includes(violation)
-          ? "violation"
-          : "incomplete",
+        type: violationSet.has(violation) ? "violation" : "incomplete",
         occurrences: [],
       };
     }
 
-    acc[violation.id].occurrences.push(
+    accumulator[violation.id].occurrences.push(
       ...violation.nodes.map((node) => ({
         target: targetToString(node.target),
         failureSummary: node.failureSummary ?? "No failure summary available",
       }))
     );
 
-    return acc;
+    return accumulator;
   }, {});
 
   return JSON.stringify(groupedViolations, null, 2);
@@ -93,10 +95,10 @@ export function createViolationSummary(
   accessibilityScanResults: AxeCoreResults
 ): string {
   const criticalIncomplete = accessibilityScanResults.incomplete.filter(
-    (i) => i.impact === "critical"
+    (index) => index.impact === "critical"
   );
   const seriousIncomplete = accessibilityScanResults.incomplete.filter(
-    (i) => i.impact === "serious"
+    (index) => index.impact === "serious"
   );
 
   const allIssues = [
@@ -109,16 +111,22 @@ export function createViolationSummary(
     totalViolations: accessibilityScanResults.violations.length,
     totalCriticalIncomplete: criticalIncomplete.length,
     totalSeriousIncomplete: seriousIncomplete.length,
-    impactBreakdown: allIssues.reduce<Record<string, number>>((acc, issue) => {
-      if (issue.impact) {
-        acc[issue.impact] = (acc[issue.impact] ?? 0) + 1;
-      }
-      return acc;
-    }, {}),
-    ruleBreakdown: allIssues.reduce<Record<string, number>>((acc, issue) => {
-      acc[issue.id] = issue.nodes.length;
-      return acc;
-    }, {}),
+    impactBreakdown: allIssues.reduce<Record<string, number>>(
+      (accumulator, issue) => {
+        if (issue.impact) {
+          accumulator[issue.impact] = (accumulator[issue.impact] ?? 0) + 1;
+        }
+        return accumulator;
+      },
+      {}
+    ),
+    ruleBreakdown: allIssues.reduce<Record<string, number>>(
+      (accumulator, issue) => {
+        accumulator[issue.id] = issue.nodes.length;
+        return accumulator;
+      },
+      {}
+    ),
   };
 
   return JSON.stringify(summary, null, 2);

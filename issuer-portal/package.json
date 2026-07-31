@@ -19,7 +19,8 @@
     "generate:mock-mailings": "tsx scripts/generate-mock-mailing-pdfs.tsx",
     "fetch:dark-logos": "tsx scripts/fetch-dark-logos.ts",
     "format": "prettier --write .",
-    "clean": "rm -rf .next node_modules/.cache"
+    "clean": "rm -rf .next node_modules/.cache",
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.41",

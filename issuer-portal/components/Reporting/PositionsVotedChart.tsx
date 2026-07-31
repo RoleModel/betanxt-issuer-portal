@@ -27,18 +27,18 @@ interface PositionsVotedData {
 }
 
 interface PositionsVotedChartProps {
-  meetingId?: string;
-  setKeys?: string[];
-  data?: Record<string, PositionsVotedData>;
-  loading?: boolean;
+  readonly meetingId?: string;
+  readonly setKeys?: string[];
+  readonly data?: Record<string, PositionsVotedData>;
+  readonly loading?: boolean;
   /** Optional card subheader, e.g. the currently selected event. */
-  subheader?: string;
+  readonly subheader?: string;
 }
 
 interface DonutChartProps {
-  data: { id: string; label: string; value: number; color: string }[];
-  centerValue: number;
-  centerLabel: string;
+  readonly data: { id: string; label: string; value: number; color: string }[];
+  readonly centerValue: number;
+  readonly centerLabel: string;
 }
 
 const DonutChart = ({ data, centerValue, centerLabel }: DonutChartProps) => {
@@ -164,7 +164,9 @@ const PositionsVotedChart = ({
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <Select
               value={effectiveSetKey}
-              onChange={(e) => setSelectedSetKey(e.target.value)}
+              onChange={(e) => {
+                setSelectedSetKey(e.target.value);
+              }}
               displayEmpty
             >
               {setKeys.length === 0 ? (
@@ -185,8 +187,8 @@ const PositionsVotedChart = ({
       <CardContent sx={{ height: "100%" }}>
         <Stack
           direction={{ xs: "column", sm: "column", md: "row", lg: "row" }}
-          justifyContent={"center"}
-          alignItems={"center"}
+          justifyContent="center"
+          alignItems="center"
           spacing={{ xs: 2, md: 3 }}
         >
           <DonutChart

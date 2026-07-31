@@ -193,8 +193,8 @@ const styles = StyleSheet.create({
 });
 
 interface TransferAgentPDFDocumentProps {
-  clientData?: ClientData;
-  logoBase64?: string;
+  readonly clientData?: ClientData;
+  readonly logoBase64?: string;
 }
 
 // Transfer Agent PDF Document Component
@@ -390,7 +390,9 @@ const generateTransferAgentPDF = async (
         const blob = await response.blob();
         const reader = new FileReader();
         logoBase64 = await new Promise<string>((resolve, reject) => {
-          reader.onloadend = () => resolve(reader.result as string);
+          reader.onloadend = () => {
+            resolve(reader.result as string);
+          };
           reader.onerror = reject;
           reader.readAsDataURL(blob);
         });
@@ -413,9 +415,11 @@ const generateTransferAgentPDF = async (
   ).toBlob();
 
   // Convert blob to data URI
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
     reader.readAsDataURL(pdfBlob);
   });
 };

@@ -14,7 +14,7 @@ function formatUploadDate(date: string | Date): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function DocumentUpdateNotification({
+export const DocumentUpdateNotification = ({
   meetingType,
   issuerAccountName,
   documentName,
@@ -24,7 +24,7 @@ export function DocumentUpdateNotification({
   uploadDate,
   viewDocumentUrl,
   portalBaseUrl,
-}: DocumentUpdateNotificationProps) {
+}: DocumentUpdateNotificationProps) => {
   return (
     <Layout preview={`New document available: ${documentName}`}>
       <Container style={{ maxWidth: CONTAINER_WIDTH, margin: "0 auto" }}>
@@ -76,6 +76,6 @@ export function DocumentUpdateNotification({
       </Container>
     </Layout>
   );
-}
+};
 
 export default DocumentUpdateNotification;

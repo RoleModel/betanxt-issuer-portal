@@ -19,16 +19,16 @@ export interface BrandConfig {
 export const brandConfigs: Record<string, BrandConfig> = {
   "J.P. Morgan Real Estate Income Trust, Inc.": {
     companyName: "J.P. Morgan",
-    ticker: "JPMR",
     domain: "jpmorgan.com",
-    logoPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo.svg",
     iconPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_icon.png",
     headerLogoPath:
       "/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo-dark.svg",
     headerIconPath:
       "/logos/brands/j-p-morgan-real-estate-income-trust-inc_icon-dark.png",
+    logoPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo.svg",
     primaryColor: "#936845",
     secondaryColor: "#31373D",
+    ticker: "JPMR",
   },
   "E2open Parent Holdings Inc.": {
     companyName: "e2open",
@@ -664,13 +664,12 @@ export const brandConfigs: Record<string, BrandConfig> = {
  */
 export const brandConfigsByTicker: Record<string, BrandConfig> = Object.values(
   brandConfigs
-).reduce(
-  (acc, config) => {
-    if (config.ticker) acc[config.ticker] = config;
-    return acc;
-  },
-  {} as Record<string, BrandConfig>
-);
+).reduce<Record<string, BrandConfig>>((accumulator, config) => {
+  if (config.ticker) {
+    accumulator[config.ticker] = config;
+  }
+  return accumulator;
+}, {});
 
 /** Look up brand config by event/company name */
 export function getBrandConfig(companyName: string): BrandConfig | null {

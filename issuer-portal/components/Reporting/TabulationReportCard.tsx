@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/strict-void-return */
 /* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 /* eslint-disable react-doctor/js-tosorted-immutable */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable react-doctor/rerender-state-only-in-handlers */
@@ -34,6 +34,8 @@ const TabulationReportCard = () => {
   >([]);
 
   useEffect(() => {
+    let ignore = false;
+
     const fetchProposals = async () => {
       if (currentMeeting?.id == null) return;
 
@@ -42,13 +44,17 @@ const TabulationReportCard = () => {
         params: { path: { meetingId: currentMeeting.id } },
       });
 
-      if (data) {
+      if (data && !ignore) {
         const proposals = Array.isArray(data) ? data : [];
         setRawProposals(proposals);
       }
     };
 
     void fetchProposals();
+
+    return () => {
+      ignore = true;
+    };
   }, [currentMeeting?.id]);
 
   const handleDownload = async () => {
@@ -92,7 +98,6 @@ const TabulationReportCard = () => {
         (firstProposal.totalVotesAbstain ?? 0)
       : 0;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
     const proposalSharesEligible = Number(
       firstProposal?.totalSharesEligible ?? 0
     );

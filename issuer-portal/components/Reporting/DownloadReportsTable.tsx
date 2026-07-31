@@ -166,7 +166,11 @@ function fullReportName(report: ReportItem): string {
  * are generated on demand in the browser. Downloads are serialized — all
  * buttons disable while one is in flight (002-tabulation-enhancements).
  */
-const DownloadReportsTable = ({ meetingId }: { meetingId: string }) => {
+const DownloadReportsTable = ({
+  meetingId,
+}: {
+  readonly meetingId: string;
+}) => {
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { currentClient } = useClient();
@@ -175,6 +179,7 @@ const DownloadReportsTable = ({ meetingId }: { meetingId: string }) => {
   const supabase = getBrowserSupabase();
 
   useEffect(() => {
+    let ignore = false;
     async function fetchReports() {
       // Only fetch real reports for Wendy's 2025 annual meeting
       if (meetingId === "wen-annual-meeting-2025") {
@@ -184,23 +189,32 @@ const DownloadReportsTable = ({ meetingId }: { meetingId: string }) => {
 
         if (error) {
           console.error("Error fetching reports:", error);
-          setReports([BROKER_BREAKOUT_REPORT, ...MOCK_REPORTS]);
+          if (!ignore) {
+            setReports([BROKER_BREAKOUT_REPORT, ...MOCK_REPORTS]);
+          }
           return;
         }
 
         if (data) {
-          const reportItems = (data as StorageFile[])
-            .filter((file: StorageFile) => file.name.endsWith(".xls"))
-            .map((file: StorageFile) => ({
-              id: `${meetingId}/reports/${file.name}`,
-              name: file.name.replace(".xls", ""),
-              path: `${meetingId}/reports/${file.name}`,
-              isMock: false,
-            }));
-          setReports([
-            BROKER_BREAKOUT_REPORT,
-            ...(reportItems.length > 0 ? reportItems : MOCK_REPORTS),
-          ]);
+          const reportItems = (data as StorageFile[]).flatMap(
+            (file: StorageFile): ReportItem[] =>
+              file.name.endsWith(".xls")
+                ? [
+                    {
+                      id: `${meetingId}/reports/${file.name}`,
+                      name: file.name.replace(".xls", ""),
+                      path: `${meetingId}/reports/${file.name}`,
+                      isMock: false,
+                    },
+                  ]
+                : []
+          );
+          if (!ignore) {
+            setReports([
+              BROKER_BREAKOUT_REPORT,
+              ...(reportItems.length > 0 ? reportItems : MOCK_REPORTS),
+            ]);
+          }
         }
       } else {
         // Use mock reports for all other meetings
@@ -209,6 +223,9 @@ const DownloadReportsTable = ({ meetingId }: { meetingId: string }) => {
     }
 
     void fetchReports();
+    return () => {
+      ignore = true;
+    };
   }, [meetingId, supabase]);
 
   const downloadStorageReport = async (path: string, fileName: string) => {

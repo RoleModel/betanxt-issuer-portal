@@ -5,13 +5,13 @@ import HandTouchIcon from "@rolemodel/betanxt-design-system/components/icons/bra
 import React from "react";
 
 interface EmptyStateProps {
-  icon?: React.ReactNode;
-  title: string;
-  minHeight?: number | string;
-  description?: string | React.ReactNode;
-  action?: React.ReactNode;
-  children?: React.ReactNode;
-  dangerouslySetInnerHTML?: boolean;
+  readonly icon?: React.ReactNode;
+  readonly title: string;
+  readonly minHeight?: number | string;
+  readonly description?: string | React.ReactNode;
+  readonly action?: React.ReactNode;
+  readonly children?: React.ReactNode;
+  readonly dangerouslySetInnerHTML?: boolean;
 }
 
 export const EmptyState = ({
@@ -88,7 +88,7 @@ export const EmptyState = ({
             {description}
           </Typography>
           {children}
-          {action && <Box sx={{ mt: 3 }}>{action}</Box>}
+          {action ? <Box sx={{ mt: 3 }}>{action}</Box> : null}
         </Stack>
       </Paper>
     </Box>

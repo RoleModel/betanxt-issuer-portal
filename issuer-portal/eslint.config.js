@@ -2,7 +2,7 @@ import baseConfig from "../eslint.config.mjs";
 
 const typescriptEslint = baseConfig.find(
   (config) => config.plugins?.["@typescript-eslint"]
-).plugins["@typescript-eslint"];
+)?.plugins["@typescript-eslint"];
 
 export default [
   ...baseConfig,

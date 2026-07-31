@@ -19,11 +19,11 @@ interface SignatureArea {
 }
 
 interface DraggableSignatureAreaProps {
-  area: SignatureArea;
-  signatureData?: string;
-  documentId: string;
-  onClick: () => void;
-  onPositionUpdate?: (areaId: string, x: number, y: number) => void;
+  readonly area: SignatureArea;
+  readonly signatureData?: string;
+  readonly documentId: string;
+  readonly onClick: () => void;
+  readonly onPositionUpdate?: (areaId: string, x: number, y: number) => void;
 }
 
 export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
@@ -236,8 +236,12 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
         ref={elementRef}
         onMouseDown={handleMouseDown}
         onClick={handleClick}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+        onMouseEnter={() => {
+          setShowTooltip(true);
+        }}
+        onMouseLeave={() => {
+          setShowTooltip(false);
+        }}
         data-testid={`signature-area-${area.id}`}
         sx={{
           position: "absolute",
@@ -280,7 +284,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
       </Box>
 
       {/* Position indicator during drag */}
-      {isDragging && (
+      {isDragging ? (
         <Box
           sx={{
             position: "absolute",
@@ -298,7 +302,7 @@ export const DraggableSignatureArea: React.FC<DraggableSignatureAreaProps> = ({
         >
           X: {Math.round(position.x)}%, Y: {Math.round(position.y)}%
         </Box>
-      )}
+      ) : null}
     </>
   );
 };

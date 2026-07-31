@@ -1,4 +1,27 @@
 {
+  "name": "issuer-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Proxy voting and shareholder meeting management system",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --filter issuer-portal run build",
+    "build:all": "turbo run build",
+    "dev": "turbo run dev",
+    "start": "turbo run start",
+    "test": "turbo run test",
+    "clean": "pnpm --filter issuer-portal run clean && pnpm --filter mock-api-server run clean",
+    "clean:all": "rm -rf .next issuer-portal/.next mock-api-server/.next node_modules issuer-portal/node_modules mock-api-server/node_modules .turbo",
+    "format": "prettier --write .",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "prepare": "husky"
+  },
   "dependencies": {
     "@snaplet/copycat": "^6.0.0",
     "@supabase/supabase-js": "^2.58.0",
@@ -55,29 +78,6 @@
     "typescript-eslint": "^8.21.0",
     "ultracite": "7.9.4"
   },
-  "name": "issuer-portal",
-  "scripts": {
-    "build": "pnpm --filter issuer-portal run build",
-    "build:all": "turbo run build",
-    "dev": "turbo run dev",
-    "start": "turbo run start",
-    "test": "turbo run test",
-    "clean": "pnpm --filter issuer-portal run clean && pnpm --filter mock-api-server run clean",
-    "clean:all": "rm -rf .next issuer-portal/.next mock-api-server/.next node_modules issuer-portal/node_modules mock-api-server/node_modules .turbo",
-    "format": "prettier --write .",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "check": "ultracite check",
-    "fix": "ultracite fix",
-    "prepare": "husky"
-  },
-  "type": "module",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Proxy voting and shareholder meeting management system",
-  "license": "UNLICENSED",
   "engines": {
     "node": "^24.0.0"
   },

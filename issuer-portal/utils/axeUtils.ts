@@ -1,7 +1,7 @@
 // Utility to generate axe rules data at build time
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import axe from "axe-core";
-import { mkdirSync, writeFileSync } from "fs";
-import { join } from "path";
 
 export function generateAxeRulesData() {
   try {

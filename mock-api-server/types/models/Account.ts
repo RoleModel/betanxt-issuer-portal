@@ -1,5 +1,3 @@
-import type { Clients } from "./Clients";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -19,6 +17,7 @@ import {
   ClientsToJSON,
   ClientsToJSONTyped,
 } from "./Clients";
+import type { Clients } from "./Clients";
 
 /**
  *

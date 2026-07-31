@@ -13,15 +13,15 @@ export interface UploadVersionParams {
 }
 
 export interface DocumentRepository {
-  listByMeeting(meetingId: string): Promise<Document[]>;
-  get(id: string): Promise<Document | null>;
-  uploadVersion(params: UploadVersionParams): Promise<Document | null>;
+  listByMeeting: (meetingId: string) => Promise<Document[]>;
+  get: (id: string) => Promise<Document | null>;
+  uploadVersion: (parameters: UploadVersionParams) => Promise<Document | null>;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-class DefaultDocumentRepository implements DocumentRepository {
+class DefaultDocumentRepo implements DocumentRepository {
   async listByMeeting(meetingId: string): Promise<Document[]> {
     // Prefer API (if implemented in mock-api-server) else fallback to direct table query
     try {
@@ -45,7 +45,7 @@ class DefaultDocumentRepository implements DocumentRepository {
       console.error("Supabase documents query failed", error);
       return [];
     }
-    return (data ?? []).map((doc) => this.mapRow(doc));
+    return (data ?? []).map((document_) => this.mapRow(document_));
   }
 
   async get(id: string): Promise<Document | null> {
@@ -54,7 +54,9 @@ class DefaultDocumentRepository implements DocumentRepository {
       const { data } = await api.GET("/documents/{id}", {
         params: { path: { id } },
       });
-      if (data) return data;
+      if (data) {
+        return data;
+      }
     } catch (error) {
       console.warn("get API fallback", error);
     }
@@ -64,13 +66,17 @@ class DefaultDocumentRepository implements DocumentRepository {
       .select("*")
       .eq("id", id)
       .maybeSingle();
-    if (error || !data) return null;
+    if (error || !data) {
+      return null;
+    }
     return this.mapRow(data);
   }
 
-  async uploadVersion(params: UploadVersionParams): Promise<Document | null> {
-    const { meetingId, documentType, file, versionNotes } = params;
-    // Use new Next.js route first (server path under /api)
+  async uploadVersion(
+    parameters: UploadVersionParams
+  ): Promise<Document | null> {
+    const { meetingId, documentType, file, versionNotes } = parameters;
+    // Use new Next.js route first (server path under /API)
     try {
       const form = new FormData();
       form.append("meetingId", meetingId);
@@ -98,14 +104,14 @@ class DefaultDocumentRepository implements DocumentRepository {
     // Fallback: direct storage then create document via API (minimal parity with existing DSM flow)
     const key = `fallback/${meetingId}/${Date.now()}_${file.name}`;
     const supabase = getBrowserSupabase();
-    const { data: upData, error: upErr } = await supabase.storage
+    const { data: upData, error: upError } = await supabase.storage
       .from("documents")
       .upload(key, file, {
         upsert: true,
         contentType: file.type ?? "application/octet-stream",
       });
-    if (upErr || !upData) {
-      console.error("Direct storage fallback failed", upErr);
+    if (upError || !upData) {
+      console.error("Direct storage fallback failed", upError);
       return null;
     }
     try {
@@ -127,7 +133,9 @@ class DefaultDocumentRepository implements DocumentRepository {
         params: { path: { meetingId } },
         body: createBody,
       });
-      if (data) return data;
+      if (data) {
+        return data;
+      }
     } catch (error) {
       console.error("Fallback create document failed", error);
     }
@@ -187,5 +195,4 @@ class DefaultDocumentRepository implements DocumentRepository {
   }
 }
 
-export const documentRepository: DocumentRepository =
-  new DefaultDocumentRepository();
+export const documentRepository: DocumentRepository = new DefaultDocumentRepo();

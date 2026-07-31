@@ -1,7 +1,7 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
-interface DocumentUploadEmailParams {
+interface DocumentUploadEmailParameters {
   meetingType: string;
   issuerAccountName: string;
   documentName: string;
@@ -19,7 +19,7 @@ interface DocumentUploadEmailParams {
  * Prototype: wraps POST /api/emails/send. Does not throw — logs on failure.
  */
 export async function sendDocumentUploadEmail(
-  params: DocumentUploadEmailParams
+  parameters: DocumentUploadEmailParameters
 ): Promise<void> {
   try {
     await fetch(`${API_BASE_URL}/emails/send`, {
@@ -27,17 +27,17 @@ export async function sendDocumentUploadEmail(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         templateKey: "document-update-notification",
-        to: params.recipients,
+        to: parameters.recipients,
         props: {
-          meetingType: params.meetingType,
-          issuerAccountName: params.issuerAccountName,
-          documentName: params.documentName,
-          uploaderName: params.uploaderName,
-          uploaderAvatarUrl: params.uploaderAvatarUrl,
-          documentDescription: params.documentDescription,
-          uploadDate: params.uploadDate,
-          viewDocumentUrl: params.viewDocumentUrl,
-          portalBaseUrl: params.portalBaseUrl,
+          meetingType: parameters.meetingType,
+          issuerAccountName: parameters.issuerAccountName,
+          documentName: parameters.documentName,
+          uploaderName: parameters.uploaderName,
+          uploaderAvatarUrl: parameters.uploaderAvatarUrl,
+          documentDescription: parameters.documentDescription,
+          uploadDate: parameters.uploadDate,
+          viewDocumentUrl: parameters.viewDocumentUrl,
+          portalBaseUrl: parameters.portalBaseUrl,
         },
       }),
     });

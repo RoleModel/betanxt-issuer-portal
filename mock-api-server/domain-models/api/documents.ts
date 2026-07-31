@@ -47,14 +47,14 @@ interface ApiResponse<T> {
 }
 
 // Transform snake_case database fields to camelCase API fields
-function transformDocument(dbDocument: DocumentRow): Document {
+function transformDocument(databaseDocument: DocumentRow): Document {
   return {
-    id: dbDocument.id ?? "",
-    meetingId: nullToUndefined(dbDocument.meeting_id),
-    title: nullToUndefined(dbDocument.title),
-    description: nullToUndefined(dbDocument.description),
-    type: nullToUndefined(dbDocument.type),
-    status: nullToUndefined(dbDocument.status) as
+    id: databaseDocument.id ?? "",
+    meetingId: nullToUndefined(databaseDocument.meeting_id),
+    title: nullToUndefined(databaseDocument.title),
+    description: nullToUndefined(databaseDocument.description),
+    type: nullToUndefined(databaseDocument.type),
+    status: nullToUndefined(databaseDocument.status) as
       | "IN_PROGRESS"
       | "AUTHORIZED"
       | "DRAFT"
@@ -65,35 +65,35 @@ function transformDocument(dbDocument: DocumentRow): Document {
       | "SIGNED"
       | "COMPLETED"
       | undefined,
-    taskId: nullToUndefined(dbDocument.task_id),
-    participantId: nullToUndefined(dbDocument.participant_id),
-    filePath: nullToUndefined(dbDocument.file_path),
-    displayCategory: nullToUndefined(dbDocument.display_category),
-    fileType: nullToUndefined(dbDocument.file_type),
-    createdBy: nullToUndefined(dbDocument.created_by),
-    createdByFirstName: nullToUndefined(dbDocument.created_by_first_name),
-    createdByLastName: nullToUndefined(dbDocument.created_by_last_name),
-    updatedBy: nullToUndefined(dbDocument.updated_by),
-    updatedByFirstName: nullToUndefined(dbDocument.updated_by_first_name),
-    updatedByLastName: nullToUndefined(dbDocument.updated_by_last_name),
-    createdAt: nullToUndefined(dbDocument.created_at),
-    updatedAt: nullToUndefined(dbDocument.updated_at),
+    taskId: nullToUndefined(databaseDocument.task_id),
+    participantId: nullToUndefined(databaseDocument.participant_id),
+    filePath: nullToUndefined(databaseDocument.file_path),
+    displayCategory: nullToUndefined(databaseDocument.display_category),
+    fileType: nullToUndefined(databaseDocument.file_type),
+    createdBy: nullToUndefined(databaseDocument.created_by),
+    createdByFirstName: nullToUndefined(databaseDocument.created_by_first_name),
+    createdByLastName: nullToUndefined(databaseDocument.created_by_last_name),
+    updatedBy: nullToUndefined(databaseDocument.updated_by),
+    updatedByFirstName: nullToUndefined(databaseDocument.updated_by_first_name),
+    updatedByLastName: nullToUndefined(databaseDocument.updated_by_last_name),
+    createdAt: nullToUndefined(databaseDocument.created_at),
+    updatedAt: nullToUndefined(databaseDocument.updated_at),
   };
 }
 
-function transformComment(dbComment: CommentRow): Comment {
+function transformComment(databaseComment: CommentRow): Comment {
   return {
-    id: nullToUndefined(dbComment.id),
-    documentId: nullToUndefined(dbComment.document_id),
-    comment: nullToUndefined(dbComment.comment),
-    userId: nullToUndefined(dbComment.user_id),
-    createdAt: nullToUndefined(dbComment.created_at),
+    id: nullToUndefined(databaseComment.id),
+    documentId: nullToUndefined(databaseComment.document_id),
+    comment: nullToUndefined(databaseComment.comment),
+    userId: nullToUndefined(databaseComment.user_id),
+    createdAt: nullToUndefined(databaseComment.created_at),
   };
 }
 
 export async function listDocuments(
   meetingId: string,
-  opts?: {
+  options?: {
     type?: string;
     status?: string;
   }
@@ -104,14 +104,14 @@ export async function listDocuments(
       .select("*")
       .eq("meeting_id", meetingId);
 
-    console.log("listDocuments query built:", { meetingId, opts });
+    console.log("listDocuments query built:", { meetingId, opts: options });
 
     // Apply filters
-    if (opts?.type) {
-      query = query.eq("type", opts.type);
+    if (options?.type) {
+      query = query.eq("type", options.type);
     }
-    if (opts?.status) {
-      query = query.eq("status", opts.status);
+    if (options?.status) {
+      query = query.eq("status", options.status);
     }
 
     // Order by created date
@@ -136,8 +136,9 @@ export async function listDocuments(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch documents",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch documents",
       },
     };
   }
@@ -169,7 +170,7 @@ export async function createDocument(
 
         // Generate storage path
         const timestamp = Date.now();
-        const randomId = Math.random().toString(36).substring(2, 11);
+        const randomId = Math.random().toString(36).slice(2, 11);
         const storagePath = `${meetingId}/${request.type}/${timestamp}_${randomId}.${fileExtension}`;
 
         // Upload to Supabase Storage
@@ -188,10 +189,10 @@ export async function createDocument(
 
         // Set file path to storage URL
         filePath = `/storage/v1/object/public/documents/${uploadData.path}`;
-      } catch (uploadErr) {
+      } catch (error_) {
         return {
           error: {
-            message: `Failed to process file data: ${uploadErr instanceof Error ? uploadErr.message : "Unknown error"}`,
+            message: `Failed to process file data: ${Error.isError(error_) ? error_.message : "Unknown error"}`,
           },
         };
       }
@@ -200,7 +201,7 @@ export async function createDocument(
     const { data, error } = await supabase
       .from("document")
       .insert({
-        id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `doc_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
         meeting_id: meetingId,
         title: request.title,
         description: request.description,
@@ -235,8 +236,9 @@ export async function createDocument(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to create document",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to create document",
       },
     };
   }
@@ -264,8 +266,9 @@ export async function getDocumentById(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch document",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch document",
       },
     };
   }
@@ -278,10 +281,15 @@ export async function updateDocument(
   try {
     const request = body;
     const updateData: Partial<DocumentUpdate> = {};
-    if (request.title !== undefined) updateData.title = request.title;
-    if (request.description !== undefined)
+    if (request.title !== undefined) {
+      updateData.title = request.title;
+    }
+    if (request.description !== undefined) {
       updateData.description = request.description;
-    if (request.status !== undefined) updateData.status = request.status;
+    }
+    if (request.status !== undefined) {
+      updateData.status = request.status;
+    }
 
     // Always update the updated_at timestamp
     updateData.updated_at = new Date().toISOString();
@@ -305,8 +313,9 @@ export async function updateDocument(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to update document",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to update document",
       },
     };
   }
@@ -315,7 +324,7 @@ export async function updateDocument(
 export async function listDocumentsByMeetingId(
   meetingId: string
 ): Promise<ApiResponse<Document[]>> {
-  return listDocuments(meetingId);
+  return await listDocuments(meetingId);
 }
 
 export async function getDocumentComments(
@@ -336,13 +345,13 @@ export async function getDocumentComments(
 
     // Transform to match DocumentViewer's CommentWithUser interface
     const transformedComments: CommentWithUser[] = (data ?? []).map(
-      (dbComment: CommentRowWithUser) => ({
-        id: dbComment.id?.toString() || "",
-        comment: dbComment.comment ?? "",
-        user: dbComment.user_id ?? "Unknown User",
+      (databaseComment: CommentRowWithUser) => ({
+        id: databaseComment.id?.toString() || "",
+        comment: databaseComment.comment ?? "",
+        user: databaseComment.user_id ?? "Unknown User",
         first_name: "Unknown",
         last_name: "User",
-        created_at: dbComment.created_at || new Date().toISOString(),
+        created_at: databaseComment.created_at || new Date().toISOString(),
         users: {
           avatar: null,
         },
@@ -355,8 +364,9 @@ export async function getDocumentComments(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch comments",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch comments",
       },
     };
   }
@@ -390,8 +400,7 @@ export async function addComment(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to add comment",
+        message: Error.isError(error) ? error.message : "Failed to add comment",
       },
     };
   }
@@ -419,10 +428,9 @@ export async function downloadDocument(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to download document",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to download document",
       },
     };
   }
@@ -430,16 +438,16 @@ export async function downloadDocument(
 
 export async function deleteDocument(id: string): Promise<ApiResponse<void>> {
   try {
-    const { data: docData } = await supabase
+    const { data: documentData } = await supabase
       .from("document")
       .select("file_path")
       .eq("id", id)
       .single();
 
-    if (docData?.file_path) {
+    if (documentData?.file_path) {
       const { error: storageError } = await supabase.storage
         .from("documents")
-        .remove([docData.file_path]);
+        .remove([documentData.file_path]);
 
       if (storageError) {
         console.warn(
@@ -463,8 +471,9 @@ export async function deleteDocument(id: string): Promise<ApiResponse<void>> {
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to delete document",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to delete document",
       },
     };
   }

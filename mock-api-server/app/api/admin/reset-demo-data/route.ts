@@ -1,7 +1,6 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
 import { Client } from "pg";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // 5 minutes for reset operations
@@ -20,19 +19,21 @@ async function executeWithRetry(
   query: string,
   maxRetries = 3
 ): Promise<void> {
-  for (let i = 0; i < maxRetries; i++) {
+  for (let index = 0; index < maxRetries; index++) {
     try {
       await client.query(query);
       return;
     } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      console.log(`Retry ${i + 1}/${maxRetries} after error:`, error);
-      await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+      if (index === maxRetries - 1) {
+        throw error;
+      }
+      console.log(`Retry ${index + 1}/${maxRetries} after error:`, error);
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (index + 1)));
     }
   }
 }
 
-export async function POST(_req: NextRequest) {
+export async function POST(_request: NextRequest) {
   let client: Client | null = null;
 
   try {
@@ -57,9 +58,9 @@ export async function POST(_req: NextRequest) {
     try {
       client = new Client({
         connectionString: databaseUrl,
-        ssl: !isLocalhost ? { rejectUnauthorized: false } : false,
-        connectionTimeoutMillis: 30000,
-        query_timeout: 300000, // 5 minutes
+        ssl: isLocalhost ? false : { rejectUnauthorized: false },
+        connectionTimeoutMillis: 30_000,
+        query_timeout: 300_000, // 5 minutes
       });
 
       console.log("Connecting to database...");
@@ -164,10 +165,10 @@ export async function POST(_req: NextRequest) {
     } finally {
       // Restore original TLS setting
       if (!isLocalhost) {
-        if (originalTlsReject !== undefined) {
-          process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalTlsReject;
-        } else {
+        if (originalTlsReject === undefined) {
           delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+        } else {
+          process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalTlsReject;
         }
       }
     }
@@ -176,8 +177,8 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Reset failed",
-        details: error instanceof Error ? error.stack : undefined,
+        error: Error.isError(error) ? error.message : "Reset failed",
+        details: Error.isError(error) ? error.stack : undefined,
       },
       { status: 500 }
     );

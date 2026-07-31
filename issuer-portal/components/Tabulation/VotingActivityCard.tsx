@@ -38,6 +38,32 @@ interface VotingMethodData {
   readonly color: string;
 }
 
+const emptyPieSlice = {
+  color: "var(--mui-palette-divider)",
+  id: "empty",
+  label: undefined,
+  sharesVoted: 0,
+  value: 1,
+} as const;
+
+const votingMethodDefinitions = [
+  {
+    id: "web",
+    label: "Web",
+    color: "var(--mui-palette-primary-main)",
+  },
+  {
+    id: "print",
+    label: "Print",
+    color: "var(--mui-palette-secondary-main)",
+  },
+  {
+    id: "ivr",
+    label: "IVR",
+    color: "var(--mui-palette-primary-light)",
+  },
+] as const;
+
 const buildVotingMethodsData = (
   resolvedMethods: RegisteredVotingMethods | null
 ): VotingMethodData[] => {
@@ -80,9 +106,10 @@ const buildVotingMethodsData = (
 
 /**
  * Donut chart of vote submissions by method (Web / Print / IVR) scoped to
- * Registered Holders only — beneficial votes are excluded upstream by
- * {@link useVotingTabulation}, and the header/empty state call out the
- * registered-only scope. Zero-count methods are omitted from the chart.
+ * Registered Holders only. Beneficial votes are excluded upstream by
+ * {@link useVotingTabulation}; when no registered votes exist, an empty
+ * divider-colored donut preserves the chart layout. Zero-count methods remain
+ * in the legend using the divider color.
  */
 const VotingActivityCard = ({
   meetingId,
@@ -95,14 +122,35 @@ const VotingActivityCard = ({
     registeredVotingMethodsOverride ?? registeredVotingMethods;
 
   const votingMethodsData = buildVotingMethodsData(resolvedMethods);
+  const hasRegisteredVotingActivity = votingMethodsData.length > 0;
+  const votingMethodsWithLegendItems = votingMethodDefinitions.map(
+    (definition) => {
+      const method = votingMethodsData.find(
+        (item) => item.id === definition.id
+      );
+
+      return {
+        ...definition,
+        color:
+          method === undefined
+            ? "var(--mui-palette-divider)"
+            : definition.color,
+        sharesVoted: method?.sharesVoted ?? 0,
+        value: method?.value ?? 0,
+      };
+    }
+  );
 
   const total = votingMethodsData.reduce((sum, item) => sum + item.value, 0);
   const totalMetric = formatTabulationMetric(total, total, displayMode);
-  const showArcLabels = shouldShowTabulationPieArcLabels(
-    votingMethodsData.length
-  );
+  const showArcLabels =
+    hasRegisteredVotingActivity &&
+    shouldShowTabulationPieArcLabels(votingMethodsData.length);
 
-  const pieChartData = votingMethodsData.map((item, index) => ({
+  const pieChartData = [
+    ...votingMethodsWithLegendItems,
+    ...(hasRegisteredVotingActivity ? [] : [emptyPieSlice]),
+  ].map((item, index) => ({
     ...item,
     votes: item.value,
     id: index,
@@ -118,18 +166,6 @@ const VotingActivityCard = ({
       <CardContent sx={tabulationCardContentStyles}>
         {loading || loadingOverride ? (
           <Skeleton variant="rectangular" height={250} />
-        ) : votingMethodsData.length === 0 ? (
-          <Box
-            sx={{
-              height: 250,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "text.secondary",
-            }}
-          >
-            No Registered Holder voting activity available
-          </Box>
         ) : (
           <Box
             sx={{
@@ -165,7 +201,11 @@ const VotingActivityCard = ({
                     : undefined,
                   arcLabelMinAngle: showArcLabels ? 5 : undefined,
                   valueFormatter: (value, context) => {
-                    const item = votingMethodsData[context.dataIndex];
+                    const item = pieChartData[context.dataIndex];
+                    if (item?.label === undefined) {
+                      return "";
+                    }
+
                     const metric = formatTabulationMetric(
                       value.value,
                       total,

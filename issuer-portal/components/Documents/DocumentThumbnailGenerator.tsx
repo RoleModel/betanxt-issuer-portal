@@ -3,16 +3,16 @@
 import AudioFileOutlinedIcon from "@mui/icons-material/AudioFileOutlined";
 import ImageIcon from "@mui/icons-material/Image";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
-import { Box, Skeleton } from "@mui/material";
+import { Box } from "@mui/material";
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 interface DocumentThumbnailProps {
-  url?: string;
-  fileType?: string;
-  title?: string;
-  width?: number;
-  height?: number;
+  readonly url?: string;
+  readonly fileType?: string;
+  readonly title?: string;
+  readonly width?: number;
+  readonly height?: number;
 }
 
 const DocumentThumbnailGenerator: React.FC<DocumentThumbnailProps> = ({
@@ -22,14 +22,7 @@ const DocumentThumbnailGenerator: React.FC<DocumentThumbnailProps> = ({
   width = 40,
   height = 40,
 }) => {
-  const [loading, setLoading] = useState(true);
   const [, setThumbnailUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    // For PDFs, we could potentially generate a thumbnail of the first page
-    // For now, we'll use icon-based representations
-    setLoading(false);
-  }, [url]);
 
   // Get appropriate icon based on file type
   const getFileIcon = () => {
@@ -67,10 +60,6 @@ const DocumentThumbnailGenerator: React.FC<DocumentThumbnailProps> = ({
     fileType?.toLowerCase() || ""
   );
 
-  if (loading) {
-    return <Skeleton variant="rectangular" width={width} height={height} />;
-  }
-
   return (
     <Box
       sx={{
@@ -98,7 +87,9 @@ const DocumentThumbnailGenerator: React.FC<DocumentThumbnailProps> = ({
             height: "100%",
             objectFit: "cover",
           }}
-          onError={() => setThumbnailUrl(null)}
+          onError={() => {
+            setThumbnailUrl(null);
+          }}
         />
       ) : (
         <Box

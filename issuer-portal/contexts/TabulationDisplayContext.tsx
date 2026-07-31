@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 import type { TabulationDisplayMode } from "@/utils/tabulation-display";
 
@@ -22,8 +22,13 @@ export const TabulationDisplayProvider = ({
   const [displayMode, setDisplayMode] =
     useState<TabulationDisplayMode>("numbers");
 
+  const value = useMemo<TabulationDisplayContextValue>(
+    () => ({ displayMode, setDisplayMode }),
+    [displayMode]
+  );
+
   return (
-    <TabulationDisplayContext.Provider value={{ displayMode, setDisplayMode }}>
+    <TabulationDisplayContext.Provider value={value}>
       {children}
     </TabulationDisplayContext.Provider>
   );

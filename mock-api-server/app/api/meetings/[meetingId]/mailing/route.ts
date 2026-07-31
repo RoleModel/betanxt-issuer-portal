@@ -1,17 +1,16 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { handleCors, withCors } from "@/utils/cors";
 import { supabase } from "@/utils/supabase/client";
 
-interface RouteParams {
+interface RouteParameters {
   params: Promise<{ meetingId: string }>;
 }
 
 export async function GET(
   _request: NextRequest,
-  { params }: RouteParams
+  { params }: RouteParameters
 ): Promise<NextResponse> {
   try {
     const { meetingId } = await params;
@@ -57,7 +56,7 @@ export async function GET(
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "getMailingStatistics",
         },
         { status: 500 }

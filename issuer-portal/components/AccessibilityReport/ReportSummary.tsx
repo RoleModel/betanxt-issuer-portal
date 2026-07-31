@@ -16,8 +16,8 @@ interface TestResult {
 }
 
 interface ReportSummaryProps {
-  pages: TestResult[];
-  timestamp: string;
+  readonly pages: TestResult[];
+  readonly timestamp: string;
 }
 
 const ReportSummary = ({ pages, timestamp }: ReportSummaryProps) => {

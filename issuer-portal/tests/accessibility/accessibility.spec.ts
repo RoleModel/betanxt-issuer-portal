@@ -1,5 +1,3 @@
-import type { NodeResult, RelatedNode } from "axe-core";
-
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
@@ -8,6 +6,7 @@ import {
   groupViolationsByRule,
 } from "../../utils/accessibilityUtils";
 import { extractWcagCriteria } from "../../utils/wcagMapping";
+import type { NodeResult, RelatedNode } from "axe-core";
 
 const BASE_URL = "http://localhost:3000";
 
@@ -63,9 +62,12 @@ test.describe("Pages Accessibility Tests", () => {
           (v) => `VIOLATION: ${v.description} (${v.impact})`
         ),
         ...accessibilityScanResults.incomplete
-          .filter((i) => i.impact === "critical" || i.impact === "serious")
+          .filter(
+            (index) => index.impact === "critical" || index.impact === "serious"
+          )
           .map(
-            (i) => `INCOMPLETE: ${i.description} (${i.impact ?? "unknown"})`
+            (index) =>
+              `INCOMPLETE: ${index.description} (${index.impact ?? "unknown"})`
           ),
       ];
 
@@ -81,7 +83,7 @@ test.describe("Pages Accessibility Tests", () => {
       const detailedViolations = [
         ...accessibilityScanResults.violations,
         ...accessibilityScanResults.incomplete.filter(
-          (i) => i.impact === "critical" || i.impact === "serious"
+          (index) => index.impact === "critical" || index.impact === "serious"
         ),
       ].map((violation) => ({
         impact: violation.impact?.toUpperCase() || "UNKNOWN",
@@ -117,21 +119,21 @@ test.describe("Pages Accessibility Tests", () => {
       } else {
         // Show WCAG criteria summary
         const wcagCriteriaSummary = new Map<string, string[]>();
-        [
+        for (const issue of [
           ...accessibilityScanResults.violations,
           ...accessibilityScanResults.incomplete,
-        ].forEach((issue) => {
+        ]) {
           const wcagCriteria = extractWcagCriteria(issue.tags);
           if (wcagCriteria !== "No WCAG criteria mapped") {
             const criteria = wcagCriteria.split(", ");
-            criteria.forEach((criterion) => {
+            for (const criterion of criteria) {
               if (!wcagCriteriaSummary.has(criterion)) {
                 wcagCriteriaSummary.set(criterion, []);
               }
               wcagCriteriaSummary.get(criterion)!.push(issue.id);
-            });
+            }
           }
-        });
+        }
       }
 
       // Process passed elements for the reporter

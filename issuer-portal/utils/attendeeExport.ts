@@ -221,9 +221,9 @@ function downloadFile(
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
-  document.body.appendChild(link);
+  document.body.append(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
   URL.revokeObjectURL(url);
 }
 
@@ -234,22 +234,26 @@ export function exportAttendees(
   attendees: DigitalShareholderMeeting[],
   options: ExportOptions
 ): void {
-  const timestamp = new Date().toISOString().split("T")[0];
+  const timestamp = new Date().toISOString().split("T", 1)[0];
   const defaultFilename = `attendees-${timestamp}`;
   const filename = options.filename || defaultFilename;
 
   switch (options.format) {
-    case "csv":
+    case "csv": {
       exportToCSV(attendees, `${filename}.csv`);
       break;
-    case "excel":
+    }
+    case "excel": {
       exportToExcel(attendees, `${filename}.xlsx`);
       break;
-    case "pdf":
+    }
+    case "pdf": {
       exportToPDF(attendees, filename);
       break;
-    default:
+    }
+    default: {
       throw new Error(`Unsupported export format: ${String(options.format)}`);
+    }
   }
 }
 

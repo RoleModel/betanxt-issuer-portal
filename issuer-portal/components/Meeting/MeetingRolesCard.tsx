@@ -37,8 +37,8 @@ interface MeetingAccessItem {
 }
 
 interface MeetingRolesCardProps {
-  className?: string;
-  meetingId?: string;
+  readonly className?: string;
+  readonly meetingId?: string;
 }
 
 const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
@@ -113,6 +113,9 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
 
   // Load DSM config and existing uploaded documents on mount
   useEffect(() => {
+    // Guard against stale writes when the effect re-runs before completion
+    let ignore = false;
+
     const loadData = async () => {
       const activeMeetingId = meetingId || currentMeeting?.id;
       if (!activeMeetingId) return;
@@ -128,6 +131,8 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
             params: { path: { meetingId: activeMeetingId } },
           }
         );
+
+        if (ignore) return;
 
         if (!dsmError && dsmData) {
           setDsm((dsmData as { dsmEnabled?: boolean }).dsmEnabled ?? true);
@@ -145,26 +150,34 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
 
         // Load uploaded documents
         const docs = await getDocumentsByMeeting(activeMeetingId);
-        const uploaded: Record<string, string> = {};
 
-        docs.forEach((doc) => {
-          if (doc.title === "Speaker List") {
-            uploaded["Speaker List"] = doc.id ?? "";
-          } else if (doc.title === "Guest Link Registration") {
-            uploaded["Guest Link Registration"] = doc.id ?? "";
-          }
-        });
+        if (!ignore) {
+          const uploaded: Record<string, string> = {};
 
-        setUploadedDocs(uploaded);
+          docs.forEach((doc) => {
+            if (doc.title === "Speaker List") {
+              uploaded["Speaker List"] = doc.id ?? "";
+            } else if (doc.title === "Guest Link Registration") {
+              uploaded["Guest Link Registration"] = doc.id ?? "";
+            }
+          });
+
+          setUploadedDocs(uploaded);
+        }
       } catch (error) {
+        if (ignore) return;
         console.error("Error loading data:", error);
         setIsEditMode(true);
       } finally {
-        setIsLoading(false);
+        if (!ignore) setIsLoading(false);
       }
     };
 
     void loadData();
+
+    return () => {
+      ignore = true;
+    };
   }, [meetingId, currentMeeting?.id, getDocumentsByMeeting]);
 
   const handleUploadComplete = async (files: File[]) => {
@@ -272,153 +285,30 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
     <Card className={className}>
       <CardHeader title="Meeting Roles, Contacts & Access" />
       <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
-        <Table>
-          <SROnlyTableCaption>
-            Meeting roles, contacts, and file uploads for access management.
-          </SROnlyTableCaption>
-          <TableHead
-            aria-hidden="false"
-            sx={{ visibility: "hidden", display: "none" }}
-          >
-            <TableRow>
-              <TableCell>Item</TableCell>
-              <TableCell align="right">Value/Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {accessItems.map((item, index) => (
-              <TableRow
-                key={index}
-                sx={{
-                  "&:not(:last-child)": {
-                    borderBottom: "1px solid rgba(31,30,28,0.12)",
-                  },
-                }}
-              >
-                <TableCell>
-                  <Box>
-                    <Typography variant="body3">{item.label}</Typography>
-                    {item.fileDescription && (
-                      <Typography variant="caption" color="text.secondary">
-                        {item.fileFormat} {item.fileDescription}
-                      </Typography>
-                    )}
-                  </Box>
-                </TableCell>
-                <TableCell align="right">
-                  {item.type === "toggle" && (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        gap: 1,
-                      }}
-                    >
-                      {isEditMode ? (
-                        <>
-                          <Switch
-                            checked={item.value || false}
-                            onChange={(e) =>
-                              handleToggle(item.label, e.target.checked)
-                            }
-                            size="small"
-                          />
-                          <Typography variant="body3">Yes</Typography>
-                        </>
-                      ) : (
-                        <Typography variant="body3">
-                          {item.value ? "Yes" : "No"}
-                        </Typography>
-                      )}
-                    </Box>
-                  )}
-
-                  {item.type === "contact" && item.contact && (
-                    <Box sx={{ textAlign: "right" }}>
-                      <Typography variant="body3" sx={{ fontWeight: "medium" }}>
-                        {item.contact.name}
-                      </Typography>
-                      <Typography
-                        variant="body3"
-                        color="primary"
-                        sx={{ textDecoration: "underline", cursor: "pointer" }}
-                      >
-                        {item.contact.email}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  {item.type === "upload" && (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        alignItems: "center",
-                        gap: 1,
-                      }}
-                    >
-                      {uploadedDocs[item.label] && (
-                        <CheckCircleIcon
-                          color="success"
-                          sx={{ fontSize: 20 }}
-                        />
-                      )}
-                      <Button
-                        variant="text"
-                        onClick={() =>
-                          uploadedDocs[item.label]
-                            ? handleDelete(item.label)
-                            : handleUpload(item.label)
-                        }
-                        disabled={!isEditMode}
-                      >
-                        {uploadedDocs[item.label] ? "Delete" : "Upload"}
-                      </Button>
-                    </Box>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <MeetingRolesTable
+          items={accessItems}
+          isEditMode={isEditMode}
+          uploadedDocs={uploadedDocs}
+          onToggle={handleToggle}
+          onUpload={handleUpload}
+          onDelete={handleDelete}
+        />
       </CardContent>
 
-      <CardActions sx={{ justifyContent: "flex-end", gap: 1 }}>
-        {isEditMode ? (
-          <>
-            {_isConfirmed && (
-              <Button
-                variant="text"
-                sx={{ textTransform: "none" }}
-                onClick={handleCancel}
-              >
-                Cancel
-              </Button>
-            )}
-            <Button
-              variant="outlined"
-              sx={{ textTransform: "none" }}
-              onClick={handleConfirm}
-              disabled={isLoading}
-            >
-              Confirm
-            </Button>
-          </>
-        ) : (
-          <Button
-            variant="outlined"
-            sx={{ textTransform: "none" }}
-            onClick={handleEdit}
-          >
-            Edit
-          </Button>
-        )}
-      </CardActions>
+      <MeetingRolesFooter
+        isEditMode={isEditMode}
+        isConfirmed={_isConfirmed}
+        isLoading={isLoading}
+        onCancel={handleCancel}
+        onConfirm={handleConfirm}
+        onEdit={handleEdit}
+      />
 
       <FileUploadDialog
         open={uploadDialogOpen}
-        onClose={() => setUploadDialogOpen(false)}
+        onClose={() => {
+          setUploadDialogOpen(false);
+        }}
         onUpload={handleUploadComplete}
         meetingId={meetingId}
         documentType={uploadType}
@@ -426,5 +316,181 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
     </Card>
   );
 };
+
+interface MeetingRolesTableProps {
+  readonly items: MeetingAccessItem[];
+  readonly isEditMode: boolean;
+  readonly uploadedDocs: Record<string, string>;
+  readonly onToggle: (label: string, newValue: boolean) => void;
+  readonly onUpload: (label: string) => void;
+  readonly onDelete: (label: string) => void;
+}
+
+const MeetingRolesTable: React.FC<MeetingRolesTableProps> = ({
+  items,
+  isEditMode,
+  uploadedDocs,
+  onToggle,
+  onUpload,
+  onDelete,
+}) => (
+  <Table>
+    <SROnlyTableCaption>
+      Meeting roles, contacts, and file uploads for access management.
+    </SROnlyTableCaption>
+    <TableHead
+      aria-hidden="false"
+      sx={{ visibility: "hidden", display: "none" }}
+    >
+      <TableRow>
+        <TableCell>Item</TableCell>
+        <TableCell align="right">Value/Action</TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {items.map((item) => (
+        <TableRow
+          key={item.label}
+          sx={{
+            "&:not(:last-child)": {
+              borderBottom: "1px solid rgba(31,30,28,0.12)",
+            },
+          }}
+        >
+          <TableCell>
+            <Box>
+              <Typography variant="body3">{item.label}</Typography>
+              {item.fileDescription ? (
+                <Typography variant="caption" color="text.secondary">
+                  {item.fileFormat} {item.fileDescription}
+                </Typography>
+              ) : null}
+            </Box>
+          </TableCell>
+          <TableCell align="right">
+            {item.type === "toggle" && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  gap: 1,
+                }}
+              >
+                {isEditMode ? (
+                  <>
+                    <Switch
+                      checked={item.value || false}
+                      onChange={(e) => {
+                        onToggle(item.label, e.target.checked);
+                      }}
+                      size="small"
+                    />
+                    <Typography variant="body3">Yes</Typography>
+                  </>
+                ) : (
+                  <Typography variant="body3">
+                    {item.value ? "Yes" : "No"}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {item.type === "contact" && item.contact ? (
+              <Box sx={{ textAlign: "right" }}>
+                <Typography variant="body3" sx={{ fontWeight: "medium" }}>
+                  {item.contact.name}
+                </Typography>
+                <Typography
+                  variant="body3"
+                  color="primary"
+                  sx={{ textDecoration: "underline", cursor: "pointer" }}
+                >
+                  {item.contact.email}
+                </Typography>
+              </Box>
+            ) : null}
+
+            {item.type === "upload" && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                {uploadedDocs[item.label] ? (
+                  <CheckCircleIcon color="success" sx={{ fontSize: 20 }} />
+                ) : null}
+                <Button
+                  variant="text"
+                  onClick={() => {
+                    uploadedDocs[item.label]
+                      ? onDelete(item.label)
+                      : onUpload(item.label);
+                  }}
+                  disabled={!isEditMode}
+                >
+                  {uploadedDocs[item.label] ? "Delete" : "Upload"}
+                </Button>
+              </Box>
+            )}
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+);
+
+interface MeetingRolesFooterProps {
+  readonly isEditMode: boolean;
+  readonly isConfirmed: boolean;
+  readonly isLoading: boolean;
+  readonly onCancel: () => void;
+  readonly onConfirm: () => void;
+  readonly onEdit: () => void;
+}
+
+const MeetingRolesFooter: React.FC<MeetingRolesFooterProps> = ({
+  isEditMode,
+  isConfirmed,
+  isLoading,
+  onCancel,
+  onConfirm,
+  onEdit,
+}) => (
+  <CardActions sx={{ justifyContent: "flex-end", gap: 1 }}>
+    {isEditMode ? (
+      <>
+        {isConfirmed ? (
+          <Button
+            variant="text"
+            sx={{ textTransform: "none" }}
+            onClick={onCancel}
+          >
+            Cancel
+          </Button>
+        ) : null}
+        <Button
+          variant="outlined"
+          sx={{ textTransform: "none" }}
+          onClick={onConfirm}
+          disabled={isLoading}
+        >
+          Confirm
+        </Button>
+      </>
+    ) : (
+      <Button
+        variant="outlined"
+        sx={{ textTransform: "none" }}
+        onClick={onEdit}
+      >
+        Edit
+      </Button>
+    )}
+  </CardActions>
+);
 
 export default MeetingRolesCard;

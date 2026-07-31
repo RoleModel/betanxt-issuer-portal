@@ -31,13 +31,13 @@ import { exportTimelineToPdf } from "@/utils/exportTimelinePdf";
 import { getDateLabel, shouldShowStatusChip } from "@/utils/taskControl";
 
 interface TaskItemProps {
-  meetingId?: string;
-  currentPhase?: number;
-  task: Task;
-  isClickable: boolean;
-  phaseColor: string;
-  status: string;
-  onClick: (taskId: string) => void;
+  readonly meetingId?: string;
+  readonly currentPhase?: number;
+  readonly task: Task;
+  readonly isClickable: boolean;
+  readonly phaseColor: string;
+  readonly status: string;
+  readonly onClick: (taskId: string) => void;
 }
 
 export const TaskItem = ({
@@ -87,7 +87,9 @@ export const TaskItem = ({
       }}
     >
       <CardActionArea
-        onClick={() => onClick(task.id ?? "")}
+        onClick={() => {
+          onClick(task.id ?? "");
+        }}
         disabled={!isClickable}
       >
         <CardContent sx={{ p: 1.5 }}>
@@ -161,10 +163,10 @@ export const TaskItem = ({
 };
 
 interface TaskCardProps {
-  meetingId?: string;
-  currentPhase?: number;
-  currentPhaseTitle?: string;
-  onClick?: (taskId: string) => void;
+  readonly meetingId?: string;
+  readonly currentPhase?: number;
+  readonly currentPhaseTitle?: string;
+  readonly onClick?: (taskId: string) => void;
 }
 
 const TaskCard = ({

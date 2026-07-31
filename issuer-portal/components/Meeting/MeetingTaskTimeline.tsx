@@ -102,7 +102,7 @@ const MeetingTaskTimeline = () => {
         subheader="Tasks are shown on their due dates. Completed items are green."
       />
       <CardContent sx={{ pt: 0 }}>
-        {tasksLoading === true ? (
+        {tasksLoading ? (
           <Skeleton variant="rounded" height={440} />
         ) : (
           <Box sx={{ height: 440, minWidth: 0 }}>

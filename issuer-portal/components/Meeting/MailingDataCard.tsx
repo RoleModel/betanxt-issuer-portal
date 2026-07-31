@@ -27,9 +27,9 @@ export interface MailingMetric {
 }
 
 interface MailingDataCardProps {
-  meetingId?: string;
-  metrics?: MailingMetric[];
-  loading?: boolean;
+  readonly meetingId?: string;
+  readonly metrics?: MailingMetric[];
+  readonly loading?: boolean;
 }
 
 const formatNumber = (num: number | null | undefined): string => {
@@ -132,9 +132,9 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {groupRows.map((row, idx) => (
+            {groupRows.map((row) => (
               <TableRow
-                key={idx}
+                key={row.section}
                 sx={{
                   "&:not(:last-child)": {
                     borderBottom: "1px solid",

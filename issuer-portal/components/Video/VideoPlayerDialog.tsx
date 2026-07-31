@@ -7,13 +7,13 @@ import React from "react";
 import VideoPlayer from "./VideoPlayer";
 
 interface VideoPlayerDialogProps {
-  open: boolean;
-  onClose: () => void;
-  src?: string;
-  title?: string;
-  description?: string;
-  poster?: string;
-  seriesNumber?: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly src?: string;
+  readonly title?: string;
+  readonly description?: string;
+  readonly poster?: string;
+  readonly seriesNumber?: string;
 }
 
 const VideoPlayerDialog = ({

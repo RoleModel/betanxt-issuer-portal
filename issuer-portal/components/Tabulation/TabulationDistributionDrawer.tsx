@@ -23,7 +23,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSession } from "next-auth/react";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
@@ -34,23 +34,29 @@ import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 type TabulationDistribution = components["schemas"]["TabulationDistribution"];
 
+interface NotifResult {
+  readonly ok: boolean;
+  readonly message: string;
+}
+
 interface TabulationDistributionDrawerProps {
-  meetingId: string;
-  clientTicker?: string | null;
-  initialDistribution?: TabulationDistribution | null;
-  meetingDate?: string | null;
+  readonly meetingId: string;
+  readonly clientTicker?: string | null;
+  readonly initialDistribution?: TabulationDistribution | null;
+  readonly meetingDate?: string | null;
 }
 
 const DRAWER_WIDTH = 420;
 
 function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return "N/A";
-  return new Date(iso).toLocaleString(undefined, {
+  return new Date(iso).toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "UTC",
   });
 }
 
@@ -73,17 +79,34 @@ function computeNextScheduled(
   return null;
 }
 
-export const TabulationDistributionDrawer = ({
-  meetingId,
-  clientTicker,
-  initialDistribution,
-  meetingDate,
-}: TabulationDistributionDrawerProps) => {
+interface UseTabulationDistributionResult {
+  readonly distribution: TabulationDistribution;
+  readonly emailInput: string;
+  readonly emailError: string | null;
+  readonly saving: boolean;
+  readonly saveError: string | null;
+  readonly saveSuccess: boolean;
+  readonly sendingNotif: boolean;
+  readonly notifResult: NotifResult | null;
+  readonly computedNext: string | null;
+  readonly isActive: boolean;
+  readonly recipientCount: number;
+  readonly handleToggleEnabled: () => void;
+  readonly handleOffsetChange: (value: string) => void;
+  readonly handleOffsetBlur: () => void;
+  readonly handleEmailInputChange: (value: string) => void;
+  readonly handleAddEmail: () => void;
+  readonly handleRemoveEmail: (email: string) => void;
+  readonly handleGenerateNotification: () => Promise<void>;
+}
+
+function useTabulationDistribution(
+  meetingId: string,
+  clientTicker: string | null | undefined,
+  initialDistribution: TabulationDistribution | null | undefined,
+  meetingDate: string | null | undefined
+): UseTabulationDistributionResult {
   const { data: session } = useSession();
-  const { flags } = useFeatureFlags(clientTicker ?? undefined);
-  const isCSM =
-    session?.user?.type === "CSM" || session?.user?.type === "ADMIN";
-  const [open, setOpen] = useState(false);
   const [distribution, setDistribution] = useState<TabulationDistribution>(
     () => ({
       enabled: false,
@@ -100,25 +123,9 @@ export const TabulationDistributionDrawer = ({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [sendingNotif, setSendingNotif] = useState(false);
-  const [notifResult, setNotifResult] = useState<{
-    ok: boolean;
-    message: string;
-  } | null>(null);
+  const [notifResult, setNotifResult] = useState<NotifResult | null>(null);
 
   const { fetchNotifications } = useNotifications();
-
-  const initialDistributionRef = React.useRef(initialDistribution);
-  useEffect(() => {
-    // Only sync when the prop actually carries new server data (e.g. after a
-    // full page refresh). Comparing by JSON ensures inline object literals
-    // created on every render don't trigger a reset.
-    const incoming = initialDistribution;
-    const current = initialDistributionRef.current;
-    if (incoming && JSON.stringify(incoming) !== JSON.stringify(current)) {
-      initialDistributionRef.current = incoming;
-      setDistribution((prev) => ({ ...prev, ...incoming }));
-    }
-  }, [initialDistribution]);
 
   const persistDistribution = useCallback(
     async (next: TabulationDistribution) => {
@@ -144,7 +151,9 @@ export const TabulationDistributionDrawer = ({
         } else {
           setDistribution(payload);
           setSaveSuccess(true);
-          setTimeout(() => setSaveSuccess(false), 2500);
+          setTimeout(() => {
+            setSaveSuccess(false);
+          }, 2500);
         }
       } catch {
         setSaveError("Failed to save settings");
@@ -172,6 +181,22 @@ export const TabulationDistributionDrawer = ({
           headers: { "Content-Type": "application/json" },
         }
       );
+      if (!res.ok) {
+        // fetch resolves on HTTP 4xx/5xx; read the API's structured error
+        // payload for a useful message, falling back to the status code.
+        let message = `Distribution failed (${res.status})`;
+        try {
+          const errBody = (await res.json()) as {
+            error?: string;
+            message?: string;
+          };
+          message = errBody.message ?? errBody.error ?? message;
+        } catch {
+          // Response body was not JSON; keep the status-based message.
+        }
+        setNotifResult({ ok: false, message });
+        return;
+      }
       const json = (await res.json()) as {
         ok?: boolean;
         processed?: number;
@@ -184,7 +209,7 @@ export const TabulationDistributionDrawer = ({
         error?: string;
         message?: string;
       };
-      if (res.ok && json.ok) {
+      if (json.ok) {
         const thisResult = json.results?.find((r) => r.meetingId === meetingId);
         if (thisResult?.skipped) {
           setNotifResult({
@@ -216,7 +241,9 @@ export const TabulationDistributionDrawer = ({
       });
     } finally {
       setSendingNotif(false);
-      setTimeout(() => setNotifResult(null), 8000);
+      setTimeout(() => {
+        setNotifResult(null);
+      }, 8000);
     }
   }, [
     meetingId,
@@ -242,6 +269,11 @@ export const TabulationDistributionDrawer = ({
   const handleOffsetBlur = useCallback(() => {
     void persistDistribution(distribution);
   }, [distribution, persistDistribution]);
+
+  const handleEmailInputChange = useCallback((value: string) => {
+    setEmailInput(value);
+    setEmailError(null);
+  }, []);
 
   const handleAddEmail = useCallback(() => {
     const email = emailInput.trim();
@@ -281,8 +313,68 @@ export const TabulationDistributionDrawer = ({
     meetingDate,
     distribution.startOffsetDays ?? 15
   );
-  const isActive = distribution.enabled && !!computedNext;
+  const isActive = !!distribution.enabled && !!computedNext;
   const recipientCount = (distribution.recipients ?? []).length;
+
+  return {
+    distribution,
+    emailInput,
+    emailError,
+    saving,
+    saveError,
+    saveSuccess,
+    sendingNotif,
+    notifResult,
+    computedNext,
+    isActive,
+    recipientCount,
+    handleToggleEnabled,
+    handleOffsetChange,
+    handleOffsetBlur,
+    handleEmailInputChange,
+    handleAddEmail,
+    handleRemoveEmail,
+    handleGenerateNotification,
+  };
+}
+
+const TabulationDistributionDrawerContent = ({
+  meetingId,
+  clientTicker,
+  initialDistribution,
+  meetingDate,
+}: TabulationDistributionDrawerProps) => {
+  const { data: session } = useSession();
+  const { flags } = useFeatureFlags(clientTicker ?? undefined);
+  const isCSM =
+    session?.user?.type === "CSM" || session?.user?.type === "ADMIN";
+  const [open, setOpen] = useState(false);
+
+  const {
+    distribution,
+    emailInput,
+    emailError,
+    saving,
+    saveError,
+    saveSuccess,
+    sendingNotif,
+    notifResult,
+    computedNext,
+    isActive,
+    recipientCount,
+    handleToggleEnabled,
+    handleOffsetChange,
+    handleOffsetBlur,
+    handleEmailInputChange,
+    handleAddEmail,
+    handleRemoveEmail,
+    handleGenerateNotification,
+  } = useTabulationDistribution(
+    meetingId,
+    clientTicker,
+    initialDistribution,
+    meetingDate
+  );
 
   if (!isCSM || !flags.configureDistribution) return null;
 
@@ -299,7 +391,9 @@ export const TabulationDistributionDrawer = ({
             <SettingsIcon fontSize="small" />
           )
         }
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+        }}
         aria-label="Configure daily tabulation distribution"
         sx={{ textTransform: "none", borderColor: "divider" }}
       >
@@ -312,13 +406,17 @@ export const TabulationDistributionDrawer = ({
       <Drawer
         anchor="left"
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false);
+        }}
         slotProps={{ paper: { sx: { width: DRAWER_WIDTH } } }}
       >
         <DrawerHeader
           title="Daily Tabulation Distribution"
           subtitle="Prototype — automated report delivery"
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+          }}
         />
 
         <Box sx={{ flex: 1, overflowY: "auto", p: 3 }}>
@@ -329,176 +427,58 @@ export const TabulationDistributionDrawer = ({
             at 8&nbsp;AM and can be triggered manually at any time.
           </Typography>
 
-          {saveError && (
+          {saveError ? (
             <Alert severity="error" sx={{ mb: 2 }}>
               {saveError}
             </Alert>
-          )}
-          {saveSuccess && (
+          ) : null}
+          {saveSuccess ? (
             <Alert severity="success" sx={{ mb: 2 }}>
               Settings saved
             </Alert>
-          )}
+          ) : null}
 
           <Stack spacing={3}>
-            {/* Enable toggle */}
-            <Box>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={distribution.enabled ?? false}
-                      onChange={handleToggleEnabled}
-                      disabled={saving}
-                    />
-                  }
-                  label={
-                    <Typography variant="body2" fontWeight={500}>
-                      Enable auto-distribution
-                    </Typography>
-                  }
-                />
-                {saving && <CircularProgress size={14} />}
-                {isActive && (
-                  <Chip
-                    label="Active"
-                    color="success"
-                    size="small"
-                    variant="outlined"
-                  />
-                )}
-              </Stack>
-            </Box>
+            <EnableSection
+              enabled={distribution.enabled ?? false}
+              saving={saving}
+              isActive={isActive}
+              onToggle={handleToggleEnabled}
+            />
 
             <Divider />
 
-            {/* Offset */}
-            <Box>
-              <Typography variant="subtitle2" mb={1}>
-                Delivery window
-              </Typography>
-              <TextField
-                label="Days before meeting to start"
-                type="number"
-                size="small"
-                fullWidth
-                value={distribution.startOffsetDays ?? 15}
-                onChange={(e) => handleOffsetChange(e.target.value)}
-                onBlur={handleOffsetBlur}
-                disabled={saving || !distribution.enabled}
-                slotProps={{ input: { inputProps: { min: 1, max: 90 } } }}
-                helperText="Delivery begins this many days before the meeting date and runs daily at 8 AM"
-              />
-            </Box>
+            <OffsetSection
+              startOffsetDays={distribution.startOffsetDays ?? 15}
+              enabled={distribution.enabled ?? false}
+              saving={saving}
+              onOffsetChange={handleOffsetChange}
+              onOffsetBlur={handleOffsetBlur}
+            />
 
             <Divider />
 
-            {/* Recipients */}
-            <Box>
-              <Typography variant="subtitle2" mb={1.5}>
-                Recipients
-              </Typography>
-              <TextField
-                size="small"
-                fullWidth
-                placeholder="email@example.com"
-                autoComplete="email"
-                value={emailInput}
-                onChange={(e) => {
-                  setEmailInput(e.target.value);
-                  setEmailError(null);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddEmail();
-                  }
-                }}
-                error={!!emailError}
-                helperText={emailError ?? "Press Enter or click + to add"}
-                disabled={saving || !distribution.enabled}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          size="small"
-                          onClick={handleAddEmail}
-                          disabled={
-                            saving ||
-                            !distribution.enabled ||
-                            !emailInput.trim()
-                          }
-                          aria-label="Add recipient"
-                        >
-                          <AddIcon fontSize="small" />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-
-              <Box mt={1.5}>
-                {(distribution.recipients ?? []).length === 0 ? (
-                  <Typography variant="body2" color="text.disabled">
-                    No recipients added yet
-                  </Typography>
-                ) : (
-                  <Stack direction="row" flexWrap="wrap" gap={0.75}>
-                    {(distribution.recipients ?? []).map((email) => (
-                      <Chip
-                        key={email}
-                        label={email}
-                        size="small"
-                        onDelete={() => handleRemoveEmail(email)}
-                        deleteIcon={
-                          <DeleteIcon
-                            fontSize="small"
-                            aria-label={`Remove ${email}`}
-                          />
-                        }
-                        disabled={saving || !distribution.enabled}
-                      />
-                    ))}
-                  </Stack>
-                )}
-              </Box>
-            </Box>
+            <RecipientsSection
+              recipients={distribution.recipients ?? []}
+              enabled={distribution.enabled ?? false}
+              saving={saving}
+              emailInput={emailInput}
+              emailError={emailError}
+              onEmailInputChange={handleEmailInputChange}
+              onAddEmail={handleAddEmail}
+              onRemoveEmail={handleRemoveEmail}
+            />
 
             <Divider />
 
-            {/* Schedule */}
-            <Box>
-              <Typography variant="subtitle2" mb={1.5}>
-                Schedule
-              </Typography>
-              <Stack spacing={1.5}>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2" color="text.secondary">
-                    Last sent
-                  </Typography>
-                  <Typography variant="body2">
-                    {formatDateTime(distribution.lastSentAt)}
-                  </Typography>
-                </Stack>
-                <Stack direction="row" justifyContent="space-between">
-                  <Typography variant="body2" color="text.secondary">
-                    Next (computed)
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color={isActive ? "text.primary" : "text.disabled"}
-                  >
-                    {distribution.enabled
-                      ? formatDateTime(computedNext)
-                      : "Disabled"}
-                  </Typography>
-                </Stack>
-              </Stack>
-            </Box>
+            <ScheduleSection
+              lastSentAt={distribution.lastSentAt}
+              enabled={distribution.enabled ?? false}
+              isActive={isActive}
+              computedNext={computedNext}
+            />
 
-            {isActive && recipientCount > 0 && (
+            {isActive && recipientCount > 0 ? (
               <Alert
                 severity="info"
                 icon={<NotificationsActiveIcon fontSize="small" />}
@@ -508,59 +488,299 @@ export const TabulationDistributionDrawer = ({
                 daily starting {distribution.startOffsetDays ?? 15} days before
                 the meeting.
               </Alert>
-            )}
+            ) : null}
 
             <Divider />
 
-            {/* Trigger distribution */}
-            <Box>
-              <Button
-                variant="outlined"
-                startIcon={
-                  sendingNotif ? (
-                    <CircularProgress size={14} />
-                  ) : (
-                    <NotificationsActiveIcon fontSize="small" />
-                  )
-                }
-                onClick={() => void handleGenerateNotification()}
-                disabled={sendingNotif || saving || !distribution.enabled}
-                sx={{ textTransform: "none" }}
-              >
-                {sendingNotif ? "Running…" : "Send distribution"}
-              </Button>
-              {!distribution.enabled && !saving && (
-                <Typography
-                  variant="caption"
-                  color="text.disabled"
-                  display="block"
-                  mt={0.5}
-                >
-                  Enable auto-distribution above to trigger
-                </Typography>
-              )}
-              {saving && (
-                <Typography
-                  variant="caption"
-                  color="text.disabled"
-                  display="block"
-                  mt={0.5}
-                >
-                  Saving settings…
-                </Typography>
-              )}
-              {notifResult && (
-                <Alert
-                  severity={notifResult.ok ? "success" : "error"}
-                  sx={{ mt: 1.5 }}
-                >
-                  {notifResult.message}
-                </Alert>
-              )}
-            </Box>
+            <TriggerSection
+              sendingNotif={sendingNotif}
+              saving={saving}
+              enabled={distribution.enabled ?? false}
+              notifResult={notifResult}
+              onSend={() => void handleGenerateNotification()}
+            />
           </Stack>
         </Box>
       </Drawer>
     </>
   );
 };
+
+export const TabulationDistributionDrawer = ({
+  meetingId,
+  clientTicker,
+  initialDistribution,
+  meetingDate,
+}: TabulationDistributionDrawerProps) => {
+  // Re-seed local editing state from the server whenever the incoming
+  // distribution actually changes by remounting the stateful subtree with a
+  // key (instead of syncing state in an effect, which briefly shows stale
+  // values). Serializing by content keeps inline object literals from the
+  // parent from forcing spurious remounts.
+  const distributionKey = JSON.stringify(initialDistribution ?? null);
+
+  return (
+    <TabulationDistributionDrawerContent
+      key={distributionKey}
+      meetingId={meetingId}
+      clientTicker={clientTicker}
+      initialDistribution={initialDistribution}
+      meetingDate={meetingDate}
+    />
+  );
+};
+
+interface EnableSectionProps {
+  readonly enabled: boolean;
+  readonly saving: boolean;
+  readonly isActive: boolean;
+  readonly onToggle: () => void;
+}
+
+const EnableSection = ({
+  enabled,
+  saving,
+  isActive,
+  onToggle,
+}: EnableSectionProps) => (
+  <Box>
+    <Stack direction="row" alignItems="center" spacing={1}>
+      <FormControlLabel
+        control={
+          <Switch checked={enabled} onChange={onToggle} disabled={saving} />
+        }
+        label={
+          <Typography variant="body2" fontWeight={500}>
+            Enable auto-distribution
+          </Typography>
+        }
+      />
+      {saving ? <CircularProgress size={14} /> : null}
+      {isActive ? (
+        <Chip label="Active" color="success" size="small" variant="outlined" />
+      ) : null}
+    </Stack>
+  </Box>
+);
+
+interface OffsetSectionProps {
+  readonly startOffsetDays: number;
+  readonly enabled: boolean;
+  readonly saving: boolean;
+  readonly onOffsetChange: (value: string) => void;
+  readonly onOffsetBlur: () => void;
+}
+
+const OffsetSection = ({
+  startOffsetDays,
+  enabled,
+  saving,
+  onOffsetChange,
+  onOffsetBlur,
+}: OffsetSectionProps) => (
+  <Box>
+    <Typography variant="subtitle2" mb={1}>
+      Delivery window
+    </Typography>
+    <TextField
+      label="Days before meeting to start"
+      type="number"
+      size="small"
+      fullWidth
+      value={startOffsetDays}
+      onChange={(e) => {
+        onOffsetChange(e.target.value);
+      }}
+      onBlur={onOffsetBlur}
+      disabled={saving || !enabled}
+      slotProps={{ input: { inputProps: { min: 1, max: 90 } } }}
+      helperText="Delivery begins this many days before the meeting date and runs daily at 8 AM"
+    />
+  </Box>
+);
+
+interface RecipientsSectionProps {
+  readonly recipients: readonly string[];
+  readonly enabled: boolean;
+  readonly saving: boolean;
+  readonly emailInput: string;
+  readonly emailError: string | null;
+  readonly onEmailInputChange: (value: string) => void;
+  readonly onAddEmail: () => void;
+  readonly onRemoveEmail: (email: string) => void;
+}
+
+const RecipientsSection = ({
+  recipients,
+  enabled,
+  saving,
+  emailInput,
+  emailError,
+  onEmailInputChange,
+  onAddEmail,
+  onRemoveEmail,
+}: RecipientsSectionProps) => (
+  <Box>
+    <Typography variant="subtitle2" mb={1.5}>
+      Recipients
+    </Typography>
+    <TextField
+      size="small"
+      fullWidth
+      placeholder="email@example.com"
+      autoComplete="email"
+      value={emailInput}
+      onChange={(e) => {
+        onEmailInputChange(e.target.value);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          onAddEmail();
+        }
+      }}
+      error={!!emailError}
+      helperText={emailError ?? "Press Enter or click + to add"}
+      disabled={saving || !enabled}
+      slotProps={{
+        input: {
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                onClick={onAddEmail}
+                disabled={saving || !enabled || !emailInput.trim()}
+                aria-label="Add recipient"
+              >
+                <AddIcon fontSize="small" />
+              </IconButton>
+            </InputAdornment>
+          ),
+        },
+      }}
+    />
+
+    <Box mt={1.5}>
+      {recipients.length === 0 ? (
+        <Typography variant="body2" color="text.disabled">
+          No recipients added yet
+        </Typography>
+      ) : (
+        <Stack direction="row" flexWrap="wrap" gap={0.75}>
+          {recipients.map((email) => (
+            <Chip
+              key={email}
+              label={email}
+              size="small"
+              onDelete={() => {
+                onRemoveEmail(email);
+              }}
+              deleteIcon={
+                <DeleteIcon fontSize="small" aria-label={`Remove ${email}`} />
+              }
+              disabled={saving || !enabled}
+            />
+          ))}
+        </Stack>
+      )}
+    </Box>
+  </Box>
+);
+
+interface ScheduleSectionProps {
+  readonly lastSentAt: string | null | undefined;
+  readonly enabled: boolean;
+  readonly isActive: boolean;
+  readonly computedNext: string | null;
+}
+
+const ScheduleSection = ({
+  lastSentAt,
+  enabled,
+  isActive,
+  computedNext,
+}: ScheduleSectionProps) => (
+  <Box>
+    <Typography variant="subtitle2" mb={1.5}>
+      Schedule
+    </Typography>
+    <Stack spacing={1.5}>
+      <Stack direction="row" justifyContent="space-between">
+        <Typography variant="body2" color="text.secondary">
+          Last sent
+        </Typography>
+        <Typography variant="body2">{formatDateTime(lastSentAt)}</Typography>
+      </Stack>
+      <Stack direction="row" justifyContent="space-between">
+        <Typography variant="body2" color="text.secondary">
+          Next (computed)
+        </Typography>
+        <Typography
+          variant="body2"
+          color={isActive ? "text.primary" : "text.disabled"}
+        >
+          {enabled ? formatDateTime(computedNext) : "Disabled"}
+        </Typography>
+      </Stack>
+    </Stack>
+  </Box>
+);
+
+interface TriggerSectionProps {
+  readonly sendingNotif: boolean;
+  readonly saving: boolean;
+  readonly enabled: boolean;
+  readonly notifResult: NotifResult | null;
+  readonly onSend: () => void;
+}
+
+const TriggerSection = ({
+  sendingNotif,
+  saving,
+  enabled,
+  notifResult,
+  onSend,
+}: TriggerSectionProps) => (
+  <Box>
+    <Button
+      variant="outlined"
+      startIcon={
+        sendingNotif ? (
+          <CircularProgress size={14} />
+        ) : (
+          <NotificationsActiveIcon fontSize="small" />
+        )
+      }
+      onClick={onSend}
+      disabled={sendingNotif || saving || !enabled}
+      sx={{ textTransform: "none" }}
+    >
+      {sendingNotif ? "Running…" : "Send distribution"}
+    </Button>
+    {!enabled && !saving && (
+      <Typography
+        variant="caption"
+        color="text.disabled"
+        display="block"
+        mt={0.5}
+      >
+        Enable auto-distribution above to trigger
+      </Typography>
+    )}
+    {saving ? (
+      <Typography
+        variant="caption"
+        color="text.disabled"
+        display="block"
+        mt={0.5}
+      >
+        Saving settings…
+      </Typography>
+    ) : null}
+    {notifResult ? (
+      <Alert severity={notifResult.ok ? "success" : "error"} sx={{ mt: 1.5 }}>
+        {notifResult.message}
+      </Alert>
+    ) : null}
+  </Box>
+);

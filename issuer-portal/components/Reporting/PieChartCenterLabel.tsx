@@ -21,7 +21,7 @@ const StyledNumberText = styled("text")(({ theme }) => ({
   dominantBaseline: "central",
   lineHeight: 1.3,
   fontWeight: 600,
-  fontSize: 38,
+  fontSize: 40,
 }));
 
 const StyledDescriptionText = styled("text")(({ theme }) => ({
@@ -30,7 +30,7 @@ const StyledDescriptionText = styled("text")(({ theme }) => ({
   dominantBaseline: "central",
   lineHeight: "20px",
   fontWeight: 400,
-  fontSize: "100%",
+  fontSize: 16,
   fontStyle: "normal",
 }));
 
@@ -41,14 +41,18 @@ const PieCenterLabel = ({ data }: { readonly data: PieChartData }) => {
       <StyledNumberText
         tabIndex={0}
         x={left + width / 2}
-        y={top + height / 2}
+        y={top + height / 2.2}
         data-testid="totalCount"
-        style={{ fontSize: 32 }}
+        style={{ fontSize: 37 }}
       >
         <title>{data.centerTooltip}</title>
         {data.centerValue ?? floorAndFormatNumber(data.total)}
       </StyledNumberText>
-      <StyledDescriptionText tabIndex={0} x={left + width / 2} y={top + height / 1.6}>
+      <StyledDescriptionText
+        tabIndex={0}
+        x={left + width / 2}
+        y={top + height / 1.75}
+      >
         {data.label}
       </StyledDescriptionText>
     </>

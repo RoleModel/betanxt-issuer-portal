@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { components } from "@/domain-models/generated-schema";
-
 import buildApiClient from "@/domain-models/apiClient";
 import { syncCarryoverTaskStatus } from "@/utils/taskControl";
+import type { components } from "@/domain-models/generated-schema";
 
 type Task = components["schemas"]["Task"];
 type CreateTaskRequest = components["schemas"]["CreateTaskRequest"];
@@ -53,7 +52,9 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!meetingId) return;
+    if (!meetingId) {
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -61,8 +62,10 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
     try {
       const data = await fetchTasks(meetingId);
       setTasks(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch tasks");
+    } catch (error_) {
+      setError(
+        Error.isError(error_) ? error_.message : "Failed to fetch tasks"
+      );
     } finally {
       setLoading(false);
     }
@@ -78,16 +81,30 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
         setError(null);
         // Convert to the correct API format
         const apiUpdates: Record<string, unknown> = {};
-        if (updates.title !== undefined) apiUpdates.title = updates.title;
-        if (updates.description !== undefined)
+        if (updates.title !== undefined) {
+          apiUpdates.title = updates.title;
+        }
+        if (updates.description !== undefined) {
           apiUpdates.description = updates.description;
-        if (updates.type !== undefined) apiUpdates.type = updates.type;
-        if (updates.status !== undefined) apiUpdates.status = updates.status;
-        if (updates.dueDate !== undefined) apiUpdates.dueDate = updates.dueDate;
-        if (updates.owner !== undefined) apiUpdates.owner = updates.owner;
-        if (updates.documentId !== undefined)
+        }
+        if (updates.type !== undefined) {
+          apiUpdates.type = updates.type;
+        }
+        if (updates.status !== undefined) {
+          apiUpdates.status = updates.status;
+        }
+        if (updates.dueDate !== undefined) {
+          apiUpdates.dueDate = updates.dueDate;
+        }
+        if (updates.owner !== undefined) {
+          apiUpdates.owner = updates.owner;
+        }
+        if (updates.documentId !== undefined) {
           apiUpdates.documentId = updates.documentId;
-        if (updates.links !== undefined) apiUpdates.links = updates.links;
+        }
+        if (updates.links !== undefined) {
+          apiUpdates.links = updates.links;
+        }
 
         const apiClient = await buildApiClient();
         const result = await apiClient.PUT("/tasks/{id}", {
@@ -111,10 +128,12 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
           const updatedTask = tasks.find((t) => t.id === id);
           if (updatedTask) {
             // Create a wrapper that sets skipSync=true to prevent infinite recursion
-            const updateWithoutSync = (
+            const updateWithoutSync = async (
               taskId: string,
               taskUpdates: { status: components["schemas"]["TaskStatus"] }
-            ) => updateTaskById(taskId, taskUpdates, true);
+            ) => {
+              await updateTaskById(taskId, taskUpdates, true);
+            };
 
             const syncedIds = await syncCarryoverTaskStatus(
               { ...updatedTask, status: updates.status },
@@ -128,39 +147,60 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
             }
           }
         }
-      } catch (err) {
-        console.error("Error in updateTaskById:", err);
-        setError(err instanceof Error ? err.message : "Failed to update task");
-        throw err;
+      } catch (error_) {
+        console.error("Error in updateTaskById:", error_);
+        setError(
+          Error.isError(error_) ? error_.message : "Failed to update task"
+        );
+        throw error_;
       }
     },
     [fetchData, tasks]
   );
 
   const createNewTask = useCallback(
-    async (meetingIdParam: string, task: Partial<Task>) => {
+    async (meetingIdParameter: string, task: Partial<Task>) => {
       try {
         setError(null);
         // Convert to the correct API format
         const taskData: Record<string, unknown> = {};
-        if (task.taskId !== undefined) taskData.taskId = task.taskId;
-        if (task.phaseId !== undefined) taskData.phaseId = task.phaseId;
-        if (task.phaseNumber !== undefined)
+        if (task.taskId !== undefined) {
+          taskData.taskId = task.taskId;
+        }
+        if (task.phaseId !== undefined) {
+          taskData.phaseId = task.phaseId;
+        }
+        if (task.phaseNumber !== undefined) {
           taskData.phaseNumber = task.phaseNumber;
-        if (task.title !== undefined) taskData.title = task.title;
-        if (task.description !== undefined)
+        }
+        if (task.title !== undefined) {
+          taskData.title = task.title;
+        }
+        if (task.description !== undefined) {
           taskData.description = task.description;
-        if (task.type !== undefined) taskData.type = task.type;
-        if (task.status !== undefined) taskData.status = task.status;
-        if (task.dueDate !== undefined) taskData.dueDate = task.dueDate;
-        if (task.owner !== undefined) taskData.owner = task.owner;
-        if (task.documentId !== undefined)
+        }
+        if (task.type !== undefined) {
+          taskData.type = task.type;
+        }
+        if (task.status !== undefined) {
+          taskData.status = task.status;
+        }
+        if (task.dueDate !== undefined) {
+          taskData.dueDate = task.dueDate;
+        }
+        if (task.owner !== undefined) {
+          taskData.owner = task.owner;
+        }
+        if (task.documentId !== undefined) {
           taskData.documentId = task.documentId;
-        if (task.links !== undefined) taskData.links = task.links;
+        }
+        if (task.links !== undefined) {
+          taskData.links = task.links;
+        }
 
         const apiClient = await buildApiClient();
         const result = await apiClient.POST("/meetings/{meetingId}/tasks", {
-          params: { path: { meetingId: meetingIdParam } },
+          params: { path: { meetingId: meetingIdParameter } },
           body: taskData as CreateTaskRequest,
         });
 
@@ -172,9 +212,11 @@ export const useTasks = (meetingId?: string): UseTasksResult => {
 
         // Refetch to get latest data
         await fetchData();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to create task");
-        throw err;
+      } catch (error_) {
+        setError(
+          Error.isError(error_) ? error_.message : "Failed to create task"
+        );
+        throw error_;
       }
     },
     [fetchData]

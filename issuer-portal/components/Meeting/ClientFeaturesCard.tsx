@@ -91,7 +91,6 @@ export const ClientFeaturesCard = ({
       if (!response.ok) {
         setSaveError("Failed to save feature settings");
         setEnabledFeatures(previousFeatures);
-        setSaving(false);
         return;
       }
 
@@ -113,9 +112,9 @@ export const ClientFeaturesCard = ({
     } catch {
       setSaveError("Failed to save feature settings");
       setEnabledFeatures(previousFeatures);
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
   };
 
   if (!isCSM) {

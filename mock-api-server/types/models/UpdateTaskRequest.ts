@@ -1,5 +1,3 @@
-import type { TaskStatus } from "./TaskStatus";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -19,6 +17,7 @@ import {
   TaskStatusToJSON,
   TaskStatusToJSONTyped,
 } from "./TaskStatus";
+import type { TaskStatus } from "./TaskStatus";
 
 /**
  *

@@ -5,7 +5,11 @@ import React from "react";
 
 import { PageTitle } from "@/components/PageTitle";
 
-const EducationLayout = ({ children }: { children: React.ReactNode }) => {
+const EducationLayout = ({
+  children,
+}: {
+  readonly children: React.ReactNode;
+}) => {
   return (
     <>
       <PageTitle>Education</PageTitle>

@@ -23,7 +23,7 @@ export async function GET(): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "getDocumentEvents",
         },
         { status: 500 }
@@ -53,7 +53,7 @@ export async function POST(): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "addDocumentEvent",
         },
         { status: 500 }

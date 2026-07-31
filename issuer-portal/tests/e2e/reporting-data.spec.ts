@@ -11,7 +11,7 @@ test.describe("Reporting Data Verification", () => {
     await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for reporting page to load
-    await page.waitForSelector("text=Reporting", { timeout: 15000 });
+    await page.waitForSelector("text=Reporting", { timeout: 15_000 });
 
     // Check for key reporting sections
     await expect(page.locator("text=Event Summary")).toBeVisible();
@@ -34,7 +34,7 @@ test.describe("Reporting Data Verification", () => {
     await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector("text=Reporting", { timeout: 15000 });
+    await page.waitForSelector("text=Reporting", { timeout: 15_000 });
 
     // Look for director names from CSV data
     const directorNames = [
@@ -44,35 +44,35 @@ test.describe("Reporting Data Verification", () => {
     ];
 
     // Check if at least one director is visible
-    let foundDirector = false;
+    let isFoundDirector = false;
     for (const name of directorNames) {
       const isVisible = await page
         .locator(`text=${name}`)
         .isVisible()
         .catch(() => false);
       if (isVisible) {
-        foundDirector = true;
+        isFoundDirector = true;
         break;
       }
     }
 
     // If directors aren't immediately visible, they might be in a chart or different section
-    if (!foundDirector) {
+    if (!isFoundDirector) {
       // Check for director election proposals in the data
       const proposalSection = page.locator("text=Director Election");
       if (await proposalSection.isVisible().catch(() => false)) {
-        foundDirector = true;
+        isFoundDirector = true;
       }
     }
 
-    expect(foundDirector).toBeTruthy();
+    expect(isFoundDirector).toBeTruthy();
   });
 
   test("should display vote statistics", async ({ page }) => {
     await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector("text=Reporting", { timeout: 15000 });
+    await page.waitForSelector("text=Reporting", { timeout: 15_000 });
 
     // Check for vote-related metrics
     const metricsToCheck = [
@@ -83,7 +83,7 @@ test.describe("Reporting Data Verification", () => {
 
     for (const metric of metricsToCheck) {
       const metricElement = page.locator(`text=/${metric}/i`).first();
-      await expect(metricElement).toBeVisible({ timeout: 10000 });
+      await expect(metricElement).toBeVisible({ timeout: 10_000 });
     }
   });
 
@@ -93,11 +93,11 @@ test.describe("Reporting Data Verification", () => {
     await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector("text=Reporting", { timeout: 15000 });
+    await page.waitForSelector("text=Reporting", { timeout: 15_000 });
 
     // Check for year indicators
     const years = ["2025", "2024", "2023", "2022"];
-    let foundYear = false;
+    let isFoundYear = false;
 
     for (const year of years) {
       if (
@@ -106,34 +106,34 @@ test.describe("Reporting Data Verification", () => {
           .isVisible()
           .catch(() => false)
       ) {
-        foundYear = true;
+        isFoundYear = true;
         break;
       }
     }
 
-    expect(foundYear).toBeTruthy();
+    expect(isFoundYear).toBeTruthy();
   });
 
   test("should load proposal performance data", async ({ page }) => {
     await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector("text=Reporting", { timeout: 15000 });
+    await page.waitForSelector("text=Reporting", { timeout: 15_000 });
 
     // Check for proposal types
     const proposalTypes = ["Director Election", "Say on Pay", "Auditor"];
 
-    let foundProposalType = false;
+    let isFoundProposalType = false;
     for (const type of proposalTypes) {
       const typeElement = page.locator(`text=/${type}/i`).first();
       if (await typeElement.isVisible().catch(() => false)) {
-        foundProposalType = true;
+        isFoundProposalType = true;
         break;
       }
     }
 
     // Alternative: Check for proposal-related headers
-    if (!foundProposalType) {
+    if (!isFoundProposalType) {
       const proposalHeaders = ["Proposal", "Support", "Outcome"];
       for (const header of proposalHeaders) {
         if (
@@ -142,20 +142,20 @@ test.describe("Reporting Data Verification", () => {
             .isVisible()
             .catch(() => false)
         ) {
-          foundProposalType = true;
+          isFoundProposalType = true;
           break;
         }
       }
     }
 
-    expect(foundProposalType).toBeTruthy();
+    expect(isFoundProposalType).toBeTruthy();
   });
 
   test("should show actual vote counts from CSV data", async ({ page }) => {
     await page.goto("http://localhost:3000/WEN/reporting");
 
     // Wait for page load
-    await page.waitForSelector("text=Reporting", { timeout: 15000 });
+    await page.waitForSelector("text=Reporting", { timeout: 15_000 });
 
     // Look for large vote numbers that would indicate real data
     // Wendy's has millions of shares, so we should see large numbers

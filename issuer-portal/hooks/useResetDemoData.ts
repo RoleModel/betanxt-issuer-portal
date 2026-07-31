@@ -34,6 +34,13 @@ export function useResetDemoData() {
         headers: { "Content-Type": "application/json" },
       });
 
+      if (!response.ok) {
+        const errorData: ResetResponse | null = await response
+          .json()
+          .catch((): null => null);
+        throw new Error(errorData?.error ?? `Reset failed: ${response.status}`);
+      }
+
       const data: ResetResponse = await response.json();
 
       if (!data.success) {
@@ -42,8 +49,8 @@ export function useResetDemoData() {
 
       // Reload page to reflect changes
       window.location.reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Reset failed");
+    } catch (error_) {
+      setError(Error.isError(error_) ? error_.message : "Reset failed");
       setIsResetting(false);
     }
   };

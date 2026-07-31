@@ -1,8 +1,7 @@
-import type { NextRequest } from "next/server";
-
 import { render } from "@react-email/render";
 import { NextResponse } from "next/server";
 import React from "react";
+import type { NextRequest } from "next/server";
 
 import { DocumentUpdateNotification } from "@/emails/DocumentUpdateNotification";
 import { TabulationReportEmail } from "@/emails/TabulationReportEmail";

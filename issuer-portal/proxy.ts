@@ -1,10 +1,9 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const authBypassed =
+  const isAuthBypassed =
     process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
     request.nextUrl.searchParams.get("bypass_auth") === "true";
 
@@ -16,7 +15,7 @@ export function proxy(request: NextRequest) {
 
   // Allow login page, API routes, auth routes, and static assets through
   if (
-    authBypassed ||
+    isAuthBypassed ||
     pathname.includes("/login") ||
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||

@@ -4,9 +4,9 @@ import { Box, Container } from "@mui/material";
 import React from "react";
 
 interface ProductLayoutProps {
-  leftColumnContent: React.ReactElement;
-  rightColumnContent: React.ReactElement;
-  documentViewer?: React.ReactElement;
+  readonly leftColumnContent: React.ReactElement;
+  readonly rightColumnContent: React.ReactElement;
+  readonly documentViewer?: React.ReactElement;
 }
 
 const ProductLayout = ({

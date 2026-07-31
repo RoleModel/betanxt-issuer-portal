@@ -1195,9 +1195,7 @@ export interface components {
        * @example 33333333-4444-5555-6666-777777777777
        */
       documentId?: string | null;
-      links?: {
-        [key: string]: unknown;
-      } | null;
+      links?: Record<string, unknown> | null;
       /** Format: date-time */
       createdAt?: string;
       /** Format: date-time */
@@ -1235,9 +1233,7 @@ export interface components {
       inProgressDate?: string | null;
       /** Format: date-time */
       deadline?: string | null;
-      history?: {
-        [key: string]: unknown;
-      } | null;
+      history?: Record<string, unknown> | null;
       /** @description User who approved the document */
       approvedBy?: string | null;
       /**
@@ -1507,9 +1503,7 @@ export interface components {
       /** Format: uuid */
       userId?: string;
       userName?: string;
-      metadata?: {
-        [key: string]: unknown;
-      };
+      metadata?: Record<string, unknown>;
       /** Format: date-time */
       createdAt?: string;
       document?: components["schemas"]["Document"];
@@ -1795,9 +1789,7 @@ export interface components {
       owner?: string;
       /** Format: uuid */
       documentId?: string;
-      links?: {
-        [key: string]: unknown;
-      };
+      links?: Record<string, unknown>;
     };
     CreateDocumentRequest: {
       title: string;
@@ -2192,36 +2184,28 @@ export interface components {
   responses: {
     /** @description Bad request */
     BadRequest: {
-      headers: {
-        [name: string]: unknown;
-      };
+      headers: Record<string, unknown>;
       content: {
         "application/json": components["schemas"]["Error"];
       };
     };
     /** @description Unauthorized */
     Unauthorized: {
-      headers: {
-        [name: string]: unknown;
-      };
+      headers: Record<string, unknown>;
       content: {
         "application/json": components["schemas"]["Error"];
       };
     };
     /** @description Forbidden */
     Forbidden: {
-      headers: {
-        [name: string]: unknown;
-      };
+      headers: Record<string, unknown>;
       content: {
         "application/json": components["schemas"]["Error"];
       };
     };
     /** @description Not found */
     NotFound: {
-      headers: {
-        [name: string]: unknown;
-      };
+      headers: Record<string, unknown>;
       content: {
         "application/json": components["schemas"]["Error"];
       };
@@ -2257,9 +2241,7 @@ export interface operations {
     responses: {
       /** @description Login successful */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             user?: components["schemas"]["User"];
@@ -2283,9 +2265,7 @@ export interface operations {
     responses: {
       /** @description Logout successful */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             /** @example Logged out successfully */
@@ -2307,9 +2287,7 @@ export interface operations {
     responses: {
       /** @description User profile retrieved */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["User"];
         };
@@ -2331,9 +2309,7 @@ export interface operations {
     responses: {
       /** @description Accounts retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             accounts?: components["schemas"]["Account"][];
@@ -2360,9 +2336,7 @@ export interface operations {
     responses: {
       /** @description Account created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Account"];
         };
@@ -2385,9 +2359,7 @@ export interface operations {
     responses: {
       /** @description Account retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Account"];
         };
@@ -2413,9 +2385,7 @@ export interface operations {
     responses: {
       /** @description Account updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Account"];
         };
@@ -2439,9 +2409,7 @@ export interface operations {
     responses: {
       /** @description Account deleted successfully */
       204: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content?: never;
       };
       401: components["responses"]["Unauthorized"];
@@ -2466,9 +2434,7 @@ export interface operations {
     responses: {
       /** @description Account users retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             users?: components["schemas"]["User"][];
@@ -2498,9 +2464,7 @@ export interface operations {
     responses: {
       /** @description User created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["User"];
         };
@@ -2527,9 +2491,7 @@ export interface operations {
     responses: {
       /** @description Clients retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             clients?: components["schemas"]["Clients"][];
@@ -2556,9 +2518,7 @@ export interface operations {
     responses: {
       /** @description Client created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Clients"];
         };
@@ -2582,9 +2542,7 @@ export interface operations {
     responses: {
       /** @description Client retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Clients"];
         };
@@ -2611,9 +2569,7 @@ export interface operations {
     responses: {
       /** @description Client updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Clients"];
         };
@@ -2638,9 +2594,7 @@ export interface operations {
     responses: {
       /** @description Client deleted successfully */
       204: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content?: never;
       };
       401: components["responses"]["Unauthorized"];
@@ -2665,9 +2619,7 @@ export interface operations {
     responses: {
       /** @description Client accounts retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             accounts?: components["schemas"]["Account"][];
@@ -2696,9 +2648,7 @@ export interface operations {
     responses: {
       /** @description Users retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             users?: components["schemas"]["User"][];
@@ -2725,9 +2675,7 @@ export interface operations {
     responses: {
       /** @description User created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["User"];
         };
@@ -2750,9 +2698,7 @@ export interface operations {
     responses: {
       /** @description User retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["User"];
         };
@@ -2778,9 +2724,7 @@ export interface operations {
     responses: {
       /** @description User updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["User"];
         };
@@ -2804,9 +2748,7 @@ export interface operations {
     responses: {
       /** @description User deleted successfully */
       204: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content?: never;
       };
       401: components["responses"]["Unauthorized"];
@@ -2828,9 +2770,7 @@ export interface operations {
     responses: {
       /** @description User accounts retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             accounts: components["schemas"]["Account"][];
@@ -2874,9 +2814,7 @@ export interface operations {
     responses: {
       /** @description Avatar uploaded successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             /**
@@ -2894,18 +2832,14 @@ export interface operations {
       403: components["responses"]["Forbidden"];
       /** @description File too large */
       413: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Error"];
         };
       };
       /** @description Unsupported media type */
       415: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Error"];
         };
@@ -2926,9 +2860,7 @@ export interface operations {
     responses: {
       /** @description Avatar removed successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             /** @example Avatar removed successfully */
@@ -2955,9 +2887,7 @@ export interface operations {
     responses: {
       /** @description Avatar URL retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             /**
@@ -2993,9 +2923,7 @@ export interface operations {
     responses: {
       /** @description Meetings retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             meetings?: components["schemas"]["Meeting"][];
@@ -3021,9 +2949,7 @@ export interface operations {
     responses: {
       /** @description Meeting created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Meeting"];
         };
@@ -3046,9 +2972,7 @@ export interface operations {
     responses: {
       /** @description Meeting retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Meeting"];
         };
@@ -3074,9 +2998,7 @@ export interface operations {
     responses: {
       /** @description Meeting updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Meeting"];
         };
@@ -3100,9 +3022,7 @@ export interface operations {
     responses: {
       /** @description Meeting deleted successfully */
       204: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content?: never;
       };
       401: components["responses"]["Unauthorized"];
@@ -3125,9 +3045,7 @@ export interface operations {
     responses: {
       /** @description Phases retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Phase"][];
         };
@@ -3153,9 +3071,7 @@ export interface operations {
     responses: {
       /** @description Phase created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Phase"];
         };
@@ -3178,9 +3094,7 @@ export interface operations {
     responses: {
       /** @description Phase retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Phase"];
         };
@@ -3206,9 +3120,7 @@ export interface operations {
     responses: {
       /** @description Phase updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Phase"];
         };
@@ -3236,9 +3148,7 @@ export interface operations {
     responses: {
       /** @description Tasks retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Task"][];
         };
@@ -3264,9 +3174,7 @@ export interface operations {
     responses: {
       /** @description Task created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Task"];
         };
@@ -3289,9 +3197,7 @@ export interface operations {
     responses: {
       /** @description Task retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Task"];
         };
@@ -3317,9 +3223,7 @@ export interface operations {
     responses: {
       /** @description Task updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Task"];
         };
@@ -3346,9 +3250,7 @@ export interface operations {
     responses: {
       /** @description Documents retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"][];
         };
@@ -3374,9 +3276,7 @@ export interface operations {
     responses: {
       /** @description Document created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"];
         };
@@ -3399,9 +3299,7 @@ export interface operations {
     responses: {
       /** @description Document retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"];
         };
@@ -3427,9 +3325,7 @@ export interface operations {
     responses: {
       /** @description Document updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"];
         };
@@ -3453,9 +3349,7 @@ export interface operations {
     responses: {
       /** @description Document deleted successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             /** @example true */
@@ -3481,9 +3375,7 @@ export interface operations {
     responses: {
       /** @description Document file */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/octet-stream": string;
         };
@@ -3517,9 +3409,7 @@ export interface operations {
     responses: {
       /** @description Form executed */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"];
         };
@@ -3554,9 +3444,7 @@ export interface operations {
     responses: {
       /** @description Form executed via upload */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"];
         };
@@ -3564,9 +3452,7 @@ export interface operations {
       400: components["responses"]["BadRequest"];
       /** @description File too large */
       413: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content?: never;
       };
     };
@@ -3597,9 +3483,7 @@ export interface operations {
     responses: {
       /** @description Version uploaded */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"];
         };
@@ -3607,9 +3491,7 @@ export interface operations {
       400: components["responses"]["BadRequest"];
       /** @description File too large */
       413: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content?: never;
       };
     };
@@ -3636,9 +3518,7 @@ export interface operations {
     responses: {
       /** @description Version approved */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"];
         };
@@ -3646,9 +3526,7 @@ export interface operations {
       400: components["responses"]["BadRequest"];
       /** @description Invalid state transition */
       409: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content?: never;
       };
     };
@@ -3680,9 +3558,7 @@ export interface operations {
     responses: {
       /** @description Replacement version uploaded (previous approved retained) */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"];
         };
@@ -3690,9 +3566,7 @@ export interface operations {
       400: components["responses"]["BadRequest"];
       /** @description Invalid state transition */
       409: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content?: never;
       };
     };
@@ -3710,9 +3584,7 @@ export interface operations {
     responses: {
       /** @description Readiness status */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": {
             phase1Ready?: boolean;
@@ -3741,9 +3613,7 @@ export interface operations {
     responses: {
       /** @description Version history */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Document"][];
         };
@@ -3764,9 +3634,7 @@ export interface operations {
     responses: {
       /** @description DSM configuration retrieved */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["DSMConfig"];
         };
@@ -3791,9 +3659,7 @@ export interface operations {
     responses: {
       /** @description DSM configuration updated */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["DSMConfig"];
         };
@@ -3819,9 +3685,7 @@ export interface operations {
     responses: {
       /** @description DSM configuration saved */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["DSMConfig"];
         };
@@ -3855,9 +3719,7 @@ export interface operations {
     responses: {
       /** @description Positions retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Position"][];
         };
@@ -3881,9 +3743,7 @@ export interface operations {
     responses: {
       /** @description Position created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Position"];
         };
@@ -3906,9 +3766,7 @@ export interface operations {
     responses: {
       /** @description Position retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Position"];
         };
@@ -3934,9 +3792,7 @@ export interface operations {
     responses: {
       /** @description Position updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Position"];
         };
@@ -3960,9 +3816,7 @@ export interface operations {
     responses: {
       /** @description Tabulation report retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["TabulationReport"];
         };
@@ -3985,9 +3839,7 @@ export interface operations {
     responses: {
       /** @description Mailing statistics retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Mailing"];
         };
@@ -4010,9 +3862,7 @@ export interface operations {
     responses: {
       /** @description Digital shareholder meeting data retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["DigitalShareholderMeeting"][];
         };
@@ -4038,9 +3888,7 @@ export interface operations {
     responses: {
       /** @description Attendees created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["DigitalShareholderMeeting"][];
         };
@@ -4064,9 +3912,7 @@ export interface operations {
     responses: {
       /** @description Proposals retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Proposal"][];
         };
@@ -4092,9 +3938,7 @@ export interface operations {
     responses: {
       /** @description Proposal created successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Proposal"];
         };
@@ -4117,9 +3961,7 @@ export interface operations {
     responses: {
       /** @description Proposal retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Proposal"];
         };
@@ -4145,9 +3987,7 @@ export interface operations {
     responses: {
       /** @description Proposal updated successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Proposal"];
         };
@@ -4211,9 +4051,7 @@ export interface operations {
     responses: {
       /** @description Vote cast successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["PositionVote"];
         };
@@ -4236,9 +4074,7 @@ export interface operations {
     responses: {
       /** @description Comments retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Comment"][];
         };
@@ -4264,9 +4100,7 @@ export interface operations {
     responses: {
       /** @description Comment added successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Comment"];
         };
@@ -4289,9 +4123,7 @@ export interface operations {
     responses: {
       /** @description Event history retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["DocumentHistory"][];
         };
@@ -4325,18 +4157,14 @@ export interface operations {
             | "COMMENTED"
             | "UPDATED"
             | "DELETED";
-          metadata?: {
-            [key: string]: unknown;
-          };
+          metadata?: Record<string, unknown>;
         };
       };
     };
     responses: {
       /** @description Event added successfully */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["DocumentHistory"];
         };
@@ -4371,9 +4199,7 @@ export interface operations {
     responses: {
       /** @description Notifications retrieved successfully */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Notification"][];
         };
@@ -4396,9 +4222,7 @@ export interface operations {
     responses: {
       /** @description Notification created */
       201: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Notification"];
         };
@@ -4418,9 +4242,7 @@ export interface operations {
     responses: {
       /** @description Distribution run completed */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["TabulationDistributeResult"];
         };
@@ -4428,9 +4250,7 @@ export interface operations {
       401: components["responses"]["Unauthorized"];
       /** @description Internal server error */
       500: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content?: never;
       };
     };
@@ -4448,9 +4268,7 @@ export interface operations {
     responses: {
       /** @description Notification marked as read */
       200: {
-        headers: {
-          [name: string]: unknown;
-        };
+        headers: Record<string, unknown>;
         content: {
           "application/json": components["schemas"]["Notification"];
         };

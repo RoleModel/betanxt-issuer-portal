@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 import type { components } from "@/types/api";
 import type { Database } from "@/utils/supabase/database.types";
@@ -96,8 +96,12 @@ export async function listClients(
 > {
   let query = supabase.from("clients").select("*");
 
-  if (ticker) query = query.eq("ticker", ticker);
-  if (limit) query = query.limit(limit);
+  if (ticker) {
+    query = query.eq("ticker", ticker);
+  }
+  if (limit) {
+    query = query.limit(limit);
+  }
 
   const { data, error } = await query;
 
@@ -112,61 +116,82 @@ export async function listClients(
 export async function createClient(
   clientData: CreateClientRequest
 ): Promise<ApiResponse<Client>> {
-  const dbInsert: ClientInsert = { id: randomUUID() };
-  if (clientData.ticker !== undefined) dbInsert.ticker = clientData.ticker;
-  if (clientData.companyName !== undefined)
-    dbInsert.company_name = clientData.companyName;
-  if (clientData.shortName !== undefined)
-    dbInsert.short_name = clientData.shortName;
-  if (clientData.industry !== undefined)
-    dbInsert.industry = clientData.industry;
-  if (clientData.description !== undefined)
-    dbInsert.description = clientData.description;
-  if (clientData.website !== undefined) dbInsert.website = clientData.website;
-  if (clientData.primaryContact !== undefined)
-    dbInsert.primary_contact = clientData.primaryContact;
-  if (clientData.primaryContactEmail !== undefined)
-    dbInsert.primary_contact_email = clientData.primaryContactEmail;
-  if (clientData.isActive !== undefined)
-    dbInsert.is_active = clientData.isActive;
-  if (clientData.logoUrl !== undefined) dbInsert.logo_url = clientData.logoUrl;
-  if (clientData.primaryColor !== undefined)
-    dbInsert.primary_color = clientData.primaryColor;
-  if (clientData.secondaryColor !== undefined)
-    dbInsert.secondary_color = clientData.secondaryColor;
-  if (clientData.createdBy !== undefined)
-    dbInsert.created_by = clientData.createdBy;
-  if (clientData.enabledFeatures !== undefined)
-    dbInsert.enabled_features = clientData.enabledFeatures;
+  const databaseInsert: ClientInsert = { id: randomUUID() };
+  if (clientData.ticker !== undefined) {
+    databaseInsert.ticker = clientData.ticker;
+  }
+  if (clientData.companyName !== undefined) {
+    databaseInsert.company_name = clientData.companyName;
+  }
+  if (clientData.shortName !== undefined) {
+    databaseInsert.short_name = clientData.shortName;
+  }
+  if (clientData.industry !== undefined) {
+    databaseInsert.industry = clientData.industry;
+  }
+  if (clientData.description !== undefined) {
+    databaseInsert.description = clientData.description;
+  }
+  if (clientData.website !== undefined) {
+    databaseInsert.website = clientData.website;
+  }
+  if (clientData.primaryContact !== undefined) {
+    databaseInsert.primary_contact = clientData.primaryContact;
+  }
+  if (clientData.primaryContactEmail !== undefined) {
+    databaseInsert.primary_contact_email = clientData.primaryContactEmail;
+  }
+  if (clientData.isActive !== undefined) {
+    databaseInsert.is_active = clientData.isActive;
+  }
+  if (clientData.logoUrl !== undefined) {
+    databaseInsert.logo_url = clientData.logoUrl;
+  }
+  if (clientData.primaryColor !== undefined) {
+    databaseInsert.primary_color = clientData.primaryColor;
+  }
+  if (clientData.secondaryColor !== undefined) {
+    databaseInsert.secondary_color = clientData.secondaryColor;
+  }
+  if (clientData.createdBy !== undefined) {
+    databaseInsert.created_by = clientData.createdBy;
+  }
+  if (clientData.enabledFeatures !== undefined) {
+    databaseInsert.enabled_features = clientData.enabledFeatures;
+  }
 
   const { data, error } = await supabase
     .from("clients")
-    .insert(dbInsert)
+    .insert(databaseInsert)
     .select()
     .single();
 
   // If new optional columns don't exist yet (migration not applied), retry without them
   if (
     error?.message?.includes("column") &&
-    (dbInsert.logo_url !== undefined ||
-      dbInsert.primary_color !== undefined ||
-      dbInsert.secondary_color !== undefined ||
-      dbInsert.created_by !== undefined)
+    (databaseInsert.logo_url !== undefined ||
+      databaseInsert.primary_color !== undefined ||
+      databaseInsert.secondary_color !== undefined ||
+      databaseInsert.created_by !== undefined)
   ) {
-    delete dbInsert.logo_url;
-    delete dbInsert.primary_color;
-    delete dbInsert.secondary_color;
-    delete dbInsert.created_by;
+    delete databaseInsert.logo_url;
+    delete databaseInsert.primary_color;
+    delete databaseInsert.secondary_color;
+    delete databaseInsert.created_by;
     const { data: data2, error: error2 } = await supabase
       .from("clients")
-      .insert(dbInsert)
+      .insert(databaseInsert)
       .select()
       .single();
-    if (error2) return { error: { message: error2.message } };
+    if (error2) {
+      return { error: { message: error2.message } };
+    }
     return { data: transformClient(data2 as ClientRow) };
   }
 
-  if (error) return { error: { message: error.message } };
+  if (error) {
+    return { error: { message: error.message } };
+  }
 
   return { data: transformClient(data as ClientRow) };
 }
@@ -180,7 +205,9 @@ export async function getClientByTicker(
     .eq("ticker", ticker)
     .single();
 
-  if (error) return { error: { message: error.message, statusCode: 404 } };
+  if (error) {
+    return { error: { message: error.message, statusCode: 404 } };
+  }
 
   return { data: transformClient(data as ClientRow) };
 }
@@ -189,38 +216,54 @@ export async function updateClient(
   ticker: string,
   clientData: UpdateClientRequest
 ): Promise<ApiResponse<Client>> {
-  const dbUpdate: ClientUpdate = {};
-  if (clientData.companyName !== undefined)
-    dbUpdate.company_name = clientData.companyName;
-  if (clientData.shortName !== undefined)
-    dbUpdate.short_name = clientData.shortName;
-  if (clientData.industry !== undefined)
-    dbUpdate.industry = clientData.industry;
-  if (clientData.description !== undefined)
-    dbUpdate.description = clientData.description;
-  if (clientData.website !== undefined) dbUpdate.website = clientData.website;
-  if (clientData.primaryContact !== undefined)
-    dbUpdate.primary_contact = clientData.primaryContact;
-  if (clientData.primaryContactEmail !== undefined)
-    dbUpdate.primary_contact_email = clientData.primaryContactEmail;
-  if (clientData.isActive !== undefined)
-    dbUpdate.is_active = clientData.isActive;
-  if (clientData.logoUrl !== undefined) dbUpdate.logo_url = clientData.logoUrl;
-  if (clientData.primaryColor !== undefined)
-    dbUpdate.primary_color = clientData.primaryColor;
-  if (clientData.secondaryColor !== undefined)
-    dbUpdate.secondary_color = clientData.secondaryColor;
-  if (clientData.enabledFeatures !== undefined)
-    dbUpdate.enabled_features = clientData.enabledFeatures;
+  const databaseUpdate: ClientUpdate = {};
+  if (clientData.companyName !== undefined) {
+    databaseUpdate.company_name = clientData.companyName;
+  }
+  if (clientData.shortName !== undefined) {
+    databaseUpdate.short_name = clientData.shortName;
+  }
+  if (clientData.industry !== undefined) {
+    databaseUpdate.industry = clientData.industry;
+  }
+  if (clientData.description !== undefined) {
+    databaseUpdate.description = clientData.description;
+  }
+  if (clientData.website !== undefined) {
+    databaseUpdate.website = clientData.website;
+  }
+  if (clientData.primaryContact !== undefined) {
+    databaseUpdate.primary_contact = clientData.primaryContact;
+  }
+  if (clientData.primaryContactEmail !== undefined) {
+    databaseUpdate.primary_contact_email = clientData.primaryContactEmail;
+  }
+  if (clientData.isActive !== undefined) {
+    databaseUpdate.is_active = clientData.isActive;
+  }
+  if (clientData.logoUrl !== undefined) {
+    databaseUpdate.logo_url = clientData.logoUrl;
+  }
+  if (clientData.primaryColor !== undefined) {
+    databaseUpdate.primary_color = clientData.primaryColor;
+  }
+  if (clientData.secondaryColor !== undefined) {
+    databaseUpdate.secondary_color = clientData.secondaryColor;
+  }
+  if (clientData.enabledFeatures !== undefined) {
+    databaseUpdate.enabled_features = clientData.enabledFeatures;
+  }
 
   const { data, error } = await supabase
     .from("clients")
-    .update(dbUpdate)
+    .update(databaseUpdate)
     .eq("ticker", ticker)
     .select()
     .single();
 
-  if (error) return { error: { message: error.message } };
+  if (error) {
+    return { error: { message: error.message } };
+  }
 
   return { data: transformClient(data as ClientRow) };
 }
@@ -231,7 +274,9 @@ export async function deleteClient(ticker: string): Promise<ApiResponse<void>> {
     .delete()
     .eq("ticker", ticker);
 
-  if (error) return { error: { message: error.message } };
+  if (error) {
+    return { error: { message: error.message } };
+  }
 
   return { data: undefined };
 }

@@ -221,48 +221,8 @@ const EducationContent = () => {
     <Container component="main" maxWidth="xl" sx={{ p: { xs: 1, md: 3 } }}>
       <GlobalStyle />
       <Grid order={1} container spacing={{ xs: 2, md: 3 }}>
-        <Grid size={{ xs: 12 }}>
-          <Card>
-            <CardContent>
-              <Grid container spacing={2}>
-                {educationPaperItems.map((item, index) => (
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
-                    <FeatureTile
-                      brandFont={true}
-                      titleVariant="h1"
-                      {...item}
-                      height="100%"
-                      variant="base"
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid order={{ xs: 2, sm: 2 }} size={12}>
-          <Grid container spacing={{ xs: 2, md: 3 }} sx={{ height: "100%" }}>
-            <Grid size={{ xs: 12 }}>
-              <Card>
-                <CardContent>
-                  <Grid container spacing={2} alignItems="stretch">
-                    {servicePapers.map((service, index) => (
-                      <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
-                        <FeatureTile
-                          brandFont={true}
-                          flex={true}
-                          {...service}
-                          height="100%"
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Grid>
+        <EducationPapersSection items={educationPaperItems} />
+        <ServicePapersSection services={servicePapers} />
         <Grid
           order={{ xs: 3, sm: 2 }}
           container
@@ -271,43 +231,11 @@ const EducationContent = () => {
         >
           <Grid size={{ xs: 12 }}>
             <Stack spacing={{ xs: 2, md: 3 }}>
-              <Card sx={{ height: "auto" }}>
-                <CardHeader title="Document Resources" />
-                <CardContent sx={{ p: 0 }}>
-                  <ScrollContainer direction="horizontal">
-                    <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ p: 2, flexWrap: "nowrap" }}
-                    >
-                      {documentTemplates.map((template, index) => (
-                        <ResourceTitle
-                          key={index}
-                          {...template}
-                          minWidth="200px"
-                        />
-                      ))}
-                    </Stack>
-                  </ScrollContainer>
-                </CardContent>
-              </Card>
-
-              <Card sx={{ height: "auto" }}>
-                <CardHeader title="Forms" />
-                <CardContent sx={{ p: 0 }}>
-                  <ScrollContainer direction="horizontal">
-                    <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ p: 2, flexWrap: "nowrap" }}
-                    >
-                      {forms.map((form, index) => (
-                        <ResourceTitle key={index} {...form} minWidth="200px" />
-                      ))}
-                    </Stack>
-                  </ScrollContainer>
-                </CardContent>
-              </Card>
+              <ResourceScrollerCard
+                title="Document Resources"
+                resources={documentTemplates}
+              />
+              <ResourceScrollerCard title="Forms" resources={forms} />
             </Stack>
           </Grid>
         </Grid>
@@ -323,5 +251,87 @@ const EducationContent = () => {
     </Container>
   );
 };
+
+interface EducationPapersSectionProps {
+  readonly items: React.ComponentProps<typeof FeatureTile>[];
+}
+
+const EducationPapersSection: React.FC<EducationPapersSectionProps> = ({
+  items,
+}) => (
+  <Grid size={{ xs: 12 }}>
+    <Card>
+      <CardContent>
+        <Grid container spacing={2}>
+          {items.map((item, index) => (
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+              <FeatureTile
+                brandFont={true}
+                titleVariant="h1"
+                {...item}
+                height="100%"
+                variant="base"
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </CardContent>
+    </Card>
+  </Grid>
+);
+
+interface ServicePapersSectionProps {
+  readonly services: React.ComponentProps<typeof FeatureTile>[];
+}
+
+const ServicePapersSection: React.FC<ServicePapersSectionProps> = ({
+  services,
+}) => (
+  <Grid order={{ xs: 2, sm: 2 }} size={12}>
+    <Grid container spacing={{ xs: 2, md: 3 }} sx={{ height: "100%" }}>
+      <Grid size={{ xs: 12 }}>
+        <Card>
+          <CardContent>
+            <Grid container spacing={2} alignItems="stretch">
+              {services.map((service, index) => (
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }} key={index}>
+                  <FeatureTile
+                    brandFont={true}
+                    flex={true}
+                    {...service}
+                    height="100%"
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  </Grid>
+);
+
+interface ResourceScrollerCardProps {
+  readonly title: string;
+  readonly resources: React.ComponentProps<typeof ResourceTitle>[];
+}
+
+const ResourceScrollerCard: React.FC<ResourceScrollerCardProps> = ({
+  title,
+  resources,
+}) => (
+  <Card sx={{ height: "auto" }}>
+    <CardHeader title={title} />
+    <CardContent sx={{ p: 0 }}>
+      <ScrollContainer direction="horizontal">
+        <Stack spacing={2} direction="row" sx={{ p: 2, flexWrap: "nowrap" }}>
+          {resources.map((resource, index) => (
+            <ResourceTitle key={index} {...resource} minWidth="200px" />
+          ))}
+        </Stack>
+      </ScrollContainer>
+    </CardContent>
+  </Card>
+);
 
 export default EducationContent;

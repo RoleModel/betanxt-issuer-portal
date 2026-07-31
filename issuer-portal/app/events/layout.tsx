@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-const EventsLayout = ({ children }: { children: ReactNode }) => {
+const EventsLayout = ({ children }: { readonly children: ReactNode }) => {
   return <>{children}</>;
 };
 

@@ -6,8 +6,8 @@ import React from "react";
 import { normalizeCusips } from "@/utils/cusipDisplay";
 
 interface CusipValueProps {
-  value?: string | string[] | null;
-  variant?: "body3" | "body2" | "caption";
+  readonly value?: string | string[] | null;
+  readonly variant?: "body3" | "body2" | "caption";
 }
 
 const CusipValue = ({ value, variant = "body3" }: CusipValueProps) => {

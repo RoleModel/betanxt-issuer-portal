@@ -199,8 +199,8 @@ const styles = StyleSheet.create({
 });
 
 interface BroadridgePDFDocumentProps {
-  formData?: FormData;
-  logoBase64?: string;
+  readonly formData?: FormData;
+  readonly logoBase64?: string;
 }
 
 // Broadridge PDF Document Component
@@ -439,8 +439,12 @@ export const generatePDFForm = async (
       const blob = await response.blob();
       const reader = new FileReader();
       logoBase64 = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error("Failed to load image"));
+        reader.onload = () => {
+          resolve(reader.result as string);
+        };
+        reader.onerror = () => {
+          reject(new Error("Failed to load image"));
+        };
         reader.readAsDataURL(blob);
       });
     }
@@ -454,9 +458,11 @@ export const generatePDFForm = async (
   ).toBlob();
 
   // Convert blob to data URI
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
     reader.readAsDataURL(pdfBlob);
   });
 };

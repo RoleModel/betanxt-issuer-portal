@@ -1,11 +1,10 @@
+import * as path from "node:path";
 import { config } from "dotenv";
-import * as path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
 
-function globalSetup() {
+export default function globalSetup() {
   // Load environment variables for tests
   config({ path: path.join(__dirname, "../.env.local") });
   config({ path: path.join(__dirname, "../.env.development.local") });
@@ -20,5 +19,3 @@ function globalSetup() {
     );
   }
 }
-
-export default globalSetup;

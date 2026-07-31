@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 
 const EducationContent = dynamic(
-  () => import("@/components/Education/EducationContent")
+  async () => await import("@/components/Education/EducationContent")
 );
 
 const EducationPage = () => {

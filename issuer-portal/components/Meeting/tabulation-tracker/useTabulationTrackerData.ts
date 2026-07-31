@@ -2,10 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import type { components } from "@/domain-models/generated-schema";
-
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
+import type { components } from "@/domain-models/generated-schema";
 
 type ApiClient = Awaited<ReturnType<typeof buildApiClient>>;
 type Meeting = components["schemas"]["Meeting"];
@@ -276,6 +275,7 @@ export const useTabulationTrackerData = ({
   }, [currentMeeting?.cutoffDate, currentMeeting?.meetingDate]);
 
   useEffect(() => {
+    let isIgnore = false;
     const fetchCurrentTabulation = async () => {
       if (!hasText(currentMeetingId)) {
         setData(null);
@@ -291,21 +291,28 @@ export const useTabulationTrackerData = ({
           status: currentMeeting?.status,
         });
 
-        setData(summary);
+        if (!isIgnore) {
+          setData(summary);
+        }
       } catch (error) {
         console.error("Error fetching tabulation data:", error);
-        setData(
-          createEmptySummary({
-            id: currentMeetingId,
-            title: currentMeeting?.title,
-            meetingDate: currentMeeting?.meetingDate,
-            status: currentMeeting?.status,
-          })
-        );
+        if (!isIgnore) {
+          setData(
+            createEmptySummary({
+              id: currentMeetingId,
+              title: currentMeeting?.title,
+              meetingDate: currentMeeting?.meetingDate,
+              status: currentMeeting?.status,
+            })
+          );
+        }
       }
     };
 
     void fetchCurrentTabulation();
+    return () => {
+      isIgnore = true;
+    };
   }, [
     currentMeeting?.meetingDate,
     currentMeeting?.status,
@@ -315,6 +322,7 @@ export const useTabulationTrackerData = ({
   ]);
 
   useEffect(() => {
+    let isIgnore = false;
     const fetchHistoricalTabulation = async () => {
       if (!hasText(currentMeetingId)) {
         setHistoricalData([]);
@@ -356,55 +364,66 @@ export const useTabulationTrackerData = ({
           ? comparableMeetingsResult.data
           : (comparableMeetingsResult.data?.meetings ?? []);
         const comparableMeetings = rawMeetings
-          .filter((meeting) => hasText(meeting.id))
-          .filter(
-            (meeting) => meeting.meetingType === currentMeeting.meetingType
-          )
           .filter(
             (meeting) =>
-              !hasText(currentMeeting.cusip) ||
-              meeting.cusip === currentMeeting.cusip
-          )
-          .filter(
-            (meeting) =>
-              meeting.id === currentMeetingId || meeting.status === "COMPLETE"
+              hasText(meeting.id) &&
+              meeting.meetingType === currentMeeting.meetingType &&
+              (!hasText(currentMeeting.cusip) ||
+                meeting.cusip === currentMeeting.cusip) &&
+              (meeting.id === currentMeetingId || meeting.status === "COMPLETE")
           )
           .sort(sortMeetingsBySeriesOrder);
 
-        const nextHistoricalData: HistoricalTabulationPoint[] = [];
+        const settledHistoricalData = await Promise.all(
+          comparableMeetings.map(
+            async (
+              comparableMeeting
+            ): Promise<HistoricalTabulationPoint | null> => {
+              if (!hasText(comparableMeeting.id)) {
+                return null;
+              }
 
-        for (const comparableMeeting of comparableMeetings) {
-          if (!hasText(comparableMeeting.id)) {
-            continue;
-          }
+              const summary = await fetchMeetingSummary(
+                apiClient,
+                comparableMeeting
+              );
 
-          const summary = await fetchMeetingSummary(
-            apiClient,
-            comparableMeeting
+              return {
+                meetingId: summary.meeting_id,
+                yearLabel:
+                  comparableMeeting.meetingYear?.toString() ??
+                  parseMeetingYearInfo(
+                    summary.meeting_id
+                  )?.currentYear.toString() ??
+                  "Unknown",
+                votedShares: Number(summary.shares_voted),
+                unvotedShares: Number(summary.shares_unvoted),
+                isCurrentMeeting: comparableMeeting.id === currentMeetingId,
+              };
+            }
+          )
+        );
+
+        const nextHistoricalData: HistoricalTabulationPoint[] =
+          settledHistoricalData.filter(
+            (point): point is HistoricalTabulationPoint => point !== null
           );
 
-          nextHistoricalData.push({
-            meetingId: summary.meeting_id,
-            yearLabel:
-              comparableMeeting.meetingYear?.toString() ??
-              parseMeetingYearInfo(
-                summary.meeting_id
-              )?.currentYear.toString() ??
-              "Unknown",
-            votedShares: Number(summary.shares_voted),
-            unvotedShares: Number(summary.shares_unvoted),
-            isCurrentMeeting: comparableMeeting.id === currentMeetingId,
-          });
+        if (!isIgnore) {
+          setHistoricalData(nextHistoricalData);
         }
-
-        setHistoricalData(nextHistoricalData);
       } catch (error) {
         console.error("Error fetching previous year data:", error);
-        setHistoricalData([]);
+        if (!isIgnore) {
+          setHistoricalData([]);
+        }
       }
     };
 
     void fetchHistoricalTabulation();
+    return () => {
+      isIgnore = true;
+    };
   }, [
     currentMeeting?.cusip,
     currentMeeting?.meetingType,

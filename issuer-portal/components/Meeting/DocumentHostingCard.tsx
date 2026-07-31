@@ -16,14 +16,14 @@ import type { Client } from "@/hooks/useClients";
 type Meeting = components["schemas"]["Meeting"];
 
 interface DocumentHostingCardProps {
-  meeting?: Meeting;
-  client?: Client;
-  className?: string;
+  readonly meeting?: Meeting;
+  readonly client?: Client;
+  readonly className?: string;
 }
 
 interface SiteHostingButtonProps {
-  label: string;
-  url: string;
+  readonly label: string;
+  readonly url: string;
 }
 
 const SiteHostingButton = ({ label, url }: SiteHostingButtonProps) => {
@@ -35,7 +35,7 @@ const SiteHostingButton = ({ label, url }: SiteHostingButtonProps) => {
     if (isPhoneNumber) {
       window.open(`tel:${url}`, "_self");
     } else {
-      window.open(url, "_blank");
+      window.open(url, "_blank", "noopener");
     }
   };
 
@@ -78,11 +78,11 @@ const SiteHostingButton = ({ label, url }: SiteHostingButtonProps) => {
               Not available
             </Typography>
           )}
-          {isPhoneNumber && (
+          {isPhoneNumber ? (
             <Typography variant="body3" color="text.secondary" fontWeight={500}>
               {url}
             </Typography>
-          )}
+          ) : null}
         </CardContent>
       </CardActionArea>
     </Card>
@@ -119,8 +119,12 @@ const DocumentHostingCard = ({
     >
       <CardContent>
         <Stack spacing={1.5}>
-          {sites.map((site, index) => (
-            <SiteHostingButton key={index} label={site.label} url={site.url} />
+          {sites.map((site) => (
+            <SiteHostingButton
+              key={site.label}
+              label={site.label}
+              url={site.url}
+            />
           ))}
         </Stack>
       </CardContent>

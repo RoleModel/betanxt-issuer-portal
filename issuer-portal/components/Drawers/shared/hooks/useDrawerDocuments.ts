@@ -1,8 +1,7 @@
 "use client";
 
-import type { FileRejection } from "react-dropzone";
-
 import { useCallback, useState } from "react";
+import type { FileRejection } from "react-dropzone";
 
 export interface SignatureArea {
   id: string;
@@ -117,12 +116,12 @@ export const useDrawerDocuments = (): UseDrawerDocumentsReturn => {
   // File upload handlers
   const handleFilesSelected = useCallback((newFiles: File[]) => {
     const uploadFileObjects = newFiles.map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).substring(2)}`,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       file,
       status: "complete" as const,
       progress: 100,
     }));
-    setUploadFiles((prev) => [...prev, ...uploadFileObjects]);
+    setUploadFiles((previous) => [...previous, ...uploadFileObjects]);
     setHasUnsupportedFiles(false);
   }, []);
 
@@ -139,7 +138,7 @@ export const useDrawerDocuments = (): UseDrawerDocumentsReturn => {
   );
 
   const handleFileRemove = useCallback((fileId: string) => {
-    setUploadFiles((prev) => prev.filter((file) => file.id !== fileId));
+    setUploadFiles((previous) => previous.filter((file) => file.id !== fileId));
   }, []);
 
   const clearUploadFiles = useCallback(() => {

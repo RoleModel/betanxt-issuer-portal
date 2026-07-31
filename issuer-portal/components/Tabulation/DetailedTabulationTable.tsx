@@ -20,10 +20,14 @@ import { formatNumber } from "@/utils/number-utilities";
 import { getVotingOptions } from "@/utils/votingOptions";
 
 interface DetailedTabulationTableProps {
-  meetingId: string;
+  readonly meetingId: string;
 }
 
-const StyledTableContainer = ({ children }: { children: React.ReactNode }) => {
+const StyledTableContainer = ({
+  children,
+}: {
+  readonly children: React.ReactNode;
+}) => {
   return (
     <TableContainer
       sx={[
@@ -64,7 +68,7 @@ const VoteTypeCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 500,
 }));
 
-const TotalsRow = ({ children }: { children: React.ReactNode }) => {
+const TotalsRow = ({ children }: { readonly children: React.ReactNode }) => {
   return (
     <TableRow
       sx={[
@@ -88,6 +92,8 @@ const TotalsHeaderCell = styled(TableCell)(({ theme }) => ({
   paddingLeft: theme.spacing(2),
 }));
 
+const formatPercentage = (value: number) => `${value.toFixed(2)}%`;
+
 const DetailedTabulationTable = ({
   meetingId,
 }: DetailedTabulationTableProps) => {
@@ -109,8 +115,6 @@ const DetailedTabulationTable = ({
       </Box>
     );
   }
-
-  const formatPercentage = (value: number) => `${value.toFixed(2)}%`;
 
   // Calculate totals for percentage calculations
   const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0;

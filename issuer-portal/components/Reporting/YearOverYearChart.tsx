@@ -16,7 +16,7 @@ import React from "react";
 
 import SkeletonChart from "@/components/ui/SkeletonChart";
 
-import { CustomLegend } from "./index";
+import CustomLegend from "./CustomLegend";
 
 interface YearOverYearData {
   year: number;
@@ -26,10 +26,34 @@ interface YearOverYearData {
   totalShares: number;
 }
 
+interface YearOverYearLegendItem {
+  label: string;
+  color: string;
+  type: "line" | "bar";
+}
+
+const LEGEND_ITEMS: YearOverYearLegendItem[] = [
+  {
+    label: "Registered",
+    color: "var(--mui-palette-primary-main)",
+    type: "bar",
+  },
+  {
+    label: "Beneficial",
+    color: "var(--mui-palette-secondary-main)",
+    type: "bar",
+  },
+  {
+    label: "Participation %",
+    color: "var(--mui-palette-info-main)",
+    type: "line",
+  },
+];
+
 interface YearOverYearChartProps {
-  data: YearOverYearData[];
-  loading?: boolean;
-  title?: string;
+  readonly data: YearOverYearData[];
+  readonly loading?: boolean;
+  readonly title?: string;
 }
 
 const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
@@ -55,24 +79,6 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
       </Box>
     );
   }
-
-  const legendItems = [
-    {
-      label: "Registered",
-      color: "var(--mui-palette-primary-main)",
-      type: "bar" as const,
-    },
-    {
-      label: "Beneficial",
-      color: "var(--mui-palette-secondary-main)",
-      type: "bar" as const,
-    },
-    {
-      label: "Participation %",
-      color: "var(--mui-palette-info-main)",
-      type: "line" as const,
-    },
-  ];
 
   const years = data.map((item) => String(item.year));
   const participationRates = data.map((item) => item.participationRate);
@@ -163,7 +169,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         <ChartsTooltip />
       </ChartsSurface>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-        <CustomLegend items={legendItems} />
+        <CustomLegend items={LEGEND_ITEMS} />
       </Box>
     </ChartsDataProvider>
   );

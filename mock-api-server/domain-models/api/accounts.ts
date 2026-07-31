@@ -1,6 +1,5 @@
-import type { components } from "@/types/api";
-
 import { apiClient } from "../apiClient";
+import type { components } from "@/types/api";
 
 // Use generated types from OpenAPI schema
 type Account = components["schemas"]["Account"];

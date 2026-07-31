@@ -6,7 +6,7 @@ const Layout = async ({
   params: Promise<{ clientTicker: string; meetingId: string }>;
 }) => {
   await params;
-  return children;
+  return await children;
 };
 
 export default Layout;

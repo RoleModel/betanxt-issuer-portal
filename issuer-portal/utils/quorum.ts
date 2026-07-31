@@ -18,19 +18,19 @@ const toFiniteNumber = (value: number | string | null | undefined): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const roundToTwo = (value: number): number => {
-  return Math.round(value * 100) / 100;
-};
+const roundToTwo = (value: number): number => Math.round(value * 100) / 100;
 
-export const buildQuorumGaugeModel = (params: {
+export const buildQuorumGaugeModel = (parameters: {
   totalOutstandingShares: number | string | null | undefined;
   representedShares: number | string | null | undefined;
   quorumRequirementPercent?: number | string | null | undefined;
 }): QuorumGaugeViewModel => {
-  const totalOutstandingShares = toFiniteNumber(params.totalOutstandingShares);
-  const representedShares = toFiniteNumber(params.representedShares);
+  const totalOutstandingShares = toFiniteNumber(
+    parameters.totalOutstandingShares
+  );
+  const representedShares = toFiniteNumber(parameters.representedShares);
   const quorumRequirementPercent =
-    toFiniteNumber(params.quorumRequirementPercent) || 50;
+    toFiniteNumber(parameters.quorumRequirementPercent) || 50;
   const requiredShares =
     totalOutstandingShares * (quorumRequirementPercent / 100);
   const percentRepresented =
@@ -69,9 +69,17 @@ export function formatQuorumRequirementPercentLabel(
   quorumRequirementPercent?: number | string | null
 ): string {
   const pct = toFiniteNumber(quorumRequirementPercent) || 50;
-  if (pct === 50) return "50%";
-  if (pct === 33.3 || pct === 33.33) return "33.3%";
-  if (pct === 66.6 || pct === 66.67) return "66.6%";
-  if (pct === 80) return "80%";
+  if (pct === 50) {
+    return "50%";
+  }
+  if (pct === 33.3 || pct === 33.33) {
+    return "33.3%";
+  }
+  if (pct === 66.6 || pct === 66.67) {
+    return "66.6%";
+  }
+  if (pct === 80) {
+    return "80%";
+  }
   return `${pct}%`;
 }

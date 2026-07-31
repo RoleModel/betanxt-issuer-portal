@@ -6,14 +6,14 @@ import React from "react";
 import NoWrapTableCell from "./NoWrapTableCell";
 
 export interface SortableHeaderCellProps<T> {
-  column: keyof T;
-  children: React.ReactNode;
-  align?: "left" | "center" | "right";
-  sortColumn: keyof T | null;
-  sortDirection: "asc" | "desc";
-  width?: number | string;
-  minWidth?: number | string;
-  onSort: (column: keyof T) => void;
+  readonly column: keyof T;
+  readonly children: React.ReactNode;
+  readonly align?: "left" | "center" | "right";
+  readonly sortColumn: keyof T | null;
+  readonly sortDirection: "asc" | "desc";
+  readonly width?: number | string;
+  readonly minWidth?: number | string;
+  readonly onSort: (column: keyof T) => void;
 }
 
 const SortableHeaderCell = <T,>({
@@ -36,7 +36,9 @@ const SortableHeaderCell = <T,>({
         backgroundColor: "rgba(0, 0, 0, 0.04)",
       },
     }}
-    onClick={() => onSort(column)}
+    onClick={() => {
+      onSort(column);
+    }}
   >
     <Box
       sx={{
@@ -63,7 +65,7 @@ const SortableHeaderCell = <T,>({
 );
 
 // Utility function for sorting arrays
-export function createSortFunction<T>(
+function createSortFunction<T>(
   sortColumn: keyof T | null,
   sortDirection: "asc" | "desc"
 ) {

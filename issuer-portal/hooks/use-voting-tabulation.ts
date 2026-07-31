@@ -1,10 +1,6 @@
-/* eslint-disable import-x/no-named-as-default */
 "use client";
 
 import useSWR from "swr";
-
-import type { ProposalVoting, VotingSummary } from "@/types/phases";
-import type { HolderCategory } from "@/utils/holderCategory";
 
 import buildApiClient from "@/domain-models/apiClient";
 import {
@@ -12,6 +8,8 @@ import {
   normalizeHolderCategory,
 } from "@/utils/holderCategory";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
+import type { HolderCategory } from "@/utils/holderCategory";
+import type { ProposalVoting, VotingSummary } from "@/types/phases";
 
 // Type for normalized position with guaranteed fields
 export interface NormalizedPosition {
@@ -163,16 +161,21 @@ const normalizeProposal = (proposal: unknown): NormalizedProposal | null => {
 
 const toPositionVote = (value: string): PositionVote | null => {
   switch (value) {
-    case positionVoteValues.abstain:
+    case positionVoteValues.abstain: {
       return positionVoteValues.abstain;
-    case positionVoteValues.against:
+    }
+    case positionVoteValues.against: {
       return positionVoteValues.against;
-    case positionVoteValues.for:
+    }
+    case positionVoteValues.for: {
       return positionVoteValues.for;
-    case positionVoteValues.withhold:
+    }
+    case positionVoteValues.withhold: {
       return positionVoteValues.withhold;
-    default:
+    }
+    default: {
       return null;
+    }
   }
 };
 
@@ -235,33 +238,45 @@ const fetchVotingData = async (
       const currentYear = Number(idParts.at(-1));
       const baseId = idParts.slice(0, -1).join("-");
 
-      for (let yearOffset = 1; yearOffset <= 5; yearOffset += 1) {
-        const previousMeetingId = `${baseId}-${currentYear - yearOffset}`;
-        const previousPositionsResult = await apiClient.GET("/positions", {
-          params: { query: { meetingId: previousMeetingId } },
-        });
-        const previousPositionsRaw = Array.isArray(previousPositionsResult.data)
-          ? previousPositionsResult.data
-          : asArray(asRecord(previousPositionsResult.data)?.positions);
-        const previousPositions = previousPositionsRaw
-          .map((position) => normalizePosition(position))
-          .filter(
-            (position): position is NormalizedPosition => position !== null
+      const yearOffsets = [1, 2, 3, 4, 5];
+      const previousYearResults = await Promise.all(
+        yearOffsets.map(async (yearOffset): Promise<number | null> => {
+          const previousMeetingId = `${baseId}-${currentYear - yearOffset}`;
+          const previousPositionsResult = await apiClient.GET("/positions", {
+            params: { query: { meetingId: previousMeetingId } },
+          });
+          const previousPositionsRaw = Array.isArray(
+            previousPositionsResult.data
+          )
+            ? previousPositionsResult.data
+            : asArray(asRecord(previousPositionsResult.data)?.positions);
+          const previousPositions = previousPositionsRaw
+            .map((position) => normalizePosition(position))
+            .filter(
+              (position): position is NormalizedPosition => position !== null
+            );
+          const previousTotalShares = previousPositions.reduce(
+            (sum, position) => sum + position.shares,
+            0
           );
-        const previousTotalShares = previousPositions.reduce(
-          (sum, position) => sum + position.shares,
-          0
-        );
-        const previousVotedShares = previousPositions
-          .filter((position) => position.voteStatus === "Voted")
-          .reduce((sum, position) => sum + position.sharesVoted, 0);
-        const previousPercentage =
-          previousTotalShares > 0
-            ? (previousVotedShares / previousTotalShares) * 100
-            : 0;
+          const previousVotedShares = previousPositions
+            .filter((position) => position.voteStatus === "Voted")
+            .reduce((sum, position) => sum + position.sharesVoted, 0);
+          const previousPercentage =
+            previousTotalShares > 0
+              ? (previousVotedShares / previousTotalShares) * 100
+              : 0;
 
-        if (previousTotalShares > 0) {
-          previousYearsPercentages.push(Number(previousPercentage.toFixed(2)));
+          if (previousTotalShares > 0) {
+            return Number(previousPercentage.toFixed(2));
+          }
+          return null;
+        })
+      );
+
+      for (const previousPercentage of previousYearResults) {
+        if (previousPercentage !== null) {
+          previousYearsPercentages.push(previousPercentage);
         }
       }
 
@@ -537,26 +552,30 @@ export const useVotingTabulation = (
     const requiredMeetingId: string = meetingId;
     const apiClient = await buildApiClient();
 
-    // Upload each proposal
-    for (const proposal of proposals) {
-      const proposalRecord = asRecord(proposal);
-      if (!proposalRecord) {
-        continue;
-      }
+    // Upload each proposal concurrently
+    const proposalRecords = proposals
+      .map((proposal) => asRecord(proposal))
+      .filter(
+        (proposalRecord): proposalRecord is Record<string, unknown> =>
+          proposalRecord !== null
+      );
 
-      await apiClient.POST("/meetings/{meetingId}/proposals", {
-        params: { path: { meetingId: requiredMeetingId } },
-        body: {
-          proposalNumber: Number(proposalRecord.proposalNumber) || 0,
-          proposalTitle: asString(proposalRecord.proposalTitle) || "",
-          proposalType: asString(proposalRecord.proposalType) || "",
-          proposalSubtype:
-            asString(proposalRecord.proposalSubtype) || undefined,
-          directorName: asString(proposalRecord.directorName) || undefined,
-          recommendation: asString(proposalRecord.recommendation) || "",
-        },
-      });
-    }
+    await Promise.all(
+      proposalRecords.map(async (proposalRecord) => {
+        await apiClient.POST("/meetings/{meetingId}/proposals", {
+          params: { path: { meetingId: requiredMeetingId } },
+          body: {
+            proposalNumber: Number(proposalRecord.proposalNumber) || 0,
+            proposalTitle: asString(proposalRecord.proposalTitle) || "",
+            proposalType: asString(proposalRecord.proposalType) || "",
+            proposalSubtype:
+              asString(proposalRecord.proposalSubtype) || undefined,
+            directorName: asString(proposalRecord.directorName) || undefined,
+            recommendation: asString(proposalRecord.recommendation) || "",
+          },
+        });
+      })
+    );
 
     // Refresh the data
     await mutate();

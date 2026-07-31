@@ -24,7 +24,7 @@ type DigitalShareholderMeeting =
   components["schemas"]["DigitalShareholderMeeting"];
 
 interface DSMActualAttendeesProps {
-  meetingId: string;
+  readonly meetingId: string;
 }
 
 export const DSMActualAttendees = ({ meetingId }: DSMActualAttendeesProps) => {

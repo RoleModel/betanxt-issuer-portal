@@ -11,15 +11,14 @@
  * 3. Downloads SVG/PNG logos to public/logos/brands/
  * 4. Writes a utils/brandConfig.ts mapping file
  */
-import { config } from "dotenv";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
+import { config } from "dotenv";
 
 import { brandConfigs } from "../utils/brandConfig";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
 
 // Load .env from issuer-portal directory
 config({ path: path.resolve(__dirname, "../.env") });
@@ -135,7 +134,9 @@ async function searchBrandfetch(companyName: string): Promise<string | null> {
       `https://api.brandfetch.io/v2/search/${encodeURIComponent(companyName)}`,
       { headers: { Authorization: `Bearer ${API_KEY}` } }
     );
-    if (!response.ok) return null;
+    if (!response.ok) {
+      return null;
+    }
     const results = (await response.json()) as {
       domain: string;
       name: string;
@@ -177,23 +178,34 @@ function pickBestLogo(
     themed.length > 0 ? themed : logos.filter((l) => l.type === preferredType);
   const candidates = typed.length > 0 ? typed : logos;
 
-  if (candidates.length === 0) return null;
+  if (candidates.length === 0) {
+    return null;
+  }
 
   const logo = candidates[0];
   // Prefer SVG, then PNG
   const svg = logo.formats.find((f) => f.format === "svg");
-  if (svg) return svg;
+  if (svg) {
+    return svg;
+  }
   const png = logo.formats.find((f) => f.format === "png");
-  if (png) return png;
+  if (png) {
+    return png;
+  }
   return logo.formats[0] ?? null;
 }
 
-async function downloadFile(url: string, destPath: string): Promise<boolean> {
+async function downloadFile(
+  url: string,
+  destinationPath: string
+): Promise<boolean> {
   try {
     const response = await fetch(url);
-    if (!response.ok) return false;
+    if (!response.ok) {
+      return false;
+    }
     const buffer = Buffer.from(await response.arrayBuffer());
-    fs.writeFileSync(destPath, buffer);
+    fs.writeFileSync(destinationPath, buffer);
     return true;
   } catch {
     return false;
@@ -203,8 +215,8 @@ async function downloadFile(url: string, destPath: string): Promise<boolean> {
 function slugify(name: string): string {
   return name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replaceAll(/[^a-z0-9]+/g, "-")
+    .replaceAll(/^-|-$/g, "");
 }
 
 async function main(): Promise<void> {
@@ -242,11 +254,11 @@ async function main(): Promise<void> {
     const fullLogo = pickBestLogo(brand.logos, "logo");
     let logoPath = "";
     if (fullLogo) {
-      const ext = fullLogo.format === "svg" ? "svg" : "png";
-      const filename = `${slug}_logo.${ext}`;
-      const destPath = path.resolve(LOGOS_DIR, filename);
-      const ok = await downloadFile(fullLogo.src, destPath);
-      if (ok) {
+      const extension = fullLogo.format === "svg" ? "svg" : "png";
+      const filename = `${slug}_logo.${extension}`;
+      const destinationPath = path.resolve(LOGOS_DIR, filename);
+      const isOk = await downloadFile(fullLogo.src, destinationPath);
+      if (isOk) {
         logoPath = `/logos/brands/${filename}`;
         console.log(`  Logo: ${filename}`);
       }
@@ -257,11 +269,11 @@ async function main(): Promise<void> {
       pickBestLogo(brand.logos, "icon") ?? pickBestLogo(brand.logos, "symbol");
     let iconPath = "";
     if (iconLogo) {
-      const ext = iconLogo.format === "svg" ? "svg" : "png";
-      const filename = `${slug}_icon.${ext}`;
-      const destPath = path.resolve(LOGOS_DIR, filename);
-      const ok = await downloadFile(iconLogo.src, destPath);
-      if (ok) {
+      const extension = iconLogo.format === "svg" ? "svg" : "png";
+      const filename = `${slug}_icon.${extension}`;
+      const destinationPath = path.resolve(LOGOS_DIR, filename);
+      const isOk = await downloadFile(iconLogo.src, destinationPath);
+      if (isOk) {
         iconPath = `/logos/brands/${filename}`;
         console.log(`  Icon: ${filename}`);
       }
@@ -297,15 +309,15 @@ async function main(): Promise<void> {
 
   // 6. Write brand config TypeScript file
   const entries = Object.entries(configs)
-    .map(([key, val]) => {
+    .map(([key, value]) => {
       const safeKey = key.includes("'") ? `"${key}"` : `'${key}'`;
       return `  ${safeKey}: {
-    companyName: '${val.companyName.replace(/'/g, "\\'")}',
-    domain: '${val.domain}',
-    logoPath: '${val.logoPath}',
-    iconPath: '${val.iconPath}',
-    primaryColor: '${val.primaryColor}',
-    secondaryColor: '${val.secondaryColor}',
+    companyName: '${value.companyName.replaceAll("'", "\\'")}',
+    domain: '${value.domain}',
+    logoPath: '${value.logoPath}',
+    iconPath: '${value.iconPath}',
+    primaryColor: '${value.primaryColor}',
+    secondaryColor: '${value.secondaryColor}',
   }`;
     })
     .join(",\n");

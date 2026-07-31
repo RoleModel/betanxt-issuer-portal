@@ -81,7 +81,9 @@ const LoginPage = () => {
                 fullWidth
                 label="Username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                }}
                 margin="dense"
                 required
                 autoFocus
@@ -92,16 +94,18 @@ const LoginPage = () => {
                 label="Password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
                 margin="dense"
                 required
               />
             </CardContent>
-            {error && (
+            {error ? (
               <CardContent>
                 <Alert severity="error">{error}</Alert>
               </CardContent>
-            )}
+            ) : null}
             <CardActions>
               <Button type="submit" variant="contained" disabled={isPending}>
                 {isPending ? "Signing in..." : "Sign In"}

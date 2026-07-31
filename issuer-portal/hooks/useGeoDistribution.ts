@@ -12,11 +12,9 @@ import { useMemo } from "react";
 import useSWR from "swr";
 
 import buildApiClient from "@/domain-models/apiClient";
-import {
-  type HolderCategory,
-  normalizeHolderCategory,
-} from "@/utils/holderCategory";
+import { normalizeHolderCategory } from "@/utils/holderCategory";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
+import type { HolderCategory } from "@/utils/holderCategory";
 
 /** Bucket label for positions outside the United States. */
 export const INTERNATIONAL_LOCATION = "International";
@@ -122,7 +120,9 @@ const US_STATE_CODES = new Set([
 ]);
 
 const toFiniteNumber = (value: unknown): number => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
@@ -133,7 +133,9 @@ const toFiniteNumber = (value: unknown): number => {
  */
 const normalizeGeoPosition = (value: unknown): GeoPosition | null => {
   const record = asRecord(value);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   const accountType =
     asString(record.account_type) ?? asString(record.accountType) ?? "";
@@ -211,7 +213,7 @@ export const useGeoDistribution = (
 ): UseGeoDistributionResult => {
   const { data, error, isLoading } = useSWR(
     meetingId ? (["/geo-distribution", meetingId] as const) : null,
-    ([, id]) => fetchGeoPositions(id),
+    async ([, id]) => await fetchGeoPositions(id),
     {
       revalidateOnFocus: false,
       keepPreviousData: true,
@@ -226,8 +228,10 @@ export const useGeoDistribution = (
     const included = new Set(includedKey.split(",").filter(Boolean));
     const buckets = new Map<string, GeoDistributionRow>();
 
-    positions.forEach((position) => {
-      if (!included.has(position.holderCategory)) return;
+    for (const position of positions) {
+      if (!included.has(position.holderCategory)) {
+        continue;
+      }
 
       const { location, kind } = resolveLocation(position);
       const bucket = buckets.get(location) ?? {
@@ -250,14 +254,14 @@ export const useGeoDistribution = (
       bucket.byCategory[position.holderCategory] = categoryTotals;
 
       buckets.set(location, bucket);
-    });
+    }
 
-    return Array.from(buckets.values());
+    return [...buckets.values()];
   }, [data, includedKey]);
 
   return {
     rows,
     loading: isLoading,
-    error: error instanceof Error ? error.message : null,
+    error: Error.isError(error) ? error.message : null,
   };
 };

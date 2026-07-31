@@ -25,7 +25,7 @@ test.describe("C1 — Voting Activity registered-only labeling", () => {
     await expect(
       page.getByText("Voting Activity — Registered Holders")
     ).toBeVisible({
-      timeout: 20000,
+      timeout: 20_000,
     });
   });
 });
@@ -37,7 +37,7 @@ test.describe("C2 — Shares Voted proposal selector", () => {
     await page.goto(WEN_TABULATION_URL);
 
     const proposalSelect = page.getByLabel("Proposal", { exact: true }).first();
-    await expect(proposalSelect).toBeVisible({ timeout: 20000 });
+    await expect(proposalSelect).toBeVisible({ timeout: 20_000 });
 
     // Default view is the lowest-numbered proposal.
     await expect(page.getByText(/^Proposal 1:/).first()).toBeVisible();
@@ -67,7 +67,7 @@ test.describe("C3 — Total Votes removal", () => {
     await expect(
       page.getByText("Voting Activity — Registered Holders")
     ).toBeVisible({
-      timeout: 20000,
+      timeout: 20_000,
     });
 
     await expect(
@@ -83,7 +83,7 @@ test.describe("C4 — Reports dropdown + Broker Breakout", () => {
     await page.goto(WEN_REPORTS_URL);
 
     await expect(page.getByText("Download Meeting Reports")).toBeVisible({
-      timeout: 20000,
+      timeout: 20_000,
     });
 
     const reportSelect = page.getByLabel("Report", { exact: true }).first();
@@ -110,7 +110,7 @@ test.describe("C6/C7 — Reporting tab analytics + quorum timeline", () => {
     await page.goto(WEN_REPORTING_URL);
 
     await expect(page.getByText("Quorum Timeline")).toBeVisible({
-      timeout: 20000,
+      timeout: 20_000,
     });
 
     await expect(page.getByText(/Early Votes %/)).toHaveCount(0);
@@ -121,7 +121,7 @@ test.describe("C6/C7 — Reporting tab analytics + quorum timeline", () => {
     await page.goto(WEN_REPORTING_URL);
 
     await expect(page.getByText("Analytics", { exact: true })).toBeVisible({
-      timeout: 20000,
+      timeout: 20_000,
     });
     await expect(page.getByText("Participation by Year")).toBeVisible();
   });
@@ -134,7 +134,7 @@ test.describe("C8 — Geographic heat map", () => {
     await page.goto(WEN_REPORTING_URL);
 
     await expect(page.getByText("Geographic Distribution")).toBeVisible({
-      timeout: 20000,
+      timeout: 20_000,
     });
 
     // Metric toggle.
@@ -165,11 +165,11 @@ test.describe("C9 — NOBO tab feature gating", () => {
     await page.goto(WEN_TABULATION_URL);
 
     const noboTab = page.getByRole("tab", { name: "NOBO" });
-    await expect(noboTab).toBeVisible({ timeout: 20000 });
+    await expect(noboTab).toBeVisible({ timeout: 20_000 });
 
     await page.goto(WEN_NOBO_URL);
     await expect(page.getByText("NOBO Positions")).toBeVisible({
-      timeout: 20000,
+      timeout: 20_000,
     });
   });
 
@@ -179,7 +179,7 @@ test.describe("C9 — NOBO tab feature gating", () => {
     await page.goto(PAYC_TABULATION_URL);
 
     await expect(page.getByRole("tab", { name: "Tabulation" })).toBeVisible({
-      timeout: 20000,
+      timeout: 20_000,
     });
     await expect(page.getByRole("tab", { name: "NOBO" })).toHaveCount(0);
   });

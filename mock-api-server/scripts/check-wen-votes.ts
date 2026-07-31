@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 import { config } from "dotenv";
 import pg from "pg";
 
@@ -15,11 +14,11 @@ async function run() {
   });
   await client.connect();
 
-  const props = await client.query(
+  const properties = await client.query(
     "SELECT proposal_number, proposal_type FROM proposal WHERE meeting_id = 'wen-annual-meeting-2026' ORDER BY proposal_number"
   );
   console.log("Proposals:");
-  for (const row of props.rows) {
+  for (const row of properties.rows) {
     console.log(
       `  ${String(row.proposal_number).padEnd(6)} | ${row.proposal_type}`
     );

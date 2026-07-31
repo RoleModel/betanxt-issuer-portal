@@ -13,7 +13,10 @@ import {
 import { Gauge } from "@mui/x-charts/Gauge";
 
 import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
-import { formatQuorumRequirementPercentLabel, type QuorumGaugeViewModel } from "../../utils/quorum";
+import {
+  formatQuorumRequirementPercentLabel,
+  type QuorumGaugeViewModel,
+} from "../../utils/quorum";
 import {
   tabulationCardContentStartStyles,
   tabulationCardHeaderStyles,
@@ -28,7 +31,12 @@ interface QuorumGaugeCardProps {
   readonly className?: string;
 }
 
-const QuorumGaugeCard = ({ title, model, loading = false, className }: QuorumGaugeCardProps) => {
+const QuorumGaugeCard = ({
+  title,
+  model,
+  loading = false,
+  className,
+}: QuorumGaugeCardProps) => {
   const { displayMode } = useTabulationDisplay();
   const quorumMet = model?.quorumMet === true;
   const statusLabel = quorumMet ? "Quorum Met" : "Below Quorum";
@@ -39,12 +47,12 @@ const QuorumGaugeCard = ({ title, model, loading = false, className }: QuorumGau
   const representedMetric = formatTabulationMetric(
     representedShares,
     totalOutstandingShares,
-    displayMode,
+    displayMode
   );
   const requiredMetric = formatTabulationMetric(
     model?.requiredShares ?? 0,
     totalOutstandingShares,
-    displayMode,
+    displayMode
   );
 
   return (
@@ -91,7 +99,11 @@ const QuorumGaugeCard = ({ title, model, loading = false, className }: QuorumGau
                       ? representedShares
                       : Math.min(model.percentRepresented, 100)
                   }
-                  valueMax={displayMode === "numbers" ? Math.max(totalOutstandingShares, 1) : 100}
+                  valueMax={
+                    displayMode === "numbers"
+                      ? Math.max(totalOutstandingShares, 1)
+                      : 100
+                  }
                   startAngle={-110}
                   endAngle={110}
                   text={() => representedMetric.display}

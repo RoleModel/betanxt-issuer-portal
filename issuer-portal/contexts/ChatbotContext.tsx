@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { createContext, useCallback, useContext } from "react";
+import React, { createContext, useCallback, useContext, useMemo } from "react";
 
 import type { ChatbotAction } from "@/lib/chatbotActionsStore";
 
@@ -22,7 +22,7 @@ const CHATBOT_OPEN_STORAGE_KEY = "issuer-chatbot-open";
 export const ChatbotProvider = ({
   children,
 }: {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }) => {
   const router = useRouter();
   const isEnabled = true;
@@ -51,27 +51,29 @@ export const ChatbotProvider = ({
   }, []);
 
   const executeAction = useCallback(
-    (action: ChatbotAction) => {
+    async (action: ChatbotAction) => {
       if (action.type === "NAVIGATE" && action.payload?.path) {
         router.push(action.payload.path);
-        return Promise.resolve();
+        await Promise.resolve();
+        return;
       }
 
       if (action.type === "OPEN_SUPPORT_CONTACTS") {
         window.dispatchEvent(new CustomEvent("chatbot:open-support-contacts"));
       }
 
-      return Promise.resolve();
+      await Promise.resolve();
     },
     [router]
   );
 
+  const value = useMemo<ChatbotContextValue>(
+    () => ({ executeAction, isEnabled, isOpen, openChatbot, closeChatbot }),
+    [executeAction, isEnabled, isOpen, openChatbot, closeChatbot]
+  );
+
   return (
-    <ChatbotContext.Provider
-      value={{ executeAction, isEnabled, isOpen, openChatbot, closeChatbot }}
-    >
-      {children}
-    </ChatbotContext.Provider>
+    <ChatbotContext.Provider value={value}>{children}</ChatbotContext.Provider>
   );
 };
 

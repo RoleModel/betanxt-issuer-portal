@@ -99,15 +99,15 @@ const Puller = styled("div")(({ theme }) => ({
 // Remove duplicate SignatureArea - use from DocumentViewer if needed
 
 interface PhaseDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  phase: number;
-  onPhaseChange?: (newPhase: number) => void;
-  onTaskClick?: (taskId: string) => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly phase: number;
+  readonly onPhaseChange?: (newPhase: number) => void;
+  readonly onTaskClick?: (taskId: string) => void;
 }
 
 const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
-  const { open, onClose, phase = 1, onPhaseChange } = props;
+  const { open, onClose, phase, onPhaseChange } = props;
 
   // Get active meeting and tasks from context (or defaults if no provider)
   let meetingContextValue = null;
@@ -1069,8 +1069,12 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         navigation={{
           current: currentPhaseNumber,
           total: 8,
-          onPrevious: () => handlePhaseNavigation("prev"),
-          onNext: () => handlePhaseNavigation("next"),
+          onPrevious: () => {
+            handlePhaseNavigation("prev");
+          },
+          onNext: () => {
+            handlePhaseNavigation("next");
+          },
         }}
       />
 
@@ -1089,7 +1093,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
         Phase {currentPhaseNumber}: {phaseTitle}
       </Box>
       {/* Linear Progress Loader */}
-      {(phaseLoading || tasksLoading) && (
+      {phaseLoading || tasksLoading ? (
         <LinearProgress
           aria-label="Loading phase data"
           color={`phase[${currentPhaseNumber}].main` as "primary"}
@@ -1097,7 +1101,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
             height: 4,
           }}
         />
-      )}
+      ) : null}
 
       {/* Content */}
       <Box
@@ -1277,16 +1281,20 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     task={modifiedTask}
                     phaseColor={phaseColor}
                     isCompleted={isCompleted}
-                    onContextMenu={(e) => handleTaskRightClick(e, task)}
+                    onContextMenu={(e) => {
+                      handleTaskRightClick(e, task);
+                    }}
                     onClick={
                       task.type === "approve"
-                        ? () => handleTaskApprovalClick(task)
+                        ? () => {
+                            handleTaskApprovalClick(task);
+                          }
                         : undefined
                     }
                     onStatusUpdate={handleTaskUpdated}
-                    onLinkClick={(link, taskTitle) =>
-                      handleTaskLinkClick(link, taskTitle, task)
-                    }
+                    onLinkClick={async (link, taskTitle) => {
+                      await handleTaskLinkClick(link, taskTitle, task);
+                    }}
                   />
                 );
               })}
@@ -1308,7 +1316,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                     >
                       {urlItem.description}
                     </Typography>
-                    {urlItem.url && (
+                    {urlItem.url ? (
                       <Link
                         href={urlItem.url}
                         target="_blank"
@@ -1316,7 +1324,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
                       >
                         {urlItem.url}
                       </Link>
-                    )}
+                    ) : null}
                   </Box>
                 ))}
               </>
@@ -1489,7 +1497,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
       />
 
       {/* Task Edit Modal - Only render when needed for performance */}
-      {(TaskEditDialogOpen || selectedTask) && (
+      {TaskEditDialogOpen || selectedTask ? (
         <TaskEditDialog
           open={TaskEditDialogOpen}
           onClose={handleTaskEditDialogClose}
@@ -1498,20 +1506,24 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
           onRefresh={refreshMeetingData}
           enableLinkEditing={true}
         />
-      )}
+      ) : null}
 
       {/* Mobile Upload Drawer */}
-      {isMobile && renderMobileUploadDrawer()}
+      {isMobile ? renderMobileUploadDrawer() : null}
 
       {/* Phase Completion Success Alert */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
+        onClose={() => {
+          setSnackbarOpen(false);
+        }}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert
-          onClose={() => setSnackbarOpen(false)}
+          onClose={() => {
+            setSnackbarOpen(false);
+          }}
           severity="success"
           sx={{
             width: "100%",

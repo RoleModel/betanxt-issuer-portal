@@ -9,7 +9,7 @@ import KeyDatesCard from "@/components/Meeting/KeyDatesCard";
 import MeetingDocuments from "@/components/Meeting/MeetingDocuments";
 
 interface Phase3LayoutProps {
-  meeting?: Meeting;
+  readonly meeting?: Meeting;
 }
 
 const Phase3Layout = ({ meeting }: Phase3LayoutProps) => {

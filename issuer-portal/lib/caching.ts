@@ -21,19 +21,27 @@ export const CACHE_TAGS = {
  *   { revalidate: 60 }
  * )
  */
-export function cacheFn<TArgs extends unknown[], TReturn>(
-  fn: (...args: TArgs) => Promise<TReturn>,
-  tagBuilder: (...args: TArgs) => string[],
+export function cacheFn<TArguments extends unknown[], TReturn>(
+  function_: (...arguments_: TArguments) => Promise<TReturn>,
+  tagBuilder: (...arguments_: TArguments) => string[],
   options: { revalidate?: number } = {}
-): (...args: TArgs) => Promise<TReturn> {
-  return async (...args: TArgs): Promise<TReturn> => {
-    const builtTags = tagBuilder(...args);
-    const key = JSON.stringify(["cacheFn", fn.name ?? "anon", args]);
-    const cached = nextUnstableCache(async () => fn(...args), [key], {
-      tags: builtTags,
-      revalidate: options.revalidate ?? 60,
-    });
-    return cached();
+): (...arguments_: TArguments) => Promise<TReturn> {
+  return async (...arguments_: TArguments): Promise<TReturn> => {
+    const builtTags = tagBuilder(...arguments_);
+    const key = JSON.stringify([
+      "cacheFn",
+      function_.name ?? "anon",
+      arguments_,
+    ]);
+    const cached = nextUnstableCache(
+      async () => await function_(...arguments_),
+      [key],
+      {
+        tags: builtTags,
+        revalidate: options.revalidate ?? 60,
+      }
+    );
+    return await cached();
   };
 }
 
@@ -41,5 +49,7 @@ export function cacheFn<TArgs extends unknown[], TReturn>(
  * Invalidate a set of cache tags.
  */
 export function invalidateTags(tags: string[]) {
-  for (const tag of tags) revalidateTag(tag, "default");
+  for (const tag of tags) {
+    revalidateTag(tag, "default");
+  }
 }

@@ -22,9 +22,8 @@ async function createDSMDocuments() {
     console.log(`\n📁 Processing ${meetingId}...`);
 
     // List all directories for this meeting
-    const { data: typeDirs, error: typeDirError } = await supabase.storage
-      .from("documents")
-      .list(meetingId, { limit: 1000 });
+    const { data: typeDirectories, error: typeDirError } =
+      await supabase.storage.from("documents").list(meetingId, { limit: 1000 });
 
     if (typeDirError) {
       console.error(
@@ -36,7 +35,7 @@ async function createDSMDocuments() {
 
     // Filter to only directories (no file extension)
     const directories =
-      typeDirs?.filter((item) => !item.name.includes(".")) || [];
+      typeDirectories?.filter((item) => !item.name.includes(".")) || [];
 
     for (const dir of directories) {
       const dirPath = `${meetingId}/${dir.name}`;
@@ -64,35 +63,35 @@ async function createDSMDocuments() {
           .getPublicUrl(fullPath);
 
         // Determine document type and category based on directory name
-        const docType = getDocumentType(dir.name, file.name);
+        const documentType = getDocumentType(dir.name, file.name);
         const displayCategory = getDisplayCategory(dir.name, file.name);
 
         // Extract clean title from filename
         const title = file.name
           .replace(/^\d+_/, "") // Remove timestamp prefix
           .replace(/\.(pdf|docx?|xlsx?|pptx?|mp4|m4a)$/i, "") // Remove extension
-          .replace(/_/g, " ") // Replace underscores with spaces
+          .replaceAll("_", " ") // Replace underscores with spaces
           .trim();
 
         // Check if document already exists
-        const { data: existingDoc } = await supabase
+        const { data: existingDocument } = await supabase
           .from("document")
           .select("id")
           .eq("meeting_id", meetingId)
           .eq("file_path", urlData.publicUrl)
           .single();
 
-        if (existingDoc) {
+        if (existingDocument) {
           console.log(`✓ Already exists: ${title}`);
           continue;
         }
 
         // Create new document record with generated ID
-        const newDoc = {
+        const newDocument = {
           id: uuidv4(),
           meeting_id: meetingId,
-          title: title,
-          type: docType,
+          title,
+          type: documentType,
           file_path: urlData.publicUrl,
           file_type: file.name.split(".").pop()?.toLowerCase() || "pdf",
           file_size: file.metadata?.size ?? 0,
@@ -104,7 +103,7 @@ async function createDSMDocuments() {
 
         const { error: insertError } = await supabase
           .from("document")
-          .insert(newDoc);
+          .insert(newDocument);
 
         if (insertError) {
           console.error(`❌ Failed to create ${title}: ${insertError.message}`);
@@ -127,14 +126,15 @@ async function createDSMDocuments() {
 
   // Group by meeting for summary
   const byMeeting: Record<string, number> = {};
-  dsmCount?.forEach((doc) => {
-    byMeeting[doc.meeting_id] = (byMeeting[doc.meeting_id] ?? 0) + 1;
+  dsmCount?.forEach((document_) => {
+    byMeeting[document_.meeting_id] =
+      (byMeeting[document_.meeting_id] ?? 0) + 1;
   });
 
   console.log("\n📊 Documents by meeting:");
-  Object.entries(byMeeting).forEach(([meeting, count]) => {
+  for (const [meeting, count] of Object.entries(byMeeting)) {
     console.log(`   ${meeting}: ${count} documents`);
-  });
+  }
 }
 
 function getDocumentType(dirName: string, fileName: string): string {
@@ -165,19 +165,39 @@ function getDocumentType(dirName: string, fileName: string): string {
 
   // Infer from filename if directory doesn't match
   const lowerFile = fileName.toLowerCase();
-  if (lowerFile.includes("presentation")) return "Shareholder Presentation";
-  if (lowerFile.includes("slide")) return "Intro Slide";
-  if (lowerFile.includes("agenda")) return "Meeting Agenda";
-  if (lowerFile.includes("script")) return "Meeting Script";
-  if (lowerFile.includes("procedure")) return "Meeting Procedures";
-  if (lowerFile.includes("minutes")) return "Meeting Minutes";
-  if (lowerFile.includes("recording") || lowerFile.includes("archive"))
+  if (lowerFile.includes("presentation")) {
+    return "Shareholder Presentation";
+  }
+  if (lowerFile.includes("slide")) {
+    return "Intro Slide";
+  }
+  if (lowerFile.includes("agenda")) {
+    return "Meeting Agenda";
+  }
+  if (lowerFile.includes("script")) {
+    return "Meeting Script";
+  }
+  if (lowerFile.includes("procedure")) {
+    return "Meeting Procedures";
+  }
+  if (lowerFile.includes("minutes")) {
+    return "Meeting Minutes";
+  }
+  if (lowerFile.includes("recording") || lowerFile.includes("archive")) {
     return "Meeting Recording";
-  if (lowerFile.includes("attendance")) return "Attendance Report";
-  if (lowerFile.includes("q&a") || lowerFile.includes("qa"))
+  }
+  if (lowerFile.includes("attendance")) {
+    return "Attendance Report";
+  }
+  if (lowerFile.includes("q&a") || lowerFile.includes("qa")) {
     return "Q&A Document";
-  if (lowerFile.includes("oath")) return "Inspector Oath";
-  if (lowerFile.includes("guest")) return "Guest List";
+  }
+  if (lowerFile.includes("oath")) {
+    return "Inspector Oath";
+  }
+  if (lowerFile.includes("guest")) {
+    return "Guest List";
+  }
 
   // Default to title case of directory name
   return dirName

@@ -1,7 +1,6 @@
-import type { ReadonlyHeaders } from "flags";
-
 import { vercelAdapter } from "@flags-sdk/vercel";
 import { dedupe, flag } from "flags/next";
+import type { ReadonlyHeaders } from "flags";
 
 /**
  * Entities used for flag targeting rules in the Vercel Flags dashboard.
@@ -21,7 +20,9 @@ interface FlagEntities {
 const identify = dedupe(
   ({ headers }: { headers: ReadonlyHeaders }): FlagEntities => {
     const ticker = headers.get("x-client-ticker");
-    if (!ticker) return {};
+    if (!ticker) {
+      return {};
+    }
     const normalized = ticker.toUpperCase();
     return { team: { id: normalized, ticker: normalized } };
   }

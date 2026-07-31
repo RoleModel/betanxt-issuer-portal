@@ -11,7 +11,9 @@ export interface VotingOptions {
 const MAJORITY_VOTING_TICKERS = new Set(["WEN", "PAYC", "ELVN", "WWD"]);
 
 export const usesMajorityVotingOptions = (ticker?: string): boolean => {
-  if (!ticker) return false;
+  if (!ticker) {
+    return false;
+  }
 
   return MAJORITY_VOTING_TICKERS.has(ticker.toUpperCase());
 };
@@ -24,8 +26,12 @@ export const isDirectorElection = (
   _proposalNumber?: string | number,
   directorName?: string
 ): boolean => {
-  if (directorName) return true;
-  if (!proposalType) return false;
+  if (directorName) {
+    return true;
+  }
+  if (!proposalType) {
+    return false;
+  }
 
   const lowerType = proposalType.toLowerCase();
 

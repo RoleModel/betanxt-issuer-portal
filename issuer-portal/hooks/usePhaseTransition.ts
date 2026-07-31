@@ -47,9 +47,10 @@ export function usePhaseTransition(meetingId: string) {
             ? null
             : `${incompleteTasks.length} task(s) must be completed`,
         };
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Validation failed";
+      } catch (error_) {
+        const errorMessage = Error.isError(error_)
+          ? error_.message
+          : "Validation failed";
         setError(errorMessage);
         return {
           canTransition: false,
@@ -105,9 +106,10 @@ export function usePhaseTransition(meetingId: string) {
         }
 
         return true;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Phase transition failed";
+      } catch (error_) {
+        const errorMessage = Error.isError(error_)
+          ? error_.message
+          : "Phase transition failed";
         setError(errorMessage);
         return false;
       } finally {

@@ -2,38 +2,38 @@
 
 import { Box, Typography } from "@mui/material";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 import { useMeeting } from "@/contexts/MeetingContext";
 
+const parsePhaseNumber = (
+  phase: string | number | null | undefined
+): number => {
+  if (typeof phase === "number" && Number.isFinite(phase)) {
+    return Math.max(1, phase);
+  }
+
+  if (typeof phase === "string") {
+    const match = /(\d+)/.exec(phase);
+    if (match?.[1]) {
+      const value = Number.parseInt(match[1], 10);
+      if (Number.isFinite(value) && value > 0) {
+        return value;
+      }
+    }
+  }
+
+  return 1;
+};
+
 // This handles the Meeting Dashboard route and redirects to the active phase
-const MeetingDashboardPage = () => {
+const MeetingDashboardRedirect = () => {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const meetingId = params.meetingId as string;
   const clientTicker = params.clientTicker as string;
   const { error, currentMeeting: meeting, isLoading } = useMeeting();
-
-  const parsePhaseNumber = (
-    phase: string | number | null | undefined
-  ): number => {
-    if (typeof phase === "number" && Number.isFinite(phase)) {
-      return Math.max(1, phase);
-    }
-
-    if (typeof phase === "string") {
-      const match = /(\d+)/.exec(phase);
-      if (match?.[1]) {
-        const value = Number.parseInt(match[1], 10);
-        if (Number.isFinite(value) && value > 0) {
-          return value;
-        }
-      }
-    }
-
-    return 1;
-  };
 
   useEffect(() => {
     // Wait for meeting to load before attempting redirect
@@ -66,6 +66,14 @@ const MeetingDashboardPage = () => {
       </Box>
     );
   }
+
+  return null;
 };
+
+const MeetingDashboardPage = () => (
+  <Suspense fallback={null}>
+    <MeetingDashboardRedirect />
+  </Suspense>
+);
 
 export default MeetingDashboardPage;

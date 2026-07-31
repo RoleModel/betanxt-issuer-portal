@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import Loading from "@/components/Loading";
 
 const ProductsContent = dynamic(
-  () => import("@/components/Products/ProductsContent"),
+  async () => await import("@/components/Products/ProductsContent"),
   {
     loading: () => <Loading />,
     ssr: false,

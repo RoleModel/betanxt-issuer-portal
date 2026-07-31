@@ -41,14 +41,14 @@ const NextImageComponent = React.memo(
 NextImageComponent.displayName = "NextImageComponent";
 
 interface BNAppBarWrapperProps {
-  title?: string;
-  logoImg?: React.ReactNode;
-  logoSrc?: string;
-  logoImgStyles?: React.CSSProperties;
-  color?: "primary" | "secondary";
-  tabPermissions?: Record<string, boolean>;
-  user?: User;
-  appSwitcher?: boolean;
+  readonly title?: string;
+  readonly logoImg?: React.ReactNode;
+  readonly logoSrc?: string;
+  readonly logoImgStyles?: React.CSSProperties;
+  readonly color?: "primary" | "secondary";
+  readonly tabPermissions?: Record<string, boolean>;
+  readonly user?: User;
+  readonly appSwitcher?: boolean;
 }
 
 export const BNAppBarClient = (props: BNAppBarWrapperProps) => {
@@ -155,14 +155,14 @@ const BNAppBarClientMemo = React.memo((props: BNAppBarWrapperProps) => {
   return (
     <Box onClick={handleWrapperClick}>
       <BNAppBar {...appBarProps}>
-        {props.appSwitcher && (
+        {props.appSwitcher ? (
           <Box
             aria-label="Client and Application Switcher"
             role="complementary"
           >
             <ClientAppSwitcher />
           </Box>
-        )}
+        ) : null}
       </BNAppBar>
       {!!currentMeetingId && (
         <Box

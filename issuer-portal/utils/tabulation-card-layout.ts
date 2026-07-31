@@ -1,5 +1,6 @@
+import { createElement } from "react";
 import type { PieArcLabelProps } from "@mui/x-charts/PieChart";
-import { createElement, type ReactElement } from "react";
+import type { ReactElement } from "react";
 
 export const tabulationCardMinHeight = 300;
 export const tabulationCardHeaderMinHeight = 10;
@@ -22,10 +23,10 @@ export const tabulationDonutChartMargin = {
 export const tabulationVoteDistributionColors: Readonly<
   Record<string, string>
 > = {
-  "dtc-voted": "var(--mui-palette-primary-main)",
   "dtc-unvoted": "var(--mui-palette-primary-light)",
-  "non-dtc-voted": "var(--mui-palette-secondary-main)",
+  "dtc-voted": "var(--mui-palette-primary-main)",
   "non-dtc-unvoted": "var(--mui-palette-secondary-light)",
+  "non-dtc-voted": "var(--mui-palette-secondary-main)",
 };
 
 export const tabulationCardStyles = {
@@ -34,6 +35,7 @@ export const tabulationCardStyles = {
   flexDirection: "column",
   height: "100%",
   minHeight: tabulationCardMinHeight,
+  width: "100%",
 } as const;
 
 export const tabulationCardHeaderStyles = {
@@ -80,7 +82,7 @@ export const TabulationPieArcLabel = ({
   const labelY = -Math.cos(middleAngle) * labelRadius;
   const isOnRightSide = labelX >= 0;
   const verticalOffset =
-    isSmallArc && labelY < 0 ? Math.max(-30, Math.min(30, labelX * -1)) : 0;
+    isSmallArc && labelY < 0 ? Math.max(-30, Math.min(30, -labelX)) : 0;
 
   return createElement(
     "text",

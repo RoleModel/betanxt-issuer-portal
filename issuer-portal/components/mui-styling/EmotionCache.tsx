@@ -11,12 +11,12 @@ import { useServerInsertedHTML } from "next/navigation";
 import * as React from "react";
 
 export interface NextAppDirEmotionCacheProviderProps {
-  options: Omit<OptionsOfCreateCache, "insertionPoint">;
-  CacheProvider?: (props: {
+  readonly options: Omit<OptionsOfCreateCache, "insertionPoint">;
+  readonly CacheProvider?: (props: {
     value: EmotionCache;
     children: React.ReactNode;
   }) => React.JSX.Element | null;
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
 
 export const NextAppDirEmotionCacheProvider = (

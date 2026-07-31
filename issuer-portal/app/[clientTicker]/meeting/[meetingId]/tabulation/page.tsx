@@ -1,10 +1,7 @@
 "use client";
 
-import NumbersIcon from "@mui/icons-material/Numbers";
-import PercentIcon from "@mui/icons-material/Percent";
-import { Container, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { styled } from "@mui/material/styles";
 
 import QuorumGaugeCard from "@/components/Meeting/QuorumGaugeCard";
 import BeneficialVsRegisteredCard from "@/components/Tabulation/BeneficialVsRegisteredCard";
@@ -14,10 +11,6 @@ import { TabulationDistributionDrawer } from "@/components/Tabulation/Tabulation
 import TabulationReportCard from "@/components/Tabulation/TabulationReportCard";
 import VotingActivityCard from "@/components/Tabulation/VotingActivityCard";
 import { useMeeting } from "@/contexts/MeetingContext";
-import {
-  TabulationDisplayProvider,
-  useTabulationDisplay,
-} from "@/contexts/TabulationDisplayContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useTabulationInsights } from "@/hooks/useTabulationInsights";
 
@@ -29,22 +22,8 @@ import { useTabulationInsights } from "@/hooks/useTabulationInsights";
  * aggregate voting summary).
  */
 
-const CustomToggleButton = styled(ToggleButton)(({ theme }) => ({
-  color: theme.vars.palette.text.primary,
-  border: `1px solid ${theme.vars.palette.text.primary}`,
-  blockSize: 32,
-  "&.Mui-selected": {
-    color: "#fff",
-    backgroundColor: theme.vars.palette.action.selected,
-    "&:hover": {
-      backgroundColor: theme.vars.palette.action.active,
-    },
-  },
-}));
-
 const TabulationPageContent = () => {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
-  const { displayMode, setDisplayMode } = useTabulationDisplay();
   const meetingId = currentMeeting?.id ?? "";
   const { flags } = useFeatureFlags();
   const showConfiguration = flags.configureDistribution;
@@ -65,71 +44,61 @@ const TabulationPageContent = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
-      <Grid container spacing={2}>
-        <Grid size={12}>
-          {showConfiguration ? (
+      <Grid container alignItems="stretch" columns={12} spacing={2}>
+        {showConfiguration ? (
+          <Grid size={12}>
             <TabulationDistributionDrawer
               meetingId={meetingId}
               clientTicker={clientTicker}
-              initialDistribution={currentMeeting?.tabulationDistribution ?? undefined}
+              initialDistribution={
+                currentMeeting?.tabulationDistribution ?? undefined
+              }
               meetingDate={currentMeeting?.meetingDate}
             />
-          ) : null}
-        </Grid>
-        <Grid size={12}>
-          <Grid container alignItems="stretch" columns={{ sm: 1, md: 12 }} spacing={2}>
-            <Grid
-              size={{ sm: 12, md: 6, lg: 3 }}
-              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-            >
-              <QuorumGaugeCard model={quorumGauge} loading={tabulationLoading} />
-              <TabulationReportCard variant="primary" />
-              <ToggleButtonGroup
-                exclusive
-                fullWidth
-                aria-label="Tabulation display format"
-                size="small"
-                color="warning"
-                value={displayMode}
-                onChange={(event, nextDisplayMode: string | null) => {
-                  event.persist();
-                  if (nextDisplayMode === "numbers" || nextDisplayMode === "percentages") {
-                    setDisplayMode(nextDisplayMode);
-                  }
-                }}
-              >
-                <CustomToggleButton value="numbers">
-                  <NumbersIcon />
-                </CustomToggleButton>
-                <CustomToggleButton value="percentages">
-                  <PercentIcon />
-                </CustomToggleButton>
-              </ToggleButtonGroup>
-            </Grid>
-            <Grid size={{ sm: 12, md: 6, lg: 3 }} sx={{ display: "flex" }}>
-              <VotingActivityCard
-                meetingId={meetingId}
-                registeredVotingMethodsOverride={registeredVotingMethods}
-                loadingOverride={tabulationLoading}
-              />
-            </Grid>
-            <Grid size={{ sm: 12, md: 6, lg: 3 }} sx={{ display: "flex" }}>
-              <SharesVotedCard
-                meetingId={meetingId}
-                proposalsOverride={proposals}
-                loading={tabulationLoading}
-              />
-            </Grid>
-            <Grid size={{ sm: 12, md: 6, lg: 3 }} sx={{ display: "flex" }}>
-              <BeneficialVsRegisteredCard
-                meetingId={meetingId}
-                chartOverride={beneficialVsRegistered}
-                loadingOverride={tabulationLoading}
-              />
-            </Grid>
           </Grid>
+        ) : null}
+        <Grid
+          size={{ sm: 12, md: 6, lg: 3 }}
+          sx={{
+            display: "flex",
+            width: "100%",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          <QuorumGaugeCard model={quorumGauge} loading={tabulationLoading} />
+          <TabulationReportCard variant="primary" />
         </Grid>
-
+        <Grid
+          size={{ sm: 12, md: 6, lg: 3 }}
+          sx={{ display: "flex", width: "100%" }}
+        >
+          <VotingActivityCard
+            meetingId={meetingId}
+            registeredVotingMethodsOverride={registeredVotingMethods}
+            loadingOverride={tabulationLoading}
+          />
+        </Grid>
+        <Grid
+          size={{ sm: 12, md: 6, lg: 3 }}
+          sx={{ display: "flex", width: "100%" }}
+        >
+          <SharesVotedCard
+            meetingId={meetingId}
+            proposalsOverride={proposals}
+            loading={tabulationLoading}
+          />
+        </Grid>
+        <Grid
+          size={{ sm: 12, md: 6, lg: 3 }}
+          sx={{ display: "flex", width: "100%" }}
+        >
+          <BeneficialVsRegisteredCard
+            meetingId={meetingId}
+            chartOverride={beneficialVsRegistered}
+            loadingOverride={tabulationLoading}
+          />
+        </Grid>
         <Grid size={12}>
           <ProposalDetailsCard
             clientTicker={clientTicker}
@@ -144,10 +113,4 @@ const TabulationPageContent = () => {
   );
 };
 
-const TabulationPage = () => (
-  <TabulationDisplayProvider>
-    <TabulationPageContent />
-  </TabulationDisplayProvider>
-);
-
-export default TabulationPage;
+export default TabulationPageContent;

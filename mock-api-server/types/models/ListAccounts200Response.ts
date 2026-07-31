@@ -1,6 +1,3 @@
-import type { Account } from "./Account";
-import type { Pagination } from "./Pagination";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -26,6 +23,8 @@ import {
   PaginationToJSON,
   PaginationToJSONTyped,
 } from "./Pagination";
+import type { Pagination } from "./Pagination";
+import type { Account } from "./Account";
 
 /**
  *

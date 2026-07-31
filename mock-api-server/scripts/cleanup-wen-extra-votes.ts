@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 /**
  * Removes spurious position_vote records for WEN 2026 proposals
  * that belong to unvoted positions. Keeps only the 6 intentionally voted positions.
@@ -68,9 +67,9 @@ async function run() {
 
     await client.query("COMMIT");
     console.log("\n🎉 Cleanup complete.");
-  } catch (err) {
+  } catch (error) {
     await client.query("ROLLBACK");
-    console.error("❌ Error:", err);
+    console.error("❌ Error:", error);
     process.exit(1);
   } finally {
     await client.end();

@@ -38,11 +38,11 @@ function pct(votes: number, total: number): number {
 }
 
 interface ProgressBarProps {
-  percent: number;
-  color: string;
+  readonly percent: number;
+  readonly color: string;
 }
 
-function ProgressBar({ percent, color }: ProgressBarProps) {
+const ProgressBar = ({ percent, color }: ProgressBarProps) => {
   const clamped = Math.min(100, Math.max(0, percent));
   return (
     <div
@@ -65,14 +65,14 @@ function ProgressBar({ percent, color }: ProgressBarProps) {
       />
     </div>
   );
-}
+};
 
 interface ProposalRowProps {
-  proposal: TabulationReportProposal;
-  index: number;
+  readonly proposal: TabulationReportProposal;
+  readonly index: number;
 }
 
-function ProposalRow({ proposal, index }: ProposalRowProps) {
+const ProposalRow = ({ proposal, index }: ProposalRowProps) => {
   const total = proposal.totalShares;
   const forPct = pct(proposal.votesFor, total);
   const againstPct = pct(proposal.votesAgainst, total);
@@ -240,9 +240,9 @@ function ProposalRow({ proposal, index }: ProposalRowProps) {
       </Row>
     </Section>
   );
-}
+};
 
-export function TabulationReportEmail({
+export const TabulationReportEmail = ({
   companyName,
   meetingType,
   meetingDate,
@@ -256,7 +256,7 @@ export function TabulationReportEmail({
   quorumMet,
   viewTabulationUrl,
   portalBaseUrl,
-}: TabulationReportEmailProps) {
+}: TabulationReportEmailProps) => {
   const quorumPct = pct(totalSharesVoted, totalSharesEligible);
   const quorumColor = quorumMet
     ? "#447A44"
@@ -593,6 +593,6 @@ export function TabulationReportEmail({
       </Container>
     </Layout>
   );
-}
+};
 
 export default TabulationReportEmail;

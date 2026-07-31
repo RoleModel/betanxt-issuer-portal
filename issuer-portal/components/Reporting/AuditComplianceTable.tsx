@@ -28,10 +28,10 @@ interface AuditComplianceData {
 }
 
 interface AuditComplianceTableProps {
-  data: AuditComplianceData[];
-  loading?: boolean;
-  title?: string;
-  clientTicker?: string;
+  readonly data: AuditComplianceData[];
+  readonly loading?: boolean;
+  readonly title?: string;
+  readonly clientTicker?: string;
 }
 
 const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
@@ -73,8 +73,8 @@ const AuditComplianceTable: React.FC<AuditComplianceTableProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((row, index) => (
-                <TableRow key={index}>
+              {data.map((row) => (
+                <TableRow key={row.meetingId || row.event}>
                   <TableCell size="small" component="th" scope="row">
                     {row.meetingId && clientTicker ? (
                       <Button

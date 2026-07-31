@@ -51,7 +51,7 @@ export const computeClientLogoBase = (
   }
 
   if (clientName) {
-    const nameLower = clientName.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const nameLower = clientName.toLowerCase().replaceAll(/[^a-z0-9]/g, "");
     return `/logos/${nameLower}_logo`;
   }
 
@@ -62,7 +62,7 @@ export const computeClientLogoBase = (
 export const computeClientLogoSrc = (
   clientName?: string,
   ticker?: string,
-  defaultSrc = "/images/logo.svg",
+  defaultSource = "/images/logo.svg",
   suffix?: string
 ): string => {
   const base = computeClientLogoBase(clientName, ticker);
@@ -71,17 +71,17 @@ export const computeClientLogoSrc = (
     const basePath = suffix ? `${base}${suffix}` : base;
     return `${basePath}.svg`;
   }
-  return defaultSrc;
+  return defaultSource;
 };
 
 // Load the client logo as a PNG base64 string. Tries PNG first, then converts SVG to PNG, then falls back.
-export const loadClientLogoAsPngBase64 = async (opts: {
+export const loadClientLogoAsPngBase64 = async (options: {
   clientName?: string;
   ticker?: string;
   overrideSrc?: string;
 }): Promise<string> => {
   const defaultPng = "/images/betanxt-logo.png";
-  const { clientName, ticker, overrideSrc } = opts;
+  const { clientName, ticker, overrideSrc } = options;
 
   // Determine candidates in order of preference
   const base = overrideSrc
@@ -92,8 +92,10 @@ export const loadClientLogoAsPngBase64 = async (opts: {
 
   // If override or base under /logos, try PNG then SVG
   if (base) {
-    candidates.push({ url: `${base}.png`, type: "png" });
-    candidates.push({ url: `${base}.svg`, type: "svg" });
+    candidates.push(
+      { url: `${base}.png`, type: "png" },
+      { url: `${base}.svg`, type: "svg" }
+    );
   }
 
   // Always add default PNG fallback
@@ -103,30 +105,32 @@ export const loadClientLogoAsPngBase64 = async (opts: {
   for (const c of candidates) {
     try {
       const res = await fetch(c.url);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        continue;
+      }
 
       if (c.type === "png") {
         const blob = await res.blob();
         if (blob.type !== "image/png") {
-          // Convert non-png (rare) to png via canvas
-          const png = await rasterizeImageToPng(blob);
-          return png;
+          // Convert non-png (rare) to PNG via canvas
+          return await rasterizeImageToPng(blob);
         }
-        const dataUrl = await blobToDataUrl(blob);
-        return dataUrl;
-      } else {
-        // SVG → rasterize to PNG
-        const blob = await res.blob();
-        const png = await rasterizeImageToPng(blob);
-        return png;
+        return await blobToDataUrl(blob);
       }
+      // SVG → rasterize to PNG
+      const blob = await res.blob();
+      return await rasterizeImageToPng(blob);
     } catch {
       // try next candidate
     }
   }
 
   // Last resort
-  return await blobToDataUrl(await (await fetch(defaultPng)).blob());
+  const fallbackResponse = await fetch(defaultPng);
+  if (!fallbackResponse.ok) {
+    throw new Error(`Request failed: ${fallbackResponse.status}`);
+  }
+  return await blobToDataUrl(await fallbackResponse.blob());
 };
 
 /**
@@ -139,31 +143,37 @@ export const loadImageAsPngDataUrl = async (
 ): Promise<string | undefined> => {
   try {
     const res = await fetch(url);
-    if (!res.ok) return undefined;
+    if (!res.ok) {
+      return undefined;
+    }
 
     const blob = await res.blob();
-    if (blob.type === "image/png") return await blobToDataUrl(blob);
+    if (blob.type === "image/png") {
+      return await blobToDataUrl(blob);
+    }
     return await rasterizeImageToPng(blob);
   } catch {
     return undefined;
   }
 };
 
-const blobToDataUrl = (blob: Blob): Promise<string> =>
-  new Promise((resolve, reject) => {
+const blobToDataUrl = async (blob: Blob): Promise<string> =>
+  await new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.addEventListener("load", () => {
       if (typeof reader.result === "string") {
         resolve(reader.result);
       } else {
         reject(new Error("Expected string result from readAsDataURL"));
       }
+    });
+    reader.onerror = () => {
+      reject(new Error("Failed to read image blob"));
     };
-    reader.onerror = () => reject(new Error("Failed to read image blob"));
     reader.readAsDataURL(blob);
   });
 
-// Rasterize any image blob (svg or otherwise) to PNG via canvas
+// Rasterize any image blob (SVG or otherwise) to PNG via canvas
 const rasterizeImageToPng = async (blob: Blob): Promise<string> => {
   const url = URL.createObjectURL(blob);
   try {
@@ -173,19 +183,25 @@ const rasterizeImageToPng = async (blob: Blob): Promise<string> => {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas 2D context unavailable");
-    ctx.drawImage(img, 0, 0, width, height);
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Canvas 2D context unavailable");
+    }
+    context.drawImage(img, 0, 0, width, height);
     return canvas.toDataURL("image/png");
   } finally {
     URL.revokeObjectURL(url);
   }
 };
 
-const loadImage = (src: string): Promise<HTMLImageElement> =>
-  new Promise((resolve, reject) => {
+const loadImage = async (source: string): Promise<HTMLImageElement> =>
+  await new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Image load error"));
-    img.src = src;
+    img.addEventListener("load", () => {
+      resolve(img);
+    });
+    img.onerror = () => {
+      reject(new Error("Image load error"));
+    };
+    img.src = source;
   });

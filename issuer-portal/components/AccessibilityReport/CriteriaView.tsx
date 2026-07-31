@@ -55,12 +55,12 @@ interface CriteriaSummary {
 }
 
 interface CriteriaViewProps {
-  criteriaSummary: CriteriaSummary[];
-  axeRulesData: Record<
+  readonly criteriaSummary: CriteriaSummary[];
+  readonly axeRulesData: Record<
     string,
     { description: string; help: string; helpUrl: string }
   >;
-  axeToWcagMapping: Record<string, string>;
+  readonly axeToWcagMapping: Record<string, string>;
 }
 
 const CriteriaView = ({
@@ -103,7 +103,9 @@ const CriteriaView = ({
                 <Button
                   variant="text"
                   size="small"
-                  onClick={() => toggleRulesExpanded(criteria.id)}
+                  onClick={() => {
+                    toggleRulesExpanded(criteria.id);
+                  }}
                 >
                   {expandedRules[criteria.id] ? "Hide Rules" : "View Rules"}
                 </Button>
@@ -155,97 +157,91 @@ const CriteriaView = ({
                   Axe Rules Testing This Criterion:
                 </Typography>
                 <Stack spacing={1}>
-                  {Object.keys(axeToWcagMapping)
-                    .filter(
-                      (ruleId) => axeToWcagMapping[ruleId] === criteria.id
-                    )
-                    .map((ruleId) => {
-                      const passedRule = criteria.passedRules.find(
-                        (r) => r.rule === ruleId
-                      );
-                      const ruleData = axeRulesData[ruleId];
+                  {Object.keys(axeToWcagMapping).flatMap((ruleId) => {
+                    if (axeToWcagMapping[ruleId] !== criteria.id) return [];
 
-                      if (!ruleData) return null;
+                    const passedRule = criteria.passedRules.find(
+                      (r) => r.rule === ruleId
+                    );
+                    const ruleData = axeRulesData[ruleId];
 
-                      return (
+                    if (!ruleData) return [];
+
+                    return [
+                      <Box
+                        key={ruleId}
+                        sx={{
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          bgcolor: passedRule ? "success.light" : "transparent",
+                          border: "1px solid",
+                          borderColor: passedRule ? "success.main" : "divider",
+                        }}
+                      >
                         <Box
-                          key={ruleId}
                           sx={{
-                            px: 1,
-                            py: 0.5,
-                            borderRadius: 1,
-                            bgcolor: passedRule
-                              ? "success.light"
-                              : "transparent",
-                            border: "1px solid",
-                            borderColor: passedRule
-                              ? "success.main"
-                              : "divider",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
                           }}
                         >
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                            }}
-                          >
-                            {passedRule && (
-                              <Typography
-                                variant="body3"
-                                sx={{
-                                  color: "success.main",
-                                  fontWeight: 500,
-                                  minWidth: "24px",
-                                }}
-                              >
-                                ✓
-                              </Typography>
-                            )}
+                          {passedRule ? (
                             <Typography
                               variant="body3"
                               sx={{
-                                color: passedRule
-                                  ? "success.dark"
-                                  : "text.primary",
-                                flex: 1,
+                                color: "success.main",
+                                fontWeight: 500,
+                                minWidth: "24px",
                               }}
                             >
-                              {ruleData.helpUrl ? (
-                                <Link
-                                  href={ruleData.helpUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  sx={{
-                                    textDecoration: "none",
-                                    "&:hover": { textDecoration: "underline" },
-                                  }}
-                                >
-                                  {ruleData.description}
-                                </Link>
-                              ) : (
-                                ruleData.description
-                              )}
+                              ✓
                             </Typography>
-                            {passedRule && (
-                              <Chip
-                                label="Passed"
-                                size="small"
-                                color="success"
-                                sx={{ height: "20px" }}
-                              />
+                          ) : null}
+                          <Typography
+                            variant="body3"
+                            sx={{
+                              color: passedRule
+                                ? "success.dark"
+                                : "text.primary",
+                              flex: 1,
+                            }}
+                          >
+                            {ruleData.helpUrl ? (
+                              <Link
+                                href={ruleData.helpUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{
+                                  textDecoration: "none",
+                                  "&:hover": { textDecoration: "underline" },
+                                }}
+                              >
+                                {ruleData.description}
+                              </Link>
+                            ) : (
+                              ruleData.description
                             )}
-                          </Box>
+                          </Typography>
+                          {passedRule ? (
+                            <Chip
+                              label="Passed"
+                              size="small"
+                              color="success"
+                              sx={{ height: "20px" }}
+                            />
+                          ) : null}
                         </Box>
-                      );
-                    })}
+                      </Box>,
+                    ];
+                  })}
                 </Stack>
               </Collapse>
             )}
           </Box>
 
           {/* Violations Section */}
-          {criteria.violations && criteria.violations.length > 0 && (
+          {criteria.violations && criteria.violations.length > 0 ? (
             <Box>
               <Typography variant="body3" fontWeight="500" sx={{ mb: 2 }}>
                 Violations ({criteria.violations.length}):
@@ -261,7 +257,7 @@ const CriteriaView = ({
                 ))}
               </Stack>
             </Box>
-          )}
+          ) : null}
         </Card>
       ))}
     </Stack>

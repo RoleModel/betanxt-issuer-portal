@@ -9,11 +9,11 @@ import {
 } from "@mui/material";
 
 interface SidebarCardProps extends CardProps {
-  title: string;
-  button?: boolean;
-  buttonText?: string;
-  icon?: React.ReactNode;
-  onClick?: () => void;
+  readonly title: string;
+  readonly button?: boolean;
+  readonly buttonText?: string;
+  readonly icon?: React.ReactNode;
+  readonly onClick?: () => void;
 }
 
 export const SidebarCard = (props: SidebarCardProps) => {
@@ -54,7 +54,7 @@ export const SidebarCard = (props: SidebarCardProps) => {
         }}
       >
         {children}
-        {button && (
+        {button ? (
           <Button
             variant="outlined"
             color="primary"
@@ -64,7 +64,7 @@ export const SidebarCard = (props: SidebarCardProps) => {
           >
             {buttonText}
           </Button>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

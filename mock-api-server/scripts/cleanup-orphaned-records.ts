@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 import { Client } from "pg";
 
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD ?? "ZgnAkgxVLYDcf9gj";
@@ -67,9 +66,9 @@ async function cleanupOrphanedRecords() {
       console.log(
         `⚠️  Found ${orphanedCommentsResult.rows.length} orphaned comment records:`
       );
-      orphanedCommentsResult.rows.slice(0, 5).forEach((row) => {
+      for (const row of orphanedCommentsResult.rows.slice(0, 5)) {
         console.log(`   - ID: ${row.id}, Document ID: ${row.document_id}`);
-      });
+      }
       if (orphanedCommentsResult.rows.length > 5) {
         console.log(
           `   ... and ${orphanedCommentsResult.rows.length - 5} more`

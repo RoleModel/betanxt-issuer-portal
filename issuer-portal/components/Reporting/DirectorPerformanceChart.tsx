@@ -16,9 +16,9 @@ interface DirectorPerformanceData {
 }
 
 interface DirectorPerformanceChartProps {
-  data: DirectorPerformanceData[];
-  loading?: boolean;
-  title?: string;
+  readonly data: DirectorPerformanceData[];
+  readonly loading?: boolean;
+  readonly title?: string;
 }
 
 const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({

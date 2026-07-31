@@ -87,10 +87,10 @@ interface PhaseContextType {
 const PhaseContext = createContext<PhaseContextType | undefined>(undefined);
 
 interface PhaseProviderProps {
-  children: ReactNode;
-  meetingId: string;
-  initialPhases?: Phase[];
-  initialTasks?: Task[];
+  readonly children: ReactNode;
+  readonly meetingId: string;
+  readonly initialPhases?: Phase[];
+  readonly initialTasks?: Task[];
 }
 
 export const PhaseProvider = ({
@@ -185,7 +185,9 @@ export const PhaseProvider = ({
         void advanceToNextPhase();
       }, 1000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
     // advanceToNextPhase depends on state variables already tracked
     // eslint-disable-next-line react-hooks/exhaustive-deps

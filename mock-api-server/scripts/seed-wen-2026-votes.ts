@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 /**
  * Seeds voted positions and position_vote records for WEN 2026 Annual Meeting.
  * Target: 5,624,687 shares voted (2.95% of 190,466,246 total)
@@ -21,38 +20,38 @@ const VOTED_POSITIONS: {
 }[] = [
   {
     name: "WELLINGTON MANAGEMENT",
-    sharesVoted: 2052355,
+    sharesVoted: 2_052_355,
     source: "WEB",
     dateVoted: "04/30/2026 09:15AM",
   },
   {
     name: "T. ROWE PRICE",
-    sharesVoted: 1670944,
+    sharesVoted: 1_670_944,
     source: "WEB",
     dateVoted: "04/28/2026 10:42AM",
   },
   {
     name: "BANK OF AMERICA CORP",
-    sharesVoted: 1107909,
+    sharesVoted: 1_107_909,
     source: "WEB",
     dateVoted: "05/01/2026 02:31PM",
   },
   {
     name: "SEAMUS DANIEL III",
-    sharesVoted: 272436,
+    sharesVoted: 272_436,
     source: "PRINT",
     dateVoted: "04/25/2026 11:00AM",
   },
   {
     name: "IUDICIT CAPITAL CORP",
-    sharesVoted: 268803,
+    sharesVoted: 268_803,
     source: "WEB",
     dateVoted: "04/29/2026 03:17PM",
   },
   // TORUM votes 252,240 of its 256,090 shares
   {
     name: "TORUM CAPITAL LLC",
-    sharesVoted: 252240,
+    sharesVoted: 252_240,
     source: "WEB",
     dateVoted: "04/27/2026 08:54AM",
   },
@@ -176,7 +175,7 @@ async function run() {
     // Institutional shares (all voted positions except SEAMUS)
     const seamus = VOTED_POSITIONS.find((p) => p.name === "SEAMUS DANIEL III")!;
     const institutionalShares = totalVotedShares - seamus.sharesVoted; // 5,352,251
-    const totalSharesEligible = 190466246;
+    const totalSharesEligible = 190_466_246;
 
     for (const proposal of proposals) {
       const isShareholderProposal =
@@ -252,9 +251,9 @@ async function run() {
       `   % Voted:            ${((totalVotedShares / totalSharesEligible) * 100).toFixed(2)}%`
     );
     console.log(`   position_vote rows: ${voteCount}`);
-  } catch (err) {
+  } catch (error) {
     await client.query("ROLLBACK");
-    console.error("❌ Error, rolled back:", err);
+    console.error("❌ Error, rolled back:", error);
     process.exit(1);
   } finally {
     await client.end();

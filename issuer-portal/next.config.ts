@@ -1,11 +1,7 @@
-import { withRelatedProject } from "@vercel/related-projects";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { withRelatedProject } from "@vercel/related-projects";
 
-const repoRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  ".."
-);
+const repoRoot = path.resolve(import.meta.dirname, "..");
 
 // On Vercel, resolve the mock-api-server host for the matching environment
 // (preview branch deploys talk to the same branch's API deploy). Locally and

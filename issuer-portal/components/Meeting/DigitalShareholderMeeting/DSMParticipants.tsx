@@ -38,7 +38,7 @@ type DigitalShareholderMeeting =
   components["schemas"]["DigitalShareholderMeeting"];
 
 interface DSMParticipantsProps {
-  meetingId: string;
+  readonly meetingId: string;
 }
 
 interface ParticipantWithRole extends DigitalShareholderMeeting {
@@ -47,6 +47,16 @@ interface ParticipantWithRole extends DigitalShareholderMeeting {
   documentStatus?: string;
   documentUrl?: string;
 }
+
+const getAttendanceStatus = (
+  participant: ParticipantWithRole
+): { label: string; color: "success" | "default" } => {
+  const minutesAttended = participant.minutesAttendedMeeting ?? 0;
+  if (minutesAttended > 0) {
+    return { label: `${minutesAttended} min`, color: "success" as const };
+  }
+  return { label: "Registered", color: "default" as const };
+};
 
 export const DSMParticipants = ({ meetingId }: DSMParticipantsProps) => {
   const { dsmDocuments, refreshDocuments } = useDocuments();
@@ -183,27 +193,29 @@ export const DSMParticipants = ({ meetingId }: DSMParticipantsProps) => {
 
   const handleFileUpload = async (files: File[]) => {
     try {
-      for (const file of files) {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("meetingId", meetingId);
-        formData.append("documentType", "digital-shareholder-meeting");
-        formData.append("title", file.name.replace(/\.[^/.]+$/, "")); // Use original filename as title
+      await Promise.all(
+        files.map(async (file) => {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("meetingId", meetingId);
+          formData.append("documentType", "digital-shareholder-meeting");
+          formData.append("title", file.name.replace(/\.[^/.]+$/, "")); // Use original filename as title
 
-        const apiBaseUrl =
-          process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api";
-        const response = await fetch(
-          `${apiBaseUrl}/documents/types/digital-shareholder-meeting/upload`,
-          {
-            method: "POST",
-            body: formData,
+          const apiBaseUrl =
+            process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api";
+          const response = await fetch(
+            `${apiBaseUrl}/documents/types/digital-shareholder-meeting/upload`,
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`Upload failed: ${await response.text()}`);
           }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Upload failed: ${await response.text()}`);
-        }
-      }
+        })
+      );
 
       // Refresh documents via DocumentContext
       await refreshDocuments(meetingId);
@@ -224,14 +236,6 @@ export const DSMParticipants = ({ meetingId }: DSMParticipantsProps) => {
         `Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
-  };
-
-  const getAttendanceStatus = (participant: ParticipantWithRole) => {
-    const minutesAttended = participant.minutesAttendedMeeting ?? 0;
-    if (minutesAttended > 0) {
-      return { label: `${minutesAttended} min`, color: "success" as const };
-    }
-    return { label: "Registered", color: "default" as const };
   };
 
   const actualAttendees = participants.filter(
@@ -277,77 +281,10 @@ export const DSMParticipants = ({ meetingId }: DSMParticipantsProps) => {
       />
       <CardContent>
         {/* Participants Table */}
-        <TableContainer sx={{ maxHeight: 400 }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Attendance</TableCell>
-                <TableCell>Document Status</TableCell>
-                <TableCell align="right">Document</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {participants.map((participant, index) => {
-                const attendanceStatus = getAttendanceStatus(participant);
-
-                return (
-                  <TableRow
-                    key={
-                      participant.id ||
-                      `participant-${participant.emailAddress}-${index}`
-                    }
-                    hover
-                  >
-                    <TableCell>
-                      <Typography variant="body3" fontWeight="medium">
-                        {participant.firstName} {participant.lastName}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`mailto:${participant.emailAddress}`}>
-                        {participant.emailAddress}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={attendanceStatus.label}
-                        color={attendanceStatus.color}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <StatusChip
-                        status={participant.documentStatus || null}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      {participant.documentName ? (
-                        <Typography variant="dataCell">
-                          {participant.documentName}
-                        </Typography>
-                      ) : (
-                        <Button
-                          variant="text"
-                          onClick={() => handleAddDocument(participant)}
-                          sx={{
-                            textTransform: "none",
-                            minWidth: "auto",
-                            px: 1,
-                          }}
-                        >
-                          Add Document
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <ParticipantsTable
+          participants={participants}
+          onAddDocument={handleAddDocument}
+        />
 
         {participants.length === 0 && (
           <Box sx={{ textAlign: "center", py: 4 }}>
@@ -373,34 +310,129 @@ export const DSMParticipants = ({ meetingId }: DSMParticipantsProps) => {
       />
 
       {/* Upload Dialog */}
-      <Dialog
+      <UploadParticipantsDialog
         open={uploadDialogOpen}
         onClose={handleUploadClose}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Upload Participant Documents</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <BNFileUpload
-              maxFiles={10}
-              acceptedFileTypes={[
-                ".pdf",
-                ".doc",
-                ".docx",
-                ".xls",
-                ".xlsx",
-                ".csv",
-              ]}
-              onUpload={handleFileUpload}
-              multiple={true}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleUploadClose}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        onUpload={handleFileUpload}
+      />
     </Card>
+  );
+};
+
+interface ParticipantsTableProps {
+  readonly participants: ParticipantWithRole[];
+  readonly onAddDocument: (participant: ParticipantWithRole) => void;
+}
+
+const ParticipantsTable = ({
+  participants,
+  onAddDocument,
+}: ParticipantsTableProps) => {
+  return (
+    <TableContainer sx={{ maxHeight: 400 }}>
+      <Table stickyHeader>
+        <TableHead>
+          <TableRow>
+            <TableCell>Name</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell>Attendance</TableCell>
+            <TableCell>Document Status</TableCell>
+            <TableCell align="right">Document</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {participants.map((participant) => {
+            const attendanceStatus = getAttendanceStatus(participant);
+
+            return (
+              <TableRow key={participant.id || participant.emailAddress} hover>
+                <TableCell>
+                  <Typography variant="body3" fontWeight="medium">
+                    {participant.firstName} {participant.lastName}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Link href={`mailto:${participant.emailAddress}`}>
+                    {participant.emailAddress}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={attendanceStatus.label}
+                    color={attendanceStatus.color}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>
+                  <StatusChip
+                    status={participant.documentStatus || null}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell align="right">
+                  {participant.documentName ? (
+                    <Typography variant="dataCell">
+                      {participant.documentName}
+                    </Typography>
+                  ) : (
+                    <Button
+                      variant="text"
+                      onClick={() => {
+                        onAddDocument(participant);
+                      }}
+                      sx={{
+                        textTransform: "none",
+                        minWidth: "auto",
+                        px: 1,
+                      }}
+                    >
+                      Add Document
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+};
+
+interface UploadParticipantsDialogProps {
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onUpload: (files: File[]) => Promise<void>;
+}
+
+const UploadParticipantsDialog = ({
+  open,
+  onClose,
+  onUpload,
+}: UploadParticipantsDialogProps) => {
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Upload Participant Documents</DialogTitle>
+      <DialogContent>
+        <Box sx={{ mt: 2 }}>
+          <BNFileUpload
+            maxFiles={10}
+            acceptedFileTypes={[
+              ".pdf",
+              ".doc",
+              ".docx",
+              ".xls",
+              ".xlsx",
+              ".csv",
+            ]}
+            onUpload={onUpload}
+            multiple={true}
+          />
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
   );
 };

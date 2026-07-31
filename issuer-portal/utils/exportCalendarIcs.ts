@@ -1,6 +1,5 @@
-import type { KeyDate, Task } from "@/types/api-exports";
-
 import { shiftWeekendToMonday } from "@/components/Calendar/CalendarUtils";
+import type { KeyDate, Task } from "@/types/api-exports";
 
 interface IcsExportOptions {
   tasks: Task[];
@@ -10,10 +9,12 @@ interface IcsExportOptions {
 }
 
 // Format date for ICS (YYYYMMDDTHHMMSS format in UTC)
-const formatIcsDate = (dateStr: string | null): string => {
-  if (!dateStr) return "";
+const formatIcsDate = (dateString: string | null): string => {
+  if (!dateString) {
+    return "";
+  }
 
-  const [year, month, day] = dateStr.split("-").map(Number);
+  const [year, month, day] = dateString.split("-").map(Number);
   const originalDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0)); // Set to noon UTC
   const adjustedDate = shiftWeekendToMonday(originalDate);
 
@@ -38,66 +39,79 @@ const getCurrentIcsTimestamp = (): string => {
 };
 
 // Escape special characters in ICS text fields
-const escapeIcsText = (text: string): string => {
-  return text
-    .replace(/\\/g, "\\\\")
-    .replace(/;/g, "\\;")
-    .replace(/,/g, "\\,")
-    .replace(/\n/g, "\\n");
-};
+const escapeIcsText = (text: string): string =>
+  text
+    .replaceAll("\\", "\\\\")
+    .replaceAll(";", "\\;")
+    .replaceAll(",", "\\,")
+    .replaceAll("\n", "\\n");
 
 // Generate a unique UID for calendar events
-const generateUid = (prefix: string, id: string): string => {
-  return `${prefix}-${id}@betanxt-issuer-portal`;
-};
+const generateUid = (prefix: string, id: string): string =>
+  `${prefix}-${id}@betanxt-issuer-portal`;
 
 export function exportCalendarToIcs(options: IcsExportOptions): void {
   const { tasks, keyDates, meetingTitle } = options;
 
   const now = getCurrentIcsTimestamp();
-  const lines: string[] = [];
+  const lines: string[] = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//BetaNXT//Issuer Portal//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+  ];
 
   // ICS header
-  lines.push("BEGIN:VCALENDAR");
-  lines.push("VERSION:2.0");
-  lines.push("PRODID:-//BetaNXT//Issuer Portal//EN");
-  lines.push("CALSCALE:GREGORIAN");
-  lines.push("METHOD:PUBLISH");
-  lines.push(`X-WR-CALNAME:${escapeIcsText(meetingTitle)}`);
-  lines.push("X-WR-TIMEZONE:UTC");
+  lines.push(
+    `X-WR-CALNAME:${escapeIcsText(meetingTitle)}`,
+    "X-WR-TIMEZONE:UTC"
+  );
 
   // Add key dates as events
-  keyDates.forEach((keyDate) => {
-    if (!keyDate.date || !keyDate.title) return;
+  for (const keyDate of keyDates) {
+    if (!keyDate.date || !keyDate.title) {
+      continue;
+    }
 
     const dtstart = formatIcsDate(keyDate.date);
-    if (!dtstart) return;
+    if (!dtstart) {
+      continue;
+    }
 
     lines.push("BEGIN:VEVENT");
     lines.push(
-      `UID:${generateUid("keydate", keyDate.id || String(Math.random()))}`
+      `UID:${generateUid("keydate", keyDate.id || String(Math.random()))}`,
+      `DTSTAMP:${now}`
     );
-    lines.push(`DTSTAMP:${now}`);
-    lines.push(`DTSTART;VALUE=DATE:${dtstart.split("T")[0]}`);
-    lines.push(`SUMMARY:${escapeIcsText(keyDate.title)}`);
-    lines.push("CATEGORIES:Key Date");
-    lines.push(`X-MEETING-PHASE:${keyDate.phaseNumber || 1}`);
-    lines.push("STATUS:CONFIRMED");
-    lines.push("TRANSP:TRANSPARENT");
-    lines.push("END:VEVENT");
-  });
+    lines.push(`DTSTART;VALUE=DATE:${dtstart.split("T", 1)[0]}`);
+    lines.push(
+      `SUMMARY:${escapeIcsText(keyDate.title)}`,
+      "CATEGORIES:Key Date",
+      `X-MEETING-PHASE:${keyDate.phaseNumber || 1}`,
+      "STATUS:CONFIRMED",
+      "TRANSP:TRANSPARENT",
+      "END:VEVENT"
+    );
+  }
 
   // Add tasks as events
-  tasks.forEach((task) => {
-    if (!task.dueDate || !task.title) return;
+  for (const task of tasks) {
+    if (!task.dueDate || !task.title) {
+      continue;
+    }
 
     const dtstart = formatIcsDate(task.dueDate);
-    if (!dtstart) return;
+    if (!dtstart) {
+      continue;
+    }
 
     lines.push("BEGIN:VEVENT");
-    lines.push(`UID:${generateUid("task", task.id || String(Math.random()))}`);
-    lines.push(`DTSTAMP:${now}`);
-    lines.push(`DTSTART;VALUE=DATE:${dtstart.split("T")[0]}`);
+    lines.push(
+      `UID:${generateUid("task", task.id || String(Math.random()))}`,
+      `DTSTAMP:${now}`
+    );
+    lines.push(`DTSTART;VALUE=DATE:${dtstart.split("T", 1)[0]}`);
     lines.push(`SUMMARY:${escapeIcsText(task.title)}`);
     if (task.description) {
       lines.push(`DESCRIPTION:${escapeIcsText(task.description)}`);
@@ -109,11 +123,13 @@ export function exportCalendarToIcs(options: IcsExportOptions): void {
     if (task.status) {
       lines.push(`X-TASK-STATUS:${task.status}`);
     }
-    lines.push(`X-MEETING-PHASE:${task.phaseNumber || 1}`);
-    lines.push("STATUS:CONFIRMED");
-    lines.push("TRANSP:TRANSPARENT");
-    lines.push("END:VEVENT");
-  });
+    lines.push(
+      `X-MEETING-PHASE:${task.phaseNumber || 1}`,
+      "STATUS:CONFIRMED",
+      "TRANSP:TRANSPARENT",
+      "END:VEVENT"
+    );
+  }
 
   // ICS footer
   lines.push("END:VCALENDAR");
@@ -126,12 +142,12 @@ export function exportCalendarToIcs(options: IcsExportOptions): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${meetingTitle.replace(/\s+/g, "_")}_Calendar_${new Date().toISOString().split("T")[0]}.ics`;
+  link.download = `${meetingTitle.replaceAll(/\s+/g, "_")}_Calendar_${new Date().toISOString().split("T", 1)[0]}.ics`;
 
   // Trigger download
-  document.body.appendChild(link);
+  document.body.append(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
 
   // Cleanup
   URL.revokeObjectURL(url);

@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 import { config } from "dotenv";
 import pg from "pg";
 

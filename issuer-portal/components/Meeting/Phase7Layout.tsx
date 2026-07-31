@@ -1,6 +1,14 @@
 "use client";
 
-import { Box, Button, Card, CardContent, CardHeader, Skeleton, Stack } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Skeleton,
+  Stack,
+} from "@mui/material";
 import PresentationBoardIcon from "@rolemodel/betanxt-design-system/components/icons/brand/PresentationBoardIcon";
 import TeamPresentationIcon from "@rolemodel/betanxt-design-system/components/icons/brand/TeamPresentationIcon";
 import dynamic from "next/dynamic";
@@ -18,34 +26,49 @@ import TabulationReportCard from "../Tabulation/TabulationReportCard";
 import KeyDatesCard from "./KeyDatesCard";
 
 // Dynamic imports for heavy components
-const VotingTabulationTable = dynamic(() => import("@/components/Meeting/VotingTabulationTable"), {
-  loading: () => <Skeleton variant="rectangular" height={400} />,
-  ssr: false,
-});
+const VotingTabulationTable = dynamic(
+  async () => await import("@/components/Meeting/VotingTabulationTable"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={400} />,
+    ssr: false,
+  }
+);
 
-const MeetingRolesCard = dynamic(() => import("@/components/Meeting/MeetingRolesCard"), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-});
+const MeetingRolesCard = dynamic(
+  async () => await import("@/components/Meeting/MeetingRolesCard"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={300} />,
+    ssr: false,
+  }
+);
 
-const PreviewLinksCard = dynamic(() => import("@/components/Meeting/PreviewLinksCard"), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-});
+const PreviewLinksCard = dynamic(
+  async () => await import("@/components/Meeting/PreviewLinksCard"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={300} />,
+    ssr: false,
+  }
+);
 
-const FeatureTile = dynamic(() => import("@/components/FeatureTile"), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-});
+const FeatureTile = dynamic(
+  async () => await import("@/components/FeatureTile"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={300} />,
+    ssr: false,
+  }
+);
 
-const SharesVotedChart = dynamic(() => import("@/components/Meeting/SharesVotedChart"), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-});
+const SharesVotedChart = dynamic(
+  async () => await import("@/components/Meeting/SharesVotedChart"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={300} />,
+    ssr: false,
+  }
+);
 
 interface Phase7LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
+  readonly meetingId?: string;
+  readonly meeting?: Meeting;
 }
 
 export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
@@ -54,23 +77,32 @@ export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
   const [scheduledLogistics, setScheduledLogistics] = useState(false);
   const [scheduledDryRun, setScheduledDryRun] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<"logistics" | "dryrun">("logistics");
+  const [dialogType, setDialogType] = useState<"logistics" | "dryrun">(
+    "logistics"
+  );
 
   useEffect(() => {
+    let ignore = false;
     const fetchDSMConfig = async () => {
       if (!meetingId) return;
 
       try {
         const apiClient = await buildApiClient();
-        const { data, error } = await apiClient.GET("/meetings/{meetingId}/dsm-config", {
-          params: { path: { meetingId } },
-        });
+        const { data, error } = await apiClient.GET(
+          "/meetings/{meetingId}/dsm-config",
+          {
+            params: { path: { meetingId } },
+          }
+        );
 
-        if (!error && data) {
+        if (!ignore && !error && data) {
           setScheduledLogistics(
-            (data as { logisticsCallScheduled?: boolean }).logisticsCallScheduled || false,
+            (data as { logisticsCallScheduled?: boolean })
+              .logisticsCallScheduled || false
           );
-          setScheduledDryRun((data as { dryRunScheduled?: boolean }).dryRunScheduled || false);
+          setScheduledDryRun(
+            (data as { dryRunScheduled?: boolean }).dryRunScheduled || false
+          );
         }
       } catch (error) {
         console.error("Failed to fetch DSM config:", error);
@@ -78,6 +110,9 @@ export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
     };
 
     void fetchDSMConfig();
+    return () => {
+      ignore = true;
+    };
   }, [meetingId]);
 
   const handleOpenDialog = (type: "logistics" | "dryrun") => {
@@ -111,10 +146,13 @@ export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
             }),
       };
 
-      const { data, error } = await apiClient.POST("/meetings/{meetingId}/dsm-config", {
-        params: { path: { meetingId } },
-        body: config,
-      });
+      const { data, error } = await apiClient.POST(
+        "/meetings/{meetingId}/dsm-config",
+        {
+          params: { path: { meetingId } },
+          body: config,
+        }
+      );
 
       if (!error && data) {
         if (dialogType === "logistics") {
@@ -175,7 +213,11 @@ export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
           >
             <FeatureTile
               flex
-              title={scheduledLogistics ? "Logistics Call Requested" : "Schedule Logistics Call"}
+              title={
+                scheduledLogistics
+                  ? "Logistics Call Requested"
+                  : "Schedule Logistics Call"
+              }
               description={
                 scheduledLogistics
                   ? "Meeting producer will be in touch"
@@ -184,7 +226,13 @@ export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
               actionText={scheduledLogistics ? undefined : "Schedule Call"}
               icon={<TeamPresentationIcon fontSize="3xl" />}
               variant="default"
-              onClick={scheduledLogistics ? undefined : () => handleOpenDialog("logistics")}
+              onClick={
+                scheduledLogistics
+                  ? undefined
+                  : () => {
+                      handleOpenDialog("logistics");
+                    }
+              }
             />
             <FeatureTile
               flex
@@ -197,7 +245,13 @@ export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
               actionText={scheduledDryRun ? undefined : "Schedule Dry Run"}
               icon={<PresentationBoardIcon fontSize="3xl" />}
               variant="default"
-              onClick={scheduledDryRun ? undefined : () => handleOpenDialog("dryrun")}
+              onClick={
+                scheduledDryRun
+                  ? undefined
+                  : () => {
+                      handleOpenDialog("dryrun");
+                    }
+              }
             />
           </Box>
         </Box>
@@ -238,7 +292,9 @@ export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
               <Button
                 variant="outlined"
                 onClick={() => {
-                  router.push(`/${meeting?.ticker}/meeting/${meetingId}/tabulation`);
+                  router.push(
+                    `/${meeting?.ticker}/meeting/${meetingId}/tabulation`
+                  );
                 }}
               >
                 View Tabulation
@@ -247,7 +303,10 @@ export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
             sx={{ flexShrink: 0 }}
           />
           <CardContent sx={{ p: 0, flex: 1 }}>
-            <VotingTabulationTable proposals={proposals} loading={votingLoading} />
+            <VotingTabulationTable
+              proposals={proposals}
+              loading={votingLoading}
+            />
           </CardContent>
         </Card>
 
@@ -269,9 +328,15 @@ export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
 
       <ScheduleDialog
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        onClose={() => {
+          setDialogOpen(false);
+        }}
         onSchedule={handleSchedule}
-        title={dialogType === "logistics" ? "Schedule Logistics Call" : "Schedule Dry Run"}
+        title={
+          dialogType === "logistics"
+            ? "Schedule Logistics Call"
+            : "Schedule Dry Run"
+        }
         description={
           dialogType === "logistics"
             ? "Select a date and time for the logistics call"

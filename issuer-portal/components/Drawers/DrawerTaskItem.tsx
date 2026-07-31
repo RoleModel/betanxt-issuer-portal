@@ -27,13 +27,13 @@ import {
 } from "@/utils/taskTransformers";
 
 interface DrawerTaskItemProps {
-  task: Task;
-  phaseColor: string;
-  isCompleted?: boolean;
-  onClick?: () => void;
-  onContextMenu?: (event: React.MouseEvent) => void;
-  onStatusUpdate?: (task: Task) => void;
-  onLinkClick?: (link: TaskLink, taskTitle: string) => void;
+  readonly task: Task;
+  readonly phaseColor: string;
+  readonly isCompleted?: boolean;
+  readonly onClick?: () => void;
+  readonly onContextMenu?: (event: React.MouseEvent) => void;
+  readonly onStatusUpdate?: (task: Task) => void;
+  readonly onLinkClick?: (link: TaskLink, taskTitle: string) => void;
 }
 
 const DrawerTaskItem = ({
@@ -58,7 +58,7 @@ const DrawerTaskItem = ({
   const handleAuthorizationChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const checked = event.target.checked;
+    const { checked } = event.target;
     setIsAuthorized(checked);
 
     if (task.id) {
@@ -92,7 +92,7 @@ const DrawerTaskItem = ({
           borderLeftColor: borderColor,
           backgroundColor: isCompleted
             ? "background.paper"
-            : `${theme.vars.palette.tableCellRow.fill}`,
+            : theme.vars.palette.tableCellRow.fill,
           borderTop: 0,
           borderBottom: 0,
           borderRight: 0,
@@ -153,7 +153,7 @@ const DrawerTaskItem = ({
           </Box>
         </Box>
         {/* Task description */}
-        {task.description && (
+        {task.description ? (
           <Typography
             color="text.secondary"
             sx={{
@@ -165,63 +165,65 @@ const DrawerTaskItem = ({
           >
             {task.description}
           </Typography>
-        )}
+        ) : null}
 
         {/* Task Links - Only show for issuer-owned tasks */}
         {taskLinks.length > 0 &&
-          onLinkClick &&
-          !["BetaNXT", "DFIN"].includes(task.owner ?? "") && (
-            <Box sx={{ mt: 1 }}>
-              <Stack
-                direction="row"
-                spacing={2}
-                flexWrap="wrap"
-                alignItems="center"
-              >
-                {taskLinks.map((link: TaskLink, linkIndex: number) => (
-                  <Link
-                    key={linkIndex}
-                    component="button"
-                    variant="body3"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onLinkClick(link, task.title ?? "Task");
-                    }}
-                    sx={{
-                      fontSize: "0.875rem",
-                      cursor: "pointer",
-                      textDecoration: "underline",
-                      border: "none",
-                      background: "none",
-                      padding: 0,
-                      "&:hover": {
-                        textDecoration: "none",
-                      },
-                    }}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                {/* DTCC Authorization Checkbox */}
-                {isDTCCAuthorization && (
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        color="secondary"
-                        checked={isAuthorized}
-                        onChange={handleAuthorizationChange}
-                        size="small"
-                      />
-                    }
-                    label="Authorization confirmed"
-                    onClick={(e) => e.stopPropagation()}
-                    sx={{ fontSize: "0.875rem" }}
-                  />
-                )}
-              </Stack>
-            </Box>
-          )}
+        onLinkClick &&
+        !["BetaNXT", "DFIN"].includes(task.owner ?? "") ? (
+          <Box sx={{ mt: 1 }}>
+            <Stack
+              direction="row"
+              spacing={2}
+              flexWrap="wrap"
+              alignItems="center"
+            >
+              {taskLinks.map((link: TaskLink, linkIndex: number) => (
+                <Link
+                  key={linkIndex}
+                  component="button"
+                  variant="body3"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onLinkClick(link, task.title ?? "Task");
+                  }}
+                  sx={{
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                    border: "none",
+                    background: "none",
+                    padding: 0,
+                    "&:hover": {
+                      textDecoration: "none",
+                    },
+                  }}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {/* DTCC Authorization Checkbox */}
+              {isDTCCAuthorization ? (
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      color="secondary"
+                      checked={isAuthorized}
+                      onChange={handleAuthorizationChange}
+                      size="small"
+                    />
+                  }
+                  label="Authorization confirmed"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  sx={{ fontSize: "0.875rem" }}
+                />
+              ) : null}
+            </Stack>
+          </Box>
+        ) : null}
       </CardContent>
     </Card>
   );

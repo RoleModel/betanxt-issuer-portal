@@ -1,7 +1,6 @@
-#!/usr/bin/env tsx
-import fs from "fs/promises";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { glob } from "glob";
-import path from "path";
 
 async function addOptionsHandlers() {
   // Find all route.ts files in the app/api directory
@@ -38,9 +37,7 @@ async function addOptionsHandlers() {
     }
 
     // Add OPTIONS handler at the end of the file
-    content =
-      content.trimEnd() +
-      "\n\nexport async function OPTIONS() {\n  return handleCors()\n}\n";
+    content = `${content.trimEnd()}\n\nexport async function OPTIONS() {\n  return handleCors()\n}\n`;
 
     await fs.writeFile(filePath, content);
   }

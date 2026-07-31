@@ -89,7 +89,9 @@ const SecureFileTransferTable = ({
       const meetingIds = meetings.flatMap((m) => (m.id ? [m.id] : []));
       if (meetingIds.length > 0) {
         const allDocsArrays = await Promise.all(
-          meetingIds.map((id) => documentRepository.listByMeeting(id))
+          meetingIds.map(
+            async (id) => await documentRepository.listByMeeting(id)
+          )
         );
         const combined = allDocsArrays.flat().filter((d) => {
           const title = (d.title ?? "").trim().toLowerCase();
@@ -171,13 +173,14 @@ const SecureFileTransferTable = ({
   ) => {
     if (!meetingId) return;
     await Promise.all(
-      files.map((file) =>
-        documentRepository.uploadVersion({
-          meetingId,
-          documentType: "general-document",
-          file,
-          versionNotes: description,
-        })
+      files.map(
+        async (file) =>
+          await documentRepository.uploadVersion({
+            meetingId,
+            documentType: "general-document",
+            file,
+            versionNotes: description,
+          })
       )
     );
     setUploadOpen(false);

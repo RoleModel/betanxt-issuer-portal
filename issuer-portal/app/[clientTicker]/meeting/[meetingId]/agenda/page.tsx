@@ -35,6 +35,82 @@ interface ParsedProposal {
   recommendation: string;
 }
 
+// Parse Excel/CSV file for agenda proposals
+const parseAgendaFile = async (file: File): Promise<ParsedProposal[]> => {
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData: ExcelRow[] = XLSX.utils.sheet_to_json(firstSheet);
+
+        if (jsonData.length === 0) {
+          reject(new Error("The file is empty or has no data rows"));
+          return;
+        }
+
+        // Map the data to our format
+        const mappedData = jsonData
+          .map((row: ExcelRow) => {
+            const proposalNumber = row["Proposal Number"] ?? row.Number ?? "";
+            const proposalTitle = row["Proposal Title"] ?? row.Title ?? "";
+            const proposalType = row["Proposal Type"] ?? row.Type ?? "";
+            const proposalSubtype =
+              row["Proposal Subtype"] ?? row.Subtype ?? "";
+            const directorName = row["Director Name"] ?? row.Director ?? "";
+            const recommendation = row.Recommendation ?? "";
+
+            // Skip rows without required fields
+            if (!proposalNumber || !proposalTitle) {
+              return null;
+            }
+
+            const parsedProposal: ParsedProposal = {
+              proposalNumber:
+                typeof proposalNumber === "number"
+                  ? proposalNumber
+                  : parseFloat(proposalNumber) || 0,
+              proposalTitle: String(proposalTitle),
+              proposalType: String(proposalType),
+              recommendation: String(recommendation),
+            };
+
+            if (proposalSubtype) {
+              parsedProposal.proposalSubtype = String(proposalSubtype);
+            }
+
+            if (directorName) {
+              parsedProposal.directorName = String(directorName);
+            }
+
+            return parsedProposal;
+          })
+          .filter((item): item is ParsedProposal => item !== null);
+
+        if (mappedData.length === 0) {
+          reject(new Error("No valid proposal data found in file"));
+          return;
+        }
+
+        resolve(mappedData);
+      } catch (error) {
+        reject(
+          error instanceof Error ? error : new Error("Failed to parse file")
+        );
+      }
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Failed to read file"));
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+};
+
 const AgendaPage = () => {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
   const { proposals, uploadProposals } = useVotingTabulation(
@@ -44,82 +120,6 @@ const AgendaPage = () => {
 
   const handleUploadClick = () => {
     setUploadDialogOpen(true);
-  };
-
-  // Parse Excel/CSV file for agenda proposals
-  const parseAgendaFile = async (file: File): Promise<ParsedProposal[]> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = (e) => {
-        try {
-          const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: "binary" });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData: ExcelRow[] = XLSX.utils.sheet_to_json(firstSheet);
-
-          if (jsonData.length === 0) {
-            reject(new Error("The file is empty or has no data rows"));
-            return;
-          }
-
-          // Map the data to our format
-          const mappedData = jsonData
-            .map((row: ExcelRow) => {
-              const proposalNumber = row["Proposal Number"] ?? row.Number ?? "";
-              const proposalTitle = row["Proposal Title"] ?? row.Title ?? "";
-              const proposalType = row["Proposal Type"] ?? row.Type ?? "";
-              const proposalSubtype =
-                row["Proposal Subtype"] ?? row.Subtype ?? "";
-              const directorName = row["Director Name"] ?? row.Director ?? "";
-              const recommendation = row.Recommendation ?? "";
-
-              // Skip rows without required fields
-              if (!proposalNumber || !proposalTitle) {
-                return null;
-              }
-
-              const parsedProposal: ParsedProposal = {
-                proposalNumber:
-                  typeof proposalNumber === "number"
-                    ? proposalNumber
-                    : parseFloat(proposalNumber) || 0,
-                proposalTitle: String(proposalTitle),
-                proposalType: String(proposalType),
-                recommendation: String(recommendation),
-              };
-
-              if (proposalSubtype) {
-                parsedProposal.proposalSubtype = String(proposalSubtype);
-              }
-
-              if (directorName) {
-                parsedProposal.directorName = String(directorName);
-              }
-
-              return parsedProposal;
-            })
-            .filter((item): item is ParsedProposal => item !== null);
-
-          if (mappedData.length === 0) {
-            reject(new Error("No valid proposal data found in file"));
-            return;
-          }
-
-          resolve(mappedData);
-        } catch (error) {
-          reject(
-            error instanceof Error ? error : new Error("Failed to parse file")
-          );
-        }
-      };
-
-      reader.onerror = () => {
-        reject(new Error("Failed to read file"));
-      };
-
-      reader.readAsArrayBuffer(file);
-    });
   };
 
   const handleFileUpload = async (files: File[]) => {
@@ -166,9 +166,13 @@ const AgendaPage = () => {
       )}
       <FileUploadDialog
         open={uploadDialogOpen}
-        onClose={() => setUploadDialogOpen(false)}
+        onClose={() => {
+          setUploadDialogOpen(false);
+        }}
         onUpload={handleFileUpload}
-        onUploadSuccess={() => setUploadDialogOpen(false)}
+        onUploadSuccess={() => {
+          setUploadDialogOpen(false);
+        }}
         meetingId={currentMeeting?.id}
       />
     </Container>

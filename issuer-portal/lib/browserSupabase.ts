@@ -1,14 +1,16 @@
-import { type SupabaseClient, createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Lazily create a browser (anon) Supabase client.
 // We intentionally do NOT ever embed a service role key in the browser bundle.
-// If env vars are missing we log a warning and return a no-op shim that throws
-// only when an operation is attempted, instead of blowing up at import time.
+// If env vars are missing we log a warning and return a no-op shim that throws only when an operation is attempted, instead of blowing up at import time.
 
 let browserClient: SupabaseClient | null = null;
 
 export function getBrowserSupabase(): SupabaseClient {
-  if (browserClient) return browserClient;
+  if (browserClient) {
+    return browserClient;
+  }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

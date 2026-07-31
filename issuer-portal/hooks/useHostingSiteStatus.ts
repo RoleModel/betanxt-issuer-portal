@@ -41,7 +41,9 @@ export function useHostingSiteStatus() {
 
   // Fetch hosting site status
   const fetchHostingSiteStatus = useCallback(async () => {
-    if (!currentMeeting?.id) return;
+    if (!currentMeeting?.id) {
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -53,9 +55,9 @@ export function useHostingSiteStatus() {
       }
       const data = await response.json();
       setHostingSiteStatus(data);
-    } catch (err) {
-      console.error("Error fetching hosting site status:", err);
-      setError(err instanceof Error ? err.message : "An error occurred");
+    } catch (error_) {
+      console.error("Error fetching hosting site status:", error_);
+      setError(Error.isError(error_) ? error_.message : "An error occurred");
       // Set default status if fetch fails
       setHostingSiteStatus({
         meeting_id: currentMeeting.id,
@@ -73,7 +75,9 @@ export function useHostingSiteStatus() {
       status: HostingSiteStatus["status"],
       additionalData?: Partial<HostingSiteStatus>
     ) => {
-      if (!currentMeeting?.id) return;
+      if (!currentMeeting?.id) {
+        return;
+      }
 
       setLoading(true);
       setError(null);
@@ -102,10 +106,10 @@ export function useHostingSiteStatus() {
         const data = await response.json();
         setHostingSiteStatus(data);
         return data;
-      } catch (err) {
-        console.error("Error updating hosting site status:", err);
-        setError(err instanceof Error ? err.message : "An error occurred");
-        throw err;
+      } catch (error_) {
+        console.error("Error updating hosting site status:", error_);
+        setError(Error.isError(error_) ? error_.message : "An error occurred");
+        throw error_;
       } finally {
         setLoading(false);
       }
@@ -116,7 +120,9 @@ export function useHostingSiteStatus() {
   // Submit revision request
   const submitRevisionRequest = useCallback(
     async (revisionRequest: string) => {
-      if (!currentMeeting?.id) return;
+      if (!currentMeeting?.id) {
+        return;
+      }
 
       setLoading(true);
       setError(null);
@@ -145,10 +151,10 @@ export function useHostingSiteStatus() {
 
         // Refresh the full hosting site status to get the new revision
         await fetchHostingSiteStatus();
-      } catch (err) {
-        console.error("Error submitting revision request:", err);
-        setError(err instanceof Error ? err.message : "An error occurred");
-        throw err;
+      } catch (error_) {
+        console.error("Error submitting revision request:", error_);
+        setError(Error.isError(error_) ? error_.message : "An error occurred");
+        throw error_;
       } finally {
         setLoading(false);
       }
@@ -164,7 +170,9 @@ export function useHostingSiteStatus() {
   // Add comment
   const addComment = useCallback(
     async (comment: string) => {
-      if (!currentMeeting?.id) return;
+      if (!currentMeeting?.id) {
+        return;
+      }
 
       setLoading(true);
       setError(null);
@@ -190,10 +198,10 @@ export function useHostingSiteStatus() {
 
         // Refresh the full hosting site status to get the new comment
         await fetchHostingSiteStatus();
-      } catch (err) {
-        console.error("Error adding comment:", err);
-        setError(err instanceof Error ? err.message : "An error occurred");
-        throw err;
+      } catch (error_) {
+        console.error("Error adding comment:", error_);
+        setError(Error.isError(error_) ? error_.message : "An error occurred");
+        throw error_;
       } finally {
         setLoading(false);
       }
@@ -203,12 +211,11 @@ export function useHostingSiteStatus() {
 
   // Approve hosting site
   const approveHostingSite = useCallback(
-    async (approvedBy?: string) => {
-      return updateHostingSiteStatus("Approved", {
+    async (approvedBy?: string) =>
+      await updateHostingSiteStatus("Approved", {
         approved_by: approvedBy,
         approved_at: new Date().toISOString(),
-      });
-    },
+      }),
     [updateHostingSiteStatus]
   );
 

@@ -7,7 +7,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import React, { useEffect, useRef, useState } from "react";
 
 interface FormFieldAreaProps {
-  area: {
+  readonly area: {
     id: string;
     x: number;
     y: number;
@@ -17,7 +17,7 @@ interface FormFieldAreaProps {
     type?: "text" | "date";
     value?: string;
   };
-  onValueChange: (areaId: string, value: string) => void;
+  readonly onValueChange: (areaId: string, value: string) => void;
 }
 
 export const FormFieldArea: React.FC<FormFieldAreaProps> = ({
@@ -78,7 +78,9 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({
               <DatePicker
                 value={value ? new Date(value) : null}
                 onChange={handleDateChange}
-                onClose={() => setIsEditing(false)}
+                onClose={() => {
+                  setIsEditing(false);
+                }}
                 open={isEditing}
                 slotProps={{
                   textField: {
@@ -110,7 +112,9 @@ export const FormFieldArea: React.FC<FormFieldAreaProps> = ({
             <TextField
               ref={inputRef}
               value={value}
-              onChange={(e) => handleChange(e.target.value)}
+              onChange={(e) => {
+                handleChange(e.target.value);
+              }}
               onBlur={handleBlur}
               variant="outlined"
               size="small"

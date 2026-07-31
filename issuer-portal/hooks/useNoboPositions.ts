@@ -24,7 +24,9 @@ export interface NoboPosition {
 }
 
 const toFiniteNumber = (value: unknown): number => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
@@ -36,12 +38,16 @@ const toFiniteNumber = (value: unknown): number => {
  */
 const normalizeNoboPosition = (value: unknown): NoboPosition | null => {
   const record = asRecord(value);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   const holderCategory = normalizeHolderCategory(
     record.holder_category ?? record.holderCategory
   );
-  if (holderCategory !== "NOBO") return null;
+  if (holderCategory !== "NOBO") {
+    return null;
+  }
 
   return {
     id: asString(record.id) ?? "",
@@ -94,7 +100,7 @@ export const useNoboPositions = (
 ): UseNoboPositionsResult => {
   const { data, error, isLoading } = useSWR(
     meetingId ? (["/nobo-positions", meetingId] as const) : null,
-    ([, id]) => fetchNoboPositions(id),
+    async ([, id]) => await fetchNoboPositions(id),
     {
       revalidateOnFocus: false,
       keepPreviousData: true,
@@ -105,6 +111,6 @@ export const useNoboPositions = (
   return {
     positions: data ?? [],
     loading: isLoading,
-    error: error instanceof Error ? error.message : null,
+    error: Error.isError(error) ? error.message : null,
   };
 };

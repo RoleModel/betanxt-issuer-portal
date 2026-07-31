@@ -5,7 +5,7 @@ import type { MarkElementProps } from "@mui/x-charts";
 import React from "react";
 
 interface LineMarkerProps extends MarkElementProps {
-  size?: number;
+  readonly size?: number;
 }
 
 /**
@@ -40,7 +40,7 @@ const LineMarker = ({
       >
         {/* Left line */}
         <path
-          d="M2.23438 12H7.23438"
+          d="M2.23 12H7.23"
           stroke={color}
           strokeWidth="2"
           strokeLinecap="round"
@@ -74,7 +74,7 @@ export default LineMarker;
 export function createLineMarkerElement(
   options: { color?: string; size?: number } = {}
 ) {
-  return (props: MarkElementProps) => {
+  return function (props: MarkElementProps) {
     const { x, y, color: seriesColor, ...restProps } = props;
     const finalColor = options.color ?? seriesColor ?? "#EB6333";
 

@@ -15,6 +15,7 @@ import React from "react";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 
 interface MeetingAccessItem {
+  id: string;
   label: string;
   type: "confirm" | "string" | "upload";
   value?: boolean;
@@ -24,29 +25,32 @@ interface MeetingAccessItem {
 }
 
 interface MeetingRolesCardProps {
-  className?: string;
+  readonly className?: string;
 }
 
-const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className }) => {
-  // Mock data matching the Figma design
-  const accessItems: MeetingAccessItem[] = [
-    {
-      label: "88554D205",
-      type: "string",
-      string: "4:1 Voting Multiplier",
-    },
-    {
-      label: "88554D205",
-      type: "string",
-      string: "4:1 Voting Multiplier",
-    },
-    {
-      label: "Shares Per Shareholder",
-      type: "string",
-      string: "B Shares",
-    },
-  ];
+// Mock data matching the Figma design
+const accessItems: MeetingAccessItem[] = [
+  {
+    id: "cusip-1",
+    label: "88554D205",
+    type: "string",
+    string: "4:1 Voting Multiplier",
+  },
+  {
+    id: "cusip-2",
+    label: "88554D205",
+    type: "string",
+    string: "4:1 Voting Multiplier",
+  },
+  {
+    id: "shares-per-shareholder",
+    label: "Shares Per Shareholder",
+    type: "string",
+    string: "B Shares",
+  },
+];
 
+const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className }) => {
   return (
     <Card className={className}>
       <CardHeader title="Shares Multiplier" />
@@ -65,9 +69,9 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({ className }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {accessItems.map((item, index) => (
+            {accessItems.map((item) => (
               <TableRow
-                key={index}
+                key={item.id}
                 sx={{
                   "&:not(:last-child)": {
                     borderBottom: "1px solid rgba(31,30,28,0.12)",

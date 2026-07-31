@@ -29,10 +29,10 @@ interface QuorumData {
 }
 
 interface QuorumPerformanceTableProps {
-  data: QuorumData[];
-  loading?: boolean;
-  title?: string;
-  clientTicker?: string;
+  readonly data: QuorumData[];
+  readonly loading?: boolean;
+  readonly title?: string;
+  readonly clientTicker?: string;
 }
 
 /**
@@ -83,11 +83,11 @@ const QuorumPerformanceTable: React.FC<QuorumPerformanceTableProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((row, index) => {
+              {data.map((row) => {
                 const displayTitle = row.meetingTitle;
 
                 return (
-                  <TableRow key={`${row.meetingId}-${index}`}>
+                  <TableRow key={row.meetingId}>
                     <TableCell size="small" component="th" scope="row">
                       {clientTicker ? (
                         <Button

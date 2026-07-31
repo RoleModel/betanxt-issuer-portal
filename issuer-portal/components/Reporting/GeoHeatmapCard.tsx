@@ -40,9 +40,9 @@ interface PopulationState {
 
 interface GeoHeatmapCardProps {
   /** Meeting whose positions are aggregated; no data is shown when omitted. */
-  meetingId?: string;
+  readonly meetingId?: string;
   /** Card subheader; defaults to the chart description when unset. */
-  subheader?: string;
+  readonly subheader?: string;
 }
 
 const METRIC_LABELS: Record<GeoMetric, string> = {
@@ -264,7 +264,9 @@ export const GeoHeatmapCard = ({
                 <Checkbox
                   size="small"
                   checked={populations.registered}
-                  onChange={() => handlePopulationToggle("registered")}
+                  onChange={() => {
+                    handlePopulationToggle("registered");
+                  }}
                 />
               }
               label="Registered"
@@ -274,7 +276,9 @@ export const GeoHeatmapCard = ({
                 <Checkbox
                   size="small"
                   checked={populations.plan}
-                  onChange={() => handlePopulationToggle("plan")}
+                  onChange={() => {
+                    handlePopulationToggle("plan");
+                  }}
                 />
               }
               label="Plan"
@@ -284,23 +288,27 @@ export const GeoHeatmapCard = ({
                 <Checkbox
                   size="small"
                   checked={populations.beneficial}
-                  onChange={() => handlePopulationToggle("beneficial")}
+                  onChange={() => {
+                    handlePopulationToggle("beneficial");
+                  }}
                 />
               }
               label="Beneficial"
             />
-            {hasNoboFeature && (
+            {hasNoboFeature ? (
               <FormControlLabel
                 control={
                   <Checkbox
                     size="small"
                     checked={populations.nobo}
-                    onChange={() => handlePopulationToggle("nobo")}
+                    onChange={() => {
+                      handlePopulationToggle("nobo");
+                    }}
                   />
                 }
                 label="NOBO"
               />
-            )}
+            ) : null}
           </FormGroup>
         </Stack>
 

@@ -1,9 +1,10 @@
 "use client";
 
-import useSWR, { type Fetcher } from "swr";
+import useSWR from "swr";
 
 import buildApiClient from "@/domain-models/apiClient";
 import { asRecord, asString } from "@/utils/typeUtils";
+import type { Fetcher } from "swr";
 
 interface BrokerVotingData {
   broker: string;
@@ -99,7 +100,7 @@ const fetchReports: Fetcher<ReportsData, ReportsKey> = async ([
   const voteDistribution = _transformVoteDistribution(report.voteDistribution);
   const positionsVoted = _transformPositionsVoted(report.positionsVoted);
   const setKeys = Array.isArray(report.setKeys)
-    ? report.setKeys.map((key) => String(key))
+    ? report.setKeys.map(String)
     : [];
 
   return {
@@ -132,23 +133,27 @@ function _transformBrokerVoting(brokerVoting: unknown): BrokerVotingByProposal {
     return result;
   }
 
-  Object.entries(rawData).forEach(([proposalId, brokers]) => {
-    if (!Array.isArray(brokers)) return;
+  for (const [proposalId, brokers] of Object.entries(rawData)) {
+    if (!Array.isArray(brokers)) {
+      continue;
+    }
 
     const normalized = _normalizeBrokerVotingEntries(brokers);
 
     if (normalized.length > 0) {
       result[proposalId] = normalized;
     }
-  });
+  }
 
   return result;
 }
 
 function _normalizeBrokerVotingEntries(entries: unknown[]): BrokerVotingData[] {
-  return entries.reduce<BrokerVotingData[]>((acc, entry) => {
+  return entries.reduce<BrokerVotingData[]>((accumulator, entry) => {
     const brokerRecord = asRecord(entry);
-    if (!brokerRecord) return acc;
+    if (!brokerRecord) {
+      return accumulator;
+    }
 
     const forVotes = toFiniteNumber(brokerRecord.sharesFor ?? brokerRecord.for);
     const againstVotes = toFiniteNumber(
@@ -160,7 +165,7 @@ function _normalizeBrokerVotingEntries(entries: unknown[]): BrokerVotingData[] {
 
     // Ensure broker is always a string to prevent chart rendering errors
     const brokerName = asString(brokerRecord.broker);
-    acc.push({
+    accumulator.push({
       broker: brokerName ?? "Unknown",
       for: forVotes,
       against: againstVotes,
@@ -168,7 +173,7 @@ function _normalizeBrokerVotingEntries(entries: unknown[]): BrokerVotingData[] {
       total: forVotes + againstVotes + abstainVotes,
     });
 
-    return acc;
+    return accumulator;
   }, []);
 }
 
@@ -179,18 +184,20 @@ function _transformShareRangePerformance(
     return [];
   }
 
-  return shareRangePerformance.reduce<ShareRangeData[]>((acc, item) => {
+  return shareRangePerformance.reduce<ShareRangeData[]>((accumulator, item) => {
     const range = asRecord(item);
-    if (!range) return acc;
+    if (!range) {
+      return accumulator;
+    }
 
-    acc.push({
+    accumulator.push({
       range: asString(range.rangeLabel) ?? "",
       positions: toFiniteNumber(range.positionCount),
       shares: toFiniteNumber(range.totalShares),
       percentVoted: toFiniteNumber(range.percentVoted),
     });
 
-    return acc;
+    return accumulator;
   }, []);
 }
 

@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -22,7 +23,7 @@ const getApiErrorMessage = (err: unknown, fallback: string): string => {
   if (!err) return fallback;
   if (typeof err === "string") return err;
   if (typeof err === "object" && "message" in err) {
-    const message = (err as { message?: unknown }).message;
+    const { message } = err as { message?: unknown };
     if (typeof message === "string" && message.trim().length > 0) {
       return message;
     }
@@ -55,7 +56,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
 );
 
 interface NotificationProviderProps {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
 
 const getFallbackReadState = (notificationId: string): boolean => {
@@ -210,12 +211,15 @@ export const NotificationProvider = ({
 
       // Mark all unread notifications as read
       await Promise.all(
-        unreadNotifications.map((n) => {
+        unreadNotifications.map(async (n) => {
           // We've already filtered for notifications with ids above
           const notificationId = n.id!;
-          return apiClient.PATCH("/notifications/{notificationId}/mark-read", {
-            params: { path: { notificationId } },
-          });
+          return await apiClient.PATCH(
+            "/notifications/{notificationId}/mark-read",
+            {
+              params: { path: { notificationId } },
+            }
+          );
         })
       );
 
@@ -237,21 +241,34 @@ export const NotificationProvider = ({
       void fetchNotifications();
     }, 60000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [fetchNotifications]);
 
+  const value = useMemo<NotificationContextType>(
+    () => ({
+      notifications,
+      unreadCount,
+      loading,
+      error,
+      fetchNotifications,
+      markAsRead,
+      markAllAsRead,
+    }),
+    [
+      notifications,
+      unreadCount,
+      loading,
+      error,
+      fetchNotifications,
+      markAsRead,
+      markAllAsRead,
+    ]
+  );
+
   return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount,
-        loading,
-        error,
-        fetchNotifications,
-        markAsRead,
-        markAllAsRead,
-      }}
-    >
+    <NotificationContext.Provider value={value}>
       {children}
     </NotificationContext.Provider>
   );

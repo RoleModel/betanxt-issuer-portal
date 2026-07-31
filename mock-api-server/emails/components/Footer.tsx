@@ -4,10 +4,10 @@ import React from "react";
 import { COLORS, FONTS } from "../styles";
 
 interface FooterProps {
-  portalBaseUrl: string;
+  readonly portalBaseUrl: string;
 }
 
-export function Footer({ portalBaseUrl }: FooterProps) {
+export const Footer = ({ portalBaseUrl }: FooterProps) => {
   return (
     <Section
       style={{
@@ -36,4 +36,4 @@ export function Footer({ portalBaseUrl }: FooterProps) {
       </Text>
     </Section>
   );
-}
+};

@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 import type { components } from "@/types/api";
 import type { Database } from "@/utils/supabase/database.types";
@@ -134,8 +134,9 @@ export async function listPositions(params?: {
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch positions",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch positions",
       },
     };
   }
@@ -178,8 +179,9 @@ export async function createPosition(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to create position",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to create position",
       },
     };
   }
@@ -207,8 +209,9 @@ export async function getPositionById(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch position",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch position",
       },
     };
   }
@@ -221,19 +224,30 @@ export async function updatePosition(
   try {
     const request = body;
     const updateData: Partial<PositionUpdate> = {};
-    if (request.name !== undefined) updateData.name = request.name;
-    if (request.accountNumber !== undefined)
+    if (request.name !== undefined) {
+      updateData.name = request.name;
+    }
+    if (request.accountNumber !== undefined) {
       updateData.account_number = request.accountNumber;
-    if (request.controlNumber !== undefined)
+    }
+    if (request.controlNumber !== undefined) {
       updateData.control_number = request.controlNumber;
-    if (request.shares !== undefined) updateData.shares = request.shares;
-    if (request.sharesVoted !== undefined)
+    }
+    if (request.shares !== undefined) {
+      updateData.shares = request.shares;
+    }
+    if (request.sharesVoted !== undefined) {
       updateData.shares_voted = request.sharesVoted;
-    if (request.voteStatus !== undefined)
+    }
+    if (request.voteStatus !== undefined) {
       updateData.vote_status = request.voteStatus;
-    if (request.source !== undefined) updateData.source = request.source;
-    if (request.dateVoted !== undefined)
+    }
+    if (request.source !== undefined) {
+      updateData.source = request.source;
+    }
+    if (request.dateVoted !== undefined) {
       updateData.date_voted = request.dateVoted;
+    }
 
     const { data, error } = await supabase
       .from("position")
@@ -259,8 +273,9 @@ export async function updatePosition(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to update position",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to update position",
       },
     };
   }

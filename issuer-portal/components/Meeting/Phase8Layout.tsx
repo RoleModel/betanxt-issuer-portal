@@ -19,8 +19,8 @@ import {
 } from "@/utils/quorum";
 
 interface Phase8LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
+  readonly meetingId?: string;
+  readonly meeting?: Meeting;
 }
 
 export default React.memo(({ meeting, meetingId }: Phase8LayoutProps) => {

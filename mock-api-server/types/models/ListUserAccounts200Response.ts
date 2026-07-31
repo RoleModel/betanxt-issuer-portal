@@ -1,5 +1,3 @@
-import type { Account } from "./Account";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -19,6 +17,7 @@ import {
   AccountToJSON,
   AccountToJSONTyped,
 } from "./Account";
+import type { Account } from "./Account";
 
 /**
  *

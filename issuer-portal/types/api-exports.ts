@@ -2,7 +2,7 @@
  * Export commonly used types from the generated API schema
  * This file provides convenient type aliases for the auto-generated OpenAPI types
  */
-import type { components, operations } from "./api";
+import type { components } from "./api";
 
 // Export schema types
 export type Account = components["schemas"]["Account"];
@@ -77,4 +77,5 @@ export type CastVoteRequest = components["schemas"]["CastVoteRequest"];
 // export type ProblemDetails = components['schemas']['ProblemDetails'] // Not in schema
 
 // Re-export components and operations for advanced usage
-export type { components, operations };
+
+export { type operations, type components } from "./api";

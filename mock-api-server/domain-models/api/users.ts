@@ -1,10 +1,9 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
+import { apiClient } from "../apiClient";
 import type { components } from "@/types/api";
 
 import { supabase } from "@/utils/supabase/client";
-
-import { apiClient } from "../apiClient";
 
 // Use generated types from OpenAPI schema
 type User = components["schemas"]["User"];

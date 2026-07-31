@@ -1,8 +1,6 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
-
 import { auth } from "@/auth";
+import type { NextRequest } from "next/server";
 
 interface User {
   id: string;

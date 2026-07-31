@@ -30,7 +30,7 @@ export async function uploadFileToStorage(
   try {
     // Generate unique filename
     const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(2, 15);
+    const randomId = Math.random().toString(36).slice(2, 15);
     const extension = file.name.split(".").pop();
     const filename = `${timestamp}_${randomId}.${extension}`;
 
@@ -72,10 +72,10 @@ export async function uploadFileToStorage(
       },
       error: null,
     };
-  } catch (err) {
+  } catch (error) {
     return {
       data: null,
-      error: err instanceof Error ? err.message : "Unknown upload error",
+      error: Error.isError(error) ? error.message : "Unknown upload error",
     };
   }
 }
@@ -94,9 +94,9 @@ export async function deleteFileFromStorage(
     }
 
     return { error: null };
-  } catch (err) {
+  } catch (error) {
     return {
-      error: err instanceof Error ? err.message : "Unknown delete error",
+      error: Error.isError(error) ? error.message : "Unknown delete error",
     };
   }
 }
@@ -127,10 +127,10 @@ export async function listStorageFiles(folder?: string) {
     }
 
     return { data, error: null };
-  } catch (err) {
+  } catch (error) {
     return {
       data: null,
-      error: err instanceof Error ? err.message : "Unknown list error",
+      error: Error.isError(error) ? error.message : "Unknown list error",
     };
   }
 }

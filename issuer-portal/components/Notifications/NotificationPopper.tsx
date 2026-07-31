@@ -38,10 +38,10 @@ interface NotificationData {
 }
 
 interface NotificationPopperProps {
-  anchorEl: HTMLElement | null;
-  open: boolean;
-  onClose: () => void;
-  onNotificationClick?: (notification: NotificationData) => void;
+  readonly anchorEl: HTMLElement | null;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onNotificationClick?: (notification: NotificationData) => void;
 }
 
 const StyledTabs = styled(Tabs)({
@@ -324,7 +324,9 @@ export const NotificationPopper = ({
                           isSystemNotification={
                             notification.isSystemNotification
                           }
-                          onClick={() => handleNotificationClick(notification)}
+                          onClick={async () => {
+                            await handleNotificationClick(notification);
+                          }}
                         />
                       ))}
                     </Stack>
@@ -355,7 +357,9 @@ export const NotificationPopper = ({
                           isSystemNotification={
                             notification.isSystemNotification
                           }
-                          onClick={() => handleNotificationClick(notification)}
+                          onClick={async () => {
+                            await handleNotificationClick(notification);
+                          }}
                         />
                       ))}
                     </Stack>

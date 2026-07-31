@@ -10,7 +10,9 @@ type ApiTask = components["schemas"]["Task"];
 export function transformApiTaskToTask(
   apiTask: ApiTask | null | undefined
 ): Task | null {
-  if (!apiTask) return null;
+  if (!apiTask) {
+    return null;
+  }
 
   return {
     id: apiTask.id ?? "",
@@ -46,7 +48,9 @@ export function transformApiTasksToTasks(apiTasks: ApiTask[]): Task[] {
 export function transformTaskToApiTask(
   task: Task | null | undefined
 ): ApiTask | null {
-  if (!task) return null;
+  if (!task) {
+    return null;
+  }
 
   return {
     id: task.id,
@@ -73,7 +77,9 @@ export function transformTaskToApiTask(
 export function isDTCCAuthorizationTask(
   task: Task | null | undefined
 ): boolean {
-  if (!task?.title) return false;
+  if (!task?.title) {
+    return false;
+  }
   return task.title.includes("DTCC") && task.title.includes("Authorization");
 }
 
@@ -81,7 +87,9 @@ export function isDTCCAuthorizationTask(
  * Determine if a task is owned by the issuer (not BetaNXT or DFIN)
  */
 export function isIssuerOwnedTask(task: Task | null | undefined): boolean {
-  if (!task?.owner) return false;
+  if (!task?.owner) {
+    return false;
+  }
   return !["BetaNXT", "DFIN"].includes(task.owner);
 }
 

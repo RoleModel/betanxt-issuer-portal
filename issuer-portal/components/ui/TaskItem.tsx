@@ -12,8 +12,8 @@ import {
 import StatusChip from "@/components/ui/StatusChip";
 
 interface TaskItemProps {
-  task: Task;
-  onClick?: (task: Task) => void;
+  readonly task: Task;
+  readonly onClick?: (task: Task) => void;
 }
 
 const StyledTaskButton = styled(Button)<{ bordercolor: string }>(
@@ -39,27 +39,28 @@ const StyledTaskButton = styled(Button)<{ bordercolor: string }>(
   })
 );
 
+const transformStatus = (status: string | null | undefined): string => {
+  if (!status) return "Incomplete";
+  return String(status)
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (l) => l.toUpperCase());
+};
+
+const formatDate = (dateString: string | null | undefined) => {
+  if (!dateString) return "No due date";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+};
+
 const TaskItem: React.FC<TaskItemProps> = ({ task, onClick }) => {
   const theme = useTheme();
 
-  const transformStatus = (status: string | null | undefined): string => {
-    if (!status) return "Incomplete";
-    return String(status)
-      .replace(/_/g, " ")
-      .toLowerCase()
-      .replace(/\b\w/g, (l) => l.toUpperCase());
-  };
-
   const statusLabel = transformStatus(task.status);
-
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "No due date";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   // Use phase color based on phaseNumber (convert to 0-based index)
   const phaseColor = getPhaseColor((task.phaseNumber || 1) - 1);

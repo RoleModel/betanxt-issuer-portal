@@ -5,7 +5,7 @@ import type { JSX, ReactNode } from "react";
 export default function RootLayout({
   children,
 }: {
-  children: ReactNode;
+  readonly children: ReactNode;
 }): JSX.Element {
   return (
     <html lang="en">

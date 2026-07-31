@@ -1,7 +1,9 @@
 // Parses date-only strings (YYYY-MM-DD) as local dates instead of UTC midnight,
 // which would shift the displayed day backwards in US timezones.
 export const parseDisplayDate = (dateInput: string | Date): Date => {
-  if (dateInput instanceof Date) return dateInput;
+  if (dateInput instanceof Date) {
+    return dateInput;
+  }
 
   const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateInput);
   if (dateOnlyMatch) {
@@ -15,12 +17,16 @@ export const parseDisplayDate = (dateInput: string | Date): Date => {
 export const formatDate = (
   dateInput: string | Date | undefined | null
 ): string => {
-  if (!dateInput) return "-";
+  if (!dateInput) {
+    return "-";
+  }
 
   const date = parseDisplayDate(dateInput);
 
   // Check if date is valid
-  if (isNaN(date.getTime())) return "-";
+  if (isNaN(date.getTime())) {
+    return "-";
+  }
 
   return date.toLocaleDateString("en-US", {
     month: "short",
@@ -31,12 +37,16 @@ export const formatDate = (
 export const formatDateWithYear = (
   dateInput: string | Date | undefined | null
 ): string => {
-  if (!dateInput) return "-";
+  if (!dateInput) {
+    return "-";
+  }
 
   const date = parseDisplayDate(dateInput);
 
   // Check if date is valid
-  if (isNaN(date.getTime())) return "-";
+  if (isNaN(date.getTime())) {
+    return "-";
+  }
 
   return date.toLocaleDateString("en-US", {
     month: "short",
@@ -49,13 +59,27 @@ export const formatDateWithYear = (
 export const formatSharesParts = (
   shares: string
 ): { value: number; suffix: string } => {
-  const num = parseFloat(shares);
-  if (isNaN(num)) return { value: 0, suffix: "" };
-  if (num >= 1_000_000_000)
-    return { value: parseFloat((num / 1_000_000_000).toFixed(2)), suffix: "B" };
-  if (num >= 1_000_000)
-    return { value: parseFloat((num / 1_000_000).toFixed(2)), suffix: "M" };
-  if (num >= 1_000)
-    return { value: parseFloat((num / 1_000).toFixed(2)), suffix: "K" };
-  return { value: parseFloat(num.toFixed(2)), suffix: "" };
+  const number_ = Number.parseFloat(shares);
+  if (isNaN(number_)) {
+    return { value: 0, suffix: "" };
+  }
+  if (number_ >= 1_000_000_000) {
+    return {
+      value: Number.parseFloat((number_ / 1_000_000_000).toFixed(2)),
+      suffix: "B",
+    };
+  }
+  if (number_ >= 1_000_000) {
+    return {
+      value: Number.parseFloat((number_ / 1_000_000).toFixed(2)),
+      suffix: "M",
+    };
+  }
+  if (number_ >= 1000) {
+    return {
+      value: Number.parseFloat((number_ / 1000).toFixed(2)),
+      suffix: "K",
+    };
+  }
+  return { value: Number.parseFloat(number_.toFixed(2)), suffix: "" };
 };

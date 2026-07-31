@@ -5,14 +5,14 @@ import { COLORS, FONTS } from "../styles";
 import BNLogo from "./BNLogo";
 
 interface HeaderProps {
-  meetingType: string;
-  subtitle?: string;
+  readonly meetingType: string;
+  readonly subtitle?: string;
 }
 
-export function Header({
+export const Header = ({
   meetingType,
   subtitle = "Document Update Notification",
-}: HeaderProps) {
+}: HeaderProps) => {
   return (
     <Section
       style={{
@@ -53,4 +53,4 @@ export function Header({
       </Row>
     </Section>
   );
-}
+};

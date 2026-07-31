@@ -15,9 +15,9 @@ interface ParticipationData {
 }
 
 interface ParticipationChartProps {
-  data: ParticipationData;
-  loading?: boolean;
-  title?: string;
+  readonly data: ParticipationData;
+  readonly loading?: boolean;
+  readonly title?: string;
 }
 
 const ParticipationChart: React.FC<ParticipationChartProps> = ({

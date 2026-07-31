@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 import { config } from "dotenv";
 import { Client } from "pg";
 
@@ -237,7 +236,7 @@ async function cleanupAllOrphanedRecords() {
     console.log(`   Deleted ${deleteDSM.rowCount} orphaned records`);
     totalDeleted += deleteDSM.rowCount ?? 0;
 
-    console.log("\n" + "=".repeat(60));
+    console.log(`\n${"=".repeat(60)}`);
     console.log(`✅ Cleanup complete! Total records deleted: ${totalDeleted}`);
     console.log("=".repeat(60));
   } catch (error) {

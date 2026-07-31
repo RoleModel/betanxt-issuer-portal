@@ -39,14 +39,14 @@ interface DisplayKeyDate {
 }
 
 interface ListViewProps {
-  searchQuery: string;
-  statusFilter: string;
-  phaseFilter: number | null;
-  currentPhase?: number;
-  onTaskClick: (taskId: string) => void;
-  tasks: Task[];
-  keyDates: KeyDate[];
-  loading: boolean;
+  readonly searchQuery: string;
+  readonly statusFilter: string;
+  readonly phaseFilter: number | null;
+  readonly currentPhase?: number;
+  readonly onTaskClick: (taskId: string) => void;
+  readonly tasks: Task[];
+  readonly keyDates: KeyDate[];
+  readonly loading: boolean;
 }
 
 const filterTasks = (
@@ -67,6 +67,76 @@ const filterTasks = (
     return matchesSearch && matchesStatus;
   });
 };
+
+// Helper function to parse date strings for sorting
+const parseDateString = (dateStr: string): Date => {
+  // Handle formats like "Aug 16" or "Friday, Aug 16"
+  const cleanDateStr = dateStr.replace(/^[A-Za-z]+,\s*/, "");
+  const currentYear = new Date().getFullYear();
+  return new Date(`${cleanDateStr}, ${currentYear}`);
+};
+
+// Convert database records to expected format with weekend adjustment for tasks
+const prepareTaskForDisplay = (dbTask: Task): Task => {
+  let formattedDate = undefined;
+  if (dbTask.dueDate) {
+    // Parse date and apply weekend adjustment for tasks
+    // Use UTC to avoid timezone issues
+    const [year, month, day] = dbTask.dueDate.split("-").map(Number);
+    const originalDate = new Date(Date.UTC(year, month - 1, day));
+    const adjustedDate = shiftWeekendToMonday(originalDate);
+    formattedDate = adjustedDate.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    });
+  }
+
+  return {
+    id: dbTask.taskId ?? dbTask.id ?? "",
+    title: dbTask.title ?? "",
+    description: dbTask.description ?? "",
+    status: dbTask.status ?? "INCOMPLETE",
+    dueDate: formattedDate ?? "",
+    owner: dbTask.owner ?? "BetaNXT",
+    type: ["upload", "signature", "external", "authorize", "approve"].includes(
+      dbTask.type ?? ""
+    )
+      ? (dbTask.type ?? "external")
+      : "external",
+    phaseNumber: dbTask.phaseNumber ?? 1,
+    phaseId: dbTask.phaseId ?? "",
+    meetingId: dbTask.meetingId,
+    taskId: dbTask.taskId ?? dbTask.id ?? "",
+    documentId: dbTask.documentId ?? null,
+    createdAt: dbTask.createdAt ?? undefined,
+    updatedAt: dbTask.updatedAt ?? undefined,
+  };
+};
+
+const convertKeyDateToDisplayKeyDate = (keyDate: KeyDate): DisplayKeyDate => ({
+  id: keyDate.id,
+  title: keyDate.title ?? "",
+  date: keyDate.date
+    ? (() => {
+        try {
+          // Handle ISO date strings like "2026-01-15T20:14:26.277-06:00"
+          const originalDate = new Date(keyDate.date);
+          const adjustedDate = shiftWeekendToMonday(originalDate);
+          return adjustedDate.toLocaleDateString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            timeZone: "UTC",
+          });
+        } catch {
+          return keyDate.date;
+        }
+      })()
+    : "",
+  phaseNumber: keyDate.phaseNumber || 1,
+});
 
 // Individual item animation - staggered by index
 
@@ -107,86 +177,14 @@ export const ListView: React.FC<ListViewProps> = ({
       setLoaded(true);
     } else if (!loading) {
       // Even if no data, still fade in the empty state
-      const timer = setTimeout(() => setLoaded(true), 100);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        setLoaded(true);
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [loading, dbTasks.length, dbKeyDates.length]);
-
-  // Helper function to parse date strings for sorting
-  const parseDateString = (dateStr: string): Date => {
-    // Handle formats like "Aug 16" or "Friday, Aug 16"
-    const cleanDateStr = dateStr.replace(/^[A-Za-z]+,\s*/, "");
-    const currentYear = new Date().getFullYear();
-    return new Date(`${cleanDateStr}, ${currentYear}`);
-  };
-
-  // Convert database records to expected format with weekend adjustment for tasks
-  const prepareTaskForDisplay = (dbTask: Task): Task => {
-    let formattedDate = undefined;
-    if (dbTask.dueDate) {
-      // Parse date and apply weekend adjustment for tasks
-      // Use UTC to avoid timezone issues
-      const [year, month, day] = dbTask.dueDate.split("-").map(Number);
-      const originalDate = new Date(Date.UTC(year, month - 1, day));
-      const adjustedDate = shiftWeekendToMonday(originalDate);
-      formattedDate = adjustedDate.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        timeZone: "UTC",
-      });
-    }
-
-    return {
-      id: dbTask.taskId ?? dbTask.id ?? "",
-      title: dbTask.title ?? "",
-      description: dbTask.description ?? "",
-      status: dbTask.status ?? "INCOMPLETE",
-      dueDate: formattedDate ?? "",
-      owner: dbTask.owner ?? "BetaNXT",
-      type: [
-        "upload",
-        "signature",
-        "external",
-        "authorize",
-        "approve",
-      ].includes(dbTask.type ?? "")
-        ? (dbTask.type ?? "external")
-        : "external",
-      phaseNumber: dbTask.phaseNumber ?? 1,
-      phaseId: dbTask.phaseId ?? "",
-      meetingId: dbTask.meetingId,
-      taskId: dbTask.taskId ?? dbTask.id ?? "",
-      documentId: dbTask.documentId ?? null,
-      createdAt: dbTask.createdAt ?? undefined,
-      updatedAt: dbTask.updatedAt ?? undefined,
-    };
-  };
-
-  const convertKeyDateToDisplayKeyDate = (
-    keyDate: KeyDate
-  ): DisplayKeyDate => ({
-    id: keyDate.id,
-    title: keyDate.title ?? "",
-    date: keyDate.date
-      ? (() => {
-          try {
-            // Handle ISO date strings like "2026-01-15T20:14:26.277-06:00"
-            const originalDate = new Date(keyDate.date);
-            const adjustedDate = shiftWeekendToMonday(originalDate);
-            return adjustedDate.toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-              timeZone: "UTC",
-            });
-          } catch {
-            return keyDate.date;
-          }
-        })()
-      : "",
-    phaseNumber: keyDate.phaseNumber || 1,
-  });
 
   // Get data based on selected phase or all phases
   const getCurrentData = () => {
@@ -316,7 +314,9 @@ export const ListView: React.FC<ListViewProps> = ({
     setTaskToEdit(null);
     // Force a re-render by updating the loaded state
     setLoaded(false);
-    setTimeout(() => setLoaded(true), 100);
+    setTimeout(() => {
+      setLoaded(true);
+    }, 100);
   };
 
   // Handle edit modal close
@@ -349,7 +349,9 @@ export const ListView: React.FC<ListViewProps> = ({
         >
           <ListItemButton
             selected={selectedPhase === "all"}
-            onClick={() => setSelectedPhase("all")}
+            onClick={() => {
+              setSelectedPhase("all");
+            }}
             sx={(theme) => ({
               fontSize: theme.typography.body3.fontSize,
               py: 1.5,
@@ -386,7 +388,9 @@ export const ListView: React.FC<ListViewProps> = ({
                     key={phaseNumber}
                     selected={isSelected}
                     divider={true}
-                    onClick={() => setSelectedPhase(phaseNumber)}
+                    onClick={() => {
+                      setSelectedPhase(phaseNumber);
+                    }}
                     sx={{
                       width: "100%",
                       boxShadow: isSelected
@@ -421,7 +425,7 @@ export const ListView: React.FC<ListViewProps> = ({
                       >
                         Phase {phaseNumber}
                       </Typography>
-                      {isSelected && (
+                      {isSelected ? (
                         <Box
                           display="grid"
                           gridTemplateRows="1fr auto"
@@ -456,7 +460,7 @@ export const ListView: React.FC<ListViewProps> = ({
                             }}
                           />
                         </Box>
-                      )}
+                      ) : null}
                     </Box>
                   </ListItemButton>
                 );
@@ -626,7 +630,9 @@ export const ListView: React.FC<ListViewProps> = ({
                             <Paper
                               elevation={0}
                               tabIndex={0}
-                              onClick={() => onTaskClick(task.id ?? "")}
+                              onClick={() => {
+                                onTaskClick(task.id ?? "");
+                              }}
                               onContextMenu={(e) => {
                                 const dbTask = dbTasks.find(
                                   (t) =>

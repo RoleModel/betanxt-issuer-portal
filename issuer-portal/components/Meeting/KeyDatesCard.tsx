@@ -19,6 +19,23 @@ import {
   parseLocalDate,
 } from "@/utils/dateUtils";
 
+/**
+ * Format a date string as "Mon D" deterministically. `parseLocalDate` yields a
+ * Date whose local calendar components are the intended day; we rebuild it as a
+ * UTC instant and format in UTC so the server and browser always render the
+ * same text (avoiding a hydration mismatch).
+ */
+const formatKeyDate = (dateString: string): string => {
+  const parsed = parseLocalDate(dateString);
+  return new Date(
+    Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate())
+  ).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+};
+
 interface TransformedKeyDate {
   title: string;
   date: string;
@@ -29,10 +46,10 @@ interface TransformedKeyDate {
 }
 
 interface KeyDatesCardProps {
-  loading?: boolean;
-  transformedKeyDates?: TransformedKeyDate[];
-  className?: string;
-  meeting?: {
+  readonly loading?: boolean;
+  readonly transformedKeyDates?: TransformedKeyDate[];
+  readonly className?: string;
+  readonly meeting?: {
     id?: string;
     recordDate?: string | null;
     mailingDate?: string | null;
@@ -101,13 +118,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   if (meeting?.brokerSearchDate) {
     meetingKeyDates.push({
       title: "Broker Search",
-      date: parseLocalDate(meeting.brokerSearchDate).toLocaleDateString(
-        "en-US",
-        {
-          month: "short",
-          day: "numeric",
-        }
-      ),
+      date: formatKeyDate(meeting.brokerSearchDate),
       dateString: meeting.brokerSearchDate,
       phase: 2,
       phaseColor: getPhaseColor(2),
@@ -117,10 +128,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   if (meeting?.recordDate) {
     meetingKeyDates.push({
       title: "Record Date",
-      date: parseLocalDate(meeting.recordDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      date: formatKeyDate(meeting.recordDate),
       dateString: meeting.recordDate,
       phase: 3,
       phaseColor: getPhaseColor(3),
@@ -130,10 +138,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   if (meeting?.mailingDate) {
     meetingKeyDates.push({
       title: "Mailing Date",
-      date: parseLocalDate(meeting.mailingDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      date: formatKeyDate(meeting.mailingDate),
       dateString: meeting.mailingDate,
       phase: 4,
       phaseColor: getPhaseColor(4),
@@ -143,10 +148,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
   if (meeting?.meetingDate) {
     meetingKeyDates.push({
       title: "Meeting Date",
-      date: parseLocalDate(meeting.meetingDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      date: formatKeyDate(meeting.meetingDate),
       dateString: meeting.meetingDate,
       phase: 7,
       phaseColor: "var(--mui-palette-keydate-light)",
@@ -184,24 +186,24 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
               Array.from({ length: 4 }, (_, index) => (
                 <LoadingBox key={index} />
               ))
-            : displayKeyDates.map((phaseItem, index) => {
+            : displayKeyDates.map((phaseItem) => {
                 const daysUntil = calculateDaysUntil(phaseItem.dateString);
                 const isPast = daysUntil < 0;
                 return (
                   <KeyDateBox
-                    key={index}
+                    key={phaseItem.title}
                     isMeeting={phaseItem.isMeeting}
                     isPast={isPast}
                     phaseColor={phaseItem.phaseColor}
                   >
-                    {isPast && (
+                    {isPast ? (
                       <CheckCircleIcon
                         sx={{
                           fontSize: 20,
                           color: theme.vars.palette.success.main,
                         }}
                       />
-                    )}
+                    ) : null}
                     <Box
                       display="flex"
                       alignItems="start"

@@ -141,7 +141,14 @@
       "Bash(git add *)",
       "Bash(grep -E \"^\\(dist|node_modules\\)/|\\\\.env$\")",
       "Bash(git commit -q -m ' *)",
-      "Bash(gh repo *)"
+      "Bash(gh repo *)",
+      "Bash(npx ultracite *)",
+      "Bash(perl -0pi -e 's/const getPageTitle = async \\\\\\(\\\\\\) => \\\\{/const getPageTitle = \\(\\) => {/; s/return await \\\\\\(children \\\\|\\\\| getParentTitle\\\\\\(\\\\\\)\\\\\\);/return children || getParentTitle\\(\\);/' /private/tmp/claude-501/-Users-dallas-Development-betanxt-betanxt-issuer-portal/f6a8d64e-d9b2-4534-8e9c-fedddb610ce8/scratchpad/pt.tsx)",
+      "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\).on\\('end',\\(\\)=>{const r=JSON.parse\\(s\\);for\\(const f of r\\){for\\(const m of f.messages\\){if\\(m.fix||/async|await/i.test\\(m.message||''\\)\\)console.log\\(m.line,m.ruleId,'|',m.message,'| HASFIX:',!!m.fix\\)}}}\\)\")",
+      "Bash(awk 'NR>=83 && /^};/{print NR\": \"$0; exit}' cli/validate-seed.ts)",
+      "Bash(timeout 540 pnpm build)",
+      "Bash(npx prettier *)",
+      "Bash(echo \"exit: $?\")"
     ]
   },
   "enabledMcpjsonServers": [

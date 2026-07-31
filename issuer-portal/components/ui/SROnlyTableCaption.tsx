@@ -1,6 +1,10 @@
 import React from "react";
 
-const SROnlyTableCaption = ({ children }: { children: React.ReactNode }) => {
+const SROnlyTableCaption = ({
+  children,
+}: {
+  readonly children: React.ReactNode;
+}) => {
   return (
     <caption
       style={{

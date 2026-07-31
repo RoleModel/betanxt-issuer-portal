@@ -18,7 +18,6 @@ import {
   tabulationCardContentStyles,
   tabulationCardHeaderStyles,
   tabulationCardStyles,
-  tabulationChartHeight,
 } from "../../utils/tabulation-card-layout";
 import {
   formatTabulationMetric,
@@ -130,6 +129,8 @@ const BeneficialVsRegisteredCard = ({
   useEffect(() => {
     if (meetingId.length === 0) return;
 
+    let ignore = false;
+
     const fetchPositions = async () => {
       setLoading(true);
       try {
@@ -150,15 +151,19 @@ const BeneficialVsRegisteredCard = ({
           return acc;
         }, []);
 
-        setPositions(positionsList);
+        if (!ignore) setPositions(positionsList);
       } catch (error) {
         console.error("Failed to fetch positions:", error);
       }
 
-      setLoading(false);
+      if (!ignore) setLoading(false);
     };
 
     void fetchPositions();
+
+    return () => {
+      ignore = true;
+    };
   }, [meetingId]);
 
   let chartData = chartOverride;
@@ -241,7 +246,7 @@ const BeneficialVsRegisteredCard = ({
                   },
                 },
               ]}
-              height={tabulationChartHeight}
+              height={360}
               margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
               hideLegend={true}
               slots={{ barLabel: CustomBarLabel }}

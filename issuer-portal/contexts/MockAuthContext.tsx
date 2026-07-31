@@ -1,7 +1,14 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 // Types for user and authentication
 interface User {
@@ -32,8 +39,21 @@ const MockAuthContext = createContext<MockAuthContextType | undefined>(
 );
 
 interface MockAuthProviderProps {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
+
+// Must be async to match interface contract (returns Promise)
+
+const login = async (username: string, password: string): Promise<boolean> => {
+  try {
+    // This would typically call the NextAuth signIn function
+    // For now, return true if we have mock credentials
+    return username === "admin" && password === "admin";
+  } catch (error) {
+    console.error("Login failed in MockAuthContext", error);
+    return false;
+  }
+};
 
 export const MockAuthProvider = ({ children }: MockAuthProviderProps) => {
   const { data: session, status } = useSession();
@@ -59,70 +79,60 @@ export const MockAuthProvider = ({ children }: MockAuthProviderProps) => {
   }, [session]);
 
   // Must be async to match interface contract (returns Promise)
-  // eslint-disable-next-line @typescript-eslint/require-await
-  const login = async (
-    username: string,
-    password: string
-  ): Promise<boolean> => {
-    try {
-      // This would typically call the NextAuth signIn function
-      // For now, return true if we have mock credentials
-      return username === "admin" && password === "admin";
-    } catch (error) {
-      console.error("Login failed in MockAuthContext", error);
-      return false;
-    }
-  };
+  const logout = useCallback(
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async (): Promise<void> => {
+      try {
+        // This would typically call the NextAuth signOut function
+        setUser(null);
+      } catch (error) {
+        console.error("Logout failed in MockAuthContext", error);
+      }
+    },
+    []
+  );
 
-  // Must be async to match interface contract (returns Promise)
-  // eslint-disable-next-line @typescript-eslint/require-await
-  const logout = async (): Promise<void> => {
-    try {
-      // This would typically call the NextAuth signOut function
-      setUser(null);
-    } catch (error) {
-      console.error("Logout failed in MockAuthContext", error);
-    }
-  };
+  const switchClient = useCallback(
+    async (clientId: number, clientName: string): Promise<void> => {
+      try {
+        // Update the user's current client
+        if (user) {
+          setUser({
+            ...user,
+            client: { id: clientId, name: clientName },
+          });
+        }
 
-  const switchClient = async (
-    clientId: number,
-    clientName: string
-  ): Promise<void> => {
-    try {
-      // Update the user's current client
-      if (user) {
-        setUser({
-          ...user,
-          client: { id: clientId, name: clientName },
+        // In a real app, this would call an API to update the session
+        const response = await fetch("/api/auth/switch-client", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ clientId, clientName }),
         });
+
+        if (!response.ok) {
+          throw new Error("Failed to switch client");
+        }
+      } catch (error) {
+        console.error("Client switch failed in MockAuthContext", error);
       }
+    },
+    [user]
+  );
 
-      // In a real app, this would call an API to update the session
-      const response = await fetch("/api/auth/switch-client", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ clientId, clientName }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to switch client");
-      }
-    } catch (error) {
-      console.error("Client switch failed in MockAuthContext", error);
-    }
-  };
-
-  const value: MockAuthContextType = {
-    user,
-    isLoading: status === "loading",
-    isAuthenticated: !!user,
-    login,
-    logout,
-    switchClient,
-  };
+  const value: MockAuthContextType = useMemo(
+    () => ({
+      user,
+      isLoading: status === "loading",
+      isAuthenticated: !!user,
+      login,
+      logout,
+      switchClient,
+    }),
+    [user, status, logout, switchClient]
+  );
 
   return (
     <MockAuthContext.Provider value={value}>
@@ -138,5 +148,3 @@ export function useMockAuth() {
   }
   return context;
 }
-
-export default MockAuthContext;

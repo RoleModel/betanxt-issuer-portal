@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Bulk ESLint Auto-Fixer
  *
@@ -7,9 +5,9 @@
  * It focuses on safe, mechanical transformations that don't change behavior.
  */
 
-const fs = require("fs");
-const path = require("path");
-const { execSync } = require("child_process");
+const fs = require("node:fs");
+const path = require("node:path");
+const { execSync } = require("node:child_process");
 
 // Directories to process
 const DIRS_TO_PROCESS = ["issuer-portal", "mock-api-server", "supabase"];
@@ -45,7 +43,7 @@ function getAllTsFiles(dir, fileList = []) {
 
     if (fs.statSync(filePath).isDirectory()) {
       getAllTsFiles(filePath, fileList);
-    } else if (file.match(/\.(ts|tsx)$/)) {
+    } else if (/\.(ts|tsx)$/.test(file)) {
       fileList.push(filePath);
     }
   });
@@ -62,19 +60,19 @@ function fixNullishCoalescing(content) {
   let fixed = content;
 
   // Pattern: process.env.VAR || 'default'
-  fixed = fixed.replace(
+  fixed = fixed.replaceAll(
     /process\.env\.([A-Z_]+)\s+\|\|\s+(['"`])/g,
     "process.env.$1 ?? $2"
   );
 
   // Pattern: someVar || 'default' (only for string/number literals)
-  fixed = fixed.replace(/(\w+)\s+\|\|\s+(['"`][^'"`]*['"`])/g, "$1 ?? $2");
+  fixed = fixed.replaceAll(/(\w+)\s+\|\|\s+(['"`][^'"`]*['"`])/g, "$1 ?? $2");
 
   // Pattern: obj.prop || ''
-  fixed = fixed.replace(/([\w.[\]'"`]+)\s+\|\|\s+(['"`]{2})/g, "$1 ?? $2");
+  fixed = fixed.replaceAll(/([\w.[\]'"`]+)\s+\|\|\s+(['"`]{2})/g, "$1 ?? $2");
 
   // Pattern: obj.prop || 0
-  fixed = fixed.replace(/([\w.[\]'"`]+)\s+\|\|\s+0\b/g, "$1 ?? 0");
+  fixed = fixed.replaceAll(/([\w.[\]'"`]+)\s+\|\|\s+0\b/g, "$1 ?? 0");
 
   return fixed;
 }
@@ -84,7 +82,7 @@ function fixNullishCoalescing(content) {
  */
 function processFile(filePath) {
   try {
-    let content = fs.readFileSync(filePath, "utf8");
+    let content = fs.readFileSync(filePath, "utf-8");
     const originalContent = content;
 
     // Apply fixes
@@ -112,12 +110,12 @@ function main() {
   let totalFilesProcessed = 0;
   let totalFilesModified = 0;
 
-  DIRS_TO_PROCESS.forEach((dir) => {
+  for (const dir of DIRS_TO_PROCESS) {
     const fullPath = path.join(__dirname, dir);
 
     if (!fs.existsSync(fullPath)) {
       console.log(`⚠️  Skipping ${dir} (not found)`);
-      return;
+      continue;
     }
 
     console.log(`📁 Processing ${dir}...`);
@@ -131,7 +129,7 @@ function main() {
     });
 
     console.log(`   Processed ${files.length} files\n`);
-  });
+  }
 
   console.log(`✅ Complete!`);
   console.log(`   Files processed: ${totalFilesProcessed}`);

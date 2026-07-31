@@ -1,6 +1,15 @@
 "use client";
 
-import { Box, Button, Card, CardContent, CardHeader, Grid, Skeleton, Stack } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Grid,
+  Skeleton,
+  Stack,
+} from "@mui/material";
 import dynamic from "next/dynamic";
 import React, { Suspense } from "react";
 
@@ -12,30 +21,42 @@ import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import KeyDatesCard from "./KeyDatesCard";
 
 // Dynamic imports for heavy components
-const VotingTabulationTable = dynamic(() => import("@/components/Meeting/VotingTabulationTable"), {
-  loading: () => <Skeleton variant="rectangular" height={400} />,
-  ssr: false,
-});
+const VotingTabulationTable = dynamic(
+  async () => await import("@/components/Meeting/VotingTabulationTable"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={400} />,
+    ssr: false,
+  }
+);
 
-const MeetingRolesCard = dynamic(() => import("@/components/Meeting/MeetingRolesCard"), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-});
+const MeetingRolesCard = dynamic(
+  async () => await import("@/components/Meeting/MeetingRolesCard"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={300} />,
+    ssr: false,
+  }
+);
 
-const FeatureTile = dynamic(() => import("@/components/FeatureTile"), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-});
+const FeatureTile = dynamic(
+  async () => await import("@/components/FeatureTile"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={300} />,
+    ssr: false,
+  }
+);
 
-const SharesVotedChart = dynamic(() => import("@/components/Meeting/SharesVotedChart"), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-});
+const SharesVotedChart = dynamic(
+  async () => await import("@/components/Meeting/SharesVotedChart"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={300} />,
+    ssr: false,
+  }
+);
 
 interface Phase6LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
-  phase?: number;
+  readonly meetingId?: string;
+  readonly meeting?: Meeting;
+  readonly phase?: number;
 }
 
 export default React.memo(({ meetingId, meeting }: Phase6LayoutProps) => {
@@ -64,7 +85,11 @@ export default React.memo(({ meetingId, meeting }: Phase6LayoutProps) => {
           <MeetingRolesCard meetingId={meetingId} />
         </Grid>
       </Grid>
-      <Grid container spacing={{ xs: 2, md: 3 }} direction={{ sm: "column", md: "row" }}>
+      <Grid
+        container
+        spacing={{ xs: 2, md: 3 }}
+        direction={{ sm: "column", md: "row" }}
+      >
         <Grid size={{ sm: 12, md: 6, lg: 6 }}>
           <FeatureTile
             title="Official Master Tabulation Total"
@@ -99,7 +124,10 @@ export default React.memo(({ meetingId, meeting }: Phase6LayoutProps) => {
               }
             />
             <CardContent sx={{ p: 0 }}>
-              <VotingTabulationTable proposals={proposals} loading={votingLoading} />
+              <VotingTabulationTable
+                proposals={proposals}
+                loading={votingLoading}
+              />
             </CardContent>
           </Card>
         </Grid>
@@ -112,7 +140,11 @@ export default React.memo(({ meetingId, meeting }: Phase6LayoutProps) => {
           alignSelf="flex-start"
         >
           <Grid size={{ xs: 12, sm: 6, md: 12 }}>
-            <Stack direction={{ sm: "row", lg: "column" }} spacing={2} useFlexGap={true}>
+            <Stack
+              direction={{ sm: "row", lg: "column" }}
+              spacing={2}
+              useFlexGap={true}
+            >
               <FeatureTile
                 title="Registered Holder Mailing Affidavit"
                 titleVariant="h2"

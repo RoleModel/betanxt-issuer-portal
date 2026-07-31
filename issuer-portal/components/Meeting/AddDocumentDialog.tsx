@@ -14,7 +14,8 @@ import {
   Select,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 
 import BNFileDropzone from "@/components/FileUpload/BNFileDropzone";
 import BNFilePreview from "@/components/FileUpload/BNFilePreview";
@@ -26,6 +27,22 @@ interface DSMDocument {
   filePath?: string;
 }
 
+// Data-fetching layer for DSM documents. Using SWR keeps the fetch out of an
+// effect and handles caching, deduplication, and race conditions.
+const fetchDSMDocuments = async (url: string): Promise<DSMDocument[]> => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch documents: ${response.statusText}`);
+  }
+
+  const documents: DSMDocument[] = await response.json();
+  return documents.filter(
+    (doc: DSMDocument) =>
+      doc.title?.includes("DSM") ||
+      doc.title?.includes("Digital Shareholder Meeting")
+  );
+};
+
 interface FileWithMetadata {
   id: string;
   file: File;
@@ -36,11 +53,14 @@ interface FileWithMetadata {
 }
 
 interface AddDocumentDialogProps {
-  open: boolean;
-  onClose: () => void;
-  participantName: string;
-  meetingId: string;
-  onDocumentAdded: (documentName: string, documentStatus: string) => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly participantName: string;
+  readonly meetingId: string;
+  readonly onDocumentAdded: (
+    documentName: string,
+    documentStatus: string
+  ) => void;
 }
 
 export const AddDocumentDialog = ({
@@ -50,53 +70,20 @@ export const AddDocumentDialog = ({
   meetingId,
   onDocumentAdded,
 }: AddDocumentDialogProps) => {
-  const [dsmDocuments, setDsmDocuments] = useState<DSMDocument[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState("");
   const [uploadFiles, setUploadFiles] = useState<FileWithMetadata[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isUploadMode, setIsUploadMode] = useState(false);
 
-  // Fetch DSM documents when dialog opens
-  useEffect(() => {
-    if (open && meetingId) {
-      void fetchDSMDocuments();
-    }
-    // fetchDSMDocuments is a stable function defined in this component
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, meetingId]);
+  const API_URL: string =
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
-  const fetchDSMDocuments = async () => {
-    try {
-      setIsLoading(true);
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-      const response = await fetch(
-        `${API_URL}/meetings/${meetingId}/documents`
-      );
+  // Fetch DSM documents when the dialog is open for a meeting.
+  const { data: fetchedDsmDocuments, isLoading } = useSWR<DSMDocument[], Error>(
+    open && meetingId ? `${API_URL}/meetings/${meetingId}/documents` : null,
+    fetchDSMDocuments
+  );
 
-      if (response.ok) {
-        const documents = await response.json();
-        // Filter for DSM-related documentsw
-
-        const dsmDocs = documents.filter(
-          (_doc: DSMDocument) =>
-            _doc.title?.includes("DSM") ||
-            _doc.title?.includes("Digital Shareholder Meeting")
-        );
-        setDsmDocuments(dsmDocs);
-        setIsUploadMode(dsmDocs.length === 0);
-      } else {
-        setDsmDocuments([]);
-        setIsUploadMode(true);
-      }
-    } catch (error) {
-      console.error("Failed to fetch DSM documents:", error);
-      setDsmDocuments([]);
-      setIsUploadMode(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const dsmDocuments: DSMDocument[] = fetchedDsmDocuments ?? [];
 
   const handleFilesSelected = (files: File[]) => {
     const newFiles: FileWithMetadata[] = files.map((file) => ({
@@ -211,7 +198,9 @@ export const AddDocumentDialog = ({
               <InputLabel>DSM Document</InputLabel>
               <Select
                 value={selectedDocumentId}
-                onChange={(e) => setSelectedDocumentId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDocumentId(e.target.value);
+                }}
                 label="DSM Document"
               >
                 {dsmDocuments.map((doc) => (
@@ -235,7 +224,9 @@ export const AddDocumentDialog = ({
 
             <Button
               variant="outlined"
-              onClick={() => setIsUploadMode(true)}
+              onClick={() => {
+                setIsUploadMode(true);
+              }}
               fullWidth
             >
               Upload New Document

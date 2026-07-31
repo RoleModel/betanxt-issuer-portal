@@ -35,9 +35,9 @@ interface Violation {
 }
 
 interface ViolationCardProps {
-  violation: Violation;
-  page: string;
-  index: number;
+  readonly violation: Violation;
+  readonly page: string;
+  readonly index: number;
 }
 
 // Helper functions
@@ -109,9 +109,9 @@ const ViolationCard = ({ violation, page }: ViolationCardProps) => {
             }
             size="small"
           />
-          {violation.id && (
+          {violation.id ? (
             <Chip label={violation.id} variant="outlined" size="small" />
-          )}
+          ) : null}
         </Stack>
       </Box>
 
@@ -126,7 +126,7 @@ const ViolationCard = ({ violation, page }: ViolationCardProps) => {
       </Typography>
 
       {/* Help URL */}
-      {violation.helpUrl && (
+      {violation.helpUrl ? (
         <Typography variant="body3" sx={{ mb: 2 }}>
           <Link
             href={violation.helpUrl}
@@ -137,10 +137,10 @@ const ViolationCard = ({ violation, page }: ViolationCardProps) => {
             Learn More →
           </Link>
         </Typography>
-      )}
+      ) : null}
 
       {/* Element Details */}
-      {violation.elements && violation.elements.length > 0 && (
+      {violation.elements && violation.elements.length > 0 ? (
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Typography variant="body3" fontWeight="500">
@@ -207,7 +207,7 @@ const ViolationCard = ({ violation, page }: ViolationCardProps) => {
             </Stack>
           </AccordionDetails>
         </Accordion>
-      )}
+      ) : null}
     </Box>
   );
 };

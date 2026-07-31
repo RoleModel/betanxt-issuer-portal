@@ -1,13 +1,12 @@
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
-import type { components } from "@/types/api";
-
 import buildApiClient from "@/domain-models/apiClient";
 import {
   COMPLETED_STATUSES,
   calculateOverallCompletion,
 } from "@/utils/taskControl";
+import type { components } from "@/types/api";
 
 type Task = components["schemas"]["Task"];
 
@@ -22,7 +21,7 @@ interface Session {
   };
 }
 
-interface UsePhaseCompletionProps {
+interface UsePhaseCompletionProperties {
   currentMeeting: Meeting | null;
   session: Session | null;
   refreshContext:
@@ -33,7 +32,7 @@ export const usePhaseCompletion = ({
   currentMeeting,
   session,
   refreshContext,
-}: UsePhaseCompletionProps) => {
+}: UsePhaseCompletionProperties) => {
   const router = useRouter();
 
   const checkAndCompletePhase = useCallback(
@@ -74,15 +73,15 @@ export const usePhaseCompletion = ({
       });
 
       // Check if all phase tasks have been initiated
-      const allPhaseTasksInitiated =
+      const isAllPhaseTasksInitiated =
         currentPhaseTasks.length > 0 &&
         currentPhaseTasks.every((t: Task) =>
           COMPLETED_STATUSES.includes(t.status as never)
         );
 
-      console.log("All phase tasks initiated?", allPhaseTasksInitiated);
+      console.log("All phase tasks initiated?", isAllPhaseTasksInitiated);
 
-      if (allPhaseTasksInitiated) {
+      if (isAllPhaseTasksInitiated) {
         // Update meeting to next phase and calculate completion percentage
         if (currentMeeting?.id) {
           try {
@@ -95,7 +94,7 @@ export const usePhaseCompletion = ({
 
             const updatePayload = {
               currentPhase: `Phase ${nextPhaseNumber}`,
-              overallCompletion: overallCompletion,
+              overallCompletion,
             };
 
             // Update meeting phase and completion

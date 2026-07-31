@@ -1,19 +1,16 @@
-#!/usr/bin/env tsx
 import {
   existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
   writeFileSync,
-} from "fs";
-import * as yaml from "js-yaml";
-import { join } from "path";
-import { dirname } from "path";
+} from "node:fs";
+import { join } from "node:path";
 // Use the actual script directory for relative paths
-import { fileURLToPath } from "url";
+import * as yaml from "js-yaml";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
 
 interface OpenAPIOperation {
   operationId?: string;
@@ -192,7 +189,9 @@ function mapOperationsToDomainModels(
   };
 
   const functionName = mappings[operationId];
-  if (!functionName) return null;
+  if (!functionName) {
+    return null;
+  }
 
   // Find which domain model contains this function
   for (const model of Object.values(domainModels)) {
@@ -268,8 +267,10 @@ function generateRoutes(): void {
   // Generate route files
   let generatedCount = 0;
   for (const route of routes) {
-    const success = generateRouteFile(route, apiDir, domainModels);
-    if (success) generatedCount++;
+    const isSuccess = generateRouteFile(route, apiDir, domainModels);
+    if (isSuccess) {
+      generatedCount++;
+    }
   }
 
   console.warn(
@@ -292,7 +293,7 @@ function generateRouteFile(
     // /meetings/{meetingId}/phases -> meetings/[meetingId]/phases/route.ts
     const filePath = route.path
       .replace(/^\//, "") // Remove leading slash
-      .replace(/\{([^}]+)\}/g, "[$1]"); // Convert {param} to [param]
+      .replaceAll(/\{([^}]+)\}/g, "[$1]"); // Convert {param} to [param]
 
     const fullDir = join(apiDir, filePath);
     const routeFile = join(fullDir, "route.ts");
@@ -316,201 +317,244 @@ function generateRouteFile(
 function generateDomainModelCall(
   method: string,
   functionName: string,
-  params: OpenAPIParameter[],
+  parameters: OpenAPIParameter[],
   route: RouteInfo
 ): { call: string; usedParams: Set<string> } {
   let call = `    const { data, error } = await ${functionName}(`;
 
-  const callParams: string[] = [];
-  const usedParams = new Set<string>();
+  const callParameters: string[] = [];
+  const usedParameters = new Set<string>();
 
   // Add parameters based on method and parameters
   if (method === "GET" && functionName.includes("list")) {
     // List operations typically take page, limit, filters
-    const queryParams = params.filter((p) => p.in === "query");
+    const queryParameters = parameters.filter((p) => p.in === "query");
 
     // Always include page and limit if they're in query params
-    const hasPage = queryParams.some((p) => p.name === "page");
-    const hasLimit = queryParams.some((p) => p.name === "limit");
+    const hasPage = queryParameters.some((p) => p.name === "page");
+    const hasLimit = queryParameters.some((p) => p.name === "limit");
 
     // Special-case known list function signatures
-    if (functionName === "listPositions") {
-      // listPositions expects a single params object including page/limit but not select
-      const allParams = queryParams
-        .map((p) => p.name)
-        .filter((name) => name !== "select");
-      const objectProps: string[] = [];
-      if (hasPage) {
-        objectProps.push("page");
-        usedParams.add("page");
-      }
-      if (hasLimit) {
-        objectProps.push("limit");
-        usedParams.add("limit");
-      }
-      for (const name of allParams) {
-        if (!["page", "limit"].includes(name)) {
-          objectProps.push(name);
-          usedParams.add(name);
+    switch (functionName) {
+      case "listPositions": {
+        // listPositions expects a single params object including page/limit but not select
+        const allParameters = queryParameters
+          .map((p) => p.name)
+          .filter((name) => name !== "select");
+        const objectProperties: string[] = [];
+        if (hasPage) {
+          objectProperties.push("page");
+          usedParameters.add("page");
         }
-      }
-      callParams.push(`{ ${objectProps.join(", ")} }`);
-    } else if (functionName === "listDocuments") {
-      // listDocuments(meetingId: string, opts?: { type?: string; status?: string })
-      const pathParams = route.path.match(/\{([^}]+)\}/g);
-      if (pathParams?.some((p) => p.includes("meetingId"))) {
-        callParams.push("meetingId");
-      }
-      // Add options object with query params
-      const filterParams = queryParams.filter((p) =>
-        ["type", "status"].includes(p.name)
-      );
-      if (filterParams.length > 0) {
-        const filters = filterParams
-          .map((p) => {
-            usedParams.add(p.name);
-            return p.name;
-          })
-          .join(", ");
-        callParams.push(`{ ${filters} }`);
-      }
-    } else if (functionName === "listClients") {
-      // listClients(page?, limit?, ticker?) — ensure positional args even if missing
-      const hasTicker = queryParams.some((p) => p.name === "ticker");
-      if (hasPage) {
-        callParams.push("page");
-        usedParams.add("page");
-      } else {
-        callParams.push("undefined");
-      }
-      if (hasLimit) {
-        callParams.push("limit");
-        usedParams.add("limit");
-      } else {
-        callParams.push("undefined");
-      }
-      if (hasTicker) {
-        callParams.push("ticker");
-        usedParams.add("ticker");
-      }
-    } else if (functionName === "listPhases") {
-      // listPhases expects meetingId as first parameter
-      const pathParams = route.path.match(/\{([^}]+)\}/g);
-      if (pathParams) {
-        const pathParamNames = pathParams.map((match) => match.slice(1, -1));
-        callParams.push(...pathParamNames);
-      }
-    } else if (functionName === "listProposals") {
-      // listProposals expects meetingId as first parameter
-      const pathParams = route.path.match(/\{([^}]+)\}/g);
-      if (pathParams) {
-        const pathParamNames = pathParams.map((match) => match.slice(1, -1));
-        callParams.push(...pathParamNames);
-      }
-    } else if (functionName === "listTasks") {
-      // listTasks(meetingId?: string, opts?: { phaseId?: string; status?: string })
-      // Check if we have a meetingId from path parameters
-      const pathParams = route.path.match(/\{([^}]+)\}/g);
-      if (pathParams?.some((p) => p.includes("meetingId"))) {
-        callParams.push("meetingId");
-      }
-      // Add options object with query params (excluding owner which isn't supported)
-      const filterParams = queryParams.filter(
-        (p) => !["page", "limit", "owner"].includes(p.name)
-      );
-      if (filterParams.length > 0) {
-        const filters = filterParams
-          .map((p) => {
-            usedParams.add(p.name);
-            return `${p.name}`;
-          })
-          .join(", ");
-        callParams.push(`{ ${filters} }`);
-      }
-    } else if (functionName === "listAccountUsers") {
-      // listAccountUsers expects accountId as a string parameter
-      const pathParams = route.path.match(/\{([^}]+)\}/g);
-      if (pathParams) {
-        const pathParamNames = pathParams.map((match) => match.slice(1, -1));
-        callParams.push(...pathParamNames);
-      }
-    } else if (functionName === "listUsers") {
-      // listUsers expects accountId and type as separate string parameters
-      const hasAccountId = queryParams.some((p) => p.name === "accountId");
-      const hasType = queryParams.some((p) => p.name === "type");
+        if (hasLimit) {
+          objectProperties.push("limit");
+          usedParameters.add("limit");
+        }
+        for (const name of allParameters) {
+          if (["page", "limit"].includes(name)) {
+            continue;
+          }
 
-      if (hasAccountId) {
-        callParams.push("accountId");
-        usedParams.add("accountId");
-      } else {
-        callParams.push("undefined");
-      }
+          objectProperties.push(name);
+          usedParameters.add(name);
+        }
+        callParameters.push(`{ ${objectProperties.join(", ")} }`);
 
-      if (hasType) {
-        callParams.push("type");
-        usedParams.add("type");
+        break;
       }
-    } else if (functionName === "listUserAccounts") {
-      // listUserAccounts expects userId as a string parameter
-      const pathParams = route.path.match(/\{([^}]+)\}/g);
-      if (pathParams) {
-        const pathParamNames = pathParams.map((match) => match.slice(1, -1));
-        callParams.push(...pathParamNames);
+      case "listDocuments": {
+        // listDocuments(meetingId: string, opts?: { type?: string; status?: string })
+        const pathParameters = route.path.match(/\{([^}]+)\}/g);
+        if (pathParameters?.some((p) => p.includes("meetingId"))) {
+          callParameters.push("meetingId");
+        }
+        // Add options object with query params
+        const filterParameters = queryParameters.filter((p) =>
+          ["type", "status"].includes(p.name)
+        );
+        if (filterParameters.length > 0) {
+          const filters = filterParameters
+            .map((p) => {
+              usedParameters.add(p.name);
+              return p.name;
+            })
+            .join(", ");
+          callParameters.push(`{ ${filters} }`);
+        }
+
+        break;
       }
-    } else {
-      // Default: page, limit, and a filters object with the rest
-      if (hasPage) {
-        callParams.push("page");
-        usedParams.add("page");
+      case "listClients": {
+        // listClients(page?, limit?, ticker?) — ensure positional args even if missing
+        const hasTicker = queryParameters.some((p) => p.name === "ticker");
+        if (hasPage) {
+          callParameters.push("page");
+          usedParameters.add("page");
+        } else {
+          callParameters.push("undefined");
+        }
+        if (hasLimit) {
+          callParameters.push("limit");
+          usedParameters.add("limit");
+        } else {
+          callParameters.push("undefined");
+        }
+        if (hasTicker) {
+          callParameters.push("ticker");
+          usedParameters.add("ticker");
+        }
+
+        break;
       }
-      if (hasLimit) {
-        callParams.push("limit");
-        usedParams.add("limit");
+      case "listPhases": {
+        // listPhases expects meetingId as first parameter
+        const pathParameters = route.path.match(/\{([^}]+)\}/g);
+        if (pathParameters) {
+          const pathParameterNames = pathParameters.map((match) =>
+            match.slice(1, -1)
+          );
+          callParameters.push(...pathParameterNames);
+        }
+
+        break;
       }
-      const filterParams = queryParams.filter(
-        (p) => !["page", "limit"].includes(p.name)
-      );
-      if (filterParams.length > 0) {
-        const filters = filterParams
-          .map((p) => {
-            usedParams.add(p.name);
-            return `${p.name}`;
-          })
-          .join(", ");
-        callParams.push(`{ ${filters} }`);
-      } else if (hasPage || hasLimit) {
-        callParams.push("undefined");
+      case "listProposals": {
+        // listProposals expects meetingId as first parameter
+        const pathParameters = route.path.match(/\{([^}]+)\}/g);
+        if (pathParameters) {
+          const pathParameterNames = pathParameters.map((match) =>
+            match.slice(1, -1)
+          );
+          callParameters.push(...pathParameterNames);
+        }
+
+        break;
+      }
+      case "listTasks": {
+        // listTasks(meetingId?: string, opts?: { phaseId?: string; status?: string })
+        // Check if we have a meetingId from path parameters
+        const pathParameters = route.path.match(/\{([^}]+)\}/g);
+        if (pathParameters?.some((p) => p.includes("meetingId"))) {
+          callParameters.push("meetingId");
+        }
+        // Add options object with query params (excluding owner which isn't supported)
+        const filterParameters = queryParameters.filter(
+          (p) => !["page", "limit", "owner"].includes(p.name)
+        );
+        if (filterParameters.length > 0) {
+          const filters = filterParameters
+            .map((p) => {
+              usedParameters.add(p.name);
+              return p.name;
+            })
+            .join(", ");
+          callParameters.push(`{ ${filters} }`);
+        }
+
+        break;
+      }
+      case "listAccountUsers": {
+        // listAccountUsers expects accountId as a string parameter
+        const pathParameters = route.path.match(/\{([^}]+)\}/g);
+        if (pathParameters) {
+          const pathParameterNames = pathParameters.map((match) =>
+            match.slice(1, -1)
+          );
+          callParameters.push(...pathParameterNames);
+        }
+
+        break;
+      }
+      case "listUsers": {
+        // listUsers expects accountId and type as separate string parameters
+        const hasAccountId = queryParameters.some(
+          (p) => p.name === "accountId"
+        );
+        const hasType = queryParameters.some((p) => p.name === "type");
+
+        if (hasAccountId) {
+          callParameters.push("accountId");
+          usedParameters.add("accountId");
+        } else {
+          callParameters.push("undefined");
+        }
+
+        if (hasType) {
+          callParameters.push("type");
+          usedParameters.add("type");
+        }
+
+        break;
+      }
+      case "listUserAccounts": {
+        // listUserAccounts expects userId as a string parameter
+        const pathParameters = route.path.match(/\{([^}]+)\}/g);
+        if (pathParameters) {
+          const pathParameterNames = pathParameters.map((match) =>
+            match.slice(1, -1)
+          );
+          callParameters.push(...pathParameterNames);
+        }
+
+        break;
+      }
+      default: {
+        // Default: page, limit, and a filters object with the rest
+        if (hasPage) {
+          callParameters.push("page");
+          usedParameters.add("page");
+        }
+        if (hasLimit) {
+          callParameters.push("limit");
+          usedParameters.add("limit");
+        }
+        const filterParameters = queryParameters.filter(
+          (p) => !["page", "limit"].includes(p.name)
+        );
+        if (filterParameters.length > 0) {
+          const filters = filterParameters
+            .map((p) => {
+              usedParameters.add(p.name);
+              return p.name;
+            })
+            .join(", ");
+          callParameters.push(`{ ${filters} }`);
+        } else if (hasPage || hasLimit) {
+          callParameters.push("undefined");
+        }
       }
     }
   } else if (route.path.includes("{")) {
     // Operations with path parameters - extract actual parameter names from route
-    const pathParams = route.path.match(/\{([^}]+)\}/g);
-    if (pathParams) {
-      const pathParamNames = pathParams.map((match) => match.slice(1, -1));
-      callParams.push(...pathParamNames);
+    const pathParameters = route.path.match(/\{([^}]+)\}/g);
+    if (pathParameters) {
+      const pathParameterNames = pathParameters.map((match) =>
+        match.slice(1, -1)
+      );
+      callParameters.push(...pathParameterNames);
     }
   }
 
   if (["POST", "PUT", "PATCH"].includes(method)) {
-    callParams.push("body");
+    callParameters.push("body");
   }
 
-  call += callParams.join(", ");
+  call += callParameters.join(", ");
   call += `)\n`;
 
-  return { call, usedParams };
+  return { call, usedParams: usedParameters };
 }
 
 function generateRouteContent(
   route: RouteInfo,
   domainModels: DomainModelMap
 ): string {
-  const hasPathParams = route.path.includes("{");
-  const pathParamMatches = hasPathParams
+  const hasPathParameters = route.path.includes("{");
+  const pathParameterMatches = hasPathParameters
     ? route.path.match(/\{([^}]+)\}/g)
     : null;
-  const pathParamNames =
-    pathParamMatches?.map((match) => match.slice(1, -1)) ?? [];
+  const pathParameterNames =
+    pathParameterMatches?.map((match) => match.slice(1, -1)) ?? [];
 
   // Check if any operations have domain model implementations
   const domainModelImports = new Set<string>();
@@ -528,20 +572,22 @@ function generateRouteContent(
   }
 
   // Check if any method will actually use path params
-  const methodUsesPathParams = (method: string): boolean => {
-    if (!hasPathParams) return false;
+  const methodUsesPathParameters = (method: string): boolean => {
+    if (!hasPathParameters) {
+      return false;
+    }
     const methodMapping = operationMappings[method];
     return Boolean(methodMapping);
   };
 
-  const someMethodUsesPathParams = route.methods.some((method) =>
-    methodUsesPathParams(method)
+  const isSomeMethodUsesPathParameters = route.methods.some((method) =>
+    methodUsesPathParameters(method)
   );
 
   // Determine if we need NextRequest import
-  const needsNextRequest = route.methods.some((method) => {
-    const params = route.parameters[method] || [];
-    const hasQueryParams = params.filter((p) => p.in === "query").length > 0;
+  const isNeedsNextRequest = route.methods.some((method) => {
+    const parameters = route.parameters[method] || [];
+    const hasQueryParameters = parameters.some((p) => p.in === "query");
     const methodMapping = operationMappings[method];
     // Need NextRequest if we have domain mapping and either:
     // 1. It's not a GET method
@@ -550,8 +596,8 @@ function generateRouteContent(
     return (
       methodMapping &&
       (method !== "GET" ||
-        hasQueryParams ||
-        (hasPathParams && someMethodUsesPathParams))
+        hasQueryParameters ||
+        (hasPathParameters && isSomeMethodUsesPathParameters))
     );
   });
 
@@ -559,17 +605,17 @@ function generateRouteContent(
 // Generated on ${new Date().toISOString()}
 // Source: openapi-schema/openapi.yaml
 
-import { ${needsNextRequest ? "NextRequest, " : ""}NextResponse } from 'next/server'
+import { ${isNeedsNextRequest ? "NextRequest, " : ""}NextResponse } from 'next/server'
 
 import { handleCors, withCors } from '@/utils/cors'`;
 
   // Add domain model imports if found
   if (domainModelImports.size > 0) {
-    for (const moduleImport of Array.from(domainModelImports)) {
+    for (const moduleImport of domainModelImports) {
       const functions = Object.values(operationMappings)
         .filter((op) => op.module === moduleImport)
         .map((op) => op.functionName);
-      const uniqueFunctions = Array.from(new Set(functions));
+      const uniqueFunctions = [...new Set(functions)];
       content += `\nimport { ${uniqueFunctions.join(", ")} } from '${moduleImport}'`;
     }
   }
@@ -577,7 +623,9 @@ import { handleCors, withCors } from '@/utils/cors'`;
   // Determine if we will emit typed request bodies for any method
   const willEmitTypedBody = route.methods.some((method) => {
     const mapping = operationMappings[method];
-    if (!mapping) return false;
+    if (!mapping) {
+      return false;
+    }
     return (
       ["POST", "PUT", "PATCH"].includes(method) &&
       /^(create|update)[A-Z]/.test(mapping.functionName)
@@ -591,10 +639,10 @@ import { handleCors, withCors } from '@/utils/cors'`;
   content += `\n\n`;
 
   // Add type imports if needed
-  if (hasPathParams && someMethodUsesPathParams) {
+  if (hasPathParameters && isSomeMethodUsesPathParameters) {
     content += `interface RouteParams {\n`;
-    for (const paramName of pathParamNames) {
-      content += `  ${paramName}: string\n`;
+    for (const parameterName of pathParameterNames) {
+      content += `  ${parameterName}: string\n`;
     }
     content += `}\n\n`;
   }
@@ -602,25 +650,25 @@ import { handleCors, withCors } from '@/utils/cors'`;
   // Generate handler for each HTTP method
   for (const method of route.methods) {
     const operationId = route.operationIds[method];
-    const params = route.parameters[method] || [];
+    const parameters = route.parameters[method] || [];
 
     content += `export async function ${method}`;
 
     // Check if we actually need the params parameter
     const methodMapping = operationMappings[method];
-    const willUsePathParams = methodUsesPathParams(method);
+    const willUsePathParameters = methodUsesPathParameters(method);
 
     // Check if we need the request parameter at all
-    const hasQueryParams = params.filter((p) => p.in === "query").length > 0;
+    const hasQueryParameters = parameters.some((p) => p.in === "query");
     // Only need request param if:
     // 1. We have a domain mapping (which might use it)
     // 2. It's a GET with query params and domain mapping
-    const needsRequestParam =
-      methodMapping && (method !== "GET" || hasQueryParams);
+    const isNeedsRequestParameter =
+      methodMapping && (method !== "GET" || hasQueryParameters);
 
-    if (willUsePathParams && someMethodUsesPathParams) {
+    if (willUsePathParameters && isSomeMethodUsesPathParameters) {
       content += `(\n  request: NextRequest,\n  { params }: { params: Promise<RouteParams> }\n): Promise<NextResponse> {\n`;
-    } else if (needsRequestParam) {
+    } else if (isNeedsRequestParameter) {
       content += `(request: NextRequest): Promise<NextResponse> {\n`;
     } else {
       content += `(): Promise<NextResponse> {\n`;
@@ -629,74 +677,95 @@ import { handleCors, withCors } from '@/utils/cors'`;
     content += `  try {\n`;
 
     // Add parameter extraction
-    if (hasPathParams && pathParamNames.length > 0 && willUsePathParams) {
+    if (
+      hasPathParameters &&
+      pathParameterNames.length > 0 &&
+      willUsePathParameters
+    ) {
       content += `    // Extract path parameters\n`;
       content += `    const resolvedParams = await params\n`;
 
-      for (const paramName of pathParamNames) {
-        content += `    const ${paramName} = resolvedParams.${paramName}\n`;
+      for (const parameterName of pathParameterNames) {
+        content += `    const ${parameterName} = resolvedParams.${parameterName}\n`;
       }
       content += `\n`;
     }
 
     // Check if we have a domain model implementation for this operation
     const domainMapping = operationMappings[method];
-    let usedParams = new Set<string>();
+    let usedParameters = new Set<string>();
 
     // If we have domain mapping, determine which params will be used
     if (domainMapping) {
       const result = generateDomainModelCall(
         method,
         domainMapping.functionName,
-        params,
+        parameters,
         route
       );
-      usedParams = result.usedParams;
+      usedParameters = result.usedParams;
     }
 
     // Add query parameter handling if needed
-    const queryParams = params.filter((p) => p.in === "query");
-    if (queryParams.length > 0 && domainMapping) {
+    const queryParameters = parameters.filter((p) => p.in === "query");
+    if (queryParameters.length > 0 && domainMapping) {
       // Only extract params when we have a domain mapping that uses them
-      const paramsToExtract = queryParams.filter((p) => usedParams.has(p.name));
+      const parametersToExtract = queryParameters.filter((p) =>
+        usedParameters.has(p.name)
+      );
 
-      if (paramsToExtract.length > 0) {
+      if (parametersToExtract.length > 0) {
         content += `    // Extract query parameters\n`;
         content += `    const { searchParams } = new URL(request.url)\n`;
-        for (const param of paramsToExtract) {
+        for (const parameter of parametersToExtract) {
           // Check if parameter should be a number based on common patterns or schema
           const isNumeric =
-            ["page", "limit", "offset", "meetingYear"].includes(param.name) ||
-            param.schema?.type === "integer" ||
-            param.schema?.type === "number";
+            ["page", "limit", "offset", "meetingYear"].includes(
+              parameter.name
+            ) ||
+            parameter.schema?.type === "integer" ||
+            parameter.schema?.type === "number";
 
           if (isNumeric) {
             // Convert numeric parameters to numbers
-            content += `    const ${param.name} = searchParams.get('${param.name}') ? parseInt(searchParams.get('${param.name}')!, 10) : undefined\n`;
-          } else if (param.name === "status") {
-            // Validate status parameter for MeetingStatus enum
-            content += `    const ${param.name}Param = searchParams.get('${param.name}') || undefined\n`;
-            content += `    const ${param.name}: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined = \n`;
-            content += `      ${param.name}Param && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(${param.name}Param) \n`;
-            content += `        ? ${param.name}Param as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'\n`;
-            content += `        : undefined\n`;
-          } else if (param.name === "voteStatus") {
-            // Validate voteStatus parameter for PositionVoteStatus enum
-            content += `    const ${param.name}Param = searchParams.get('${param.name}') || undefined\n`;
-            content += `    const ${param.name}: 'Voted' | 'Unvoted' | undefined = \n`;
-            content += `      ${param.name}Param && ['Voted', 'Unvoted'].includes(${param.name}Param) \n`;
-            content += `        ? ${param.name}Param as 'Voted' | 'Unvoted'\n`;
-            content += `        : undefined\n`;
-          } else if (param.name === "type") {
-            // Validate type parameter for UserType enum
-            content += `    const ${param.name}Param = searchParams.get('${param.name}') || undefined\n`;
-            content += `    const ${param.name}: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined = \n`;
-            content += `      ${param.name}Param && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(${param.name}Param) \n`;
-            content += `        ? ${param.name}Param as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER'\n`;
-            content += `        : undefined\n`;
+            content += `    const ${parameter.name} = searchParams.get('${parameter.name}') ? parseInt(searchParams.get('${parameter.name}')!, 10) : undefined\n`;
           } else {
-            const required = param.required ? "" : " || undefined";
-            content += `    const ${param.name} = searchParams.get('${param.name}')${required}\n`;
+            switch (parameter.name) {
+              case "status": {
+                // Validate status parameter for MeetingStatus enum
+                content += `    const ${parameter.name}Param = searchParams.get('${parameter.name}') || undefined\n`;
+                content += `    const ${parameter.name}: 'ACTIVE' | 'COMPLETE' | 'ADJOURNED' | undefined = \n`;
+                content += `      ${parameter.name}Param && ['ACTIVE', 'COMPLETE', 'ADJOURNED'].includes(${parameter.name}Param) \n`;
+                content += `        ? ${parameter.name}Param as 'ACTIVE' | 'COMPLETE' | 'ADJOURNED'\n`;
+                content += `        : undefined\n`;
+
+                break;
+              }
+              case "voteStatus": {
+                // Validate voteStatus parameter for PositionVoteStatus enum
+                content += `    const ${parameter.name}Param = searchParams.get('${parameter.name}') || undefined\n`;
+                content += `    const ${parameter.name}: 'Voted' | 'Unvoted' | undefined = \n`;
+                content += `      ${parameter.name}Param && ['Voted', 'Unvoted'].includes(${parameter.name}Param) \n`;
+                content += `        ? ${parameter.name}Param as 'Voted' | 'Unvoted'\n`;
+                content += `        : undefined\n`;
+
+                break;
+              }
+              case "type": {
+                // Validate type parameter for UserType enum
+                content += `    const ${parameter.name}Param = searchParams.get('${parameter.name}') || undefined\n`;
+                content += `    const ${parameter.name}: 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER' | undefined = \n`;
+                content += `      ${parameter.name}Param && ['ADMIN', 'ISSUER', 'RELATIONSHIP_MANAGER'].includes(${parameter.name}Param) \n`;
+                content += `        ? ${parameter.name}Param as 'ADMIN' | 'ISSUER' | 'RELATIONSHIP_MANAGER'\n`;
+                content += `        : undefined\n`;
+
+                break;
+              }
+              default: {
+                const required = parameter.required ? "" : " || undefined";
+                content += `    const ${parameter.name} = searchParams.get('${parameter.name}')${required}\n`;
+              }
+            }
           }
         }
         content += `\n`;
@@ -708,17 +777,17 @@ import { handleCors, withCors } from '@/utils/cors'`;
       content += `    // Parse request body\n`;
 
       // Infer request schema type from function name (create*/update*)
-      const fn = domainMapping.functionName;
-      const match = /^(create|update)([A-Z].*)$/.exec(fn);
+      const function_ = domainMapping.functionName;
+      const match = /^(create|update)([A-Z].*)$/.exec(function_);
       if (match) {
-        let reqType = `${match[1] === "create" ? "Create" : "Update"}${match[2]}Request`;
+        let requestType = `${match[1] === "create" ? "Create" : "Update"}${match[2]}Request`;
 
         // Special case for createPositionVote - use CastVoteRequest instead
-        if (fn === "createPositionVote") {
-          reqType = "CastVoteRequest";
+        if (function_ === "createPositionVote") {
+          requestType = "CastVoteRequest";
         }
 
-        content += `    const body = (await request.json()) as components['schemas']['${reqType}']\n\n`;
+        content += `    const body = (await request.json()) as components['schemas']['${requestType}']\n\n`;
       } else {
         content += `    const body = await request.json()\n\n`;
       }
@@ -732,7 +801,7 @@ import { handleCors, withCors } from '@/utils/cors'`;
       const { call: functionCall } = generateDomainModelCall(
         method,
         domainMapping.functionName,
-        params,
+        parameters,
         route
       );
       content += functionCall;
@@ -746,81 +815,108 @@ import { handleCors, withCors } from '@/utils/cors'`;
       content += `      )\n`;
       content += `    }\n\n`;
 
-      if (method === "POST") {
-        content += `    return withCors(NextResponse.json(data, { status: 201 }))\n`;
-      } else {
-        content += `    return withCors(NextResponse.json(data))\n`;
-      }
+      content +=
+        method === "POST"
+          ? `    return withCors(NextResponse.json(data, { status: 201 }))\n`
+          : `    return withCors(NextResponse.json(data))\n`;
     } else {
       // Add operation-specific implementation hints
-      content += `    // TODO: Implement ${operationId || method + " handler"}\n`;
+      content += `    // TODO: Implement ${operationId || `${method} handler`}\n`;
       content += `    // Operation: ${operationId ?? "unknown"}\n`;
       content += `    // This route was auto-generated from OpenAPI spec\n`;
       content += `    \n`;
 
       // Generate different responses based on the operation
-      if (method === "GET") {
-        content += `    // Example: Fetch data from Supabase\n`;
-        content += `    // const { data, error } = await supabase\n`;
-        content += `    //   .from('table_name')\n`;
-        content += `    //   .select('*')\n`;
-        if (hasPathParams) {
-          const pathParams = route.path.match(/\{([^}]+)\}/g);
-          if (pathParams) {
-            const firstParam = pathParams[0].slice(1, -1);
-            content += `    //   .eq('${firstParam}', ${firstParam})\n\n`;
+      switch (method) {
+        case "GET": {
+          content += `    // Example: Fetch data from Supabase\n`;
+          content += `    // const { data, error } = await supabase\n`;
+          content += `    //   .from('table_name')\n`;
+          content += `    //   .select('*')\n`;
+          if (hasPathParameters) {
+            const pathParameters = route.path.match(/\{([^}]+)\}/g);
+            if (pathParameters) {
+              const firstParameter = pathParameters[0].slice(1, -1);
+              content += `    //   .eq('${firstParameter}', ${firstParameter})\n\n`;
+            }
+          } else {
+            content += `    //   .limit(20)\n\n`;
           }
-        } else {
-          content += `    //   .limit(20)\n\n`;
+
+          break;
         }
-      } else if (method === "POST") {
-        content += `    // Parse request body\n`;
-        content += `    // const body = await request.json()\n\n`;
-        content += `    // Example: Insert data into Supabase\n`;
-        content += `    // const { data, error } = await supabase\n`;
-        content += `    //   .from('table_name')\n`;
-        content += `    //   .insert(body)\n`;
-        content += `    //   .select()\n\n`;
-      } else if (method === "PUT") {
-        content += `    // Parse request body\n`;
-        content += `    // const body = await request.json()\n\n`;
-        content += `    // Example: Update data in Supabase\n`;
-        content += `    // const { data, error } = await supabase\n`;
-        content += `    //   .from('table_name')\n`;
-        content += `    //   .update(body)\n`;
-        if (hasPathParams) {
-          const pathParams = route.path.match(/\{([^}]+)\}/g);
-          if (pathParams) {
-            const firstParam = pathParams[0].slice(1, -1);
-            content += `    //   .eq('${firstParam}', ${firstParam})\n`;
+        case "POST": {
+          content += `    // Parse request body\n`;
+          content += `    // const body = await request.json()\n\n`;
+          content += `    // Example: Insert data into Supabase\n`;
+          content += `    // const { data, error } = await supabase\n`;
+          content += `    //   .from('table_name')\n`;
+          content += `    //   .insert(body)\n`;
+          content += `    //   .select()\n\n`;
+
+          break;
+        }
+        case "PUT": {
+          content += `    // Parse request body\n`;
+          content += `    // const body = await request.json()\n\n`;
+          content += `    // Example: Update data in Supabase\n`;
+          content += `    // const { data, error } = await supabase\n`;
+          content += `    //   .from('table_name')\n`;
+          content += `    //   .update(body)\n`;
+          if (hasPathParameters) {
+            const pathParameters = route.path.match(/\{([^}]+)\}/g);
+            if (pathParameters) {
+              const firstParameter = pathParameters[0].slice(1, -1);
+              content += `    //   .eq('${firstParameter}', ${firstParameter})\n`;
+            }
           }
+          content += `    //   .select()\n\n`;
+
+          break;
         }
-        content += `    //   .select()\n\n`;
-      } else if (method === "DELETE") {
-        content += `    // Example: Delete data from Supabase\n`;
-        content += `    // const { data, error } = await supabase\n`;
-        content += `    //   .from('table_name')\n`;
-        content += `    //   .delete()\n`;
-        if (hasPathParams) {
-          const pathParams = route.path.match(/\{([^}]+)\}/g);
-          if (pathParams) {
-            const firstParam = pathParams[0].slice(1, -1);
-            content += `    //   .eq('${firstParam}', ${firstParam})\n\n`;
+        case "DELETE": {
+          content += `    // Example: Delete data from Supabase\n`;
+          content += `    // const { data, error } = await supabase\n`;
+          content += `    //   .from('table_name')\n`;
+          content += `    //   .delete()\n`;
+          if (hasPathParameters) {
+            const pathParameters = route.path.match(/\{([^}]+)\}/g);
+            if (pathParameters) {
+              const firstParameter = pathParameters[0].slice(1, -1);
+              content += `    //   .eq('${firstParameter}', ${firstParameter})\n\n`;
+            }
           }
+
+          break;
         }
+        // No default
       }
 
       // Fallback minimal implementation to avoid 501s in tests
-      if (method === "GET") {
-        content += `    return withCors(NextResponse.json([]))\n`;
-      } else if (method === "POST") {
-        content += `    return withCors(NextResponse.json({}, { status: 201 }))\n`;
-      } else if (method === "PUT") {
-        content += `    return withCors(NextResponse.json({}))\n`;
-      } else if (method === "DELETE") {
-        content += `    return withCors(new NextResponse(null, { status: 204 }))\n`;
-      } else {
-        content += `    return withCors(NextResponse.json({ status: 'OK' }))\n`;
+      switch (method) {
+        case "GET": {
+          content += `    return withCors(NextResponse.json([]))\n`;
+
+          break;
+        }
+        case "POST": {
+          content += `    return withCors(NextResponse.json({}, { status: 201 }))\n`;
+
+          break;
+        }
+        case "PUT": {
+          content += `    return withCors(NextResponse.json({}))\n`;
+
+          break;
+        }
+        case "DELETE": {
+          content += `    return withCors(new NextResponse(null, { status: 204 }))\n`;
+
+          break;
+        }
+        default: {
+          content += `    return withCors(NextResponse.json({ status: 'OK' }))\n`;
+        }
       }
     }
     content += `  } catch (error) {\n`;

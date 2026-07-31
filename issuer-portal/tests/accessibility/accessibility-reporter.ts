@@ -1,12 +1,11 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import type {
   FullResult,
   Reporter,
   TestCase,
   TestResult,
 } from "@playwright/test/reporter";
-
-import { mkdirSync, writeFileSync } from "fs";
-import { join } from "path";
 
 import { extractWcagCriteria } from "@/utils/wcagMapping";
 
@@ -59,11 +58,13 @@ interface AccessibilityResults {
 }
 
 class AccessibilityReporter implements Reporter {
-  private accessibilityResults: AccessibilityTestResult[] = [];
+  private readonly accessibilityResults: AccessibilityTestResult[] = [];
 
   onTestEnd(test: TestCase, result: TestResult) {
     // Only capture results from accessibility tests
-    if (!test.title.includes("should be accessible:")) return;
+    if (!test.title.includes("should be accessible:")) {
+      return;
+    }
 
     // Extract accessibility data from test attachments
     const accessibilityAttachment = result.attachments.find(
@@ -124,9 +125,9 @@ class AccessibilityReporter implements Reporter {
     const wcagCriteriaTested = new Set<string>();
     const wcagCriteriaFailed = new Set<string>();
 
-    this.accessibilityResults.forEach((result) => {
+    for (const result of this.accessibilityResults) {
       // Collect failed criteria
-      result.violations.forEach((violation) => {
+      for (const violation of result.violations) {
         const wcag = extractWcagCriteria(violation.tags);
         if (wcag !== "No WCAG criteria mapped") {
           wcag.split(", ").forEach((criterion) => {
@@ -134,17 +135,17 @@ class AccessibilityReporter implements Reporter {
             wcagCriteriaFailed.add(criterion);
           });
         }
-      });
+      }
 
       // Collect passed criteria
       result.passedElements?.forEach((passed) => {
         if (passed.wcag !== "No WCAG criteria mapped") {
-          passed.wcag.split(", ").forEach((criterion) => {
+          for (const criterion of passed.wcag.split(", ")) {
             wcagCriteriaTested.add(criterion);
-          });
+          }
         }
       });
-    });
+    }
 
     const aggregatedResults: AccessibilityResults = {
       totalTests: this.accessibilityResults.length,
@@ -160,9 +161,9 @@ class AccessibilityReporter implements Reporter {
       // Enhanced summary data
       summary: {
         totalPassedRules,
-        wcagCriteriaTested: Array.from(wcagCriteriaTested).sort(),
-        wcagCriteriaFailed: Array.from(wcagCriteriaFailed).sort(),
-        wcagCriteriaPassed: Array.from(wcagCriteriaTested)
+        wcagCriteriaTested: [...wcagCriteriaTested].sort(),
+        wcagCriteriaFailed: [...wcagCriteriaFailed].sort(),
+        wcagCriteriaPassed: [...wcagCriteriaTested]
           .filter((c) => !wcagCriteriaFailed.has(c))
           .sort(),
       },
@@ -172,7 +173,7 @@ class AccessibilityReporter implements Reporter {
     writeFileSync(resultsFilePath, JSON.stringify(aggregatedResults, null, 2));
 
     // Enhanced console output
-    console.log("\n" + "=".repeat(60));
+    console.log(`\n${"=".repeat(60)}`);
     console.log("📊 ACCESSIBILITY REPORT SUMMARY");
     console.log("=".repeat(60));
     console.log(`📄 Total Pages Tested: ${aggregatedResults.totalTests}`);
@@ -193,7 +194,7 @@ class AccessibilityReporter implements Reporter {
       `   Failed: ${aggregatedResults.summary.wcagCriteriaFailed.length}`
     );
     console.log(`\n💾 Report saved to: ${resultsFilePath}`);
-    console.log("=".repeat(60) + "\n");
+    console.log(`${"=".repeat(60)}\n`);
   }
 }
 

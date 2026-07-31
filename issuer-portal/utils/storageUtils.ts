@@ -21,13 +21,15 @@ export interface StorageItem {
  * Format file size in human readable format
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) {
+    return "0 Bytes";
+  }
 
   const k = 1024;
   const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const index = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  return `${Number.parseFloat((bytes / k ** index).toFixed(2))} ${sizes[index]}`;
 }
 
 /**
@@ -38,7 +40,7 @@ export function getFileExtension(filename: string): string {
 }
 
 /**
- * Get file type category based on mime type
+ * Get file type category based on MIME type
  */
 export function getFileTypeCategory(
   mimeType: string
@@ -90,17 +92,17 @@ export function isFileSizeValid(file: File, maxSizeMB: number): boolean {
 /**
  * Create a preview URL for file (for images)
  */
-export function createFilePreview(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
+export async function createFilePreview(file: File): Promise<string> {
+  return await new Promise((resolve, reject) => {
     if (!file.type.startsWith("image/")) {
       reject(new Error("File is not an image"));
       return;
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.addEventListener("load", (e) => {
       resolve(e.target?.result as string);
-    };
+    });
     reader.onerror = () => {
       reject(new Error("Failed to read file"));
     };
@@ -113,14 +115,14 @@ export function createFilePreview(file: File): Promise<string> {
  */
 export function generateUniqueFilename(originalName: string): string {
   const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 8);
+  const random = Math.random().toString(36).slice(2, 8);
   const extension = getFileExtension(originalName);
-  const nameWithoutExt = originalName.substring(
+  const nameWithoutExtension = originalName.slice(
     0,
-    originalName.lastIndexOf(".")
+    Math.max(0, originalName.lastIndexOf("."))
   );
 
-  return `${nameWithoutExt}_${timestamp}_${random}.${extension}`;
+  return `${nameWithoutExtension}_${timestamp}_${random}.${extension}`;
 }
 
 /**
@@ -130,25 +132,26 @@ export function downloadFile(url: string, filename: string): void {
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
-  document.body.appendChild(link);
+  document.body.append(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
 }
 
 /**
  * Convert file to base64
  */
-export function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
+export async function fileToBase64(file: File): Promise<string> {
+  return await new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.addEventListener("load", () => {
       const result = reader.result as string;
-      // Remove data:mime/type;base64, prefix
-      const base64 = result.split(",")[1];
+      // Remove data:MIME/type;base64, prefix
+      const base64 = result.split(",", 2)[1];
       resolve(base64);
-    };
-    reader.onerror = () =>
+    });
+    reader.onerror = () => {
       reject(new Error("Failed to convert file to base64"));
+    };
     reader.readAsDataURL(file);
   });
 }

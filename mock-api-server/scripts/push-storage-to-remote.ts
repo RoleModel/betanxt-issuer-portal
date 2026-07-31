@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
 
@@ -91,24 +90,26 @@ async function pushStorageToRemote() {
 
     // Get files from each folder
     for (const folder of folders || []) {
-      if (folder.name && !folder.name.includes(".")) {
-        const folderPath = `${meetingId}/${folder.name}`;
-        const { data: files, error: fileError } = await localSupabase.storage
-          .from("documents")
-          .list(folderPath, { limit: 1000 });
+      if (!folder.name || folder.name.includes(".")) {
+        continue;
+      }
 
-        if (fileError) {
-          console.error(`❌ Failed to list files in ${folderPath}:`, fileError);
-          continue;
-        }
+      const folderPath = `${meetingId}/${folder.name}`;
+      const { data: files, error: fileError } = await localSupabase.storage
+        .from("documents")
+        .list(folderPath, { limit: 1000 });
 
-        for (const file of files || []) {
-          if (file.name?.includes(".")) {
-            allFiles.push({
-              path: `${folderPath}/${file.name}`,
-              metadata: file.metadata ?? undefined,
-            });
-          }
+      if (fileError) {
+        console.error(`❌ Failed to list files in ${folderPath}:`, fileError);
+        continue;
+      }
+
+      for (const file of files || []) {
+        if (file.name?.includes(".")) {
+          allFiles.push({
+            path: `${folderPath}/${file.name}`,
+            metadata: file.metadata ?? undefined,
+          });
         }
       }
     }
@@ -173,7 +174,7 @@ async function pushStorageToRemote() {
       }
     } catch (error) {
       console.error(
-        `   ❌ Error: ${error instanceof Error ? error.message : String(error)}`
+        `   ❌ Error: ${Error.isError(error) ? error.message : String(error)}`
       );
       errorCount++;
     }

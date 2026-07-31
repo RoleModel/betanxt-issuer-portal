@@ -25,7 +25,7 @@ export async function loginAs(
   await page.waitForURL("**/dashboard");
 
   // Wait for the app to be fully loaded
-  await page.waitForSelector('[data-testid="app-bar"]', { timeout: 10000 });
+  await page.waitForSelector('[data-testid="app-bar"]', { timeout: 10_000 });
 }
 
 /**

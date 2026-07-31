@@ -1,15 +1,15 @@
+import buildApiClient from "@/domain-models/apiClient";
 import type { components } from "@/domain-models/generated-schema";
 
 /**
  * Utility functions for calculating and updating meeting overall completion
  */
-import buildApiClient from "@/domain-models/apiClient";
 
-type DbTask = components["schemas"]["Task"];
+type DatabaseTask = components["schemas"]["Task"];
 
 // Statuses that count toward overall completion
 // Include: Positive (green), Warning (yellow), and Neutral EXCEPT INCOMPLETE
-const COMPLETION_STATUSES = [
+const COMPLETION_STATUSES = new Set([
   // Positive/Success statuses (green)
   "COMPLETE",
   "AUTHORIZED",
@@ -21,18 +21,20 @@ const COMPLETION_STATUSES = [
   // Neutral statuses (grey) - excluding INCOMPLETE
   "SUBMITTED_AWAITING_RECORD_DATE",
   "REQUEST_FORM_TO_FOLLOW",
-];
+]);
 
 /**
  * Calculate the overall completion percentage for a meeting based on task statuses
  * @param tasks - Array of tasks for the meeting
  * @returns Completion percentage (0-100)
  */
-export function calculateMeetingCompletion(tasks: DbTask[]): number {
-  if (tasks.length === 0) return 0;
+export function calculateMeetingCompletion(tasks: DatabaseTask[]): number {
+  if (tasks.length === 0) {
+    return 0;
+  }
 
   const completedTasks = tasks.filter((task) =>
-    COMPLETION_STATUSES.includes(task.status as string)
+    COMPLETION_STATUSES.has(task.status as string)
   ).length;
 
   return Math.round((completedTasks / tasks.length) * 100);
@@ -121,7 +123,7 @@ export async function onTaskStatusChange(taskId: string) {
       return;
     }
 
-    const task = taskData as DbTask;
+    const task = taskData as DatabaseTask;
     if (!task.meetingId) {
       console.error("Task has no meetingId");
       return;

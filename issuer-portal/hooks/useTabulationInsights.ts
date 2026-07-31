@@ -2,19 +2,19 @@
 
 import React from "react";
 
-import type { components } from "@/domain-models/generated-schema";
-import type { ProposalVoting, VotingSummary } from "@/types/phases";
-import type { QuorumGaugeViewModel } from "@/utils/quorum";
-
 import buildApiClient from "@/domain-models/apiClient";
 import {
-  type HolderCategory,
   getHolderTypeFromCategory,
   isRegisteredOnlyHolder,
   normalizeHolderCategory,
 } from "@/utils/holderCategory";
 import { buildQuorumGaugeModel } from "@/utils/quorum";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
+import type { components } from "@/domain-models/generated-schema";
+import type { ProposalVoting, VotingSummary } from "@/types/phases";
+import type { QuorumGaugeViewModel } from "@/utils/quorum";
+
+import type { HolderCategory } from "@/utils/holderCategory";
 
 export interface TabulationPosition {
   id: string;
@@ -145,9 +145,8 @@ const DEFAULT_FILTERS: TabulationFilters = {
   shareHigh: "",
 };
 
-const isActiveFilterValue = (value: string): boolean => {
-  return value !== "" && value !== "All" && value !== "all";
-};
+const isActiveFilterValue = (value: string): boolean =>
+  value !== "" && value !== "All" && value !== "all";
 
 const toFiniteNumber = (value: unknown): number => {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -159,9 +158,13 @@ const toFiniteNumber = (value: unknown): number => {
 };
 
 const toStringValue = (value: unknown): string => {
-  if (value === null || value === undefined) return "";
+  if (value === null || value === undefined) {
+    return "";
+  }
   const parsed = asString(value);
-  if (parsed) return parsed;
+  if (parsed) {
+    return parsed;
+  }
   if (
     typeof value === "number" ||
     typeof value === "boolean" ||
@@ -184,7 +187,9 @@ const toNullableString = (value: unknown): string | null => {
  */
 const normalizePosition = (value: unknown): TabulationPosition | null => {
   const record = asRecord(value);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   return {
     id: toStringValue(record.id),
@@ -211,7 +216,9 @@ const normalizePosition = (value: unknown): TabulationPosition | null => {
 
 const normalizeProposal = (value: unknown): ProposalRecord | null => {
   const record = asRecord(value);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   return {
     id: toStringValue(record.id),
@@ -242,7 +249,9 @@ const normalizeProposal = (value: unknown): ProposalRecord | null => {
 
 const normalizePositionVote = (value: unknown): PositionVoteRecord | null => {
   const record = asRecord(value);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   const vote = toStringValue(record.vote).toUpperCase();
   if (!["FOR", "AGAINST", "ABSTAIN", "WITHHOLD"].includes(vote)) {
@@ -304,31 +313,27 @@ const buildProposalVoting = (
  */
 const getHolderType = (
   position: TabulationPosition
-): "beneficial" | "registered" => {
-  return getHolderTypeFromCategory(
-    position.holderCategory,
-    position.accountType
-  );
-};
+): "beneficial" | "registered" =>
+  getHolderTypeFromCategory(position.holderCategory, position.accountType);
 
-const buildVotingSummary = (params: {
+const buildVotingSummary = (parameters: {
   positions: TabulationPosition[];
   proposals: ProposalVoting[];
   totalSharesOutstanding: number;
   representedShares: number;
 }): VotingSummary => {
   const { positions, proposals, totalSharesOutstanding, representedShares } =
-    params;
+    parameters;
 
   let forShares = 0;
   let againstShares = 0;
   let abstainShares = 0;
 
-  proposals.forEach((proposal) => {
+  for (const proposal of proposals) {
     forShares += proposal.votingResults.for.shares;
     againstShares += proposal.votingResults.against.shares;
     abstainShares += proposal.votingResults.abstain.shares;
-  });
+  }
 
   const totalProposalVotes = forShares + againstShares + abstainShares;
 
@@ -337,7 +342,8 @@ const buildVotingSummary = (params: {
     totalSharesOutstanding,
     percentageVoted:
       totalSharesOutstanding > 0
-        ? Math.round((representedShares / totalSharesOutstanding) * 10000) / 100
+        ? Math.round((representedShares / totalSharesOutstanding) * 10_000) /
+          100
         : 0,
     positionsVoted: positions.filter(
       (position) => position.voteStatus === "Voted"
@@ -397,7 +403,11 @@ export function useTabulationInsights(
     React.useState<number | null>(null);
 
   React.useEffect(() => {
-    if (!meetingId) return;
+    if (!meetingId) {
+      return;
+    }
+
+    let isCancelled = false;
 
     const fetchTabulationData = async () => {
       setLoading(true);
@@ -440,10 +450,12 @@ export function useTabulationInsights(
           ? positionsResult.data
           : asArray(asRecord(positionsResult.data)?.positions);
         const normalizedPositions = rawPositions.reduce<TabulationPosition[]>(
-          (acc, item) => {
+          (accumulator, item) => {
             const normalized = normalizePosition(item);
-            if (normalized) acc.push(normalized);
-            return acc;
+            if (normalized) {
+              accumulator.push(normalized);
+            }
+            return accumulator;
           },
           []
         );
@@ -452,18 +464,22 @@ export function useTabulationInsights(
           ? proposalsResult.data
           : [];
         const normalizedProposals = rawProposals.reduce<ProposalRecord[]>(
-          (acc, item) => {
+          (accumulator, item) => {
             const normalized = normalizeProposal(item);
-            if (normalized) acc.push(normalized);
-            return acc;
+            if (normalized) {
+              accumulator.push(normalized);
+            }
+            return accumulator;
           },
           []
         );
 
-        const positionIds = normalizedPositions
-          .map((position) => position.id)
-          .filter(Boolean);
-        const positionIdSet = new Set(positionIds);
+        const positionIdSet = new Set(
+          normalizedPositions.flatMap(
+            (position: TabulationPosition): string[] =>
+              position.id ? [position.id] : []
+          )
+        );
         const proposalIds = new Set(
           normalizedProposals.map((proposal) => proposal.id)
         );
@@ -471,11 +487,23 @@ export function useTabulationInsights(
           positionIdSet.size > 0
             ? await fetchPositionVotesForMeeting(meetingId)
             : [];
-        const normalizedVotes = rawPositionVotes
-          .map((item) => normalizePositionVote(item))
-          .filter((vote): vote is PositionVoteRecord => vote !== null)
-          .filter((vote) => proposalIds.has(vote.proposalId))
-          .filter((vote) => positionIdSet.has(vote.positionId));
+        const normalizedVotes = rawPositionVotes.flatMap(
+          (item: unknown): PositionVoteRecord[] => {
+            const vote = normalizePositionVote(item);
+            if (
+              vote === null ||
+              !proposalIds.has(vote.proposalId) ||
+              !positionIdSet.has(vote.positionId)
+            ) {
+              return [];
+            }
+            return [vote];
+          }
+        );
+
+        if (isCancelled) {
+          return;
+        }
 
         setPositions(normalizedPositions);
         setProposals(normalizedProposals);
@@ -496,20 +524,30 @@ export function useTabulationInsights(
           }
         }
       } catch (error) {
-        console.error("Failed to fetch tabulation insights:", error);
+        if (!isCancelled) {
+          console.error("Failed to fetch tabulation insights:", error);
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
     void fetchTabulationData();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [meetingId]);
 
   const accountTypes = React.useMemo(
     () =>
       [
         ...new Set(
-          positions.map((position) => position.accountType).filter(Boolean)
+          positions.flatMap((position: TabulationPosition): string[] =>
+            position.accountType ? [position.accountType] : []
+          )
         ),
       ].sort(),
     [positions]
@@ -519,7 +557,9 @@ export function useTabulationInsights(
     () =>
       [
         ...new Set(
-          positions.map((position) => position.setKey).filter(Boolean)
+          positions.flatMap((position: TabulationPosition): string[] =>
+            position.setKey ? [position.setKey] : []
+          )
         ),
       ].sort(),
     [positions]
@@ -527,28 +567,32 @@ export function useTabulationInsights(
 
   const directors = React.useMemo(
     () =>
-      proposals
-        .filter((proposal) => proposal.directorName)
-        .map((proposal) => ({
-          id: proposal.id,
-          label: proposal.directorName || proposal.proposalTitle,
-        })),
+      proposals.flatMap(
+        (proposal: ProposalRecord): { id: string; label: string }[] =>
+          proposal.directorName
+            ? [
+                {
+                  id: proposal.id,
+                  label: proposal.directorName || proposal.proposalTitle,
+                },
+              ]
+            : []
+      ),
     [proposals]
   );
 
   const filteredPositions = React.useMemo(() => {
     const directorPositionIds = new Set(
-      positionVotes
-        .filter(
-          (vote) =>
-            !filters.directorProposalId ||
-            vote.proposalId === filters.directorProposalId
-        )
-        .map((vote) => vote.positionId)
+      positionVotes.flatMap((vote: PositionVoteRecord): string[] =>
+        !filters.directorProposalId ||
+        vote.proposalId === filters.directorProposalId
+          ? [vote.positionId]
+          : []
+      )
     );
 
     return positions.filter((position) => {
-      const matchesSearch =
+      const isMatchesSearch =
         !filters.searchQuery ||
         position.name
           .toLowerCase()
@@ -560,29 +604,29 @@ export function useTabulationInsights(
           .toLowerCase()
           .includes(filters.searchQuery.toLowerCase());
 
-      const matchesVoteStatus =
+      const isMatchesVoteStatus =
         filters.voteStatus === "All" ||
         position.voteStatus === filters.voteStatus;
-      const matchesHolderType =
+      const isMatchesHolderType =
         filters.holderType === "all" ||
         getHolderType(position) === filters.holderType;
-      const matchesAccountType =
+      const isMatchesAccountType =
         !filters.accountType || position.accountType === filters.accountType;
-      const matchesSetKey =
+      const isMatchesSetKey =
         !filters.setKey || position.setKey === filters.setKey;
-      const matchesDirector =
+      const isMatchesDirector =
         !filters.directorProposalId || directorPositionIds.has(position.id);
-      const matchesControlNumber =
+      const isMatchesControlNumber =
         !filters.controlNumber ||
         position.controlNumber
           .toLowerCase()
           .includes(filters.controlNumber.toLowerCase());
-      const matchesAccountNumber =
+      const isMatchesAccountNumber =
         !filters.accountNumber ||
         position.accountNumber
           .toLowerCase()
           .includes(filters.accountNumber.toLowerCase());
-      const matchesPositionName =
+      const isMatchesPositionName =
         !filters.positionName ||
         position.name
           .toLowerCase()
@@ -593,21 +637,21 @@ export function useTabulationInsights(
       const shareHigh = filters.shareHigh
         ? Number.parseFloat(filters.shareHigh)
         : null;
-      const matchesShareRange =
+      const isMatchesShareRange =
         (shareLow === null || position.shares >= shareLow) &&
         (shareHigh === null || position.shares <= shareHigh);
 
       return (
-        matchesSearch &&
-        matchesVoteStatus &&
-        matchesHolderType &&
-        matchesAccountType &&
-        matchesSetKey &&
-        matchesDirector &&
-        matchesControlNumber &&
-        matchesAccountNumber &&
-        matchesPositionName &&
-        matchesShareRange
+        isMatchesSearch &&
+        isMatchesVoteStatus &&
+        isMatchesHolderType &&
+        isMatchesAccountType &&
+        isMatchesSetKey &&
+        isMatchesDirector &&
+        isMatchesControlNumber &&
+        isMatchesAccountNumber &&
+        isMatchesPositionName &&
+        isMatchesShareRange
       );
     });
   }, [filters, positionVotes, positions]);
@@ -624,7 +668,7 @@ export function useTabulationInsights(
     if (!hasActiveProposalFilters) {
       const voteCountsByProposalId = new Map<string, ProposalVoteCounts>();
 
-      positionVotes.forEach((vote) => {
+      for (const vote of positionVotes) {
         const currentCounts = voteCountsByProposalId.get(vote.proposalId) ?? {
           for: 0,
           against: 0,
@@ -642,7 +686,7 @@ export function useTabulationInsights(
 
         currentCounts.total += 1;
         voteCountsByProposalId.set(vote.proposalId, currentCounts);
-      });
+      }
 
       return proposals.map((proposal) =>
         buildProposalVoting(proposal, voteCountsByProposalId.get(proposal.id))
@@ -650,119 +694,115 @@ export function useTabulationInsights(
     }
 
     const filteredPositionIds = new Set(
-      positions
-        .filter((position) => {
-          const matchesSearch =
-            !filtersForProposalAggregation.searchQuery ||
-            position.name
-              .toLowerCase()
-              .includes(
-                filtersForProposalAggregation.searchQuery.toLowerCase()
-              ) ||
-            position.accountNumber
-              .toLowerCase()
-              .includes(
-                filtersForProposalAggregation.searchQuery.toLowerCase()
-              ) ||
-            position.controlNumber
-              .toLowerCase()
-              .includes(
-                filtersForProposalAggregation.searchQuery.toLowerCase()
-              );
+      positions.flatMap((position: TabulationPosition): string[] => {
+        const isMatchesSearch =
+          !filtersForProposalAggregation.searchQuery ||
+          position.name
+            .toLowerCase()
+            .includes(
+              filtersForProposalAggregation.searchQuery.toLowerCase()
+            ) ||
+          position.accountNumber
+            .toLowerCase()
+            .includes(
+              filtersForProposalAggregation.searchQuery.toLowerCase()
+            ) ||
+          position.controlNumber
+            .toLowerCase()
+            .includes(filtersForProposalAggregation.searchQuery.toLowerCase());
 
-          const matchesHolderType =
-            filtersForProposalAggregation.holderType === "all" ||
-            getHolderType(position) ===
-              filtersForProposalAggregation.holderType;
-          const matchesAccountType =
-            !filtersForProposalAggregation.accountType ||
-            position.accountType === filtersForProposalAggregation.accountType;
-          const matchesSetKey =
-            !filtersForProposalAggregation.setKey ||
-            position.setKey === filtersForProposalAggregation.setKey;
-          const matchesControlNumber =
-            !filtersForProposalAggregation.controlNumber ||
-            position.controlNumber
-              .toLowerCase()
-              .includes(
-                filtersForProposalAggregation.controlNumber.toLowerCase()
-              );
-          const matchesAccountNumber =
-            !filtersForProposalAggregation.accountNumber ||
-            position.accountNumber
-              .toLowerCase()
-              .includes(
-                filtersForProposalAggregation.accountNumber.toLowerCase()
-              );
-          const matchesPositionName =
-            !filtersForProposalAggregation.positionName ||
-            position.name
-              .toLowerCase()
-              .includes(
-                filtersForProposalAggregation.positionName.toLowerCase()
-              );
-          const shareLow = filtersForProposalAggregation.shareLow
-            ? Number.parseFloat(filtersForProposalAggregation.shareLow)
-            : null;
-          const shareHigh = filtersForProposalAggregation.shareHigh
-            ? Number.parseFloat(filtersForProposalAggregation.shareHigh)
-            : null;
-          const matchesShareRange =
-            (shareLow === null || position.shares >= shareLow) &&
-            (shareHigh === null || position.shares <= shareHigh);
+        const isMatchesHolderType =
+          filtersForProposalAggregation.holderType === "all" ||
+          getHolderType(position) === filtersForProposalAggregation.holderType;
+        const isMatchesAccountType =
+          !filtersForProposalAggregation.accountType ||
+          position.accountType === filtersForProposalAggregation.accountType;
+        const isMatchesSetKey =
+          !filtersForProposalAggregation.setKey ||
+          position.setKey === filtersForProposalAggregation.setKey;
+        const isMatchesControlNumber =
+          !filtersForProposalAggregation.controlNumber ||
+          position.controlNumber
+            .toLowerCase()
+            .includes(
+              filtersForProposalAggregation.controlNumber.toLowerCase()
+            );
+        const isMatchesAccountNumber =
+          !filtersForProposalAggregation.accountNumber ||
+          position.accountNumber
+            .toLowerCase()
+            .includes(
+              filtersForProposalAggregation.accountNumber.toLowerCase()
+            );
+        const isMatchesPositionName =
+          !filtersForProposalAggregation.positionName ||
+          position.name
+            .toLowerCase()
+            .includes(filtersForProposalAggregation.positionName.toLowerCase());
+        const shareLow = filtersForProposalAggregation.shareLow
+          ? Number.parseFloat(filtersForProposalAggregation.shareLow)
+          : null;
+        const shareHigh = filtersForProposalAggregation.shareHigh
+          ? Number.parseFloat(filtersForProposalAggregation.shareHigh)
+          : null;
+        const isMatchesShareRange =
+          (shareLow === null || position.shares >= shareLow) &&
+          (shareHigh === null || position.shares <= shareHigh);
 
-          return (
-            matchesSearch &&
-            matchesHolderType &&
-            matchesAccountType &&
-            matchesSetKey &&
-            matchesControlNumber &&
-            matchesAccountNumber &&
-            matchesPositionName &&
-            matchesShareRange
-          );
-        })
-        .map((position) => position.id)
+        const isMatch =
+          isMatchesSearch &&
+          isMatchesHolderType &&
+          isMatchesAccountType &&
+          isMatchesSetKey &&
+          isMatchesControlNumber &&
+          isMatchesAccountNumber &&
+          isMatchesPositionName &&
+          isMatchesShareRange;
+
+        return isMatch ? [position.id] : [];
+      })
     );
 
-    return proposals
-      .filter(
-        (proposal) =>
-          !filtersForProposalAggregation.directorProposalId ||
-          proposal.id === filtersForProposalAggregation.directorProposalId
-      )
-      .map((proposal) => {
-        let forVotes = 0;
-        let againstVotes = 0;
-        let abstainVotes = 0;
-        let forCount = 0;
-        let againstCount = 0;
-        let abstainCount = 0;
+    return proposals.flatMap((proposal: ProposalRecord) => {
+      if (
+        filtersForProposalAggregation.directorProposalId &&
+        proposal.id !== filtersForProposalAggregation.directorProposalId
+      ) {
+        return [];
+      }
 
-        positionVotes.forEach((vote) => {
-          if (
-            vote.proposalId !== proposal.id ||
-            !filteredPositionIds.has(vote.positionId)
-          ) {
-            return;
-          }
+      let forVotes = 0;
+      let againstVotes = 0;
+      let abstainVotes = 0;
+      let forCount = 0;
+      let againstCount = 0;
+      let abstainCount = 0;
 
-          if (vote.vote === "FOR") {
-            forVotes += vote.sharesVoting;
-            forCount += 1;
-          } else if (vote.vote === "ABSTAIN") {
-            abstainVotes += vote.sharesVoting;
-            abstainCount += 1;
-          } else {
-            againstVotes += vote.sharesVoting;
-            againstCount += 1;
-          }
-        });
+      for (const vote of positionVotes) {
+        if (
+          vote.proposalId !== proposal.id ||
+          !filteredPositionIds.has(vote.positionId)
+        ) {
+          continue;
+        }
 
-        const totalVotes = forVotes + againstVotes + abstainVotes;
-        const totalCount = forCount + againstCount + abstainCount;
+        if (vote.vote === "FOR") {
+          forVotes += vote.sharesVoting;
+          forCount += 1;
+        } else if (vote.vote === "ABSTAIN") {
+          abstainVotes += vote.sharesVoting;
+          abstainCount += 1;
+        } else {
+          againstVotes += vote.sharesVoting;
+          againstCount += 1;
+        }
+      }
 
-        return {
+      const totalVotes = forVotes + againstVotes + abstainVotes;
+      const totalCount = forCount + againstCount + abstainCount;
+
+      return [
+        {
           proposalId: proposal.id,
           proposalNumber: proposal.proposalNumber,
           description: proposal.proposalTitle,
@@ -794,8 +834,9 @@ export function useTabulationInsights(
           },
           totalShares: totalVotes,
           status: "active" as const,
-        };
-      });
+        },
+      ];
+    });
   }, [filters, positionVotes, positions, proposals]);
 
   const totalSharesOutstanding = React.useMemo(() => {
@@ -850,27 +891,31 @@ export function useTabulationInsights(
     tabulationReportVotedShares,
   ]);
 
-  const summary = React.useMemo(() => {
-    return buildVotingSummary({
-      positions: filteredPositions,
-      proposals: proposalsForDisplay,
+  const summary = React.useMemo(
+    () =>
+      buildVotingSummary({
+        positions: filteredPositions,
+        proposals: proposalsForDisplay,
+        totalSharesOutstanding,
+        representedShares,
+      }),
+    [
+      filteredPositions,
+      proposalsForDisplay,
+      representedShares,
       totalSharesOutstanding,
-      representedShares,
-    });
-  }, [
-    filteredPositions,
-    proposalsForDisplay,
-    representedShares,
-    totalSharesOutstanding,
-  ]);
+    ]
+  );
 
-  const quorumGauge = React.useMemo(() => {
-    return buildQuorumGaugeModel({
-      totalOutstandingShares: totalSharesOutstanding,
-      representedShares,
-      quorumRequirementPercent: meeting?.quorumRequirement ?? 50,
-    });
-  }, [meeting?.quorumRequirement, representedShares, totalSharesOutstanding]);
+  const quorumGauge = React.useMemo(
+    () =>
+      buildQuorumGaugeModel({
+        totalOutstandingShares: totalSharesOutstanding,
+        representedShares,
+        quorumRequirementPercent: meeting?.quorumRequirement ?? 50,
+      }),
+    [meeting?.quorumRequirement, representedShares, totalSharesOutstanding]
+  );
 
   const beneficialVsRegistered = React.useMemo(
     () => ({

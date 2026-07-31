@@ -10,7 +10,9 @@ async function fetchMeetings(ticker?: string): Promise<Meeting[]> {
   const { data } = await api.GET("/meetings", {
     params: { query: ticker ? { ticker } : {} },
   });
-  if (!data) return [];
+  if (!data) {
+    return [];
+  }
 
   // The API returns an array of meetings directly
   return data;

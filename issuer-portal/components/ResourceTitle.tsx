@@ -8,27 +8,31 @@ import React from "react";
 import { pdfWorkerSource } from "@/lib/pdf-worker";
 
 interface ResourceTitleProps {
-  title: string;
-  description: string;
-  actionText: string;
-  minWidth?: string;
-  icon?: React.ReactNode;
-  href?: string;
-  onClick?: () => void;
-  fileUrl?: string;
+  readonly title: string;
+  readonly description: string;
+  readonly actionText: string;
+  readonly minWidth?: string;
+  readonly icon?: React.ReactNode;
+  readonly href?: string;
+  readonly onClick?: () => void;
+  readonly fileUrl?: string;
 }
 
 let workerInitialized = false;
 
 const PDFPreview = dynamic(
-  () =>
-    import("react-pdf").then((mod) => {
+  async () =>
+    await import("react-pdf").then((mod) => {
       if (typeof window !== "undefined" && !workerInitialized) {
         mod.pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSource;
         workerInitialized = true;
       }
 
-      const PDFPreviewComponent = ({ fileUrl }: { fileUrl: string }) => {
+      const PDFPreviewComponent = ({
+        fileUrl,
+      }: {
+        readonly fileUrl: string;
+      }) => {
         const [error, setError] = React.useState(false);
 
         if (error) {
@@ -69,7 +73,9 @@ const PDFPreview = dynamic(
               file={fileUrl}
               loading={<CircularProgress size={15} />}
               error={<DescriptionOutlined fontSize="small" />}
-              onLoadError={() => setError(true)}
+              onLoadError={() => {
+                setError(true);
+              }}
             >
               <mod.Page
                 pageNumber={1}

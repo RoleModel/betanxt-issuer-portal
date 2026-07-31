@@ -8,8 +8,8 @@ import {
 import { useRouter } from "next/navigation";
 
 interface PreviewLinksCardProps {
-  url1?: string | null;
-  url2?: string | null;
+  readonly url1?: string | null;
+  readonly url2?: string | null;
 }
 
 const PreviewLinksCard = ({ url1, url2 }: PreviewLinksCardProps) => {

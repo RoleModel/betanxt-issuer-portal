@@ -6,7 +6,7 @@ import React from "react";
 
 import SkeletonChart from "@/components/ui/SkeletonChart";
 
-import { CustomLegend } from "./index";
+import CustomLegend from "./CustomLegend";
 
 interface DirectorVotingData {
   year: number;
@@ -16,10 +16,28 @@ interface DirectorVotingData {
 }
 
 interface IndividualDirectorChartProps {
-  directorName: string;
-  data: DirectorVotingData[];
-  loading?: boolean;
+  readonly directorName: string;
+  readonly data: DirectorVotingData[];
+  readonly loading?: boolean;
 }
+
+const LEGEND_ITEMS = [
+  {
+    label: "For",
+    color: "var(--mui-palette-chartSeries-1-main)",
+    type: "line" as const,
+  },
+  {
+    label: "Against",
+    color: "var(--mui-palette-chartSeries-5-main)",
+    type: "line" as const,
+  },
+  {
+    label: "Abstain",
+    color: "var(--mui-palette-chartSeries-2-main)",
+    type: "line" as const,
+  },
+];
 
 const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
   directorName,
@@ -51,24 +69,6 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
   const forVotes = sortedData.map((d) => d.forPercentage);
   const againstVotes = sortedData.map((d) => d.againstPercentage);
   const abstainVotes = sortedData.map((d) => d.abstainPercentage);
-
-  const legendItems = [
-    {
-      label: "For",
-      color: "var(--mui-palette-chartSeries-1-main)",
-      type: "line" as const,
-    },
-    {
-      label: "Against",
-      color: "var(--mui-palette-chartSeries-5-main)",
-      type: "line" as const,
-    },
-    {
-      label: "Abstain",
-      color: "var(--mui-palette-chartSeries-2-main)",
-      type: "line" as const,
-    },
-  ];
 
   return (
     <Box>
@@ -118,7 +118,7 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
           legend: () => null,
         }}
       />
-      <CustomLegend items={legendItems} />
+      <CustomLegend items={LEGEND_ITEMS} />
     </Box>
   );
 };

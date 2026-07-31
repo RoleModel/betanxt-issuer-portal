@@ -25,8 +25,8 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
     voteCutoffDate,
   } = useTabulationTrackerData(props);
   const { enableTabulationTrackerColors } = useFeatureFlags().flags;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare -- Normalize the flag for editor ESLint instances that resolve its generated type as `any`.
-  const shouldUseUpdatedColors = enableTabulationTrackerColors === true;
+
+  const shouldUseUpdatedColors = enableTabulationTrackerColors;
   const currentData = data?.meeting_id === currentMeetingId ? data : null;
   const currentVotePercentage = currentData
     ? Number.parseFloat(currentData.vote_percentage)
@@ -65,6 +65,7 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
               month: "short",
               day: "numeric",
               year: "numeric",
+              timeZone: "UTC",
             })
           : meetingDate
             ? calculateDaysUntil(meetingDate.toISOString())
@@ -96,6 +97,7 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
                   month: "long",
                   day: "numeric",
                   year: "numeric",
+                  timeZone: "UTC",
                 })} 11:59 PM ET`
               : "0",
             secondarySx: { whiteSpace: "nowrap" } as Record<string, unknown>,

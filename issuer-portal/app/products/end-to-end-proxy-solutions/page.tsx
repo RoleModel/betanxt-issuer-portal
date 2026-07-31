@@ -20,93 +20,94 @@ import ProductsLayout from "@/components/Layout/ProductLayout";
 import CTACard from "@/components/Products/CTACard";
 import { SidebarCard } from "@/components/Products/SidebarCard";
 
+const products = [
+  {
+    title: "MIC Digital Shareholder Meeting",
+    description:
+      "Client service is the linchpin of all our solutions. An experienced support professional will work with you to plan, manage and execute your digital meeting - and, if you choose, join you on dry runs and prep calls. In addition, BetaNXT provides technical guidance, ensuring a flawless meeting.",
+    variant: "primary" as const,
+    icon: <TeamMeeting2Icon accentColor="#ebb322" fontSize="3xl" />,
+  },
+
+  {
+    title: "BetaNXT Engage",
+    description:
+      "An add-on to our end-to-end proxy solution, BetaNXT Engage provides a suite of omni-channel tools that nelps issuers achieve quorum and proposal passage by generating greater participation from retail shareholders. Our annual meeting experts will analyze your position distribution, event strategy and history to help design a program that works best for you.",
+    variant: "tertiary" as const,
+    icon: <GroupMeetingIcon accentColor="#ebb322" fontSize="3xl" />,
+  },
+] as const;
+
+const benefits = [
+  {
+    icon: <StarBadgeIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Robust web hosting and interactive documents",
+    description:
+      "Client service is the linchpin of all BetaNXT solutions. Al dedicated campaign manager and team of specialists communicate with you to plan and manage the aspects of the proxy event from developing a comprehensive plan and timeline tailored to your needs to meeting date reporting and beyond. Acting as an extension of your team, we use a consultative approach to ensure you achieve your event goals.",
+  },
+  {
+    icon: <GearProcessIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Unparalleled proxy management",
+    description:
+      "Shareholder engagement efforts are paramount to a successful proxy outcome. A document hosting solution that is intuitive and visually appealing, while meeting compliance regulations, helps to enhance the investor experience and therefore engagement. BetaNXT's online document hosting solution provides customized websites that extend your corporate website and investor relations messaging. Your important documents are fully enhanced to open quickly and are enabled for optimal mobile device performance.",
+  },
+  {
+    icon: <TeamDiscussionIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Discovery planning and implementation",
+    description: (
+      <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
+        <li>Dedicated proxy experts manage your entire campaign</li>
+        <li>
+          In-depth analysis of your timeline, pre-record date data and budget
+        </li>
+        <li>
+          Secure file transfer protocols and procedures to maikain control of
+          your dela and event
+        </li>
+      </ul>
+    ),
+  },
+  {
+    icon: <TeamDiscussionIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Print and distribution management",
+    description: (
+      <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
+        <li>
+          Custom-branded shareholder materials including multi-color print
+          capabilities
+        </li>
+        <li>Scalable, integrated print and distribution network</li>
+        <li>Enhanced mail, e-delivery, and text capabilities</li>
+      </ul>
+    ),
+  },
+  {
+    icon: <TeamDiscussionIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Real-time proxy tabulation",
+    description: (
+      <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
+        <li>Real-time vote tracking and reporting available</li>
+        <li>
+          24 / 7 In-depth data analytics and vote modeling for all tabulation
+          scenarios
+        </li>
+      </ul>
+    ),
+  },
+  {
+    icon: <TeamDiscussionIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Shareholder meeting/post-meeting review",
+    description: (
+      <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
+        <li>In - depth data and vote analysis</li>
+        <li>Transparent cost analysis</li>
+        <li>Postmeeting guidance for future campaigns</li>
+      </ul>
+    ),
+  },
+];
+
 const EndToEndProxySolutionsPage = () => {
-  const products = [
-    {
-      title: "MIC Digital Shareholder Meeting",
-      description:
-        "Client service is the linchpin of all our solutions. An experienced support professional will work with you to plan, manage and execute your digital meeting - and, if you choose, join you on dry runs and prep calls. In addition, BetaNXT provides technical guidance, ensuring a flawless meeting.",
-      variant: "primary" as const,
-      icon: <TeamMeeting2Icon accentColor="#ebb322" fontSize="3xl" />,
-    },
-
-    {
-      title: "BetaNXT Engage",
-      description:
-        "An add-on to our end-to-end proxy solution, BetaNXT Engage provides a suite of omni-channel tools that nelps issuers achieve quorum and proposal passage by generating greater participation from retail shareholders. Our annual meeting experts will analyze your position distribution, event strategy and history to help design a program that works best for you.",
-      variant: "tertiary" as const,
-      icon: <GroupMeetingIcon accentColor="#ebb322" fontSize="3xl" />,
-    },
-  ] as const;
-  const benefits = [
-    {
-      icon: <StarBadgeIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Robust web hosting and interactive documents",
-      description:
-        "Client service is the linchpin of all BetaNXT solutions. Al dedicated campaign manager and team of specialists communicate with you to plan and manage the aspects of the proxy event from developing a comprehensive plan and timeline tailored to your needs to meeting date reporting and beyond. Acting as an extension of your team, we use a consultative approach to ensure you achieve your event goals.",
-    },
-    {
-      icon: <GearProcessIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Unparalleled proxy management",
-      description:
-        "Shareholder engagement efforts are paramount to a successful proxy outcome. A document hosting solution that is intuitive and visually appealing, while meeting compliance regulations, helps to enhance the investor experience and therefore engagement. BetaNXT's online document hosting solution provides customized websites that extend your corporate website and investor relations messaging. Your important documents are fully enhanced to open quickly and are enabled for optimal mobile device performance.",
-    },
-    {
-      icon: <TeamDiscussionIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Discovery planning and implementation",
-      description: (
-        <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
-          <li>Dedicated proxy experts manage your entire campaign</li>
-          <li>
-            In-depth analysis of your timeline, pre-record date data and budget
-          </li>
-          <li>
-            Secure file transfer protocols and procedures to maikain control of
-            your dela and event
-          </li>
-        </ul>
-      ),
-    },
-    {
-      icon: <TeamDiscussionIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Print and distribution management",
-      description: (
-        <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
-          <li>
-            Custom-branded shareholder materials including multi-color print
-            capabilities
-          </li>
-          <li>Scalable, integrated print and distribution network</li>
-          <li>Enhanced mail, e-delivery, and text capabilities</li>
-        </ul>
-      ),
-    },
-    {
-      icon: <TeamDiscussionIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Real-time proxy tabulation",
-      description: (
-        <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
-          <li>Real-time vote tracking and reporting available</li>
-          <li>
-            24 / 7 In-depth data analytics and vote modeling for all tabulation
-            scenarios
-          </li>
-        </ul>
-      ),
-    },
-    {
-      icon: <TeamDiscussionIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Shareholder meeting/post-meeting review",
-      description: (
-        <ul style={{ listStyleType: "disc", margin: 0, paddingLeft: "20px" }}>
-          <li>In - depth data and vote analysis</li>
-          <li>Transparent cost analysis</li>
-          <li>Postmeeting guidance for future campaigns</li>
-        </ul>
-      ),
-    },
-  ];
-
   const leftColumnContent = (
     <Stack gap={2}>
       <ContentTitle title="Achieve quorum and proposal passage by generating greater participation" />
@@ -132,9 +133,9 @@ const EndToEndProxySolutionsPage = () => {
             gap: 2,
           }}
         >
-          {products.map((product, index) => (
+          {products.map((product) => (
             <FeatureTile
-              key={index}
+              key={product.title}
               variant={product.variant}
               title={product.title}
               titleVariant="h1"
@@ -161,14 +162,14 @@ const EndToEndProxySolutionsPage = () => {
             gap: 2,
           }}
         >
-          {benefits.map((benefit, index) => (
+          {benefits.map((benefit) => (
             <FeatureTile
-              key={index}
+              key={benefit.title}
               variant="base"
               title={benefit.title}
               titleVariant="h1"
               description={benefit.description}
-              actionText={""}
+              actionText=""
               brandFont={true}
               icon={benefit.icon}
             />
@@ -186,7 +187,11 @@ const EndToEndProxySolutionsPage = () => {
       icon={<OpenInNew />}
       buttonText="Visit Issuer Solutions"
       onClick={() => {
-        window.open("https://betanxt.com/issuer-solutions", "_blank");
+        window.open(
+          "https://betanxt.com/issuer-solutions",
+          "_blank",
+          "noopener"
+        );
       }}
     >
       <Typography variant="body3" component="p" gutterBottom>

@@ -15,32 +15,34 @@ interface Task {
 export const findSignedDocumentForTask = (
   task: Task,
   documents: Document[]
-): Document | undefined => {
-  return documents.find((doc) => {
+): Document | undefined =>
+  documents.find((document_) => {
     // Check for signed/completed document types
-    const signedDocTypes = [
+    const signedDocumentTypes = [
       "signed-form",
       "transfer-agent-request",
       "plan-file-request",
       "broadridge-form",
     ];
-    if (!signedDocTypes.includes(doc.type ?? "")) {
+    if (!signedDocumentTypes.includes(document_.type ?? "")) {
       return false;
     }
 
     // Also check for 'Signed' in title
-    const hasSignedInTitle = (doc.title ?? "").toLowerCase().includes("signed");
+    const hasSignedInTitle = (document_.title ?? "")
+      .toLowerCase()
+      .includes("signed");
     if (!hasSignedInTitle) {
       return false;
     }
 
     // Strategy 1: Match on taskId field if both exist
-    if (doc.taskId && task.taskId && doc.taskId === task.taskId) {
+    if (document_.taskId && task.taskId && document_.taskId === task.taskId) {
       return true;
     }
 
     // Strategy 2: Match on task.id (most common)
-    if (doc.taskId === task.id) {
+    if (document_.taskId === task.id) {
       return true;
     }
 
@@ -49,7 +51,7 @@ export const findSignedDocumentForTask = (
 
     // Require specific type-to-title alignment
     if (
-      doc.type === "transfer-agent-request" &&
+      document_.type === "transfer-agent-request" &&
       taskTitle.includes("transfer") &&
       taskTitle.includes("agent")
     ) {
@@ -57,17 +59,14 @@ export const findSignedDocumentForTask = (
     }
 
     if (
-      doc.type === "plan-file-request" &&
+      document_.type === "plan-file-request" &&
       taskTitle.includes("plan") &&
       taskTitle.includes("file")
     ) {
       return true;
     }
 
-    if (doc.type === "broadridge-form" && taskTitle.includes("broadridge")) {
-      return true;
-    }
-
-    return false;
+    return (
+      document_.type === "broadridge-form" && taskTitle.includes("broadridge")
+    );
   });
-};

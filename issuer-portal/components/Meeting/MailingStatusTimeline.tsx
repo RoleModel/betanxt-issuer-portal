@@ -11,7 +11,15 @@ import {
   TimelineSeparator,
   timelineItemClasses,
 } from "@mui/lab";
-import { Card, CardContent, CardHeader, Chip, Stack, Tooltip, Typography } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 
 import {
   WORKFLOW_STEPS,
@@ -37,7 +45,8 @@ const MailingStatusTimeline = ({
   onStepClick,
   timelineDates,
 }: MailingStatusTimelineProps) => {
-  const isClickable = isCSM && hasNonEmptyString(meetingId) && !isUpdatingStatus;
+  const isClickable =
+    isCSM && hasNonEmptyString(meetingId) && !isUpdatingStatus;
 
   return (
     <Card sx={{ height: "100%" }}>
@@ -46,7 +55,11 @@ const MailingStatusTimeline = ({
         action={
           isCSM && hasNonEmptyString(meetingId) ? (
             <Tooltip title="Click a step to update status">
-              <EditIcon fontSize="small" color="action" sx={{ mt: 1.5, mr: 0.5 }} />
+              <EditIcon
+                fontSize="small"
+                color="action"
+                sx={{ mt: 1.5, mr: 0.5 }}
+              />
             </Tooltip>
           ) : undefined
         }
@@ -142,7 +155,11 @@ const MailingStatusTimeline = ({
                         }}
                       />
                     ) : (
-                      <Typography variant="body3" fontWeight={500} color="text.secondary">
+                      <Typography
+                        variant="body3"
+                        fontWeight={500}
+                        color="text.secondary"
+                      >
                         {step.label}
                       </Typography>
                     )}

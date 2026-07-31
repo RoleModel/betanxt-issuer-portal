@@ -85,7 +85,7 @@ function getFixture(template: TemplateKey): unknown {
     : DOCUMENT_FIXTURE;
 }
 
-export function EmailPreviewClient() {
+export const EmailPreviewClient = () => {
   const [template, setTemplate] = useState<TemplateKey>(
     "tabulation-daily-report"
   );
@@ -258,9 +258,9 @@ export function EmailPreviewClient() {
             type="email"
             placeholder="recipient@example.com"
             value={toEmail}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setToEmail(e.target.value)
-            }
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setToEmail(e.target.value);
+            }}
             onKeyDown={handleKeyDown}
             style={{
               padding: "6px 12px",
@@ -296,7 +296,7 @@ export function EmailPreviewClient() {
       </div>
 
       {/* Send status bar */}
-      {sendMessage && (
+      {sendMessage ? (
         <div
           style={{
             backgroundColor: sendStatus === "success" ? "#F0FDF4" : "#FEF2F2",
@@ -327,7 +327,7 @@ export function EmailPreviewClient() {
             ×
           </button>
         </div>
-      )}
+      ) : null}
 
       {/* Preview frame */}
       <div style={{ padding: "24px" }}>
@@ -340,7 +340,7 @@ export function EmailPreviewClient() {
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
           }}
         >
-          {loading && (
+          {loading ? (
             <div
               style={{
                 padding: "64px",
@@ -351,15 +351,15 @@ export function EmailPreviewClient() {
             >
               Loading preview…
             </div>
-          )}
-          {previewError && (
+          ) : null}
+          {previewError ? (
             <div
               style={{ padding: "24px", color: "#DC2626", fontSize: "14px" }}
             >
               Error: {previewError}
             </div>
-          )}
-          {html && !loading && (
+          ) : null}
+          {html && !loading ? (
             <iframe
               srcDoc={html}
               title="Email preview"
@@ -370,9 +370,9 @@ export function EmailPreviewClient() {
                 display: "block",
               }}
             />
-          )}
+          ) : null}
         </div>
       </div>
     </div>
   );
-}
+};

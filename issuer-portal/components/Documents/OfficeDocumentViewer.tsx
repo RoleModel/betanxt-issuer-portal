@@ -1,76 +1,50 @@
 "use client";
 
 import { Box, CircularProgress } from "@mui/material";
+import DOMPurify from "dompurify";
 import mammoth from "mammoth";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import useSWR from "swr";
 
 interface OfficeDocumentViewerProps {
-  url: string;
-  title?: string;
-  fileType?: string;
+  readonly url: string;
+  readonly title?: string;
+  readonly fileType?: string;
 }
+
+// Data-fetching layer for the DOCX viewer. SWR handles caching, request
+// deduplication, and race conditions so we never fetch inside an effect.
+const convertDocxToHtml = async (docUrl: string): Promise<string> => {
+  const response = await fetch(docUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch document: ${response.statusText}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  const result = await mammoth.convertToHtml({ arrayBuffer });
+  return result.value;
+};
 
 const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
   url,
   title: _title,
   fileType,
 }) => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [htmlContent, setHtmlContent] = useState<string>("");
+  const normalizedType = fileType?.toLowerCase();
+  const isSupported = normalizedType === "docx" || normalizedType === "doc";
 
-  useEffect(() => {
-    const loadDocument = async () => {
-      setLoading(true);
-      setError(null);
+  const {
+    data: htmlContent,
+    error: fetchError,
+    isLoading,
+  } = useSWR<string, Error>(isSupported ? url : null, convertDocxToHtml);
 
-      try {
-        // Fetch the DOCX file
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch document: ${response.statusText}`);
-        }
-
-        const arrayBuffer = await response.arrayBuffer();
-
-        // Convert DOCX to HTML using mammoth, then strip any <script> tags
-        // that may come from embedded macros to avoid React 19 warnings
-        const result = await mammoth.convertToHtml({ arrayBuffer });
-        const sanitized = result.value.replace(
-          /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-          ""
-        );
-        setHtmlContent(sanitized);
-
-        if (
-          result.messages.length > 0 &&
-          process.env.NODE_ENV === "development"
-        ) {
-          console.log("Mammoth conversion messages:", result.messages);
-        }
-
-        setLoading(false);
-      } catch (err) {
-        if (process.env.NODE_ENV === "development") {
-          console.error("Error loading DOCX:", err);
-        }
-        setError(
-          err instanceof Error ? err.message : "Failed to load document"
-        );
-        setLoading(false);
-      }
-    };
-
-    if (
-      fileType?.toLowerCase() === "docx" ||
-      fileType?.toLowerCase() === "doc"
-    ) {
-      void loadDocument();
-    } else {
-      setError("Unsupported file type. Only DOCX files are supported.");
-      setLoading(false);
-    }
-  }, [url, fileType]);
+  const loading: boolean = isSupported && isLoading;
+  const error: string | null = !isSupported
+    ? "Unsupported file type. Only DOCX files are supported."
+    : fetchError
+      ? fetchError.message
+      : null;
 
   return (
     <Box
@@ -81,7 +55,7 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
       }}
     >
       {/* Spinner overlay until document is loaded */}
-      {loading && (
+      {loading ? (
         <Box
           sx={{
             position: "absolute",
@@ -100,10 +74,10 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
         >
           <CircularProgress />
         </Box>
-      )}
+      ) : null}
 
       {/* Error state */}
-      {error && (
+      {error ? (
         <Box
           display="flex"
           justifyContent="center"
@@ -117,7 +91,7 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
         >
           <div>Failed to load document: {error}</div>
         </Box>
-      )}
+      ) : null}
 
       {/* Document Content with fade-in */}
       <Box
@@ -131,7 +105,7 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
           boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
         }}
       >
-        {htmlContent && (
+        {htmlContent ? (
           <Box
             sx={{
               p: 3,
@@ -210,9 +184,11 @@ const OfficeDocumentViewer: React.FC<OfficeDocumentViewerProps> = ({
               overflowWrap: "break-word",
               wordWrap: "break-word",
             }}
-            dangerouslySetInnerHTML={{ __html: htmlContent }}
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(htmlContent),
+            }}
           />
-        )}
+        ) : null}
       </Box>
     </Box>
   );

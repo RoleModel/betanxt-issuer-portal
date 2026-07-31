@@ -10,9 +10,9 @@ import {
 } from "@mui/material";
 
 interface SkeletonTableProps {
-  count?: number;
-  rows?: number;
-  columns?: number;
+  readonly count?: number;
+  readonly rows?: number;
+  readonly columns?: number;
 }
 
 const SkeletonTable = ({ rows = 4, columns = 2 }: SkeletonTableProps) => {

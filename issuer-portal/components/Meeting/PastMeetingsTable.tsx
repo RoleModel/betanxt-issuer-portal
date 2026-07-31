@@ -38,20 +38,20 @@ export interface PastMeetingData extends Meeting {
 type Order = "asc" | "desc";
 
 interface PastMeetingsTableProps {
-  clientTicker: string;
-  order?: Order;
-  orderBy?: keyof PastMeetingData;
-  onRequestSort?: (property: keyof PastMeetingData) => void;
-  meetings: PastMeetingData[];
-  rawMeetingsCount?: number;
-  loading: boolean;
-  formatDate: (dateString: string) => string;
-  error?: string | null;
-  onRetry?: () => void;
+  readonly clientTicker: string;
+  readonly order?: Order;
+  readonly orderBy?: keyof PastMeetingData;
+  readonly onRequestSort?: (property: keyof PastMeetingData) => void;
+  readonly meetings: PastMeetingData[];
+  readonly rawMeetingsCount?: number;
+  readonly loading: boolean;
+  readonly formatDate: (dateString: string) => string;
+  readonly error?: string | null;
+  readonly onRetry?: () => void;
   // Display options
-  showSorting?: boolean;
-  showHeader?: boolean;
-  maxHeight?: number | string;
+  readonly showSorting?: boolean;
+  readonly showHeader?: boolean;
+  readonly maxHeight?: number | string;
 }
 
 const PastMeetingsTable = ({
@@ -89,7 +89,9 @@ const PastMeetingsTable = ({
         <TableSortLabel
           active={orderBy === property}
           direction={orderBy === property ? order : "asc"}
-          onClick={() => handleSort(property)}
+          onClick={() => {
+            handleSort(property);
+          }}
         >
           {label}
         </TableSortLabel>
@@ -100,7 +102,7 @@ const PastMeetingsTable = ({
   if (loading) {
     return (
       <Card>
-        {showHeader && <CardHeader title="Past Meetings" />}
+        {showHeader ? <CardHeader title="Past Meetings" /> : null}
         <CardContent sx={{ p: 0 }}>
           <SkeletonTable columns={5} rows={6} />
         </CardContent>
@@ -111,16 +113,16 @@ const PastMeetingsTable = ({
   if (error) {
     return (
       <Card>
-        {showHeader && <CardHeader title="Past Meetings" />}
+        {showHeader ? <CardHeader title="Past Meetings" /> : null}
         <CardContent sx={{ p: 3 }}>
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
-          {onRetry && (
+          {onRetry ? (
             <Button onClick={onRetry} variant="outlined">
               Retry
             </Button>
-          )}
+          ) : null}
         </CardContent>
       </Card>
     );
@@ -128,7 +130,7 @@ const PastMeetingsTable = ({
 
   return (
     <Card>
-      {showHeader && <CardHeader title="Past Meetings" />}
+      {showHeader ? <CardHeader title="Past Meetings" /> : null}
       <CardContent sx={{ p: 0 }}>
         <TableContainer sx={{ maxHeight }}>
           <Table stickyHeader>

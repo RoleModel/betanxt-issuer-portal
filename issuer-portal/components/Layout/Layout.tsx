@@ -175,28 +175,34 @@ const Layout = ({
   return (
     <Suspense fallback={<Loading />}>
       <Stack sx={{ minHeight: "100vh" }}>
-        {navBar ? <Box
+        {navBar ? (
+          <Box
             sx={{
               flexShrink: 0,
             }}
           >
             <BNAppBarClient appSwitcher={true} user={bnUser} />
-          </Box> : null}
-        {eventTabs ? <Box sx={{ flexShrink: 0 }}>
+          </Box>
+        ) : null}
+        {eventTabs ? (
+          <Box sx={{ flexShrink: 0 }}>
             <EventTabs />
-          </Box> : null}
+          </Box>
+        ) : null}
 
         <Box component="main" flex="1 0 auto">
           {children}
         </Box>
-        {navBar ? <IssuerSpeedDial
+        {navBar ? (
+          <IssuerSpeedDial
             ariaLabel="Support Contacts"
             icon={<SupportAgentOutlined />}
             closeIcon={<CloseOutlined />}
             onAssistantClick={handleAssistantClick}
             onGlossaryClick={handleGlossaryClick}
             onContactsClick={handleContactsClick}
-          /> : null}
+          />
+        ) : null}
         <SupportContactsPopover
           open={open}
           anchorEl={anchorEl}
@@ -220,13 +226,15 @@ const Layout = ({
         <Snackbar
           open={phaseCompleteSnackbar.open}
           autoHideDuration={6000}
-          onClose={() => { setPhaseCompleteSnackbar({ open: false, message: "" }); }}
+          onClose={() => {
+            setPhaseCompleteSnackbar({ open: false, message: "" });
+          }}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
           <Alert
-            onClose={() =>
-              { setPhaseCompleteSnackbar({ open: false, message: "" }); }
-            }
+            onClose={() => {
+              setPhaseCompleteSnackbar({ open: false, message: "" });
+            }}
             severity="success"
             sx={{
               width: "100%",

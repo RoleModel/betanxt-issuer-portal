@@ -5,14 +5,14 @@ import { Box, Typography } from "@mui/material";
 import React from "react";
 
 interface VideoThumbnailProps {
-  title: string;
-  description?: string;
-  seriesNumber?: string;
-  thumbnail?: string;
-  duration?: string;
-  onClick?: () => void;
-  isActive?: boolean;
-  isPlaying?: boolean;
+  readonly title: string;
+  readonly description?: string;
+  readonly seriesNumber?: string;
+  readonly thumbnail?: string;
+  readonly duration?: string;
+  readonly onClick?: () => void;
+  readonly isActive?: boolean;
+  readonly isPlaying?: boolean;
 }
 
 const VideoThumbnail = ({
@@ -121,7 +121,7 @@ const VideoThumbnail = ({
         </Box>
 
         {/* Duration badge (if provided) */}
-        {duration && (
+        {duration ? (
           <Box
             sx={{
               position: "absolute",
@@ -146,7 +146,7 @@ const VideoThumbnail = ({
               {duration}
             </Typography>
           </Box>
-        )}
+        ) : null}
 
         {/* Play button overlay */}
         {!isPlaying && (
@@ -207,7 +207,7 @@ const VideoThumbnail = ({
         >
           {title}
         </Typography>
-        {description && (
+        {description ? (
           <Typography
             variant="body3"
             sx={{
@@ -220,7 +220,7 @@ const VideoThumbnail = ({
           >
             {description}
           </Typography>
-        )}
+        ) : null}
       </Box>
     </Box>
   );

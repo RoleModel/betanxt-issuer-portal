@@ -1,6 +1,3 @@
-import type { Account } from "./Account";
-import type { Meeting } from "./Meeting";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -26,6 +23,8 @@ import {
   MeetingToJSON,
   MeetingToJSONTyped,
 } from "./Meeting";
+import type { Meeting } from "./Meeting";
+import type { Account } from "./Account";
 
 /**
  *

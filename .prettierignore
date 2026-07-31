@@ -1,2 +1,12 @@
 # Generated Playwright state
 **/test-results/**
+**/playwright-report/**
+
+# The package manager owns this file. Reformatting it churns thousands of lines
+# and is overwritten on the next install.
+pnpm-lock.yaml
+
+# Generated build metadata and output
+**/*.tsbuildinfo
+**/.next/**
+**/dist/**

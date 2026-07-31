@@ -1,9 +1,8 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.940Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import type { components } from "@/types/api";
 
@@ -14,18 +13,18 @@ import {
 } from "@/domain-models/api/documents";
 import { handleCors, withCors } from "@/utils/cors";
 
-interface RouteParams {
+interface RouteParameters {
   id: string;
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParameters> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await params;
-    const id = resolvedParams.id;
+    const resolvedParameters = await params;
+    const { id } = resolvedParameters;
 
     // Use existing domain model function
     const { data, error } = await getDocumentById(id);
@@ -45,7 +44,7 @@ export async function GET(
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "getDocumentById",
         },
         { status: 500 }
@@ -56,12 +55,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParameters> }
 ): Promise<NextResponse> {
   try {
     // Extract path parameters
-    const resolvedParams = await params;
-    const id = resolvedParams.id;
+    const resolvedParameters = await params;
+    const { id } = resolvedParameters;
 
     // Parse request body
     const body =
@@ -85,7 +84,7 @@ export async function PUT(
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "updateDocument",
         },
         { status: 500 }
@@ -101,11 +100,11 @@ export function OPTIONS() {
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParameters> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = await params;
-    const id = resolvedParams.id;
+    const resolvedParameters = await params;
+    const { id } = resolvedParameters;
 
     const { error } = await deleteDocument(id);
 
@@ -124,7 +123,7 @@ export async function DELETE(
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "deleteDocument",
         },
         { status: 500 }

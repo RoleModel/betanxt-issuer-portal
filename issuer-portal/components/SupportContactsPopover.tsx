@@ -63,9 +63,9 @@ const supportContacts: Contact[] = [
 ];
 
 interface SupportContactsPopoverProps {
-  open: boolean;
-  anchorEl: HTMLElement | null;
-  onClose: () => void;
+  readonly open: boolean;
+  readonly anchorEl: HTMLElement | null;
+  readonly onClose: () => void;
 }
 
 const SupportContactsPopover = ({
@@ -123,7 +123,7 @@ const SupportContactsPopover = ({
                       sx={{ lineHeight: "20px" }}
                     >
                       {contact.name}
-                      {contact.role && ` - ${contact.role}`}
+                      {contact.role ? ` - ${contact.role}` : null}
                     </Typography>
                   }
                   secondary={

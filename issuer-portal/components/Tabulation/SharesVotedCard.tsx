@@ -16,7 +16,11 @@ interface SharesVotedCardProps {
  * per-proposal shares-voted donut with its proposal selector. The chart reads
  * the page-level display mode from `TabulationDisplayContext`.
  */
-const SharesVotedCard = ({ meetingId, loading, proposalsOverride }: SharesVotedCardProps) => {
+const SharesVotedCard = ({
+  meetingId,
+  loading,
+  proposalsOverride,
+}: SharesVotedCardProps) => {
   return (
     <SharesVotedChart
       meetingId={meetingId}

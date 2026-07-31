@@ -1,13 +1,27 @@
 "use client";
 
 import { FileUploadOutlined, Refresh } from "@mui/icons-material";
-import { Alert, Button, Container, Snackbar, Stack, Typography } from "@mui/material";
-import React, { Suspense, useCallback, useState } from "react";
+import {
+  Alert,
+  Button,
+  Container,
+  Snackbar,
+  Stack,
+  Typography,
+} from "@mui/material";
+import React, {
+  Suspense,
+  useCallback,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import * as XLSX from "xlsx";
 
 import EmptyState from "@/components/EmptyState";
 import FileUploadDialog from "@/components/FileUpload/FileUploadDialog";
-import PreviewDialog, { createTextRenderer } from "@/components/FileUpload/PreviewDialog";
+import PreviewDialog, {
+  createTextRenderer,
+} from "@/components/FileUpload/PreviewDialog";
 import { DSMGuestRegistrants } from "@/components/Meeting/DigitalShareholderMeeting/DSMGuestRegistrants";
 import { DSMParticipants } from "@/components/Meeting/DigitalShareholderMeeting/DSMParticipants";
 import { useMeeting } from "@/contexts/MeetingContext";
@@ -26,7 +40,7 @@ interface ParsedParticipant {
 
 // Function to parse CSV or Excel files
 const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     // Validate file
     if (!file) {
       reject(new Error("No file provided"));
@@ -47,10 +61,17 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
     ];
 
     const validExtensions = [".csv", ".xls", ".xlsx"];
-    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf("."));
+    const fileExtension = file.name
+      .toLowerCase()
+      .substring(file.name.lastIndexOf("."));
 
-    if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
-      reject(new Error("Invalid file type. Please upload a CSV or Excel file."));
+    if (
+      !validTypes.includes(file.type) &&
+      !validExtensions.includes(fileExtension)
+    ) {
+      reject(
+        new Error("Invalid file type. Please upload a CSV or Excel file.")
+      );
       return;
     }
 
@@ -86,10 +107,16 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
 
         // Check if the first row contains header information in the data
         const firstRow = jsonData[0];
-        const firstRowValues = Object.values(firstRow).map((v) => String(v).toLowerCase());
+        const firstRowValues = Object.values(firstRow).map((v) =>
+          String(v).toLowerCase()
+        );
 
         // If first row contains "first name", "last name", etc., it's a header row
-        if (firstRowValues.some((v) => v.includes("first name") || v.includes("email"))) {
+        if (
+          firstRowValues.some(
+            (v) => v.includes("first name") || v.includes("email")
+          )
+        ) {
           const range = XLSX.utils.decode_range(firstSheet["!ref"] ?? "A1");
 
           // Find the row that contains the actual headers by checking each row
@@ -98,7 +125,8 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
             const rowValues = [];
             for (let C = range.s.c; C <= range.e.c; ++C) {
               const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-              const cell = firstSheet[cellAddress] as { v?: string | number } | undefined;
+              const cell = firstSheet[cellAddress] as
+                { v?: string | number } | undefined;
               if (cell?.v) rowValues.push(String(cell.v).toLowerCase());
             }
             // Check if this row has "first name", "last name", and "email"
@@ -119,7 +147,8 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
                 r: headerRowIndex,
                 c: C,
               });
-              const cell = firstSheet[cellAddress] as { v?: string | number } | undefined;
+              const cell = firstSheet[cellAddress] as
+                { v?: string | number } | undefined;
               headers.push(cell?.v ? String(cell.v) : "");
             }
 
@@ -131,8 +160,7 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
               for (let C = range.s.c; C <= range.e.c; ++C) {
                 const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
                 const cell = firstSheet[cellAddress] as
-                  | { v?: string | number | boolean | Date }
-                  | undefined;
+                  { v?: string | number | boolean | Date } | undefined;
                 row[headers[C]] = cell?.v ?? "";
                 if (cell?.v) hasData = true;
               }
@@ -184,8 +212,8 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
           reject(
             new Error(
               `No valid rows found. Expected columns: "First Name", "Last Name", "Email Address". ` +
-                `Found columns: ${availableColumns}`,
-            ),
+                `Found columns: ${availableColumns}`
+            )
           );
           return;
         }
@@ -198,39 +226,120 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
 
     reader.onerror = () => {
       const error = reader.error ?? new Error("Failed to read file");
-      reject(new Error(`File reading failed: ${error.message ?? "Unknown error"}`));
+      reject(
+        new Error(`File reading failed: ${error.message ?? "Unknown error"}`)
+      );
     };
 
     reader.readAsArrayBuffer(file);
   });
 };
 
+// Stable no-op subscribe for useSyncExternalStore-based mount detection.
+const emptySubscribe = (): (() => void) => () => {};
+
+interface DSMUploadDialogProps {
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onUpload: (
+    files: File[],
+    associations?: Record<string, string>
+  ) => Promise<unknown>;
+  readonly meetingId: string;
+}
+
+const DSMUploadDialog = ({
+  open,
+  onClose,
+  onUpload,
+  meetingId,
+}: DSMUploadDialogProps): React.ReactElement => (
+  <FileUploadDialog
+    open={open}
+    onClose={onClose}
+    onUpload={onUpload}
+    meetingId={meetingId}
+    documentType="digital-shareholder-meeting"
+  />
+);
+
+interface DSMPreviewDialogProps {
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onConfirm: () => void;
+  readonly data: ParsedParticipant[] | null;
+}
+
+const DSMPreviewDialog = ({
+  open,
+  onClose,
+  onConfirm,
+  data,
+}: DSMPreviewDialogProps): React.ReactElement => (
+  <PreviewDialog
+    open={open}
+    onClose={onClose}
+    onConfirm={onConfirm}
+    data={data}
+    title="Confirm Upload"
+    columns={[
+      {
+        key: "firstName",
+        label: "Name",
+        render: (_, row) =>
+          createTextRenderer()(`${row.firstName} ${row.lastName}`),
+      },
+      {
+        key: "emailAddress",
+        label: "Email",
+        render: createTextRenderer(),
+      },
+      {
+        key: "title",
+        label: "Title",
+        render: createTextRenderer(),
+      },
+      {
+        key: "department",
+        label: "Department",
+        render: createTextRenderer(),
+      },
+    ]}
+  />
+);
+
 const DigitalShareholderMeetingPage = () => {
   const meetingContext = useMeeting();
-  const currentMeeting = meetingContext.currentMeeting;
+  const { currentMeeting } = meetingContext;
 
   // Only call the hook when we have a meeting ID
-  const digitalMeetingData = useDigitalShareholderMeeting(currentMeeting?.id || undefined) as {
+  const digitalMeetingData = useDigitalShareholderMeeting(
+    currentMeeting?.id || undefined
+  ) as {
     attendees: unknown[];
     error: unknown;
     isLoading: boolean;
     uploadAttendees: (attendees: unknown[]) => Promise<unknown>;
   };
-  const attendees = digitalMeetingData.attendees;
-  const error = digitalMeetingData.error;
-  const isLoading = digitalMeetingData.isLoading;
-  const uploadAttendees = digitalMeetingData.uploadAttendees;
+  const { attendees } = digitalMeetingData;
+  const { error } = digitalMeetingData;
+  const { isLoading } = digitalMeetingData;
+  const { uploadAttendees } = digitalMeetingData;
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [previewData, setPreviewData] = useState<ParsedParticipant[] | null>(null);
+  const [previewData, setPreviewData] = useState<ParsedParticipant[] | null>(
+    null
+  );
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  // Track when component has mounted
-  React.useEffect(() => {
-    setHasMounted(true);
-  }, []);
+  // Render-safe mount detection: server and first client render share `false`,
+  // then the client snapshot flips to `true` in the same commit as hydration,
+  // avoiding a post-paint flash.
+  const hasMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
   const handleUploadClick = () => {
     setUploadDialogOpen(true);
@@ -262,10 +371,12 @@ const DigitalShareholderMeetingPage = () => {
         setUploadDialogOpen(false);
       } catch (error) {
         console.error("Upload error:", error);
-        setUploadError(error instanceof Error ? error.message : "Failed to upload file");
+        setUploadError(
+          error instanceof Error ? error.message : "Failed to upload file"
+        );
       }
     },
-    [currentMeeting?.id],
+    [currentMeeting?.id]
   );
 
   const handleConfirmUpload = useCallback(async () => {
@@ -297,7 +408,9 @@ const DigitalShareholderMeetingPage = () => {
       }, 3000);
     } catch (error) {
       console.error("Upload error:", error);
-      setUploadError(error instanceof Error ? error.message : "Failed to upload file");
+      setUploadError(
+        error instanceof Error ? error.message : "Failed to upload file"
+      );
     }
   }, [previewData, uploadAttendees]);
 
@@ -324,7 +437,9 @@ const DigitalShareholderMeetingPage = () => {
             <Button
               variant="contained"
               startIcon={<Refresh />}
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                window.location.reload();
+              }}
             >
               Refresh Page
             </Button>
@@ -361,11 +476,14 @@ const DigitalShareholderMeetingPage = () => {
             }
           >
             <Typography component="span" variant="body3">
-              Upload attendee data to get started. Your file must include these columns:
+              Upload attendee data to get started. Your file must include these
+              columns:
               <span>
                 {" "}
-                <strong>First Name</strong> (required), <strong>Last Name</strong> (required),{" "}
-                <strong>Email Address</strong> (required), Title (optional).{" "}
+                <strong>First Name</strong> (required),{" "}
+                <strong>Last Name</strong> (required),{" "}
+                <strong>Email Address</strong> (required), Title
+                (optional).{" "}
               </span>
             </Typography>
             <Typography component="span" variant="body3">
@@ -375,7 +493,7 @@ const DigitalShareholderMeetingPage = () => {
         </Container>
 
         {/* File Upload Dialog - Available even when no data */}
-        <FileUploadDialog
+        <DSMUploadDialog
           open={uploadDialogOpen}
           onClose={() => {
             setUploadDialogOpen(false);
@@ -384,38 +502,14 @@ const DigitalShareholderMeetingPage = () => {
           }}
           onUpload={handleFileUpload}
           meetingId={currentMeeting?.id ?? ""}
-          documentType="digital-shareholder-meeting"
         />
 
         {/* Preview Dialog - Available even when no data */}
-        <PreviewDialog
+        <DSMPreviewDialog
           open={previewDialogOpen}
           onClose={handleCancelPreview}
           onConfirm={handleConfirmUpload}
           data={previewData}
-          title="Confirm Upload"
-          columns={[
-            {
-              key: "firstName",
-              label: "Name",
-              render: (_, row) => createTextRenderer()(`${row.firstName} ${row.lastName}`),
-            },
-            {
-              key: "emailAddress",
-              label: "Email",
-              render: createTextRenderer(),
-            },
-            {
-              key: "title",
-              label: "Title",
-              render: createTextRenderer(),
-            },
-            {
-              key: "department",
-              label: "Department",
-              render: createTextRenderer(),
-            },
-          ]}
         />
       </>
     );
@@ -433,7 +527,7 @@ const DigitalShareholderMeetingPage = () => {
       </Suspense>
 
       {/* Upload Dialog */}
-      <FileUploadDialog
+      <DSMUploadDialog
         open={uploadDialogOpen}
         onClose={() => {
           setUploadDialogOpen(false);
@@ -442,58 +536,48 @@ const DigitalShareholderMeetingPage = () => {
         }}
         onUpload={handleFileUpload}
         meetingId={currentMeeting?.id ?? ""}
-        documentType="digital-shareholder-meeting"
       />
 
       {/* Error and Success Alerts */}
-      {uploadError && (
-        <Alert severity="error" sx={{ mt: 2 }} onClose={() => setUploadError(null)}>
+      {uploadError ? (
+        <Alert
+          severity="error"
+          sx={{ mt: 2 }}
+          onClose={() => {
+            setUploadError(null);
+          }}
+        >
           {uploadError}
         </Alert>
-      )}
+      ) : null}
 
-      {uploadSuccess && (
+      {uploadSuccess ? (
         <Snackbar
           open={uploadSuccess}
           autoHideDuration={6000}
-          onClose={() => setUploadSuccess(false)}
+          onClose={() => {
+            setUploadSuccess(false);
+          }}
           anchorOrigin={{ vertical: "top", horizontal: "right" }}
         >
-          <Alert severity="success" sx={{ mt: 2 }} onClose={() => setUploadSuccess(false)}>
+          <Alert
+            severity="success"
+            sx={{ mt: 2 }}
+            onClose={() => {
+              setUploadSuccess(false);
+            }}
+          >
             Participants uploaded successfully!
           </Alert>
         </Snackbar>
-      )}
+      ) : null}
 
       {/* Preview Dialog */}
-      <PreviewDialog
+      <DSMPreviewDialog
         open={previewDialogOpen}
         onClose={handleCancelPreview}
         onConfirm={handleConfirmUpload}
         data={previewData}
-        title="Confirm Upload"
-        columns={[
-          {
-            key: "firstName",
-            label: "Name",
-            render: (_, row) => createTextRenderer()(`${row.firstName} ${row.lastName}`),
-          },
-          {
-            key: "emailAddress",
-            label: "Email",
-            render: createTextRenderer(),
-          },
-          {
-            key: "title",
-            label: "Title",
-            render: createTextRenderer(),
-          },
-          {
-            key: "department",
-            label: "Department",
-            render: createTextRenderer(),
-          },
-        ]}
       />
     </Container>
   );

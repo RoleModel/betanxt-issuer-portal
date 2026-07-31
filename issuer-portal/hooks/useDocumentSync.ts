@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { getBrowserSupabase } from "@/lib/browserSupabase";
 import type {
   RealtimePostgresDeletePayload,
   RealtimePostgresInsertPayload,
@@ -9,8 +10,6 @@ import type {
 } from "@supabase/supabase-js";
 
 import type { components } from "@/domain-models/generated-schema";
-
-import { getBrowserSupabase } from "@/lib/browserSupabase";
 
 type Document = components["schemas"]["Document"];
 

@@ -1,7 +1,6 @@
-#!/usr/bin/env tsx
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { config } from "dotenv";
-import { readFileSync } from "fs";
-import { join } from "path";
 import pg from "pg";
 
 // Load environment variables from .env.local
@@ -10,7 +9,7 @@ config({ path: ".env.local" });
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ??
   "https://vfgjzlcakdrpsbzuqklz.supabase.co";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const { SUPABASE_SERVICE_ROLE_KEY } = process.env;
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD ?? "ZgnAkgxVLYDcf9gj";
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
@@ -65,12 +64,12 @@ async function seedRemote() {
 
 // Handle connection termination errors from Supabase pooler
 const handleConnectionError = (error: unknown): boolean => {
-  const errorStr = String(error);
+  const errorString = String(error);
   if (
-    errorStr.includes("db_termination") ||
-    errorStr.includes("shutdown") ||
-    errorStr.includes("ECONNRESET") ||
-    errorStr.includes("57P01")
+    errorString.includes("db_termination") ||
+    errorString.includes("shutdown") ||
+    errorString.includes("ECONNRESET") ||
+    errorString.includes("57P01")
   ) {
     // Expected - Supabase pooler terminates connections
     return true;

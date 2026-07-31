@@ -9,16 +9,16 @@ import { Box, IconButton, Typography } from "@mui/material";
 import React from "react";
 
 interface DrawerHeaderProps {
-  title: string;
-  subtitle?: string;
-  onClose: () => void;
-  navigation?: {
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly onClose: () => void;
+  readonly navigation?: {
     current: number;
     total: number;
     onPrevious: () => void;
     onNext: () => void;
   };
-  color?: string;
+  readonly color?: string;
 }
 
 const DrawerHeader: React.FC<DrawerHeaderProps> = ({
@@ -59,7 +59,7 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
       </Box>
 
       {/* Optional navigation controls */}
-      {navigation && (
+      {navigation ? (
         <Box
           sx={{
             display: "flex",
@@ -102,7 +102,7 @@ const DrawerHeader: React.FC<DrawerHeaderProps> = ({
             <ChevronRightIcon />
           </IconButton>
         </Box>
-      )}
+      ) : null}
     </Box>
   );
 };

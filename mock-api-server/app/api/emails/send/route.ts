@@ -1,8 +1,7 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
 import React from "react";
 import { z } from "zod";
+import type { NextRequest } from "next/server";
 
 import { DocumentUpdateNotification } from "@/emails/DocumentUpdateNotification";
 import { TabulationReportEmail } from "@/emails/TabulationReportEmail";
@@ -66,17 +65,17 @@ type SendEmailPayload = z.infer<typeof SendEmailSchema>;
 
 const TEMPLATE_REGISTRY: Record<
   string,
-  (props: unknown) => React.ReactElement
+  (properties: unknown) => React.ReactElement
 > = {
-  "document-update-notification": (props) =>
+  "document-update-notification": (properties) =>
     React.createElement(
       DocumentUpdateNotification,
-      props as React.ComponentProps<typeof DocumentUpdateNotification>
+      properties as React.ComponentProps<typeof DocumentUpdateNotification>
     ),
-  "tabulation-daily-report": (props) =>
+  "tabulation-daily-report": (properties) =>
     React.createElement(
       TabulationReportEmail,
-      props as React.ComponentProps<typeof TabulationReportEmail>
+      properties as React.ComponentProps<typeof TabulationReportEmail>
     ),
 };
 
@@ -120,7 +119,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
         },
         { status: 500 }
       )

@@ -32,8 +32,8 @@ interface ContactInfo {
 }
 
 interface EventContactsCardProps {
-  className?: string;
-  meeting?: {
+  readonly className?: string;
+  readonly meeting?: {
     id?: string;
     transferAgent?: string;
     transferAgentConfirmed?: boolean;
@@ -42,7 +42,7 @@ interface EventContactsCardProps {
     solicitor?: string;
     solicitorEmail?: string;
   };
-  onUpdate?: () => void;
+  readonly onUpdate?: () => void;
 }
 
 const EventContactsCard: React.FC<EventContactsCardProps> = ({
@@ -130,7 +130,7 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
         alignSelf: "start",
       }}
     >
-      <CardHeader title={"Event Contacts"} />
+      <CardHeader title="Event Contacts" />
       <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
         <Table>
           <SROnlyTableCaption>
@@ -146,8 +146,8 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {contacts.map((contact, index) => (
-              <TableRow key={index}>
+            {contacts.map((contact) => (
+              <TableRow key={contact.role}>
                 <TableCell>{contact.role}</TableCell>
                 <TableCell align="right">
                   <Box
@@ -176,22 +176,22 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
                           (contact.contact ?? "—")
                         )}
                       </Box>
-                      {contact.email && (
+                      {contact.email ? (
                         <Link href={`mailto:${contact.email}`}>
                           {contact.email}
                         </Link>
-                      )}
+                      ) : null}
                     </Box>
                     {contact.role === "Transfer Agent" &&
-                      contact.isPlaceholder && (
-                        <Button
-                          variant="text"
-                          onClick={handleConfirmClick}
-                          sx={{ minWidth: "fit-content", flexShrink: 0 }}
-                        >
-                          Confirm
-                        </Button>
-                      )}
+                    contact.isPlaceholder ? (
+                      <Button
+                        variant="text"
+                        onClick={handleConfirmClick}
+                        sx={{ minWidth: "fit-content", flexShrink: 0 }}
+                      >
+                        Confirm
+                      </Button>
+                    ) : null}
                   </Box>
                 </TableCell>
               </TableRow>
@@ -216,7 +216,9 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
             fullWidth
             variant="outlined"
             value={transferAgentConfirmation}
-            onChange={(e) => setTransferAgentConfirmation(e.target.value)}
+            onChange={(e) => {
+              setTransferAgentConfirmation(e.target.value);
+            }}
             helperText="Please confirm or update the transfer agent information"
           />
         </DialogContent>

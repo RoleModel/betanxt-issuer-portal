@@ -16,10 +16,10 @@ export interface VideoItem {
 }
 
 interface VideoPlaylistProps {
-  videos: VideoItem[];
-  activeVideoId?: string;
-  playingVideoId?: string;
-  onVideoSelect: (video: VideoItem) => void;
+  readonly videos: VideoItem[];
+  readonly activeVideoId?: string;
+  readonly playingVideoId?: string;
+  readonly onVideoSelect: (video: VideoItem) => void;
 }
 
 const VideoPlaylist = ({
@@ -63,7 +63,9 @@ const VideoPlaylist = ({
               seriesNumber={video.seriesNumber}
               thumbnail={video.thumbnail}
               duration={video.duration}
-              onClick={() => onVideoSelect(video)}
+              onClick={() => {
+                onVideoSelect(video);
+              }}
               isActive={video.id === activeVideoId}
               isPlaying={video.id === playingVideoId}
             />

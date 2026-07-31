@@ -1,9 +1,8 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 import { getServerSupabase } from "@/lib/serverSupabase";
+import type { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,8 +36,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate unique filename
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
+    const fileExtension = file.name.split(".").pop();
+    const fileName = `${session.user.id}-${Date.now()}.${fileExtension}`;
 
     // Get Supabase client
     const supabase = getServerSupabase();

@@ -2,10 +2,11 @@
 
 import { Box, Container } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { motion } from "framer-motion";
+import { domMax, LazyMotion, m } from "framer-motion";
 import React, { useCallback, useRef, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
+import type { KeyDate, Task as ApiTask } from "@/types/api-exports";
 
 import TaskAddModal from "@/components/Dialogs/TaskAddDialog";
 import ApprovalDrawer from "@/components/Drawers/ApprovalDrawer";
@@ -23,9 +24,66 @@ import { MonthView } from "./MonthView";
 type Task = components["schemas"]["Task"];
 
 interface CalendarViewProps {
-  meeting?: { id: string; meetingDate?: string | null; title?: string };
-  onFullscreenChange?: (isFullscreen: boolean) => void;
+  readonly meeting?: {
+    id: string;
+    meetingDate?: string | null;
+    title?: string;
+  };
+  readonly onFullscreenChange?: (isFullscreen: boolean) => void;
 }
+
+const handleApprovalAddComment = (_comment: string): void => {
+  // TODO: implement comment submission logic
+  // Placeholder until submission logic is implemented
+  void _comment;
+};
+
+const handlePrint = (): void => {
+  window.print();
+};
+
+interface CalendarExportHandlers {
+  readonly handleExportIcs: () => void;
+  readonly handleExportPdf: () => Promise<void>;
+}
+
+const useCalendarExports = (
+  tasks: ApiTask[],
+  keyDates: KeyDate[],
+  meeting: CalendarViewProps["meeting"]
+): CalendarExportHandlers => {
+  const handleExportIcs = (): void => {
+    try {
+      exportCalendarToIcs({
+        tasks,
+        keyDates,
+        meetingTitle: meeting?.title ?? "Meeting Calendar",
+        meetingId: meeting?.id,
+      });
+    } catch (error) {
+      console.error("Error exporting ICS:", error);
+    }
+  };
+
+  const handleExportPdf = async (): Promise<void> => {
+    try {
+      // Get client ticker from meeting ID (e.g., "wen-annual-meeting-2026" -> "WEN")
+      const clientTicker = meeting?.id?.split("-")[0]?.toUpperCase();
+
+      await exportTimelineToPdf({
+        tasks,
+        keyDates,
+        meetingTitle: meeting?.title ?? "Meeting Timeline",
+        selectedPhase: "all",
+        clientTicker,
+      });
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+    }
+  };
+
+  return { handleExportIcs, handleExportPdf };
+};
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
   meeting,
@@ -80,6 +138,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   // Add modal state
   const [addModalOpen, setAddModalOpen] = useState(false);
 
+  const { handleExportIcs, handleExportPdf } = useCalendarExports(
+    tasks,
+    keyDates,
+    meeting
+  );
+
   const handleTaskClick = async (taskId: string) => {
     try {
       const apiClient = await buildApiClient();
@@ -127,12 +191,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setApprovalDocumentUrl("");
     setApprovalTitle("");
     setApprovalTask(null);
-  };
-
-  const handleApprovalAddComment = (_comment: string) => {
-    // TODO: implement comment submission logic
-    // Placeholder until submission logic is implemented
-    void _comment;
   };
 
   const handleOpenFullscreen = () => {
@@ -206,46 +264,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     void refreshMeetingData();
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleExportIcs = () => {
-    try {
-      exportCalendarToIcs({
-        tasks,
-        keyDates,
-        meetingTitle: meeting?.title ?? "Meeting Calendar",
-        meetingId: meeting?.id,
-      });
-    } catch (error) {
-      console.error("Error exporting ICS:", error);
-    }
-  };
-
-  const handleExportPdf = async () => {
-    try {
-      // Get client ticker from meeting ID (e.g., "wen-annual-meeting-2026" -> "WEN")
-      const clientTicker = meeting?.id?.split("-")[0]?.toUpperCase();
-
-      await exportTimelineToPdf({
-        tasks,
-        keyDates,
-        meetingTitle: meeting?.title ?? "Meeting Timeline",
-        selectedPhase: "all",
-        clientTicker,
-      });
-    } catch (error) {
-      console.error("Error exporting PDF:", error);
-    }
-  };
-
   return (
-    <>
+    <LazyMotion features={domMax}>
       <Container
         className="CalendarContainer"
         ref={calendarRef}
-        component={motion.div}
+        component={m.div}
         layout="position" // Only animate position changes, not size
         layoutScroll // Preserve scroll position
         initial={false}
@@ -277,7 +301,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         }}
       >
         <Box
-          component={motion.div}
+          component={m.div}
           layoutRoot // Prevents layout animations from propagating to children
           sx={{
             border: `1px solid`,
@@ -309,76 +333,179 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           />
 
           {/* Main content area */}
-          <Box
-            sx={(theme) => ({
-              flex: 1,
-              overflow: isFullscreen ? "auto" : "hidden",
-              webkitOverflowScrolling: isFullscreen ? "touch" : "auto",
-              scrollBehavior: isFullscreen ? "smooth" : "auto",
-              display: "flex",
-              flexDirection: "column",
-              background: theme.vars?.palette?.background?.default,
-            })}
-          >
-            {view === "month" && !isMobile ? (
-              <MonthView
-                searchQuery={filters.searchQuery}
-                statusFilter={filters.statusFilter}
-                phaseFilter={filters.phaseFilter}
-                onTaskClick={handleTaskClick}
-                tasks={tasks}
-                keyDates={keyDates}
-                loading={tasksLoading}
-                onRefresh={async () => {
-                  await refreshMeetingData();
-                }}
-              />
-            ) : (
-              <ListView
-                searchQuery={filters.searchQuery}
-                statusFilter={filters.statusFilter}
-                phaseFilter={filters.phaseFilter}
-                onTaskClick={handleTaskClick}
-                tasks={tasks}
-                keyDates={keyDates}
-                loading={tasksLoading}
-              />
-            )}
-          </Box>
+          <CalendarContent
+            view={view}
+            isMobile={isMobile}
+            isFullscreen={isFullscreen}
+            searchQuery={filters.searchQuery}
+            statusFilter={filters.statusFilter}
+            phaseFilter={filters.phaseFilter}
+            onTaskClick={handleTaskClick}
+            tasks={tasks}
+            keyDates={keyDates}
+            loading={tasksLoading}
+            onRefresh={async () => {
+              await refreshMeetingData();
+            }}
+          />
         </Box>
 
-        <TaskDrawer
-          open={drawerOpen}
-          onClose={handleDrawerClose}
-          task={selectedTask}
+        <CalendarDrawers
+          drawerOpen={drawerOpen}
+          onDrawerClose={handleDrawerClose}
+          selectedTask={selectedTask}
           onTaskUpdate={async (updatedTask) => {
             // Update the selected task
             setSelectedTask(updatedTask);
             // Refresh meeting data to update all tasks in the UI
             await refreshMeetingData();
           }}
-        />
-
-        <ApprovalDrawer
-          open={approvalDrawerOpen}
-          onClose={handleApprovalDrawerClose}
-          title={approvalTitle}
-          fileUrl={approvalDocumentUrl}
+          approvalDrawerOpen={approvalDrawerOpen}
+          onApprovalDrawerClose={handleApprovalDrawerClose}
+          approvalTitle={approvalTitle}
+          approvalDocumentUrl={approvalDocumentUrl}
           onApprove={handleApprove}
-          taskStatus={approvalTask?.status}
+          approvalTaskStatus={approvalTask?.status}
           onOpenFullscreen={handleOpenFullscreen}
           onAddComment={handleApprovalAddComment}
-        />
-
-        <TaskAddModal
-          open={addModalOpen}
-          onClose={() => setAddModalOpen(false)}
+          addModalOpen={addModalOpen}
+          onAddModalClose={() => {
+            setAddModalOpen(false);
+          }}
           onTaskAdded={handleTaskAdded}
           activeMeeting={meeting}
         />
       </Container>
-    </>
+    </LazyMotion>
   );
 };
+
+interface CalendarContentProps {
+  readonly view: CalendarViewType;
+  readonly isMobile: boolean;
+  readonly isFullscreen: boolean;
+  readonly searchQuery: string;
+  readonly statusFilter: string;
+  readonly phaseFilter: number | null;
+  readonly onTaskClick: (taskId: string) => void;
+  readonly tasks: ApiTask[];
+  readonly keyDates: KeyDate[];
+  readonly loading: boolean;
+  readonly onRefresh: () => Promise<void>;
+}
+
+const CalendarContent: React.FC<CalendarContentProps> = ({
+  view,
+  isMobile,
+  isFullscreen,
+  searchQuery,
+  statusFilter,
+  phaseFilter,
+  onTaskClick,
+  tasks,
+  keyDates,
+  loading,
+  onRefresh,
+}) => (
+  <Box
+    sx={(theme) => ({
+      flex: 1,
+      overflow: isFullscreen ? "auto" : "hidden",
+      webkitOverflowScrolling: isFullscreen ? "touch" : "auto",
+      scrollBehavior: isFullscreen ? "smooth" : "auto",
+      display: "flex",
+      flexDirection: "column",
+      background: theme.vars?.palette?.background?.default,
+    })}
+  >
+    {view === "month" && !isMobile ? (
+      <MonthView
+        searchQuery={searchQuery}
+        statusFilter={statusFilter}
+        phaseFilter={phaseFilter}
+        onTaskClick={onTaskClick}
+        tasks={tasks}
+        keyDates={keyDates}
+        loading={loading}
+        onRefresh={onRefresh}
+      />
+    ) : (
+      <ListView
+        searchQuery={searchQuery}
+        statusFilter={statusFilter}
+        phaseFilter={phaseFilter}
+        onTaskClick={onTaskClick}
+        tasks={tasks}
+        keyDates={keyDates}
+        loading={loading}
+      />
+    )}
+  </Box>
+);
+
+interface CalendarDrawersProps {
+  readonly drawerOpen: boolean;
+  readonly onDrawerClose: () => void;
+  readonly selectedTask: Task | null;
+  readonly onTaskUpdate: (updatedTask: Task) => Promise<void>;
+  readonly approvalDrawerOpen: boolean;
+  readonly onApprovalDrawerClose: () => void;
+  readonly approvalTitle: string;
+  readonly approvalDocumentUrl: string;
+  readonly onApprove: () => Promise<void>;
+  readonly approvalTaskStatus?: Task["status"];
+  readonly onOpenFullscreen: () => void;
+  readonly onAddComment: (comment: string) => void;
+  readonly addModalOpen: boolean;
+  readonly onAddModalClose: () => void;
+  readonly onTaskAdded: () => void;
+  readonly activeMeeting?: CalendarViewProps["meeting"];
+}
+
+const CalendarDrawers: React.FC<CalendarDrawersProps> = ({
+  drawerOpen,
+  onDrawerClose,
+  selectedTask,
+  onTaskUpdate,
+  approvalDrawerOpen,
+  onApprovalDrawerClose,
+  approvalTitle,
+  approvalDocumentUrl,
+  onApprove,
+  approvalTaskStatus,
+  onOpenFullscreen,
+  onAddComment,
+  addModalOpen,
+  onAddModalClose,
+  onTaskAdded,
+  activeMeeting,
+}) => (
+  <>
+    <TaskDrawer
+      open={drawerOpen}
+      onClose={onDrawerClose}
+      task={selectedTask}
+      onTaskUpdate={onTaskUpdate}
+    />
+
+    <ApprovalDrawer
+      open={approvalDrawerOpen}
+      onClose={onApprovalDrawerClose}
+      title={approvalTitle}
+      fileUrl={approvalDocumentUrl}
+      onApprove={onApprove}
+      taskStatus={approvalTaskStatus}
+      onOpenFullscreen={onOpenFullscreen}
+      onAddComment={onAddComment}
+    />
+
+    <TaskAddModal
+      open={addModalOpen}
+      onClose={onAddModalClose}
+      onTaskAdded={onTaskAdded}
+      activeMeeting={activeMeeting}
+    />
+  </>
+);
 
 export default CalendarView;

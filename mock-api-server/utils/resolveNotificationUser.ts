@@ -15,7 +15,9 @@ export async function resolveNotificationUserId(
       .select("id")
       .eq("username", trimmedUsername)
       .maybeSingle();
-    if (byUsername?.id) return byUsername.id;
+    if (byUsername?.id) {
+      return byUsername.id;
+    }
   }
 
   const trimmedUserId = userId?.trim();
@@ -25,7 +27,9 @@ export async function resolveNotificationUserId(
       .select("id")
       .eq("id", trimmedUserId)
       .maybeSingle();
-    if (byId?.id) return byId.id;
+    if (byId?.id) {
+      return byId.id;
+    }
     return trimmedUserId;
   }
 
@@ -36,7 +40,9 @@ export async function getMeetingIdsForTicker(
   ticker: string
 ): Promise<string[]> {
   const normalized = ticker.trim().toUpperCase();
-  if (!normalized) return [];
+  if (!normalized) {
+    return [];
+  }
 
   const { data } = await supabase
     .from("meeting")

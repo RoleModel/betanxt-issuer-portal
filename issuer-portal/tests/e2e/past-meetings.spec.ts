@@ -6,7 +6,7 @@ test.describe("Past Meetings Page", () => {
     await page.goto("http://localhost:3000/WEN/past-meetings");
 
     // Wait for page to load
-    await page.waitForSelector("text=Past Meetings", { timeout: 15000 });
+    await page.waitForSelector("text=Past Meetings", { timeout: 15_000 });
 
     // Check for table headers
     await expect(
@@ -34,7 +34,7 @@ test.describe("Past Meetings Page", () => {
     await page.goto("http://localhost:3000/WEN/past-meetings");
 
     // Wait for table to load
-    await page.waitForSelector("tbody tr", { timeout: 15000 });
+    await page.waitForSelector("tbody tr", { timeout: 15_000 });
 
     // Look for 2025 annual meeting
     const annual2025Row = page
@@ -52,7 +52,7 @@ test.describe("Past Meetings Page", () => {
     expect(participationText).toMatch(/\d+\.?\d*%/);
     const percentMatch = participationText?.match(/(\d+\.?\d*)%/);
     if (percentMatch) {
-      const percent = parseFloat(percentMatch[1]);
+      const percent = Number.parseFloat(percentMatch[1]);
       expect(percent).toBeGreaterThanOrEqual(60);
       expect(percent).toBeLessThanOrEqual(75);
     }
@@ -69,7 +69,7 @@ test.describe("Past Meetings Page", () => {
     await page.goto("http://localhost:3000/WEN/past-meetings");
 
     // Wait for table to load
-    await page.waitForSelector("tbody tr", { timeout: 15000 });
+    await page.waitForSelector("tbody tr", { timeout: 15_000 });
 
     // Look for special meetings
     const specialMeetingRows = page.locator("tr", {
@@ -96,7 +96,7 @@ test.describe("Past Meetings Page", () => {
     await page.goto("http://localhost:3000/WEN/past-meetings");
 
     // Wait for table to load
-    await page.waitForSelector("tbody tr", { timeout: 15000 });
+    await page.waitForSelector("tbody tr", { timeout: 15_000 });
 
     // Get all rows
     const rows = page.locator("tbody tr");
@@ -104,8 +104,8 @@ test.describe("Past Meetings Page", () => {
 
     // Check at least one row for vote count format
     // Vote counts are shown in the participation column (4th column)
-    for (let i = 0; i < Math.min(rowCount, 3); i++) {
-      const row = rows.nth(i);
+    for (let index = 0; index < Math.min(rowCount, 3); index++) {
+      const row = rows.nth(index);
       const participationCell = row.locator("td").nth(3);
       // Look for the secondary text that shows vote count
       const voteCountText = await participationCell
@@ -124,18 +124,18 @@ test.describe("Past Meetings Page", () => {
     await page.goto("http://localhost:3000/WEN/past-meetings");
 
     // Wait for table to load
-    await page.waitForSelector("tbody tr", { timeout: 15000 });
+    await page.waitForSelector("tbody tr", { timeout: 15_000 });
 
     // Look for different years in the date column
     const years = new Set<string>();
     const dateColumns = page.locator("tbody tr td:nth-child(3)"); // Date is 3rd column
 
     const dateCount = await dateColumns.count();
-    for (let i = 0; i < dateCount; i++) {
-      const dateText = await dateColumns.nth(i).textContent();
+    for (let index = 0; index < dateCount; index++) {
+      const dateText = await dateColumns.nth(index).textContent();
       if (dateText) {
         // Extract year from date
-        const yearMatch = dateText.match(/20\d{2}/);
+        const yearMatch = /20\d{2}/.exec(dateText);
         if (yearMatch) {
           years.add(yearMatch[0]);
         }
@@ -153,24 +153,24 @@ test.describe("Past Meetings Page", () => {
     await page.goto("http://localhost:3000/WEN/past-meetings");
 
     // Wait for table to load
-    await page.waitForSelector("tbody tr", { timeout: 15000 });
+    await page.waitForSelector("tbody tr", { timeout: 15_000 });
 
     // Check participation column values
     const participationCells = page.locator("tbody tr td:nth-child(4)"); // Participation is 4th column
     const cellCount = await participationCells.count();
 
     let hasValidPercentages = false;
-    for (let i = 0; i < cellCount; i++) {
-      const cell = participationCells.nth(i);
+    for (let index = 0; index < cellCount; index++) {
+      const cell = participationCells.nth(index);
       const text = await cell.textContent();
 
       if (text && text.includes("%")) {
         hasValidPercentages = true;
 
         // Extract percentage value
-        const percentMatch = text.match(/(\d+\.?\d*)%/);
+        const percentMatch = /(\d+\.?\d*)%/.exec(text);
         if (percentMatch) {
-          const percent = parseFloat(percentMatch[1]);
+          const percent = Number.parseFloat(percentMatch[1]);
           expect(percent).toBeGreaterThanOrEqual(60);
           expect(percent).toBeLessThanOrEqual(75);
         }
@@ -183,14 +183,14 @@ test.describe("Past Meetings Page", () => {
   test("should handle multiple client tickers", async ({ page }) => {
     // Test Wendy's first
     await page.goto("http://localhost:3000/WEN/past-meetings");
-    await page.waitForSelector("tbody tr", { timeout: 15000 });
+    await page.waitForSelector("tbody tr", { timeout: 15_000 });
 
     const wenRows = await page.locator("tbody tr").count();
     expect(wenRows).toBeGreaterThan(0);
 
     // Test Paycom
     await page.goto("http://localhost:3000/PAYC/past-meetings");
-    await page.waitForSelector("tbody tr", { timeout: 15000 });
+    await page.waitForSelector("tbody tr", { timeout: 15_000 });
 
     const paycRows = await page.locator("tbody tr").count();
     expect(paycRows).toBeGreaterThan(0);
@@ -208,29 +208,29 @@ test.describe("Past Meetings Page", () => {
     page,
   }) => {
     await page.goto("http://localhost:3000/WEN/past-meetings");
-    await page.waitForSelector("tbody tr", { timeout: 15000 });
+    await page.waitForSelector("tbody tr", { timeout: 15_000 });
 
     // Find rows with high participation (should have vote counts)
     const rows = page.locator("tbody tr");
     const rowCount = await rows.count();
 
-    let foundFormattedCount = false;
-    for (let i = 0; i < rowCount; i++) {
-      const row = rows.nth(i);
+    let isFoundFormattedCount = false;
+    for (let index = 0; index < rowCount; index++) {
+      const row = rows.nth(index);
       const participationCell = row.locator("td:nth-child(4)");
       const participationText = await participationCell.textContent();
 
       // Look for rows with > 1% participation (likely to have vote counts displayed)
       if (participationText && participationText.includes("%")) {
-        const percentMatch = participationText.match(/(\d+\.?\d*)%/);
-        if (percentMatch && parseFloat(percentMatch[1]) > 1) {
+        const percentMatch = /(\d+\.?\d*)%/.exec(participationText);
+        if (percentMatch && Number.parseFloat(percentMatch[1]) > 1) {
           // Vote counts are shown as secondary text in the participation cell
           const voteCountText = await participationCell
             .locator("p:nth-of-type(2)")
             .textContent();
 
-          if (voteCountText && voteCountText.match(/\d+\.?\d*[MK]/)) {
-            foundFormattedCount = true;
+          if (voteCountText && /\d+\.?\d*[MK]/.test(voteCountText)) {
+            isFoundFormattedCount = true;
             break;
           }
         }
@@ -238,6 +238,6 @@ test.describe("Past Meetings Page", () => {
     }
 
     // At least some meetings should have formatted vote counts
-    expect(foundFormattedCount).toBeTruthy();
+    expect(isFoundFormattedCount).toBeTruthy();
   });
 });

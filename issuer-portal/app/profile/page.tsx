@@ -104,16 +104,14 @@ const ProfilePage = () => {
         <CardHeader
           title={`${formData.firstName} ${formData.lastName}`}
           avatar={
-            <>
-              <EditAvatarButton
-                size={60}
-                altText="User Avatar"
-                avatarUrl={avatarUrl}
-                onEdit={handlePhotoEdit}
-                userName={session?.user?.name || undefined}
-                userEmail={session?.user?.email || undefined}
-              />
-            </>
+            <EditAvatarButton
+              size={60}
+              altText="User Avatar"
+              avatarUrl={avatarUrl}
+              onEdit={handlePhotoEdit}
+              userName={session?.user?.name || undefined}
+              userEmail={session?.user?.email || undefined}
+            />
           }
         />
         <CardContent>
@@ -242,7 +240,9 @@ const ProfilePage = () => {
       {/* Profile Photo Upload Modal */}
       <ProfilePhotoModal
         open={photoModalOpen}
-        onClose={() => setPhotoModalOpen(false)}
+        onClose={() => {
+          setPhotoModalOpen(false);
+        }}
         currentAvatarUrl={session?.user?.image}
         userName={session?.user?.name || undefined}
         userEmail={session?.user?.email || undefined}

@@ -24,12 +24,12 @@ import { useSession } from "next-auth/react";
 import React, { useCallback, useRef, useState } from "react";
 
 interface ProfilePhotoModalProps {
-  open: boolean;
-  onClose: () => void;
-  currentAvatarUrl?: string | null;
-  userName?: string;
-  userEmail?: string;
-  onPhotoUpdate?: (photoUrl: string | null) => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly currentAvatarUrl?: string | null;
+  readonly userName?: string;
+  readonly userEmail?: string;
+  readonly onPhotoUpdate?: (photoUrl: string | null) => void;
 }
 
 const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
@@ -260,164 +260,227 @@ const ProfilePhotoModal: React.FC<ProfilePhotoModalProps> = ({
           </Box>
         </DialogTitle>
 
-        <DialogContent>
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            gap={3}
-            py={2}
-          >
-            {/* Avatar Preview */}
-            <Box position="relative">
-              <Avatar
-                src={displayUrl || undefined}
-                sx={{
-                  width: 150,
-                  height: 150,
-                  fontSize: 48,
-                  transform: previewUrl ? `scale(${cropScale})` : "scale(1)",
-                  transition: "transform 0.2s ease-in-out",
-                }}
-              >
-                {!displayUrl && getInitials()}
-              </Avatar>
+        <PhotoDialogContent
+          displayUrl={displayUrl}
+          previewUrl={previewUrl}
+          cropScale={cropScale}
+          isUploading={isUploading}
+          error={error}
+          selectedFile={selectedFile}
+          hasCurrentPhoto={hasCurrentPhoto}
+          getInitials={getInitials}
+          onClearPreview={() => {
+            setSelectedFile(null);
+            setPreviewUrl(null);
+            setCropScale(1);
+          }}
+          onCropScaleChange={setCropScale}
+          onUploadClick={handleUploadClick}
+        />
 
-              {previewUrl && (
-                <Box
-                  position="absolute"
-                  top={-10}
-                  right={-10}
-                  bgcolor="background.paper"
-                  borderRadius="50%"
-                  boxShadow={2}
-                >
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setSelectedFile(null);
-                      setPreviewUrl(null);
-                      setCropScale(1);
-                    }}
-                    disabled={isUploading}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              )}
-            </Box>
-
-            {/* Crop Scale Slider (only show when there's a preview) */}
-            {previewUrl && (
-              <Box width="100%" maxWidth={200}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  <CropIcon
-                    fontSize="small"
-                    sx={{ mr: 1, verticalAlign: "middle" }}
-                  />
-                  Zoom
-                </Typography>
-                <Slider
-                  value={cropScale}
-                  onChange={(_, value) => setCropScale(value)}
-                  min={0.5}
-                  max={2}
-                  step={0.1}
-                  disabled={isUploading}
-                  valueLabelDisplay="auto"
-                  valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
-                />
-              </Box>
-            )}
-
-            {/* Error Message */}
-            {error && (
-              <Alert severity="error" sx={{ width: "100%" }}>
-                {error}
-              </Alert>
-            )}
-
-            {/* Upload Button */}
-            <Button
-              variant="outlined"
-              startIcon={<UploadIcon />}
-              onClick={handleUploadClick}
-              disabled={isUploading}
-              size="large"
-            >
-              {selectedFile ? "Choose Different Photo" : "Upload Photo"}
-            </Button>
-
-            {/* Current Photo Info */}
-            {!selectedFile && hasCurrentPhoto && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                textAlign="center"
-              >
-                Current profile photo
-              </Typography>
-            )}
-
-            {/* File Info */}
-            {selectedFile && (
-              <Box textAlign="center">
-                <Typography variant="body2" color="text.secondary">
-                  {selectedFile.name}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        </DialogContent>
-
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Box display="flex" width="100%">
-            {/* Remove Photo Button */}
-            {hasCurrentPhoto && !selectedFile && (
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={handleRemovePhoto}
-                disabled={isUploading}
-              >
-                {isUploading ? <CircularProgress size={20} /> : "Remove Photo"}
-              </Button>
-            )}
-
-            <Box ml="auto" display="flex" gap={1}>
-              <Button
-                variant="outlined"
-                onClick={handleClose}
-                disabled={isUploading}
-              >
-                Cancel
-              </Button>
-
-              {selectedFile && (
-                <Button
-                  variant="contained"
-                  onClick={handleSavePhoto}
-                  disabled={isUploading}
-                >
-                  {isUploading ? (
-                    <>
-                      <CircularProgress size={20} sx={{ mr: 1 }} />
-                      Uploading...
-                    </>
-                  ) : (
-                    "Save Photo"
-                  )}
-                </Button>
-              )}
-            </Box>
-          </Box>
-        </DialogActions>
+        <PhotoDialogActionButtons
+          hasCurrentPhoto={hasCurrentPhoto}
+          selectedFile={selectedFile}
+          isUploading={isUploading}
+          onRemovePhoto={handleRemovePhoto}
+          onCancel={handleClose}
+          onSave={handleSavePhoto}
+        />
       </Dialog>
     </>
+  );
+};
+
+interface PhotoDialogContentProps {
+  readonly displayUrl: string | null | undefined;
+  readonly previewUrl: string | null;
+  readonly cropScale: number;
+  readonly isUploading: boolean;
+  readonly error: string | null;
+  readonly selectedFile: File | null;
+  readonly hasCurrentPhoto: boolean;
+  readonly getInitials: () => string;
+  readonly onClearPreview: () => void;
+  readonly onCropScaleChange: (value: number) => void;
+  readonly onUploadClick: () => void;
+}
+
+const PhotoDialogContent = ({
+  displayUrl,
+  previewUrl,
+  cropScale,
+  isUploading,
+  error,
+  selectedFile,
+  hasCurrentPhoto,
+  getInitials,
+  onClearPreview,
+  onCropScaleChange,
+  onUploadClick,
+}: PhotoDialogContentProps) => {
+  return (
+    <DialogContent>
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        gap={3}
+        py={2}
+      >
+        {/* Avatar Preview */}
+        <Box position="relative">
+          <Avatar
+            src={displayUrl || undefined}
+            sx={{
+              width: 150,
+              height: 150,
+              fontSize: 48,
+              transform: previewUrl ? `scale(${cropScale})` : "scale(1)",
+              transition: "transform 0.2s ease-in-out",
+            }}
+          >
+            {!displayUrl && getInitials()}
+          </Avatar>
+
+          {previewUrl ? (
+            <Box
+              position="absolute"
+              top={-10}
+              right={-10}
+              bgcolor="background.paper"
+              borderRadius="50%"
+              boxShadow={2}
+            >
+              <IconButton
+                size="small"
+                onClick={onClearPreview}
+                disabled={isUploading}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          ) : null}
+        </Box>
+
+        {/* Crop Scale Slider (only show when there's a preview) */}
+        {previewUrl ? (
+          <Box width="100%" maxWidth={200}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              <CropIcon
+                fontSize="small"
+                sx={{ mr: 1, verticalAlign: "middle" }}
+              />
+              Zoom
+            </Typography>
+            <Slider
+              value={cropScale}
+              onChange={(_, value) => {
+                onCropScaleChange(value);
+              }}
+              min={0.5}
+              max={2}
+              step={0.1}
+              disabled={isUploading}
+              valueLabelDisplay="auto"
+              valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
+            />
+          </Box>
+        ) : null}
+
+        {/* Error Message */}
+        {error ? (
+          <Alert severity="error" sx={{ width: "100%" }}>
+            {error}
+          </Alert>
+        ) : null}
+
+        {/* Upload Button */}
+        <Button
+          variant="outlined"
+          startIcon={<UploadIcon />}
+          onClick={onUploadClick}
+          disabled={isUploading}
+          size="large"
+        >
+          {selectedFile ? "Choose Different Photo" : "Upload Photo"}
+        </Button>
+
+        {/* Current Photo Info */}
+        {!selectedFile && hasCurrentPhoto ? (
+          <Typography variant="body2" color="text.secondary" textAlign="center">
+            Current profile photo
+          </Typography>
+        ) : null}
+
+        {/* File Info */}
+        {selectedFile ? (
+          <Box textAlign="center">
+            <Typography variant="body2" color="text.secondary">
+              {selectedFile.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
+            </Typography>
+          </Box>
+        ) : null}
+      </Box>
+    </DialogContent>
+  );
+};
+
+interface PhotoDialogActionButtonsProps {
+  readonly hasCurrentPhoto: boolean;
+  readonly selectedFile: File | null;
+  readonly isUploading: boolean;
+  readonly onRemovePhoto: () => void;
+  readonly onCancel: () => void;
+  readonly onSave: () => void;
+}
+
+const PhotoDialogActionButtons = ({
+  hasCurrentPhoto,
+  selectedFile,
+  isUploading,
+  onRemovePhoto,
+  onCancel,
+  onSave,
+}: PhotoDialogActionButtonsProps) => {
+  return (
+    <DialogActions sx={{ px: 3, pb: 3 }}>
+      <Box display="flex" width="100%">
+        {/* Remove Photo Button */}
+        {hasCurrentPhoto && !selectedFile ? (
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={onRemovePhoto}
+            disabled={isUploading}
+          >
+            {isUploading ? <CircularProgress size={20} /> : "Remove Photo"}
+          </Button>
+        ) : null}
+
+        <Box ml="auto" display="flex" gap={1}>
+          <Button variant="outlined" onClick={onCancel} disabled={isUploading}>
+            Cancel
+          </Button>
+
+          {selectedFile ? (
+            <Button variant="contained" onClick={onSave} disabled={isUploading}>
+              {isUploading ? (
+                <>
+                  <CircularProgress size={20} sx={{ mr: 1 }} />
+                  Uploading...
+                </>
+              ) : (
+                "Save Photo"
+              )}
+            </Button>
+          ) : null}
+        </Box>
+      </Box>
+    </DialogActions>
   );
 };
 

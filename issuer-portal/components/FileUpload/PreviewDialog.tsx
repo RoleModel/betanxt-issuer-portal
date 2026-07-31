@@ -18,12 +18,12 @@ import {
 import React from "react";
 
 interface PreviewDialogProps<T> {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  data: T[] | null;
-  title: string;
-  columns: {
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onConfirm: () => void;
+  readonly data: T[] | null;
+  readonly title: string;
+  readonly columns: {
     key: keyof T;
     label: string;
     render?: (value: unknown, row: T) => React.ReactNode;
@@ -56,17 +56,22 @@ export default function PreviewDialog<T>({
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.map((row, index) => (
-                <TableRow key={index}>
-                  {columns.map((column) => (
-                    <TableCell key={String(column.key)}>
-                      {column.render
-                        ? column.render(row[column.key], row)
-                        : String(row[column.key] || "-")}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+              {data?.map((row) => {
+                const rowKey = columns
+                  .map((column) => String(row[column.key] ?? ""))
+                  .join("|");
+                return (
+                  <TableRow key={rowKey}>
+                    {columns.map((column) => (
+                      <TableCell key={String(column.key)}>
+                        {column.render
+                          ? column.render(row[column.key], row)
+                          : String(row[column.key] || "-")}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Box>

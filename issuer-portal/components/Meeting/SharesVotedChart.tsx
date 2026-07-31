@@ -50,10 +50,20 @@ const MIN_ARC_PERCENT = 4; // e.g., 4% minimum visual width
 interface VotingBreakdownSlice {
   readonly color: string;
   readonly id: number;
-  readonly label: string;
+  readonly label: string | undefined;
   readonly originalShares: number;
   readonly value: number;
 }
+
+const unavailablePieSliceColor = "var(--mui-palette-divider)";
+
+const emptyPieSlice: VotingBreakdownSlice = {
+  color: unavailablePieSliceColor,
+  id: 3,
+  label: undefined,
+  originalShares: 0,
+  value: 1,
+};
 
 /**
  * Donut chart of FOR / AGAINST / ABSTAIN shares for a single proposal.
@@ -83,7 +93,7 @@ const SharesVotedChart = ({
     sortedProposals.at(0) ??
     null;
 
-  // 1. Gather all recorded vote categories that are > 0
+  // Keep every category in the data so its legend item remains visible.
   const rawBreakdownData =
     selectedProposal === null
       ? []
@@ -106,7 +116,7 @@ const SharesVotedChart = ({
             shares: selectedProposal.votingResults.abstain.shares,
             color: "var(--mui-palette-primary-light)",
           },
-        ].filter((item) => item.shares > 0);
+        ];
 
   // Calculate actual total shares voted
   const totalSharesVoted = rawBreakdownData.reduce(
@@ -114,18 +124,21 @@ const SharesVotedChart = ({
     0
   );
 
-  // 2. Normalize and enforce minimum layout rules for the visible arcs
+  // Normalize populated arcs and leave missing categories as zero-value slices.
   const forcedMinimumShares = totalSharesVoted * (MIN_ARC_PERCENT / 100);
 
   const votingBreakdownData: VotingBreakdownSlice[] = rawBreakdownData.map(
     (item) => {
-      // If the slice is smaller than our allowed threshold, give it a floor value for visual rendering
-      const visualValue = Math.max(item.shares, forcedMinimumShares);
+      const hasShares = item.shares > 0;
+      // If a populated slice is smaller than our allowed threshold, give it a floor value for visual rendering.
+      const visualValue = hasShares
+        ? Math.max(item.shares, forcedMinimumShares)
+        : 0;
 
       return {
         id: item.id,
         label: item.label,
-        color: item.color,
+        color: hasShares ? item.color : unavailablePieSliceColor,
         value: visualValue, // MUI X Charts calculates the angle from this property
         originalShares: item.shares, // Kept intact to drive accurate labels/tooltips
       };
@@ -137,9 +150,13 @@ const SharesVotedChart = ({
     totalSharesVoted,
     displayMode
   );
+  const hasRecordedVotes = totalSharesVoted > 0;
   const showArcLabels = shouldShowTabulationPieArcLabels(
-    votingBreakdownData.length
+    rawBreakdownData.filter((item) => item.shares > 0).length
   );
+  const pieChartData = hasRecordedVotes
+    ? votingBreakdownData
+    : [...votingBreakdownData, emptyPieSlice];
 
   if (loading || votingLoading) {
     return (
@@ -212,20 +229,6 @@ const SharesVotedChart = ({
           >
             No proposals available for this meeting
           </Box>
-        ) : rawBreakdownData.length === 0 ? (
-          <Box
-            sx={{
-              minHeight: 250,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "text.secondary",
-              textAlign: "center",
-              px: 2,
-            }}
-          >
-            {`No votes have been recorded for Proposal ${selectedProposal.proposalNumber} yet`}
-          </Box>
         ) : (
           <Box
             sx={{
@@ -241,7 +244,7 @@ const SharesVotedChart = ({
                 {
                   cx: "50%",
                   cy: tabulationDonutCenterY,
-                  data: votingBreakdownData,
+                  data: pieChartData,
                   innerRadius: tabulationDonutInnerRadius,
                   outerRadius: tabulationDonutOuterRadius,
                   highlightScope: { fade: "global", highlight: "item" },
@@ -264,7 +267,11 @@ const SharesVotedChart = ({
                   arcLabelMinAngle: showArcLabels ? 5 : undefined,
                   // Use originalShares for the hover tooltips
                   valueFormatter: (_value, context) => {
-                    const item = votingBreakdownData[context.dataIndex];
+                    const item = pieChartData[context.dataIndex];
+                    if (item?.label === undefined) {
+                      return "";
+                    }
+
                     const metric = formatTabulationMetric(
                       item.originalShares,
                       totalSharesVoted,
@@ -291,7 +298,7 @@ const SharesVotedChart = ({
                   centerTooltip: totalMetric.alternate,
                   centerValue: totalMetric.display,
                   label: "Shares Voted",
-                  sliceData: votingBreakdownData,
+                  sliceData: pieChartData,
                 }}
               />
             </PieChart>

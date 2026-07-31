@@ -21,9 +21,8 @@ async function linkStorageDocuments() {
     console.log(`\n📁 Processing ${meetingId}...`);
 
     // List all directories for this meeting
-    const { data: typeDirs, error: typeDirError } = await supabase.storage
-      .from("documents")
-      .list(meetingId, { limit: 1000 });
+    const { data: typeDirectories, error: typeDirError } =
+      await supabase.storage.from("documents").list(meetingId, { limit: 1000 });
 
     if (typeDirError) {
       console.error(
@@ -35,7 +34,7 @@ async function linkStorageDocuments() {
 
     // Filter to only directories (no file extension)
     const directories =
-      typeDirs?.filter((item) => !item.name.includes(".")) || [];
+      typeDirectories?.filter((item) => !item.name.includes(".")) || [];
 
     for (const dir of directories) {
       const dirPath = `${meetingId}/${dir.name}`;
@@ -83,21 +82,21 @@ async function linkStorageDocuments() {
           "guest-list": "Guest List",
         };
 
-        const docType = typeMapping[dir.name];
-        if (!docType) {
+        const documentType = typeMapping[dir.name];
+        if (!documentType) {
           console.log(`⚠️  Unknown type: ${dir.name} for file ${file.name}`);
 
           // Create a new document for unknown types
           const title = file.name
             .replace(/^\d+_/, "") // Remove timestamp
             .replace(/\.(pdf|docx?|xlsx?|pptx?)$/i, "") // Remove extension
-            .replace(/_/g, " "); // Replace underscores with spaces
+            .replaceAll("_", " "); // Replace underscores with spaces
 
           const { error: insertError } = await supabase
             .from("document")
             .insert({
               meeting_id: meetingId,
-              title: title,
+              title,
               type: dir.name
                 .split("-")
                 .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -131,31 +130,31 @@ async function linkStorageDocuments() {
             updated_at: new Date().toISOString(),
           })
           .eq("meeting_id", meetingId)
-          .ilike("type", `%${docType}%`)
+          .ilike("type", `%${documentType}%`)
           .select();
 
         if (updateError) {
           console.error(`❌ Error updating: ${updateError.message}`);
         } else if (updateData && updateData.length > 0) {
-          console.log(`✅ Updated: ${docType}`);
+          console.log(`✅ Updated: ${documentType}`);
         } else {
           // No existing record found, create new one
           const title = file.name
             .replace(/^\d+_/, "") // Remove timestamp
             .replace(/\.(pdf|docx?|xlsx?|pptx?)$/i, "") // Remove extension
-            .replace(/_/g, " "); // Replace underscores with spaces
+            .replaceAll("_", " "); // Replace underscores with spaces
 
           const { error: insertError } = await supabase
             .from("document")
             .insert({
               meeting_id: meetingId,
-              title: title || docType,
-              type: docType,
+              title: title || documentType,
+              type: documentType,
               file_path: urlData.publicUrl,
               file_type: file.name.split(".").pop() || "pdf",
               file_size: file.metadata?.size ?? 0,
               status: "UPLOADED",
-              display_category: getDisplayCategory(docType),
+              display_category: getDisplayCategory(documentType),
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             });
@@ -163,7 +162,7 @@ async function linkStorageDocuments() {
           if (insertError) {
             console.error(`❌ Failed to create: ${insertError.message}`);
           } else {
-            console.log(`✅ Created: ${docType}`);
+            console.log(`✅ Created: ${documentType}`);
           }
         }
       }
@@ -180,8 +179,8 @@ async function linkStorageDocuments() {
   console.log(`   Total documents linked: ${finalCount?.length ?? 0}`);
 }
 
-function getDisplayCategory(docType: string): string {
-  const lowerType = docType.toLowerCase();
+function getDisplayCategory(documentType: string): string {
+  const lowerType = documentType.toLowerCase();
 
   if (
     lowerType.includes("proxy") ||
@@ -190,7 +189,8 @@ function getDisplayCategory(docType: string): string {
     lowerType.includes("voting")
   ) {
     return "proxy-materials";
-  } else if (
+  }
+  if (
     lowerType.includes("agenda") ||
     lowerType.includes("script") ||
     lowerType.includes("procedure") ||
@@ -200,19 +200,22 @@ function getDisplayCategory(docType: string): string {
     lowerType.includes("q-a")
   ) {
     return "meeting-materials";
-  } else if (
+  }
+  if (
     lowerType.includes("presentation") ||
     lowerType.includes("slide") ||
     lowerType.includes("shareholder")
   ) {
     return "dsm";
-  } else if (
+  }
+  if (
     lowerType.includes("minutes") ||
     lowerType.includes("attendance") ||
     lowerType.includes("recording")
   ) {
     return "post-meeting";
-  } else if (
+  }
+  if (
     lowerType.includes("data") ||
     lowerType.includes("registry") ||
     lowerType.includes("account")
