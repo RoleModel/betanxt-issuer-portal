@@ -67,7 +67,7 @@ const TabulationPageContent = () => {
           }}
         >
           <QuorumGaugeCard model={quorumGauge} loading={tabulationLoading} />
-          <TabulationReportCard variant="primary" />
+          <TabulationReportCard variant="secondary" />
         </Grid>
         <Grid
           size={{ sm: 12, md: 6, lg: 3 }}

@@ -21,6 +21,7 @@ import type { ProposalVoting } from "../../types/phases";
 import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
 import { useVotingTabulation } from "../../hooks/use-voting-tabulation";
 import {
+  shouldShowTabulationPieArcLabels,
   tabulationCardContentStyles,
   tabulationCardHeaderStyles,
   tabulationCardStyles,
@@ -30,7 +31,6 @@ import {
   tabulationDonutInnerRadius,
   tabulationDonutOuterRadius,
   tabulationMinArcLabelAngle,
-  shouldShowTabulationPieArcLabels,
   TabulationPieArcLabel,
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
@@ -103,13 +103,13 @@ const SharesVotedChart = ({
             id: 0,
             label: "For",
             shares: selectedProposal.votingResults.for.shares,
-            color: "var(--mui-palette-primary-main)",
+            color: "var(--mui-palette-secondary-main)",
           },
           {
             id: 1,
             label: "Against",
             shares: selectedProposal.votingResults.against.shares,
-            color: "var(--mui-palette-secondary-main)",
+            color: "var(--mui-palette-primary-main)",
           },
           {
             id: 2,
