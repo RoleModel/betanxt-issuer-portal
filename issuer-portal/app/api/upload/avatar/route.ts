@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
+import type { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { getServerSupabase } from "@/lib/serverSupabase";
-import type { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {

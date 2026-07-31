@@ -2,8 +2,8 @@
 
 import useSWR from "swr";
 
-import buildApiClient from "@/domain-models/apiClient";
 import type { components } from "@/domain-models/generated-schema";
+import buildApiClient from "@/domain-models/apiClient";
 
 type Meeting = components["schemas"]["Meeting"];
 type Proposal = components["schemas"]["Proposal"];

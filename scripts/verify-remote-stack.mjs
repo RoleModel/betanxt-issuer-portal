@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Smoke-check production API + Supabase alignment for past meetings.
  * Usage: node scripts/verify-remote-stack.mjs
@@ -50,7 +49,7 @@ async function main() {
   console.log("OK: remote API returns past meeting data");
 }
 
-main().catch((err) => {
-  console.error("FAIL:", err.message);
+main().catch((error) => {
+  console.error("FAIL:", error.message);
   process.exit(1);
 });

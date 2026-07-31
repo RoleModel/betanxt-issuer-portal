@@ -6,19 +6,17 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useTransition } from "react";
 
+import { emptyMeetings, getNavigationTabs } from "./constants";
+import { parsePhaseNumber } from "./utilities";
+import type { components } from "@/domain-models/generated-schema";
+import type { TabulationDisplayMode } from "@/utils/tabulation-display";
+import type { MeetingTab, NavigationTab } from "./types";
 import { useClient } from "@/contexts/ClientContext";
 import { useMeetingSafe } from "@/contexts/MeetingContext";
 import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
 import { useClientFeatures } from "@/hooks/useClientFeatures";
 import { useRoutePreload } from "@/hooks/useRoutePreload";
 import { formatDateWithYear } from "@/lib/formats";
-
-import { emptyMeetings, getNavigationTabs } from "./constants";
-import { parsePhaseNumber } from "./utilities";
-
-import type { components } from "@/domain-models/generated-schema";
-import type { TabulationDisplayMode } from "@/utils/tabulation-display";
-import type { MeetingTab, NavigationTab } from "./types";
 
 type ApiMeeting = components["schemas"]["Meeting"];
 

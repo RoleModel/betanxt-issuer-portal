@@ -4,12 +4,12 @@ import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 import useSWR from "swr";
 
+import type { EventRow } from "@/utils/eventData";
 import buildApiClient from "@/domain-models/apiClient";
 import { clientsSWRConfig } from "@/lib/swr-config";
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
 import { parseLocalDate } from "@/utils/dateUtils";
 import { asNumber, asRecord, asString } from "@/utils/typeUtils";
-import type { EventRow } from "@/utils/eventData";
 
 function extractClientCompanyName(client: unknown): string | null {
   const record = asRecord(client);

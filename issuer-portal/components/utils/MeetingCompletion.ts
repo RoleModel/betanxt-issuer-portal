@@ -1,5 +1,5 @@
-import buildApiClient from "@/domain-models/apiClient";
 import type { components } from "@/domain-models/generated-schema";
+import buildApiClient from "@/domain-models/apiClient";
 
 /**
  * Utility functions for calculating and updating meeting overall completion

@@ -1,5 +1,5 @@
-import { buildApiClient } from "@/domain-models/apiClient";
 import type { SWRConfiguration } from "swr";
+import { buildApiClient } from "@/domain-models/apiClient";
 
 // Custom fetcher for API calls
 export const apiFetcher = async (url: string) => {

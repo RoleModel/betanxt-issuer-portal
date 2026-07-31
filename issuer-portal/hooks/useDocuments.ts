@@ -2,10 +2,6 @@
 
 import { useCallback, useState } from "react";
 
-import buildApiClient from "@/domain-models/apiClient";
-import { documentRepository } from "@/domain-models/documentRepository";
-import { sendDocumentUploadEmail } from "@/utils/emailNotifications";
-import { asArray, asRecord, asString } from "@/utils/typeUtils";
 import type {
   CreateCommentRequest,
   CreateDocumentRequest,
@@ -14,6 +10,10 @@ import type {
 } from "@/types/api-exports";
 import type { components as apiComponents } from "@/types/api";
 import type { components } from "@/domain-models/generated-schema";
+import buildApiClient from "@/domain-models/apiClient";
+import { documentRepository } from "@/domain-models/documentRepository";
+import { sendDocumentUploadEmail } from "@/utils/emailNotifications";
+import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
 // Type alias for DocumentHistory from components
 type DocumentHistory = apiComponents["schemas"]["DocumentHistory"];

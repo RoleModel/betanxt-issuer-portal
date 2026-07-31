@@ -2,6 +2,10 @@
 
 import React from "react";
 
+import type { components } from "@/domain-models/generated-schema";
+import type { ProposalVoting, VotingSummary } from "@/types/phases";
+import type { QuorumGaugeViewModel } from "@/utils/quorum";
+import type { HolderCategory } from "@/utils/holderCategory";
 import buildApiClient from "@/domain-models/apiClient";
 import {
   getHolderTypeFromCategory,
@@ -10,11 +14,6 @@ import {
 } from "@/utils/holderCategory";
 import { buildQuorumGaugeModel } from "@/utils/quorum";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
-import type { components } from "@/domain-models/generated-schema";
-import type { ProposalVoting, VotingSummary } from "@/types/phases";
-import type { QuorumGaugeViewModel } from "@/utils/quorum";
-
-import type { HolderCategory } from "@/utils/holderCategory";
 
 export interface TabulationPosition {
   id: string;

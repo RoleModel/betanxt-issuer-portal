@@ -8,9 +8,9 @@ import {
 } from "ai";
 import { z } from "zod";
 
+import type { UIMessage } from "ai";
 import { auth } from "@/auth";
 import { enqueueChatbotAction } from "@/lib/chatbotActionsStore";
-import type { UIMessage } from "ai";
 
 export const maxDuration = 30;
 
@@ -363,7 +363,7 @@ const inferTickerFromSearch = async (
   const root = asRecord(payload);
   const rows = asArray(root?.clients);
 
-  const clients = rows.reduce<Array<{ ticker: string; aliases: string[] }>>(
+  const clients = rows.reduce<{ ticker: string; aliases: string[] }[]>(
     (accumulated, row) => {
       const record = asRecord(row);
       if (!record) {

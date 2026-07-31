@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/strict-void-return */
-/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable react-doctor/js-tosorted-immutable */
 
 /* eslint-disable react-doctor/rerender-state-only-in-handlers */

@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import type { components } from "@/domain-models/generated-schema";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
-import type { components } from "@/domain-models/generated-schema";
 
 type ApiClient = Awaited<ReturnType<typeof buildApiClient>>;
 type Meeting = components["schemas"]["Meeting"];

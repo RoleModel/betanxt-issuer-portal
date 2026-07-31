@@ -2,9 +2,9 @@
 
 import useSWR from "swr";
 
+import type { Fetcher } from "swr";
 import buildApiClient from "@/domain-models/apiClient";
 import { asRecord, asString } from "@/utils/typeUtils";
-import type { Fetcher } from "swr";
 
 interface BrokerVotingData {
   broker: string;

@@ -1,12 +1,12 @@
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
+import type { components } from "@/types/api";
 import buildApiClient from "@/domain-models/apiClient";
 import {
   COMPLETED_STATUSES,
   calculateOverallCompletion,
 } from "@/utils/taskControl";
-import type { components } from "@/types/api";
 
 type Task = components["schemas"]["Task"];
 

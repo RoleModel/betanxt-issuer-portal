@@ -2,11 +2,11 @@
 
 import { useMemo } from "react";
 
+import type { ClientFeatureKey } from "@/hooks/useClients";
 import { useClient } from "@/contexts/ClientContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { DEFAULT_FEATURE_KEYS } from "@/hooks/useClients";
 import { FEATURE_KEYS } from "@/utils/clientFeatures";
-import type { ClientFeatureKey } from "@/hooks/useClients";
 
 interface UseClientFeaturesResult {
   /** Feature keys enabled for the current client (defaults applied when unset). */

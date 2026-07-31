@@ -1,11 +1,11 @@
 import { useCallback, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+
+import type { components } from "@/types/api";
 import {
   determineTaskStatus,
   getDocumentTypeFromTask,
 } from "@/utils/taskControl";
-import type { Dispatch, SetStateAction } from "react";
-
-import type { components } from "@/types/api";
 
 type TaskStatus = components["schemas"]["TaskStatus"];
 

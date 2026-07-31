@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import type { components } from "@/domain-models/generated-schema";
 import buildApiClient from "@/domain-models/apiClient";
 import { syncCarryoverTaskStatus } from "@/utils/taskControl";
-import type { components } from "@/domain-models/generated-schema";
 
 type Task = components["schemas"]["Task"];
 type CreateTaskRequest = components["schemas"]["CreateTaskRequest"];

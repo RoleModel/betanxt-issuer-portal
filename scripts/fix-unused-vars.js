@@ -1,12 +1,10 @@
-#!/usr/bin/env node
-
 /**
  * Script to help fix unused variables by prefixing with underscore
  * This handles common patterns like error handlers and destructured values
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // Common patterns to fix
 const patterns = [
@@ -24,28 +22,29 @@ const patterns = [
   {
     regex:
       /\(([a-zA-Z_][a-zA-Z0-9_]*),\s*([a-zA-Z_][a-zA-Z0-9_]*)\)\s*=>\s*{[^}]*\b\2\b[^}]*}/g,
-    check: (match, p1, p2) => {
+    check: (match, p1, p2) =>
       // Only replace if p1 is not used in the function body
-      return !match.includes(p1) && match.includes(p2);
-    },
+      !match.includes(p1) && match.includes(p2),
     replacement: "(_$1, $2) => {",
   },
 ];
 
 function processFile(filePath) {
-  if (!filePath.endsWith(".ts") && !filePath.endsWith(".tsx")) return;
+  if (!filePath.endsWith(".ts") && !filePath.endsWith(".tsx")) {
+    return;
+  }
 
   try {
-    let content = fs.readFileSync(filePath, "utf8");
-    let modified = false;
+    let content = fs.readFileSync(filePath, "utf-8");
+    let isModified = false;
 
-    patterns.forEach((pattern) => {
+    for (const pattern of patterns) {
       const before = content;
       if (pattern.check) {
         // Complex pattern with check function
-        content = content.replace(pattern.regex, (match, ...args) => {
-          if (pattern.check(match, ...args)) {
-            modified = true;
+        content = content.replace(pattern.regex, (match, ...arguments_) => {
+          if (pattern.check(match, ...arguments_)) {
+            isModified = true;
             return match.replace(pattern.regex, pattern.replacement);
           }
           return match;
@@ -56,11 +55,11 @@ function processFile(filePath) {
       }
 
       if (before !== content) {
-        modified = true;
+        isModified = true;
       }
-    });
+    }
 
-    if (modified) {
+    if (isModified) {
       fs.writeFileSync(filePath, content);
       console.log(`✅ Fixed: ${filePath}`);
     }
@@ -89,7 +88,7 @@ function processDirectory(dir) {
 }
 
 // Main execution
-const targetDirs = [
+const targetDirectories = [
   "issuer-portal/components",
   "issuer-portal/hooks",
   "issuer-portal/contexts",
@@ -99,12 +98,12 @@ const targetDirs = [
 
 console.log("🔧 Fixing unused variables by prefixing with underscore...\n");
 
-targetDirs.forEach((dir) => {
+for (const dir of targetDirectories) {
   const fullPath = path.join(__dirname, "..", dir);
   if (fs.existsSync(fullPath)) {
     console.log(`📁 Processing ${dir}...`);
     processDirectory(fullPath);
   }
-});
+}
 
 console.log('\n✨ Done! Run "npm run lint" to see remaining warnings.');

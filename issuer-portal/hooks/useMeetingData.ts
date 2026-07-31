@@ -2,10 +2,10 @@
 
 import useSWR from "swr";
 
-import buildApiClient from "@/domain-models/apiClient";
-import { asArray, asRecord, asString } from "@/utils/typeUtils";
 import type { Meeting } from "@/types/api-exports";
 import type { ProposalVoting, VotingSummary } from "@/types/phases";
+import buildApiClient from "@/domain-models/apiClient";
+import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
 // Type for normalized position with guaranteed fields
 export interface NormalizedPosition {

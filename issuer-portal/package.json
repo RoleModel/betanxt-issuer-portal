@@ -18,7 +18,6 @@
     "generate:all-types": "pnpm run generate:types && pnpm run generate:api-types && cd ../mock-api-server && pnpm run generate:db-types",
     "generate:mock-mailings": "tsx scripts/generate-mock-mailing-pdfs.tsx",
     "fetch:dark-logos": "tsx scripts/fetch-dark-logos.ts",
-    "format": "prettier --write .",
     "clean": "rm -rf .next node_modules/.cache",
     "doctor": "npx react-doctor@latest"
   },

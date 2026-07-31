@@ -2,14 +2,14 @@
 
 import useSWR from "swr";
 
+import type { HolderCategory } from "@/utils/holderCategory";
+import type { ProposalVoting, VotingSummary } from "@/types/phases";
 import buildApiClient from "@/domain-models/apiClient";
 import {
   isRegisteredOnlyHolder,
   normalizeHolderCategory,
 } from "@/utils/holderCategory";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
-import type { HolderCategory } from "@/utils/holderCategory";
-import type { ProposalVoting, VotingSummary } from "@/types/phases";
 
 // Type for normalized position with guaranteed fields
 export interface NormalizedPosition {

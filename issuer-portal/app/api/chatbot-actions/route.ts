@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+import type { ChatbotAction } from "@/lib/chatbotActionsStore";
 import {
   drainChatbotActions,
   enqueueChatbotAction,
 } from "@/lib/chatbotActionsStore";
-import type { NextRequest } from "next/server";
-
-import type { ChatbotAction } from "@/lib/chatbotActionsStore";
 
 export function GET() {
   return NextResponse.json({ actions: drainChatbotActions() });

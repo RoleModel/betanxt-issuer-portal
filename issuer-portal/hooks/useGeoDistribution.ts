@@ -11,10 +11,10 @@
 import { useMemo } from "react";
 import useSWR from "swr";
 
+import type { HolderCategory } from "@/utils/holderCategory";
 import buildApiClient from "@/domain-models/apiClient";
 import { normalizeHolderCategory } from "@/utils/holderCategory";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
-import type { HolderCategory } from "@/utils/holderCategory";
 
 /** Bucket label for positions outside the United States. */
 export const INTERNATIONAL_LOCATION = "International";

@@ -30,7 +30,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const status = searchParams.get("status") ?? undefined;
     const dueBefore = searchParams.get("dueBefore") ?? undefined;
-    const openOnly = searchParams.get("openOnly") === "true";
+    const isOpenOnly = searchParams.get("openOnly") === "true";
 
     const { data, error } = await listAllTasks({
       page,
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       meetingIds,
       status,
       dueBefore,
-      openOnly,
+      openOnly: isOpenOnly,
     });
 
     if (error) {

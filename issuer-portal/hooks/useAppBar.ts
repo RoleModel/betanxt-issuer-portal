@@ -1,12 +1,11 @@
 "use client";
 
-import type { User } from "next-auth";
-import type React from "react";
-
 import { useColorScheme } from "@mui/material/styles";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type React from "react";
+import type { User } from "next-auth";
 
 import { useClient } from "@/contexts/ClientContext";
 import MeetingContext from "@/contexts/MeetingContext";

@@ -63,7 +63,7 @@ export const useEventRisk = (): UseEventRiskResult => {
         // both `payload` and `error` as `undefined`. That inference is wrong at
         // runtime (a 401/500 really does populate `error`), so this guard is live
         // defensive code, not a dead branch.
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions -- degenerate openapi-fetch types, see comment above
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- degenerate openapi-fetch types, see comment above
         if (error || !payload) {
           break;
         }
