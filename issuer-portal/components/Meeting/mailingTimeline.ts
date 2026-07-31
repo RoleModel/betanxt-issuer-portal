@@ -13,6 +13,8 @@ export interface WorkflowStep {
   readonly color?: string;
 }
 
+export type MailingTimelineDates = Record<MailingStatus, string | null>;
+
 export const WORKFLOW_STEPS: readonly WorkflowStep[] = [
   {
     color: "var(--mui-palette-statusPending-contrastText)",
@@ -36,8 +38,14 @@ export const WORKFLOW_STEPS: readonly WorkflowStep[] = [
   },
 ];
 
-export const formatMailingStatusDate = (statusDate: string | null | undefined): string | null =>
-  statusDate
+export const hasNonEmptyString = (
+  value: string | null | undefined
+): value is string => value !== null && value !== undefined && value.length > 0;
+
+export const formatMailingStatusDate = (
+  statusDate: string | null | undefined
+): string | null =>
+  hasNonEmptyString(statusDate)
     ? parseLocalDate(statusDate).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",

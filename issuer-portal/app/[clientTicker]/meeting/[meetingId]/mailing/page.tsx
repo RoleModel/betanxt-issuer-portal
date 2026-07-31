@@ -117,7 +117,10 @@ const MailingPage = () => {
               </CardContent>
             </Card>
             <MailingDataCard meetingId={meetingId} />
-            <AdditionalMailingSummaryCard ticker={currentMeeting?.ticker} />
+            <AdditionalMailingSummaryCard
+              meetingId={meetingId}
+              ticker={currentMeeting?.ticker}
+            />
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, md: 12, lg: 3 }}>
@@ -130,7 +133,10 @@ const MailingPage = () => {
                     >["currentStatus"]
                   | undefined
               }
-              statusDate={currentMeeting?.updatedAt}
+              preFilingDate={currentMeeting?.preFilingDate}
+              brokerSearchDate={currentMeeting?.brokerSearchDate}
+              recordDate={currentMeeting?.recordDate}
+              mailingDate={currentMeeting?.mailingDate}
               meetingId={meetingId}
             />
             <Card>

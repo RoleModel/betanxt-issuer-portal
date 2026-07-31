@@ -35,7 +35,7 @@ import EmptyState from "@/components/EmptyState";
 import SkeletonTable from "@/components/ui/SkeletonTable";
 import { useDocuments } from "@/contexts/DocumentContext";
 import { useMeeting } from "@/contexts/MeetingContext";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import {
   DOCUMENT_STATUS_VALUES,
   getDocumentStatusLabel,

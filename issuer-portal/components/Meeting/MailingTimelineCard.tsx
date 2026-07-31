@@ -20,8 +20,10 @@ import MailingAffidavitSection from "@/components/Meeting/MailingAffidavitSectio
 import MailingStatusTimeline from "@/components/Meeting/MailingStatusTimeline";
 import {
   formatMailingStatusDate,
+  hasNonEmptyString,
   WORKFLOW_STEPS,
   type MailingStatus,
+  type MailingTimelineDates,
   type WorkflowStep,
 } from "@/components/Meeting/mailingTimeline";
 import buildApiClient from "@/domain-models/apiClient";
@@ -31,39 +33,56 @@ type UpdateMeetingRequest = components["schemas"]["UpdateMeetingRequest"];
 export type { MailingStatus } from "@/components/Meeting/mailingTimeline";
 
 interface MailingTimelineCardProps {
+  readonly brokerSearchDate?: string | null;
   readonly currentStatus?: MailingStatus | null;
-  readonly statusDate?: string | null;
   readonly meetingId?: string;
+  readonly mailingDate?: string | null;
   readonly onStatusChange?: (newStatus: MailingStatus) => void;
+  readonly preFilingDate?: string | null;
+  readonly recordDate?: string | null;
 }
 
 const MailingTimelineCard = ({
+  brokerSearchDate,
   currentStatus,
-  statusDate,
   meetingId,
+  mailingDate,
   onStatusChange,
+  preFilingDate,
+  recordDate,
 }: MailingTimelineCardProps) => {
   const { data: session } = useSession();
   const isCSM = session?.user?.type === "CSM";
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [pendingStatus, setPendingStatus] = useState<MailingStatus | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<MailingStatus | null>(
+    null
+  );
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [localStatus, setLocalStatus] = useState<MailingStatus | null | undefined>(undefined);
+  const [localStatus, setLocalStatus] = useState<
+    MailingStatus | null | undefined
+  >(undefined);
 
   const displayStatus = localStatus === undefined ? currentStatus : localStatus;
-  const activeIndex = displayStatus
-    ? WORKFLOW_STEPS.findIndex((step) => step.label === displayStatus)
-    : -1;
+  const activeIndex =
+    displayStatus !== null && displayStatus !== undefined
+      ? WORKFLOW_STEPS.findIndex((step) => step.label === displayStatus)
+      : -1;
+  const timelineDates: MailingTimelineDates = {
+    "Preparing for Mailing": formatMailingStatusDate(preFilingDate),
+    "Proofing & Approval": formatMailingStatusDate(brokerSearchDate),
+    "Mailing In Progress": formatMailingStatusDate(recordDate),
+    "Mailing Completed": formatMailingStatusDate(mailingDate),
+  };
 
   const handleStatusStepClick = (step: WorkflowStep) => {
-    if (!isCSM || !meetingId) return;
+    if (!isCSM || !hasNonEmptyString(meetingId)) return;
 
     setPendingStatus(step.label);
     setStatusDialogOpen(true);
   };
 
   const handleStatusUpdate = async () => {
-    if (!pendingStatus || !meetingId) return;
+    if (pendingStatus === null || !hasNonEmptyString(meetingId)) return;
 
     setIsUpdatingStatus(true);
     try {
@@ -96,14 +115,19 @@ const MailingTimelineCard = ({
     <>
       <MailingStatusTimeline
         activeIndex={activeIndex}
-        formattedDate={formatMailingStatusDate(statusDate)}
         isCSM={isCSM}
         isUpdatingStatus={isUpdatingStatus}
         meetingId={meetingId}
         onStepClick={handleStatusStepClick}
+        timelineDates={timelineDates}
       />
       <MailingAffidavitSection isCSM={isCSM} meetingId={meetingId} />
-      <Dialog open={statusDialogOpen} onClose={closeStatusDialog} maxWidth="xs" fullWidth>
+      <Dialog
+        open={statusDialogOpen}
+        onClose={closeStatusDialog}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>Update Mailing Status</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 2 }}>
@@ -130,9 +154,11 @@ const MailingTimelineCard = ({
           </Button>
           <Button
             variant="contained"
-            disabled={!pendingStatus || isUpdatingStatus}
+            disabled={pendingStatus === null || isUpdatingStatus}
             onClick={handleStatusUpdate}
-            startIcon={isUpdatingStatus ? <CircularProgress size={16} /> : undefined}
+            startIcon={
+              isUpdatingStatus ? <CircularProgress size={16} /> : undefined
+            }
           >
             {isUpdatingStatus ? "Saving..." : "Save"}
           </Button>

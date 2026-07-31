@@ -11,52 +11,42 @@ import {
   TimelineSeparator,
   timelineItemClasses,
 } from "@mui/lab";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Stack,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Card, CardContent, CardHeader, Chip, Stack, Tooltip, Typography } from "@mui/material";
 
 import {
-  type WorkflowStep,
   WORKFLOW_STEPS,
+  hasNonEmptyString,
+  type MailingTimelineDates,
+  type WorkflowStep,
 } from "@/components/Meeting/mailingTimeline";
 
 interface MailingStatusTimelineProps {
   readonly activeIndex: number;
-  readonly formattedDate: string | null;
   readonly isCSM: boolean;
   readonly isUpdatingStatus: boolean;
   readonly meetingId?: string;
   readonly onStepClick: (step: WorkflowStep) => void;
+  readonly timelineDates: MailingTimelineDates;
 }
 
 const MailingStatusTimeline = ({
   activeIndex,
-  formattedDate,
   isCSM,
   isUpdatingStatus,
   meetingId,
   onStepClick,
+  timelineDates,
 }: MailingStatusTimelineProps) => {
-  const isClickable = isCSM && Boolean(meetingId) && !isUpdatingStatus;
+  const isClickable = isCSM && hasNonEmptyString(meetingId) && !isUpdatingStatus;
 
   return (
     <Card sx={{ height: "100%" }}>
       <CardHeader
         title="Mailing Timeline"
         action={
-          isCSM && meetingId != null ? (
+          isCSM && hasNonEmptyString(meetingId) ? (
             <Tooltip title="Click a step to update status">
-              <EditIcon
-                fontSize="small"
-                color="action"
-                sx={{ mt: 1.5, mr: 0.5 }}
-              />
+              <EditIcon fontSize="small" color="action" sx={{ mt: 1.5, mr: 0.5 }} />
             </Tooltip>
           ) : undefined
         }
@@ -76,22 +66,21 @@ const MailingStatusTimeline = ({
             const isCompleted = activeIndex >= 0 && index <= activeIndex;
             const isCurrent = index === activeIndex;
             const isLast = index === WORKFLOW_STEPS.length - 1;
+            const formattedDate = timelineDates[step.label];
 
             return (
               <TimelineItem
                 key={step.label}
-                onClick={() => isClickable && onStepClick(step)}
-                sx={
-                  isClickable
-                    ? {
-                        cursor: "pointer",
-                        borderRadius: 1,
-                        mx: -1,
-                        px: 1,
-                        "&:hover": { bgcolor: "action.hover" },
-                      }
-                    : undefined
-                }
+                onClick={() => {
+                  if (isClickable) onStepClick(step);
+                }}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 1,
+                  mx: -1,
+                  px: 1,
+                  "&:hover": { bgcolor: "action.hover" },
+                }}
               >
                 <TimelineSeparator sx={{ marginBottom: "-0.5rem" }}>
                   <TimelineDot
@@ -113,13 +102,15 @@ const MailingStatusTimeline = ({
                   ) : null}
                 </TimelineSeparator>
                 <TimelineContent sx={{ py: 0.8, px: 2 }}>
-                  <Typography
-                    variant="body3"
-                    color="text.secondary"
-                    sx={{ display: "block", mb: 0.25 }}
-                  >
-                    {formattedDate}
-                  </Typography>
+                  {!isLast && (
+                    <Typography
+                      variant="body3"
+                      color="text.secondary"
+                      sx={{ display: "block", mb: 0.25 }}
+                    >
+                      {formattedDate}
+                    </Typography>
+                  )}
                   <Stack direction="row" alignItems="center" spacing={1}>
                     {isCurrent ? (
                       <Chip
@@ -151,11 +142,7 @@ const MailingStatusTimeline = ({
                         }}
                       />
                     ) : (
-                      <Typography
-                        variant="body3"
-                        fontWeight={500}
-                        color="text.secondary"
-                      >
+                      <Typography variant="body3" fontWeight={500} color="text.secondary">
                         {step.label}
                       </Typography>
                     )}

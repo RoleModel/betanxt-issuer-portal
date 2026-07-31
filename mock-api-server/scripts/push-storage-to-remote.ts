@@ -106,7 +106,7 @@ async function pushStorageToRemote() {
           if (file.name?.includes(".")) {
             allFiles.push({
               path: `${folderPath}/${file.name}`,
-              metadata: file.metadata,
+              metadata: file.metadata ?? undefined,
             });
           }
         }

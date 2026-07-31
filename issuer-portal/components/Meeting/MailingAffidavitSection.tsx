@@ -28,6 +28,7 @@ import type { components } from "@/domain-models/generated-schema";
 
 import BNFileUpload from "@/components/FileUpload/BNFileUpload";
 import FeatureTile from "@/components/FeatureTile";
+import { hasNonEmptyString } from "@/components/Meeting/mailingTimeline";
 import buildApiClient from "@/domain-models/apiClient";
 
 type Document = components["schemas"]["Document"];
@@ -38,7 +39,7 @@ interface MailingAffidavitSectionProps {
 }
 
 const formatDateTime = (dateString: string | undefined): string | null => {
-  if (!dateString) return null;
+  if (dateString === undefined || dateString.length === 0) return null;
 
   return new Date(dateString).toLocaleString("en-US", {
     month: "short",
@@ -65,9 +66,11 @@ const MailingAffidavitSection = ({
 
   const { data: affidavitDoc, isLoading: affidavitLoading } =
     useSWR<Document | null>(
-      meetingId ? `/meetings/${meetingId}/affidavit-of-mailing` : null,
+      hasNonEmptyString(meetingId)
+        ? `/meetings/${meetingId}/affidavit-of-mailing`
+        : null,
       async () => {
-        if (!meetingId) return null;
+        if (!hasNonEmptyString(meetingId)) return null;
 
         const apiClient = await buildApiClient();
         const { data } = await apiClient.GET(
@@ -103,7 +106,7 @@ const MailingAffidavitSection = ({
     const completedFiles = uploadFiles.filter(
       (file) => file.status === "complete"
     );
-    if (completedFiles.length === 0 || !meetingId) return;
+    if (completedFiles.length === 0 || !hasNonEmptyString(meetingId)) return;
 
     setIsUploading(true);
     try {
@@ -115,10 +118,12 @@ const MailingAffidavitSection = ({
         });
       }
 
-      const {file} = completedFiles[0];
+      const { file } = completedFiles[0];
       const reader = new FileReader();
       const base64Data = await new Promise<string>((resolve) => {
-        reader.onload = () => { resolve(reader.result as string); };
+        reader.onload = () => {
+          resolve(reader.result as string);
+        };
         reader.readAsDataURL(file);
       });
 
@@ -152,13 +157,14 @@ const MailingAffidavitSection = ({
   };
 
   const handleDelete = async () => {
-    if (!displayDoc?.id || !meetingId) return;
+    const documentId = displayDoc?.id;
+    if (!hasNonEmptyString(documentId) || !hasNonEmptyString(meetingId)) return;
 
     setIsDeleting(true);
     try {
       const apiClient = await buildApiClient();
       await apiClient.DELETE("/documents/{id}", {
-        params: { path: { id: displayDoc.id } },
+        params: { path: { id: documentId } },
       });
 
       await mutate(`/meetings/${meetingId}/affidavit-of-mailing`, null, {
@@ -174,15 +180,19 @@ const MailingAffidavitSection = ({
   };
 
   const handleDownload = () => {
-    if (!displayDoc?.id || !meetingId) return;
+    const documentId = displayDoc?.id;
+    if (!hasNonEmptyString(documentId) || !hasNonEmptyString(meetingId)) return;
 
     const baseUrl =
       process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-    const downloadUrl = `${baseUrl}/documents/${displayDoc.id}/download`;
+    const downloadUrl = `${baseUrl}/documents/${documentId}/download`;
+    const documentTitle = displayDoc?.title;
     const link = document.createElement("a");
 
     link.href = downloadUrl;
-    link.download = displayDoc.title ?? "affidavit-of-mailing.pdf";
+    link.download = hasNonEmptyString(documentTitle)
+      ? documentTitle
+      : "affidavit-of-mailing.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -207,7 +217,11 @@ const MailingAffidavitSection = ({
 
       {isCSM && !hasAffidavit && !isAffidavitLoading ? (
         <Card variant="outlined" sx={{ mt: 2 }}>
-          <CardActionArea onClick={() => { setUploadDialogOpen(true); }}>
+          <CardActionArea
+            onClick={() => {
+              setUploadDialogOpen(true);
+            }}
+          >
             <CardHeader
               avatar={<UploadFileIcon color="action" />}
               title="Upload Mailing Affidavit"
@@ -232,7 +246,12 @@ const MailingAffidavitSection = ({
             >
               Mailing Affidavit Uploaded
             </Typography>
-            <IconButton color="error" onClick={() => { setDeleteDialogOpen(true); }}>
+            <IconButton
+              color="error"
+              onClick={() => {
+                setDeleteDialogOpen(true);
+              }}
+            >
               <DeleteIcon />
             </IconButton>
           </CardActions>
@@ -241,7 +260,9 @@ const MailingAffidavitSection = ({
 
       <Dialog
         open={uploadDialogOpen}
-        onClose={() => { setUploadDialogOpen(false); }}
+        onClose={() => {
+          setUploadDialogOpen(false);
+        }}
         maxWidth="sm"
         fullWidth
       >
@@ -255,7 +276,9 @@ const MailingAffidavitSection = ({
             acceptedFileTypes={[".pdf"]}
             onFilesSelected={() => undefined}
             onFileRemove={() => undefined}
-            onUpload={async () => { await Promise.resolve(); }}
+            onUpload={async () => {
+              await Promise.resolve();
+            }}
             onFileStateChange={handleFileStateChange}
             multiple={false}
             uploadedFiles={uploadFiles}
@@ -263,7 +286,9 @@ const MailingAffidavitSection = ({
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button
-            onClick={() => { setUploadDialogOpen(false); }}
+            onClick={() => {
+              setUploadDialogOpen(false);
+            }}
             disabled={isUploading}
           >
             Cancel
@@ -280,7 +305,9 @@ const MailingAffidavitSection = ({
 
       <Dialog
         open={deleteDialogOpen}
-        onClose={() => { setDeleteDialogOpen(false); }}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+        }}
       >
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
@@ -291,7 +318,9 @@ const MailingAffidavitSection = ({
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button
-            onClick={() => { setDeleteDialogOpen(false); }}
+            onClick={() => {
+              setDeleteDialogOpen(false);
+            }}
             disabled={isDeleting}
           >
             Cancel

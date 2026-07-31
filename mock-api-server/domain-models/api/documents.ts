@@ -49,7 +49,7 @@ interface ApiResponse<T> {
 // Transform snake_case database fields to camelCase API fields
 function transformDocument(dbDocument: DocumentRow): Document {
   return {
-    id: dbDocument.id,
+    id: dbDocument.id ?? "",
     meetingId: nullToUndefined(dbDocument.meeting_id),
     title: nullToUndefined(dbDocument.title),
     description: nullToUndefined(dbDocument.description),
@@ -208,7 +208,7 @@ export async function createDocument(
         task_id: request.taskId,
         participant_id: request.participantId,
         file_path: filePath,
-        status: request.status ?? "UPLOADED",
+        status: "UPLOADED",
         created_by: defaultUserId,
         created_by_first_name: "Sarah",
         created_by_last_name: "Chen",

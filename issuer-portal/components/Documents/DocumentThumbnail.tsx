@@ -8,12 +8,12 @@ import { Box, CircularProgress } from "@mui/material";
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
 import React, { useEffect, useMemo, useState } from "react";
 
+import { pdfWorkerSource } from "@/lib/pdf-worker";
 import {
   getFileExtension,
   getStoragePublicUrl,
   isStorageUrl,
 } from "@/utils/documentUtils";
-import { pdfWorkerSource } from "@/lib/pdf-worker";
 
 import DocumentThumbnailGenerator from "./DocumentThumbnailGenerator";
 
