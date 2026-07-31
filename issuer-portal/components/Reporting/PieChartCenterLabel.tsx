@@ -27,6 +27,7 @@ const StyledNumberText = styled("text")(({ theme }) => ({
   lineHeight: 1.3,
   fontWeight: 600,
   fontSize: 40,
+  filter: `drop-shadow(1px 1px 0px ${theme.vars.palette.background.paper})`,
 }));
 
 const StyledDescriptionText = styled("text")(({ theme }) => ({
@@ -38,29 +39,22 @@ const StyledDescriptionText = styled("text")(({ theme }) => ({
   fontSize: 16,
   fontStyle: "normal",
 }));
+const StyledG = styled("g")(({ theme }) => ({
+  fill: theme.vars.palette.background.paper,
+}));
 
 const PieCenterLabel = ({ data }: { readonly data: PieChartData }) => {
   const { width, height, left, top } = useDrawingArea();
   return (
-    <>
-      <StyledNumberText
-        tabIndex={0}
-        x={left + width / 2}
-        y={top + height / centerLabelOffset}
-        data-testid="totalCount"
-        style={{ fontSize: 37 }}
-      >
+    <StyledG transform={`translate(${left + width / 2}, ${top + height / 2})`}>
+      <StyledNumberText tabIndex={0} data-testid="totalCount">
         <title>{data.centerTooltip}</title>
         {data.centerValue ?? floorAndFormatNumber(data.total)}
       </StyledNumberText>
-      <StyledDescriptionText
-        tabIndex={0}
-        x={left + width / 2}
-        y={top + height / centerLalbeSecondaryOffset}
-      >
+      <StyledDescriptionText transform="translate(0, 30)" tabIndex={0}>
         {data.label}
       </StyledDescriptionText>
-    </>
+    </StyledG>
   );
 };
 
