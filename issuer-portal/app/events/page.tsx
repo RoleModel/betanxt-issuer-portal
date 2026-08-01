@@ -29,6 +29,10 @@ import { useState, useSyncExternalStore } from "react";
 import type { EventRow } from "@/utils/eventData";
 
 import { NewClientDrawer } from "@/components/Clients/NewClientDrawer";
+import { SavedFilterPanel } from "@/components/ui/SavedFilterPanel";
+import { SavedFilterToolbar } from "@/components/ui/SavedFilterToolbar";
+import type { SavedFilter } from "@/hooks/useSavedFilters";
+import { useSavedFilters } from "@/hooks/useSavedFilters";
 import { CustomTooltip } from "@/components/ui/CustomToolTip";
 import { useEventRisk } from "@/hooks/useEventRisk";
 import { useEvents } from "@/hooks/useEvents";
@@ -116,6 +120,21 @@ const EventsDataGrid = ({
             },
           ],
         };
+
+  // The filter model is controlled so a saved-filter chip can apply one.
+  // `initialFilterModel` seeds it, and the grid key already remounts when the
+  // user's assigned tickers change, so this stays in step with that reset.
+  const [filterModel, setFilterModel] =
+    useState<GridFilterModel>(initialFilterModel);
+  const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
+  const { savedFilters, saveFilter, removeFilter } =
+    useSavedFilters("events-index");
+
+  const handleFilterModelChange = (next: GridFilterModel) => {
+    setFilterModel(next);
+    // Editing filters by hand means the result is no longer the saved group.
+    setActiveFilterId(null);
+  };
 
   const columns: GridColDef<EventRow>[] = [
     {
@@ -281,8 +300,33 @@ const EventsDataGrid = ({
   return (
     <DataGrid
       columns={columns}
+      filterModel={filterModel}
+      onFilterModelChange={handleFilterModelChange}
+      slotProps={{
+        filterPanel: {
+          onSaveFilters: (name: string) => {
+            saveFilter(name, filterModel);
+          },
+        },
+        toolbar: {
+          activeFilterId,
+          onApply: (filter: SavedFilter) => {
+            setFilterModel(filter.filterModel);
+            setActiveFilterId(filter.id);
+          },
+          onClear: () => {
+            setFilterModel({ items: [] });
+            setActiveFilterId(null);
+          },
+          onDelete: (id: string) => {
+            removeFilter(id);
+            setActiveFilterId((current) => (current === id ? null : current));
+          },
+          savedFilters,
+        },
+      }}
+      slots={{ filterPanel: SavedFilterPanel, toolbar: SavedFilterToolbar }}
       initialState={{
-        filter: { filterModel: initialFilterModel },
         pagination: {
           paginationModel: {
             page: 0,

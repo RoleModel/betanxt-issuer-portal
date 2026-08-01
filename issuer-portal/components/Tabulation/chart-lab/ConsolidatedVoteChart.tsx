@@ -23,12 +23,22 @@ interface Slice {
 
 /** Base hue per holder type — the innermost split. */
 const HOLDER_HEX: Record<VoteBreakdownLeaf["holderType"], string> = {
-  Beneficial: "color-mix(in srgb, var(--mui-palette-primary-light) 80%, transparent 0%)",
-  Registered: "color-mix(in srgb, var(--mui-palette-secondary-main) 80%, transparent 0%)",
+  Beneficial:
+    "color-mix(in srgb, var(--mui-palette-primary-light) 80%, transparent 0%)",
+  Registered:
+    "color-mix(in srgb, var(--mui-palette-secondary-main) 80%, transparent 0%)",
 };
 
-const HOLDER_ORDER: VoteBreakdownLeaf["holderType"][] = ["Registered", "Beneficial"];
-const VOTE_ORDER: VoteBreakdownLeaf["vote"][] = ["For", "Against", "Withhold", "Abstain"];
+const HOLDER_ORDER: VoteBreakdownLeaf["holderType"][] = [
+  "Registered",
+  "Beneficial",
+];
+const VOTE_ORDER: VoteBreakdownLeaf["vote"][] = [
+  "For",
+  "Against",
+  "Withhold",
+  "Abstain",
+];
 
 /** Opacity steps outward so each ring stays legible against its parent. */
 const VOTE_ALPHA = [0.5, 0.62, 0.45, 0.3];
@@ -55,12 +65,17 @@ const MIN_PARENT_SHARE = 0.08;
  * @param parentSpan - Display span the children must fill
  * @returns Display spans, summing to `parentSpan`
  */
-const allocateSpans = (totals: readonly number[], parentSpan: number): number[] => {
+const allocateSpans = (
+  totals: readonly number[],
+  parentSpan: number
+): number[] => {
   const total = totals.reduce((sum, value) => sum + value, 0);
   if (total <= 0) {
     return totals.map(() => 0);
   }
-  const floored = totals.map((value) => Math.max(value / total, MIN_PARENT_SHARE));
+  const floored = totals.map((value) =>
+    Math.max(value / total, MIN_PARENT_SHARE)
+  );
   const flooredTotal = floored.reduce((sum, value) => sum + value, 0);
   return floored.map((value) => (value / flooredTotal) * parentSpan);
 };
@@ -104,16 +119,20 @@ export const ConsolidatedVoteChart = ({
   };
 
   const presentHolders = HOLDER_ORDER.filter(
-    (holderType) => sumOf(leaves.filter((l) => l.holderType === holderType)) > 0,
+    (holderType) => sumOf(leaves.filter((l) => l.holderType === holderType)) > 0
   );
   const holderSpans = new Map<string, number>();
   allocateSpans(
-    presentHolders.map((holderType) => sumOf(leaves.filter((l) => l.holderType === holderType))),
-    1,
+    presentHolders.map((holderType) =>
+      sumOf(leaves.filter((l) => l.holderType === holderType))
+    ),
+    1
   ).forEach((span, index) => holderSpans.set(presentHolders[index], span));
 
   for (const holderType of presentHolders) {
-    const holderLeaves = leaves.filter((leaf) => leaf.holderType === holderType);
+    const holderLeaves = leaves.filter(
+      (leaf) => leaf.holderType === holderType
+    );
     const holderTotal = sumOf(holderLeaves);
     const holderSpan = holderSpans.get(holderType) ?? 0;
 
@@ -125,17 +144,22 @@ export const ConsolidatedVoteChart = ({
       label: holderType,
       value: holderSpan,
     });
-    parentShare.set(holderId, totalShares > 0 ? (holderTotal / totalShares) * 100 : 0);
+    parentShare.set(
+      holderId,
+      totalShares > 0 ? (holderTotal / totalShares) * 100 : 0
+    );
     trueValue.set(holderId, holderTotal);
     noteDrift(holderSpan, 1, totalShares > 0 ? holderTotal / totalShares : 0);
 
     const presentVotes = VOTE_ORDER.filter(
-      (vote) => sumOf(holderLeaves.filter((l) => l.vote === vote)) > 0,
+      (vote) => sumOf(holderLeaves.filter((l) => l.vote === vote)) > 0
     );
     const voteSpans = new Map<string, number>();
     allocateSpans(
-      presentVotes.map((vote) => sumOf(holderLeaves.filter((l) => l.vote === vote))),
-      holderSpan,
+      presentVotes.map((vote) =>
+        sumOf(holderLeaves.filter((l) => l.vote === vote))
+      ),
+      holderSpan
     ).forEach((span, index) => voteSpans.set(presentVotes[index], span));
 
     VOTE_ORDER.forEach((vote, voteIndex) => {
@@ -158,16 +182,20 @@ export const ConsolidatedVoteChart = ({
       noteDrift(voteSpan, holderSpan, voteTotal / holderTotal);
 
       const presentSources = sourcesInOrder.filter(
-        (source) => sumOf(voteLeaves.filter((l) => l.source === source)) > 0,
+        (source) => sumOf(voteLeaves.filter((l) => l.source === source)) > 0
       );
       const sourceSpans = new Map<string, number>();
       allocateSpans(
-        presentSources.map((source) => sumOf(voteLeaves.filter((l) => l.source === source))),
-        voteSpan,
+        presentSources.map((source) =>
+          sumOf(voteLeaves.filter((l) => l.source === source))
+        ),
+        voteSpan
       ).forEach((span, index) => sourceSpans.set(presentSources[index], span));
 
       sourcesInOrder.forEach((source, sourceIndex) => {
-        const sourceTotal = sumOf(voteLeaves.filter((leaf) => leaf.source === source));
+        const sourceTotal = sumOf(
+          voteLeaves.filter((leaf) => leaf.source === source)
+        );
         if (sourceTotal <= 0) {
           return;
         }
@@ -196,7 +224,10 @@ export const ConsolidatedVoteChart = ({
           justifyContent: "center",
         }}
       >
-        <Typography color="var(--mui-palette-primary-contrastText)" variant="body2">
+        <Typography
+          color="var(--mui-palette-primary-contrastText)"
+          variant="body2"
+        >
           No votes recorded for this proposal yet.
         </Typography>
       </Box>
@@ -219,7 +250,10 @@ export const ConsolidatedVoteChart = ({
 
   // item.value is the normalised span, not a share count — always report the
   // figure recorded for this slice instead.
-  const valueFormatter = (item: { id?: string | number; value: number }): string => {
+  const valueFormatter = (item: {
+    id?: string | number;
+    value: number;
+  }): string => {
     const actual = trueValue.get(String(item.id ?? "")) ?? 0;
     return `${formatShares(actual)} shares — ${((actual / totalShares) * 100).toFixed(2)}% of all voted`;
   };
@@ -283,8 +317,9 @@ export const ConsolidatedVoteChart = ({
       </PieChart>
       {normalised ? (
         <Typography color="text.secondary" component="p" variant="body3">
-          Arc sizes are normalised so every segment stays readable — small slices are drawn larger
-          than their true share. Percentages and tooltips show the real figures.
+          Arc sizes are normalised so every segment stays readable — small
+          slices are drawn larger than their true share. Percentages and
+          tooltips show the real figures.
         </Typography>
       ) : null}
     </Box>
