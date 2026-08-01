@@ -30,6 +30,8 @@ interface ProposalGridRow {
   readonly id: string;
   readonly proposal: string;
   readonly isSubProposal: boolean;
+  /** Label-only row introducing the director block; renders no vote metrics. */
+  readonly isGroupHeader?: boolean;
   readonly recommendation: string;
   readonly forPercentage: number;
   readonly forShares: number;
@@ -116,7 +118,7 @@ const VotingTabulationTable = ({
       firstProposal.proposalNumber - secondProposal.proposalNumber
   );
 
-  const rows: ProposalGridRow[] = sortedProposals.map((proposal) => ({
+  const proposalRows: ProposalGridRow[] = sortedProposals.map((proposal) => ({
     abstainPercentage: proposal.votingResults.abstain.percentage,
     abstainShares: proposal.votingResults.abstain.shares,
     againstPercentage: proposal.votingResults.against.percentage,
@@ -130,6 +132,42 @@ const VotingTabulationTable = ({
     recommendation: proposal.recommendation ?? "N/A",
     totalSharesVoted: proposal.totalShares,
   }));
+
+  // Director elections arrive as sub-proposals (1.01, 1.02, …) with no parent
+  // "1" row, so the grid would otherwise open straight into individual
+  // directors. Synthesize the grouping row AgendaTable already renders. The
+  // metrics are left blank rather than summed: each director is voted
+  // separately, so a total across them would not mean anything.
+  const directorCount = sortedProposals.filter(
+    (proposal) =>
+      proposal.proposalNumber.toString().startsWith("1.") &&
+      proposal.directorName
+  ).length;
+  const hasParentProposalOne = sortedProposals.some(
+    (proposal) => proposal.proposalNumber === 1
+  );
+  const needsDirectorGroupRow = directorCount > 0 && !hasParentProposalOne;
+
+  const rows: ProposalGridRow[] = needsDirectorGroupRow
+    ? [
+        {
+          abstainPercentage: 0,
+          abstainShares: 0,
+          againstPercentage: 0,
+          againstShares: 0,
+          brokerNonVote: 0,
+          forPercentage: 0,
+          forShares: 0,
+          id: "proposal-1-director-group",
+          isGroupHeader: true,
+          isSubProposal: false,
+          proposal: `1. Election of the ${directorCount} directors named in the accompanying Proxy Statement`,
+          recommendation: "N/A",
+          totalSharesVoted: 0,
+        },
+        ...proposalRows,
+      ]
+    : proposalRows;
   const gridHeight = Math.max(520, Math.min(rows.length, 25) * 52 + 388);
   const proposalPageSize = Math.max(rows.length, 1);
   const recommendationOptions = getDistinctStringValues(
@@ -157,6 +195,7 @@ const VotingTabulationTable = ({
             lineHeight: 1.35,
             minWidth: 0,
             overflowWrap: "anywhere",
+            fontWeight: parameters.row.isGroupHeader ? 600 : undefined,
             pl: parameters.row.isSubProposal ? 3 : 0,
             py: 1,
             whiteSpace: "normal",
@@ -176,11 +215,12 @@ const VotingTabulationTable = ({
       valueOptions: recommendationOptions,
       renderCell: (
         parameters: GridRenderCellParams<ProposalGridRow, string>
-      ) => (
-        <Typography component="span" variant="body3">
-          {parameters.value}
-        </Typography>
-      ),
+      ) =>
+        parameters.row.isGroupHeader ? null : (
+          <Typography component="span" variant="body3">
+            {parameters.value}
+          </Typography>
+        ),
     },
     {
       field: "forPercentage",
@@ -194,14 +234,15 @@ const VotingTabulationTable = ({
       },
       renderCell: (
         parameters: GridRenderCellParams<ProposalGridRow, number>
-      ) => (
-        <VotingMetricCell
-          color="primary"
-          percentage={parameters.row.forPercentage}
-          shares={parameters.row.forShares}
-          totalShares={parameters.row.totalSharesVoted}
-        />
-      ),
+      ) =>
+        parameters.row.isGroupHeader ? null : (
+          <VotingMetricCell
+            color="primary"
+            percentage={parameters.row.forPercentage}
+            shares={parameters.row.forShares}
+            totalShares={parameters.row.totalSharesVoted}
+          />
+        ),
     },
     {
       field: "againstPercentage",
@@ -217,14 +258,15 @@ const VotingTabulationTable = ({
       },
       renderCell: (
         parameters: GridRenderCellParams<ProposalGridRow, number>
-      ) => (
-        <VotingMetricCell
-          color="secondary"
-          percentage={parameters.row.againstPercentage}
-          shares={parameters.row.againstShares}
-          totalShares={parameters.row.totalSharesVoted}
-        />
-      ),
+      ) =>
+        parameters.row.isGroupHeader ? null : (
+          <VotingMetricCell
+            color="secondary"
+            percentage={parameters.row.againstPercentage}
+            shares={parameters.row.againstShares}
+            totalShares={parameters.row.totalSharesVoted}
+          />
+        ),
     },
     {
       field: "abstainPercentage",
@@ -240,14 +282,15 @@ const VotingTabulationTable = ({
       },
       renderCell: (
         parameters: GridRenderCellParams<ProposalGridRow, number>
-      ) => (
-        <VotingMetricCell
-          color="warning"
-          percentage={parameters.row.abstainPercentage}
-          shares={parameters.row.abstainShares}
-          totalShares={parameters.row.totalSharesVoted}
-        />
-      ),
+      ) =>
+        parameters.row.isGroupHeader ? null : (
+          <VotingMetricCell
+            color="warning"
+            percentage={parameters.row.abstainPercentage}
+            shares={parameters.row.abstainShares}
+            totalShares={parameters.row.totalSharesVoted}
+          />
+        ),
     },
     {
       field: "totalSharesVoted",
@@ -257,7 +300,10 @@ const VotingTabulationTable = ({
       type: "number",
       renderCell: (
         parameters: GridRenderCellParams<ProposalGridRow, number>
-      ) => <ShareCountCell shares={parameters.value ?? 0} />,
+      ) =>
+        parameters.row.isGroupHeader ? null : (
+          <ShareCountCell shares={parameters.value ?? 0} />
+        ),
     },
     {
       field: "brokerNonVote",
@@ -267,7 +313,10 @@ const VotingTabulationTable = ({
       type: "number",
       renderCell: (
         parameters: GridRenderCellParams<ProposalGridRow, number>
-      ) => <ShareCountCell shares={parameters.value ?? 0} />,
+      ) =>
+        parameters.row.isGroupHeader ? null : (
+          <ShareCountCell shares={parameters.value ?? 0} />
+        ),
     },
   ];
 

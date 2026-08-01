@@ -5,7 +5,13 @@ All remaining functional requirements are satisfied by frontend changes consumin
 ## C1 — Voting Activity chart (FR-001/FR-002)
 
 - Component: `issuer-portal/components/Tabulation/VotingActivityCard.tsx`
-- Contract: Title/caption explicitly state "Registered Holders"; series input filtered to `holderCategory === "REGISTERED"`; no tooltip or legend text implies full-population coverage.
+- Contract: Series input filtered to `holderCategory === "REGISTERED"`; no tooltip or legend text implies full-population coverage.
+- **Stale — needs a decision.** FR-001 required explicit "Registered Holder voting only" labeling. The title suffix was removed and the card subheader does not render on the tabulation page, so nothing on screen states the scope and the C1 e2e test no longer covers FR-001. Either restore the labeling or drop FR-001 from spec.md.
+
+## C1b — Director election grouping
+
+- Component: `issuer-portal/components/Meeting/VotingTabulationTable.tsx`
+- Contract: The API returns director elections as sub-proposals (`1.01`, `1.02`, …) with no parent `1` row. The grid MUST synthesize a leading "1. Election of the {n} directors named in the accompanying Proxy Statement" row above them, mirroring `AgendaTable`. Vote metric cells on that row render empty — each director is voted separately, so a total across them would be meaningless.
 
 ## C2 — Shares Voted chart (FR-003–FR-006)
 

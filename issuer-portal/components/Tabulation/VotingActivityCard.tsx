@@ -3,11 +3,13 @@
 import { Box, Card, CardContent, CardHeader, Skeleton } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 
+import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
 import {
   type RegisteredVotingMethods,
   useVotingTabulation,
 } from "../../hooks/use-voting-tabulation";
 import {
+  shouldShowTabulationPieArcLabels,
   tabulationCardContentStyles,
   tabulationCardHeaderStyles,
   tabulationCardStyles,
@@ -17,12 +19,10 @@ import {
   tabulationDonutInnerRadius,
   tabulationDonutOuterRadius,
   tabulationMinArcLabelAngle,
-  shouldShowTabulationPieArcLabels,
   TabulationPieArcLabel,
 } from "../../utils/tabulation-card-layout";
-import PieCenterLabel from "../Reporting/PieChartCenterLabel";
-import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
+import PieCenterLabel from "../Reporting/PieChartCenterLabel";
 
 interface VotingActivityCardProps {
   readonly meetingId: string;
@@ -161,7 +161,7 @@ const VotingActivityCard = ({
     <Card sx={tabulationCardStyles}>
       <CardHeader
         title="Voting Activity"
-        subheader="Reflects Registered Holder voting only"
+        subheader="Registered Holder votes"
         sx={tabulationCardHeaderStyles}
       />
       <CardContent sx={tabulationCardContentStyles}>

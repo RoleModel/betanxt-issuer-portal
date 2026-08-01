@@ -213,7 +213,8 @@
       "Bash(rm -rf .next/build-lock*)",
       "Bash(timeout 1800 npx next build)",
       "Bash(echo \"audit: $?\")",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(timeout 60 curl -sS \"https://bn-mock-api-server.vercel.app/api/meetings/wen-annual-meeting-2025/proposals\")"
     ],
     "additionalDirectories": [
       "/Users/dallas/Development/betanxt/betanxt-issuer-portal/issuer-portal/components/Meeting",
