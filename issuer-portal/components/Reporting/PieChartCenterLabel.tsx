@@ -6,6 +6,7 @@ import { floorAndFormatNumber } from "@/utils/number-utilities";
 export interface PieChartData {
   total: number;
   label: string;
+  fill?: string;
   centerValue?: string;
   centerTooltip?: string;
   sliceData: {
@@ -15,18 +16,17 @@ export interface PieChartData {
     color: string;
   }[];
 }
-const StyledNumberText = styled("text")(({ theme }) => ({
-  fill: theme.vars.palette.text.primary,
+const StyledNumberText = styled("text")<{ fill?: string }>(({ theme, fill }) => ({
+  fill: fill || theme.vars.palette.text.primary,
   textAnchor: "middle",
   dominantBaseline: "central",
   lineHeight: 1.3,
   fontWeight: 600,
   fontSize: 40,
-  filter: `drop-shadow(1px 1px 0px ${theme.vars.palette.background.paper})`,
 }));
 
-const StyledDescriptionText = styled("text")(({ theme }) => ({
-  fill: theme.vars.palette.text.secondary,
+const StyledDescriptionText = styled("text")<{ fill?: string }>(({ theme, fill }) => ({
+  fill: fill || theme.vars.palette.text.secondary,
   textAnchor: "middle",
   dominantBaseline: "central",
   lineHeight: "20px",
@@ -42,11 +42,11 @@ const PieCenterLabel = ({ data }: { readonly data: PieChartData }) => {
   const { width, height, left, top } = useDrawingArea();
   return (
     <StyledG transform={`translate(${left + width / 2}, ${top + height / 2})`}>
-      <StyledNumberText tabIndex={0} data-testid="totalCount">
+      <StyledNumberText fill={data.fill} tabIndex={0} data-testid="totalCount">
         <title>{data.centerTooltip}</title>
         {data.centerValue ?? floorAndFormatNumber(data.total)}
       </StyledNumberText>
-      <StyledDescriptionText transform="translate(0, 30)" tabIndex={0}>
+      <StyledDescriptionText fill={data.fill} transform="translate(0, 30)" tabIndex={0}>
         {data.label}
       </StyledDescriptionText>
     </StyledG>

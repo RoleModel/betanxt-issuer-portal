@@ -2,6 +2,7 @@
 
 import { Box, Typography } from "@mui/material";
 import { PieChart, pieClasses } from "@mui/x-charts/PieChart";
+import { mix } from "framer-motion";
 
 import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
 
@@ -20,129 +21,100 @@ interface Slice {
   color: string;
 }
 
-/** Base hue per submission channel; rings step more transparent outward. */
-const SOURCE_HEX = ["#fa938e", "#98bf45", "#51cbcf", "#d397ff", "#f5b942"];
-
-const VOTE_ORDER: VoteBreakdownLeaf["vote"][] = [
-  "For",
-  "Against",
-  "Withhold",
-  "Abstain",
-];
-const HOLDER_ORDER: VoteBreakdownLeaf["holderType"][] = [
-  "Registered",
-  "Beneficial",
-];
-
-/** Opacity per ring position, mirroring the MUI nested-pie demo. */
-const HOLDER_ALPHA = [0.85, 0.55];
-const VOTE_ALPHA = [0.8, 0.6, 0.4, 0.25];
-
-const withAlpha = (hex: string, alpha: number): string => {
-  const red = Number.parseInt(hex.slice(1, 3), 16);
-  const green = Number.parseInt(hex.slice(3, 5), 16);
-  const blue = Number.parseInt(hex.slice(5, 7), 16);
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+/** Base hue per holder type — the innermost split. */
+const HOLDER_HEX: Record<VoteBreakdownLeaf["holderType"], string> = {
+  Beneficial: "var(--mui-palette-primary-light)",
+  Registered: "var(--mui-palette-secondary-main)",
 };
+
+const HOLDER_ORDER: VoteBreakdownLeaf["holderType"][] = ["Registered", "Beneficial"];
+const VOTE_ORDER: VoteBreakdownLeaf["vote"][] = ["For", "Against", "Withhold", "Abstain"];
+
+/** Opacity steps outward so each ring stays legible against its parent. */
+const VOTE_ALPHA = [0.85, 0.62, 0.45, 0.3];
+const SOURCE_ALPHA = [0.55, 0.32, 0.22];
+
+const withAlpha = (hex: string, alpha: number): string =>
+  `color-mix(in srgb, ${hex} ${mix(0, 100, alpha)}%, transparent ${mix(100, 0, alpha)}%)`;
 
 const formatShares = (value: number): string => value.toLocaleString("en-US");
 
-const INNER_RADIUS = 62;
-const SOURCE_OUTER = 122;
-const HOLDER_OUTER = 162;
-const VOTE_OUTER = 200;
-
 /**
- * One figure for what previously took two cards: the centre ring is the channel
- * a vote arrived through, the middle ring splits that channel into registered
- * and beneficial holders, and the outer ring splits each of those into
- * For / Against / Abstain.
+ * Holder type, then how those shares were cast, then the channel they arrived
+ * through — one figure covering what the beneficial-vs-registered and voting
+ * activity cards showed separately.
  *
- * Every percentage is relative to its own parent — "Beneficial (62%)" means 62%
- * of that channel, not of all shares — which is what makes each ring readable
- * on its own. Slices are emitted parent-order-first at every level so a child
- * sits under its parent; MUI X draws each series independently and does not
- * enforce the hierarchy itself.
+ * Percentages are relative to the parent slice: "For (92%)" means 92% of that
+ * holder type, not of all shares, so each ring reads on its own. Children are
+ * emitted in parent order at every level, which is what seats a slice under its
+ * parent — MUI X draws each series independently and does not enforce the
+ * hierarchy itself.
  */
 export const ConsolidatedVoteChart = ({
   leaves,
   totalShares,
-  height = 460,
+  height = 440,
 }: ConsolidatedVoteChartProps) => {
   const sumOf = (subset: readonly VoteBreakdownLeaf[]): number =>
     subset.reduce((total, leaf) => total + leaf.shares, 0);
 
-  const sources = [...new Set(leaves.map((leaf) => leaf.source))].sort(
-    (first, second) =>
-      sumOf(leaves.filter((leaf) => leaf.source === second)) -
-      sumOf(leaves.filter((leaf) => leaf.source === first))
-  );
-
-  const sourceSlices: Slice[] = [];
   const holderSlices: Slice[] = [];
   const voteSlices: Slice[] = [];
-  // id -> percentage of its parent, so arc labels need no type assertions.
+  const sourceSlices: Slice[] = [];
+  // id -> share of its parent, so arc labels need no type assertions.
   const parentShare = new Map<string, number>();
 
-  sources.forEach((source, sourceIndex) => {
-    const baseHex = SOURCE_HEX[sourceIndex % SOURCE_HEX.length];
-    const sourceLeaves = leaves.filter((leaf) => leaf.source === source);
-    const sourceTotal = sumOf(sourceLeaves);
-    const sourceId = `source-${source}`;
+  const sourcesInOrder = [...new Set(leaves.map((leaf) => leaf.source))].sort();
 
-    sourceSlices.push({
+  for (const holderType of HOLDER_ORDER) {
+    const holderLeaves = leaves.filter((leaf) => leaf.holderType === holderType);
+    const holderTotal = sumOf(holderLeaves);
+    if (holderTotal <= 0) {
+      continue;
+    }
+
+    const baseHex = HOLDER_HEX[holderType];
+    const holderId = `holder-${holderType}`;
+    holderSlices.push({
       color: baseHex,
-      id: sourceId,
-      label: source,
-      value: sourceTotal,
+      id: holderId,
+      label: holderType,
+      value: holderTotal,
     });
-    parentShare.set(
-      sourceId,
-      totalShares > 0 ? (sourceTotal / totalShares) * 100 : 0
-    );
+    parentShare.set(holderId, totalShares > 0 ? (holderTotal / totalShares) * 100 : 0);
 
-    HOLDER_ORDER.forEach((holderType, holderIndex) => {
-      const holderLeaves = sourceLeaves.filter(
-        (leaf) => leaf.holderType === holderType
-      );
-      const holderTotal = sumOf(holderLeaves);
-      if (holderTotal <= 0) {
+    VOTE_ORDER.forEach((vote, voteIndex) => {
+      const voteLeaves = holderLeaves.filter((leaf) => leaf.vote === vote);
+      const voteTotal = sumOf(voteLeaves);
+      if (voteTotal <= 0) {
         return;
       }
 
-      const holderId = `holder-${source}-${holderType}`;
-      holderSlices.push({
-        color: withAlpha(baseHex, HOLDER_ALPHA[holderIndex] ?? 0.5),
-        id: holderId,
-        label: holderType,
-        value: holderTotal,
+      const voteId = `vote-${holderType}-${vote}`;
+      voteSlices.push({
+        color: withAlpha(baseHex, VOTE_ALPHA[voteIndex] ?? 0.3),
+        id: voteId,
+        label: vote,
+        value: voteTotal,
       });
-      parentShare.set(
-        holderId,
-        sourceTotal > 0 ? (holderTotal / sourceTotal) * 100 : 0
-      );
+      parentShare.set(voteId, (voteTotal / holderTotal) * 100);
 
-      VOTE_ORDER.forEach((vote, voteIndex) => {
-        const voteTotal = sumOf(
-          holderLeaves.filter((leaf) => leaf.vote === vote)
-        );
-        if (voteTotal <= 0) {
+      sourcesInOrder.forEach((source, sourceIndex) => {
+        const sourceTotal = sumOf(voteLeaves.filter((leaf) => leaf.source === source));
+        if (sourceTotal <= 0) {
           return;
         }
-        const voteId = `vote-${source}-${holderType}-${vote}`;
-        voteSlices.push({
-          color: withAlpha(baseHex, VOTE_ALPHA[voteIndex] ?? 0.25),
-          id: voteId,
-          label: vote,
-          value: voteTotal,
+        const sourceId = `source-${holderType}-${vote}-${source}`;
+        sourceSlices.push({
+          color: withAlpha(baseHex, SOURCE_ALPHA[sourceIndex] ?? 0.2),
+          id: sourceId,
+          label: source,
+          value: sourceTotal,
         });
-        parentShare.set(
-          voteId,
-          holderTotal > 0 ? (voteTotal / holderTotal) * 100 : 0
-        );
+        parentShare.set(sourceId, (sourceTotal / voteTotal) * 100);
       });
     });
-  });
+  }
 
   if (totalShares <= 0) {
     return (
@@ -154,12 +126,20 @@ export const ConsolidatedVoteChart = ({
           justifyContent: "center",
         }}
       >
-        <Typography color="text.secondary">
+        <Typography color="var(--mui-palette-primary-contrastText)" variant="body2">
           No votes recorded for this proposal yet.
         </Typography>
       </Box>
     );
   }
+
+  // Radii derive from the available height so the outer ring and its labels
+  // stay inside the box instead of overflowing the card.
+  const radius = Math.max(120, Math.min(height / 2 - 56, 190));
+  const innerRadius = radius * 0.3;
+  const holderOuter = radius * 0.72;
+  const voteOuter = radius * 0.92;
+  const sourceOuter = radius;
 
   const arcLabel = (item: { id?: string | number; label?: string }): string => {
     const share = parentShare.get(String(item.id ?? "")) ?? 0;
@@ -171,7 +151,7 @@ export const ConsolidatedVoteChart = ({
 
   const shared = {
     arcLabel,
-    cornerRadius: 3,
+    cornerRadius: 10,
     highlightScope: { fade: "global", highlight: "item" } as const,
     highlighted: { additionalRadius: 2 },
     valueFormatter,
@@ -181,34 +161,35 @@ export const ConsolidatedVoteChart = ({
     <PieChart
       height={height}
       hideLegend
+      margin={{ bottom: 8, left: 8, right: 8, top: 8 }}
       series={[
         {
           ...shared,
-          arcLabelRadius: (INNER_RADIUS + SOURCE_OUTER) / 2,
-          data: sourceSlices,
-          innerRadius: INNER_RADIUS,
-          outerRadius: SOURCE_OUTER,
-        },
-        {
-          ...shared,
-          arcLabelRadius: (SOURCE_OUTER + HOLDER_OUTER) / 2,
+          arcLabelRadius: (innerRadius + holderOuter) / 2,
           data: holderSlices,
-          innerRadius: SOURCE_OUTER,
-          outerRadius: HOLDER_OUTER,
+          innerRadius,
+          outerRadius: holderOuter,
         },
         {
           ...shared,
-          // Pushed beyond the outer edge so the third ring's labels sit outside
-          // the chart rather than being dropped for want of room.
-          arcLabelRadius: VOTE_OUTER + 34,
+          arcLabelRadius: (holderOuter + voteOuter) / 2,
           data: voteSlices,
-          innerRadius: HOLDER_OUTER,
-          outerRadius: VOTE_OUTER,
+          innerRadius: holderOuter,
+          outerRadius: voteOuter,
+        },
+        {
+          ...shared,
+          // Just outside the last ring so the deepest labels stay readable
+          // without colliding with the ring they describe.
+          arcLabelRadius: sourceOuter + 26,
+          data: sourceSlices,
+          innerRadius: voteOuter,
+          outerRadius: sourceOuter,
         },
       ]}
       sx={{
         [`& .${pieClasses.arcLabel}`]: {
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: 600,
         },
       }}
@@ -218,6 +199,7 @@ export const ConsolidatedVoteChart = ({
           centerTooltip: `${formatShares(totalShares)} shares voted`,
           centerValue: formatShares(totalShares),
           label: "Shares voted",
+          fill: "var(--mui-palette-primary-contrastText)",
           sliceData: [],
           total: totalShares,
         }}

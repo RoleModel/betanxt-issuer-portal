@@ -100,9 +100,14 @@ const ChartLabPage = () => {
               )}
               <Box sx={{ mt: 2 }}>
                 <Typography color="text.secondary" variant="body3">
-                  Inner ring: submission channel. Middle ring: registered vs
-                  beneficial within that channel. Outer ring: For / Against /
-                  Abstain within each of those. Hover any arc for share counts.
+                  Inner ring: registered vs beneficial. Middle ring: how those
+                  shares were cast. Outer ring: the channel they arrived
+                  through. Every percentage is of its own parent slice, so each
+                  ring reads on its own. Hover any arc for share counts.
+                  Channels are Mail / Email — the API does not serve the
+                  votingSource field, so Web / Print / IVR is not available
+                  (which is also why the Voting Activity card beside this one
+                  shows no methods).
                 </Typography>
               </Box>
             </CardContent>
