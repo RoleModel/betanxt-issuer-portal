@@ -17,7 +17,6 @@ import {
   CardHeader,
   Chip,
   Stack,
-  Tooltip,
   Typography,
 } from "@mui/material";
 
@@ -27,6 +26,7 @@ import {
   type MailingTimelineDates,
   type WorkflowStep,
 } from "@/components/Meeting/mailingTimeline";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 interface MailingStatusTimelineProps {
   readonly activeIndex: number;
@@ -54,13 +54,13 @@ const MailingStatusTimeline = ({
         title="Mailing Timeline"
         action={
           isCSM && hasNonEmptyString(meetingId) ? (
-            <Tooltip title="Click a step to update status">
+            <CustomTooltip title="Click a step to update status">
               <EditIcon
                 fontSize="small"
                 color="action"
                 sx={{ mt: 1.5, mr: 0.5 }}
               />
-            </Tooltip>
+            </CustomTooltip>
           ) : undefined
         }
       />

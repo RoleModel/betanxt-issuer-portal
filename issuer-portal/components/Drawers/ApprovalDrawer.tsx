@@ -20,7 +20,6 @@ import {
   ListItemAvatar,
   ListItemText,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { useSession } from "next-auth/react";
@@ -36,6 +35,7 @@ import {
   type DocumentHistoryEvent,
   useDocuments,
 } from "@/hooks/useDocuments";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 const ReactPlayer = dynamic(async () => await import("react-player"), {
   ssr: false,
@@ -456,12 +456,12 @@ const DrawerToolbar: React.FC<DrawerToolbarProps> = ({
         <ChevronRightIcon fontSize="medium" />
       </IconButton>
     </Box>
-    <Tooltip title="View in Fullscreen">
+    <CustomTooltip title="View in Fullscreen">
       <IconButton size="small" onClick={onFullscreen} sx={{ color: "white" }}>
         <OpenInFullOutlinedIcon fontSize="small" />
       </IconButton>
-    </Tooltip>
-    <Tooltip title="Comments">
+    </CustomTooltip>
+    <CustomTooltip title="Comments">
       <IconButton
         size="small"
         onClick={onToggleComments}
@@ -469,8 +469,8 @@ const DrawerToolbar: React.FC<DrawerToolbarProps> = ({
       >
         <CommentIcon fontSize="small" />
       </IconButton>
-    </Tooltip>
-    <Tooltip title="History">
+    </CustomTooltip>
+    <CustomTooltip title="History">
       <IconButton
         size="small"
         onClick={onToggleHistory}
@@ -478,12 +478,12 @@ const DrawerToolbar: React.FC<DrawerToolbarProps> = ({
       >
         <HistoryOulinedIcon fontSize="small" />
       </IconButton>
-    </Tooltip>
-    <Tooltip title="Download">
+    </CustomTooltip>
+    <CustomTooltip title="Download">
       <IconButton size="small" onClick={onDownload} sx={{ color: "white" }}>
         <DownloadIcon fontSize="small" />
       </IconButton>
-    </Tooltip>
+    </CustomTooltip>
   </Box>
 );
 

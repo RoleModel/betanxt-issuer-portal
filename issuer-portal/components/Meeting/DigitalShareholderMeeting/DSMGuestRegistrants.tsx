@@ -18,7 +18,6 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
@@ -32,6 +31,7 @@ import PreviewDialog, {
 } from "@/components/FileUpload/PreviewDialog";
 
 import { ExportButton } from "./ExportButton";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 type DigitalShareholderMeeting =
   components["schemas"]["DigitalShareholderMeeting"];
@@ -146,7 +146,7 @@ const GuestTable = ({ filteredGuests, guests }: GuestTableProps) => (
               </TableCell>
               <TableCell align="center">
                 {guest.emailAddress ? (
-                  <Tooltip title="Send Email">
+                  <CustomTooltip title="Send Email">
                     <IconButton
                       size="small"
                       onClick={() => {
@@ -164,7 +164,7 @@ const GuestTable = ({ filteredGuests, guests }: GuestTableProps) => (
                     >
                       <Email fontSize="small" />
                     </IconButton>
-                  </Tooltip>
+                  </CustomTooltip>
                 ) : null}
               </TableCell>
             </TableRow>

@@ -2,11 +2,12 @@
 
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 
-import { Box, LinearProgress, Tooltip, Typography } from "@mui/material";
+import { Box, LinearProgress, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 
 import type { ProposalVoting } from "@/types/phases";
 
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
 import {
@@ -73,7 +74,7 @@ const VotingMetricCell = ({
       : 0;
 
   return (
-    <Tooltip title={alternate}>
+    <CustomTooltip title={alternate}>
       <Box sx={{ width: "100%" }}>
         <Typography variant="body3" fontWeight="medium">
           {display}
@@ -85,7 +86,7 @@ const VotingMetricCell = ({
           value={progressValue}
         />
       </Box>
-    </Tooltip>
+    </CustomTooltip>
   );
 };
 
@@ -237,7 +238,7 @@ const VotingTabulationTable = ({
       ) =>
         parameters.row.isGroupHeader ? null : (
           <VotingMetricCell
-            color="primary"
+            color="secondary"
             percentage={parameters.row.forPercentage}
             shares={parameters.row.forShares}
             totalShares={parameters.row.totalSharesVoted}
@@ -261,7 +262,7 @@ const VotingTabulationTable = ({
       ) =>
         parameters.row.isGroupHeader ? null : (
           <VotingMetricCell
-            color="secondary"
+            color="primary"
             percentage={parameters.row.againstPercentage}
             shares={parameters.row.againstShares}
             totalShares={parameters.row.totalSharesVoted}

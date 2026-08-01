@@ -7,7 +7,6 @@ import {
   CardHeader,
   Chip,
   Stack,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { Gauge } from "@mui/x-charts/Gauge";
@@ -23,6 +22,7 @@ import {
   tabulationCardStyles,
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 interface QuorumGaugeCardProps {
   readonly title?: string;
@@ -60,13 +60,13 @@ const QuorumGaugeCard = ({
       <CardHeader
         title={displayTitle}
         subheader={
-          <Tooltip title={requiredMetric.alternate}>
+          <CustomTooltip title={requiredMetric.alternate}>
             <span>
               {displayMode === "numbers"
                 ? `Quorum requirement: ${requiredMetric.display} + 1`
                 : `Quorum requirement: ${formatQuorumRequirementPercentLabel(model?.quorumRequirementPercent)} + 1`}
             </span>
-          </Tooltip>
+          </CustomTooltip>
         }
         sx={tabulationCardHeaderStyles}
       />
@@ -82,7 +82,7 @@ const QuorumGaugeCard = ({
               justifyContent: "center",
             }}
           >
-            <Tooltip title={representedMetric.alternate}>
+            <CustomTooltip title={representedMetric.alternate}>
               <Box
                 sx={{
                   display: "flex",
@@ -125,7 +125,7 @@ const QuorumGaugeCard = ({
                   })}
                 />
               </Box>
-            </Tooltip>
+            </CustomTooltip>
 
             <Box sx={{ display: "flex", justifyContent: "center" }}>
               <Chip color={statusColor} label={statusLabel} size="small" />

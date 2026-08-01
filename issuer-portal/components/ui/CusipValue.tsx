@@ -1,9 +1,10 @@
 "use client";
 
-import { Tooltip, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import React from "react";
 
 import { normalizeCusips } from "@/utils/cusipDisplay";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 interface CusipValueProps {
   readonly value?: string | string[] | null;
@@ -30,11 +31,11 @@ const CusipValue = ({ value, variant = "body3" }: CusipValueProps) => {
   }
 
   return (
-    <Tooltip title={cusips.slice(1).join(", ")}>
+    <CustomTooltip title={cusips.slice(1).join(", ")}>
       <Typography component="span" variant={variant}>
         {`${cusips[0]} +${cusips.length - 1}`}
       </Typography>
-    </Tooltip>
+    </CustomTooltip>
   );
 };
 

@@ -32,7 +32,6 @@ import {
   Stack,
   TextField,
   Toolbar,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { useSession } from "next-auth/react";
@@ -57,6 +56,7 @@ import {
   convertDataUriToPdfBytes,
   embedSignaturesIntoPDF,
 } from "@/utils/pdfSignatureEmbed";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 // Dynamically import SignatureModal to avoid SSR issues
 const SignatureModal = dynamic(
@@ -1538,7 +1538,7 @@ const DocumentViewerToolbarActions: React.FC<
                   });
 
                 return (
-                  <Tooltip
+                  <CustomTooltip
                     title={
                       !allFieldsComplete
                         ? "Please complete all required fields and signatures"
@@ -1576,7 +1576,7 @@ const DocumentViewerToolbarActions: React.FC<
                     >
                       {isSubmitting ? "Sending…" : "Submit"}
                     </Button>
-                  </Tooltip>
+                  </CustomTooltip>
                 );
               })()
             : null}
@@ -1585,7 +1585,7 @@ const DocumentViewerToolbarActions: React.FC<
 
       {/* Download Button */}
       {showDownloadButton && !isWebsiteView && isPDF ? (
-        <Tooltip title="Download PDF">
+        <CustomTooltip title="Download PDF">
           <IconButton
             color="inherit"
             onClick={onDownloadPdf}
@@ -1593,7 +1593,7 @@ const DocumentViewerToolbarActions: React.FC<
           >
             <DownloadIcon />
           </IconButton>
-        </Tooltip>
+        </CustomTooltip>
       ) : null}
 
       {/* PDF Navigation */}
@@ -1638,7 +1638,7 @@ const DocumentViewerToolbarActions: React.FC<
       ) : null}
 
       {!hideActivityButtons && showHistoryButton ? (
-        <Tooltip title="History">
+        <CustomTooltip title="History">
           <IconButton
             color="inherit"
             aria-label="history"
@@ -1646,10 +1646,10 @@ const DocumentViewerToolbarActions: React.FC<
           >
             <HistoryIcon />
           </IconButton>
-        </Tooltip>
+        </CustomTooltip>
       ) : null}
       {!hideActivityButtons && showCommentButton ? (
-        <Tooltip title="Comments">
+        <CustomTooltip title="Comments">
           <IconButton
             color="inherit"
             aria-label="comments"
@@ -1657,7 +1657,7 @@ const DocumentViewerToolbarActions: React.FC<
           >
             <CommentIcon />
           </IconButton>
-        </Tooltip>
+        </CustomTooltip>
       ) : null}
     </Stack>
   );

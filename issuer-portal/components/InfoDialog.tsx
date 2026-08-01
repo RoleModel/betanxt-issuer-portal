@@ -14,13 +14,13 @@ import {
   InputAdornment,
   Stack,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { useEffect, useMemo, useState } from "react";
 
 import { termsDefinitions } from "@/lib/termsDefinitions";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 interface InfoDialogProps {
   readonly open: boolean;
@@ -433,7 +433,7 @@ const GlossaryDefinitionPanel = ({
             </Typography>
           ) : null}
         </Box>
-        <Tooltip title="Copy definition">
+        <CustomTooltip title="Copy definition">
           <span>
             <IconButton
               aria-label={`Copy definition of ${selectedTerm?.term ?? "glossary term"}`}
@@ -445,7 +445,7 @@ const GlossaryDefinitionPanel = ({
               <ContentCopyIcon />
             </IconButton>
           </span>
-        </Tooltip>
+        </CustomTooltip>
       </Box>
       <Typography
         sx={{ maxWidth: 920, whiteSpace: "pre-wrap" }}

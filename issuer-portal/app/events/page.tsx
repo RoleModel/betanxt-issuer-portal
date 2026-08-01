@@ -19,7 +19,6 @@ import {
   Container,
   IconButton,
   Stack,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { DataGrid, getGridStringOperators } from "@mui/x-data-grid";
@@ -33,6 +32,7 @@ import { NewClientDrawer } from "@/components/Clients/NewClientDrawer";
 import { useEventRisk } from "@/hooks/useEventRisk";
 import { useEvents } from "@/hooks/useEvents";
 import { getMeetingUrl } from "@/utils/eventData";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 const parseEventDate = (date: string): Date | null => {
   const [month, day, year] = date.split("/").map(Number);
@@ -227,7 +227,7 @@ const EventsDataGrid = ({
 
         return (
           <Stack direction="row" spacing={0.25}>
-            <Tooltip title="Open dashboard">
+            <CustomTooltip title="Open dashboard">
               <IconButton
                 aria-label={`Open dashboard for ${event.event} ${event.eventType}`}
                 component={Link}
@@ -236,8 +236,8 @@ const EventsDataGrid = ({
               >
                 <DashboardOutlined fontSize="small" />
               </IconButton>
-            </Tooltip>
-            <Tooltip title="Edit event">
+            </CustomTooltip>
+            <CustomTooltip title="Edit event">
               <IconButton
                 aria-label={`Edit ${event.event} ${event.eventType}`}
                 component={Link}
@@ -246,7 +246,7 @@ const EventsDataGrid = ({
               >
                 <EditOutlined fontSize="small" />
               </IconButton>
-            </Tooltip>
+            </CustomTooltip>
           </Stack>
         );
       },

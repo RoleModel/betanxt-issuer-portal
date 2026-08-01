@@ -146,6 +146,13 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
     },
   };
 
+  // Percentages for the previous year use that year's own share total —
+  // voted + unvoted — rather than this year's, which would misstate it.
+  const previousYearTotalShares = previousComparablePoint
+    ? previousComparablePoint.votedShares +
+      previousComparablePoint.unvotedShares
+    : 0;
+
   return (
     <Grid container spacing={2} sx={{ mt: 1, alignItems: "stretch" }}>
       <Grid size={{ xs: 12, lg: 6 }}>
@@ -240,8 +247,34 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
               ).display
             : "--"
         }
+        alternateValue={
+          currentData
+            ? formatTabulationMetric(
+                Number(currentData.shares_voted),
+                totalShares,
+                displayMode
+              ).alternate
+            : "--"
+        }
         label="Shares Voted"
-        previousValue={previousComparablePoint?.votedShares ?? null}
+        previousValue={
+          previousComparablePoint
+            ? formatTabulationMetric(
+                previousComparablePoint.votedShares,
+                previousYearTotalShares,
+                displayMode
+              ).display
+            : null
+        }
+        previousAlternateValue={
+          previousComparablePoint
+            ? formatTabulationMetric(
+                previousComparablePoint.votedShares,
+                previousYearTotalShares,
+                displayMode
+              ).alternate
+            : null
+        }
         showPreviousYear={shouldShowPreviousYearInfo}
         sx={sparklineCardSx}
       />
@@ -255,8 +288,34 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
               ).display
             : "--"
         }
+        alternateValue={
+          currentData
+            ? formatTabulationMetric(
+                Number(currentData.shares_unvoted),
+                totalShares,
+                displayMode
+              ).alternate
+            : "--"
+        }
         label="Shares Not Voted"
-        previousValue={previousComparablePoint?.unvotedShares ?? null}
+        previousValue={
+          previousComparablePoint
+            ? formatTabulationMetric(
+                previousComparablePoint.unvotedShares,
+                previousYearTotalShares,
+                displayMode
+              ).display
+            : null
+        }
+        previousAlternateValue={
+          previousComparablePoint
+            ? formatTabulationMetric(
+                previousComparablePoint.unvotedShares,
+                previousYearTotalShares,
+                displayMode
+              ).alternate
+            : null
+        }
         showPreviousYear={shouldShowPreviousYearInfo}
         sx={sparklineCardSx}
       />

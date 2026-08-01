@@ -1,7 +1,8 @@
 /* eslint-disable sonarjs/function-name */
-import { createElement } from "react";
 import type { PieArcLabelProps } from "@mui/x-charts/PieChart";
 import type { ReactElement } from "react";
+
+import { createElement } from "react";
 
 export const tabulationCardMinHeight = 300;
 export const tabulationCardHeaderMinHeight = 10;
@@ -26,7 +27,7 @@ export const centerLalbeSecondaryOffset = 1.6;
  * slice pinned to that floor renders at or below this angle, so it is caught
  * here rather than needing a separate rule.
  */
-export const tabulationMinArcLabelAngle = 15;
+export const tabulationMinArcLabelAngle = 10;
 
 export const shouldShowTabulationPieArcLabels = (
   dataPointCount: number
@@ -36,8 +37,8 @@ export const tabulationDonutCenterY = 120;
 // side-anchored text was clipped at the edges of the card.
 export const tabulationDonutChartMargin = {
   bottom: 40,
-  left: 110,
-  right: 110,
+  left: 90,
+  right: 90,
   top: 30,
 } as const;
 

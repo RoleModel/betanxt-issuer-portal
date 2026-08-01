@@ -1,8 +1,9 @@
 import type { SxProps, TableCellProps } from "@mui/material";
 
 import { TableCell } from "@mui/material";
-import { Tooltip } from "@mui/material";
+
 import React from "react";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 // A TableCell that prevents text from wrapping
 // Usage: <NoWrapTableCell>Some long text</NoWrapTableCell>
@@ -12,7 +13,7 @@ const NoWrapTableCell: React.FC<TableCellProps & SxProps> = ({
   ...props
 }) => {
   return (
-    <Tooltip placement="bottom" title={children} arrow>
+    <CustomTooltip placement="bottom" title={children} arrow>
       <TableCell
         {...props}
         sx={{
@@ -25,7 +26,7 @@ const NoWrapTableCell: React.FC<TableCellProps & SxProps> = ({
       >
         {children}
       </TableCell>
-    </Tooltip>
+    </CustomTooltip>
   );
 };
 

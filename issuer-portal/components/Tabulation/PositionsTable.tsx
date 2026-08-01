@@ -12,14 +12,7 @@ import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutl
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import {
-  Box,
-  Grid,
-  IconButton,
-  MenuItem,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Grid, IconButton, MenuItem, Typography } from "@mui/material";
 import {
   DataGrid,
   gridFilteredSortedRowIdsSelector,
@@ -38,6 +31,7 @@ import {
   singleSelectFilterOperators,
   textFilterOperators,
 } from "@/utils/tabulation-grid-filter-operators";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 // The built-in v8 grid toolbar accepts `additionalExportMenuItems`, but the
 // public slot-props type still points at the legacy toolbar props, so it has to
@@ -272,7 +266,7 @@ const staticColumns: GridColDef<PositionGridRow>[] = [
       const label = wasSent ? value : "Not sent";
 
       return (
-        <Tooltip title={label}>
+        <CustomTooltip title={label}>
           <Box
             aria-label={label}
             component="span"
@@ -284,7 +278,7 @@ const staticColumns: GridColDef<PositionGridRow>[] = [
               <InsertDriveFileOutlinedIcon fontSize="small" />
             )}
           </Box>
-        </Tooltip>
+        </CustomTooltip>
       );
     },
   },
@@ -422,9 +416,9 @@ const PositionsTable = ({
           displayMode
         );
         return (
-          <Tooltip title={metric.alternate}>
+          <CustomTooltip title={metric.alternate}>
             <span>{metric.display}</span>
-          </Tooltip>
+          </CustomTooltip>
         );
       },
     },
@@ -449,9 +443,9 @@ const PositionsTable = ({
           displayMode
         );
         return (
-          <Tooltip title={metric.alternate}>
+          <CustomTooltip title={metric.alternate}>
             <span>{metric.display}</span>
-          </Tooltip>
+          </CustomTooltip>
         );
       },
     },

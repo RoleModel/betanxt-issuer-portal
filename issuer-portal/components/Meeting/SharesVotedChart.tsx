@@ -115,7 +115,7 @@ const SharesVotedChart = ({
             id: 2,
             label: "Abstain",
             shares: selectedProposal.votingResults.abstain.shares,
-            color: "var(--mui-palette-primary-light)",
+            color: "var(--mui-palette-warning-main)",
           },
         ];
 
@@ -234,6 +234,7 @@ const SharesVotedChart = ({
           <Box
             sx={{
               minHeight: 250,
+              width: "100%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
