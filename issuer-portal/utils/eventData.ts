@@ -7,6 +7,14 @@ export interface EventRow {
   id: string;
   event: string;
   cusip: string;
+  /**
+   * Broadridge set key for the event, e.g. `WENJ2025`.
+   *
+   * Optional because the API does not serve it yet: `setKey` is on the
+   * Position schema but not on Meeting, so every meeting returns none. The
+   * column renders blank until it is added to the meeting schema and seeded.
+   */
+  setKey?: string | null;
   eventDate: string;
   mailingDate?: string | null;
   brokerSearchDate?: string | null;

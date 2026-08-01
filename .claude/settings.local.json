@@ -215,7 +215,10 @@
       "Bash(echo \"audit: $?\")",
       "Bash(git commit *)",
       "Bash(timeout 60 curl -sS \"https://bn-mock-api-server.vercel.app/api/meetings/wen-annual-meeting-2025/proposals\")",
-      "Bash(timeout 1800 npx turbo run build --force)"
+      "Bash(timeout 1800 npx turbo run build --force)",
+      "Bash(timeout 60 curl -sS \"https://bn-mock-api-server.vercel.app/api/position_votes?meetingId=wen-annual-meeting-2025&limit=5\")",
+      "Bash(timeout 60 curl -sS \"https://bn-mock-api-server.vercel.app/api/position_votes?limit=400\")",
+      "Bash(timeout 900 ../node_modules/.bin/tsc --noEmit --incremental false -p tsconfig.json)"
     ],
     "additionalDirectories": [
       "/Users/dallas/Development/betanxt/betanxt-issuer-portal/issuer-portal/components/Meeting",

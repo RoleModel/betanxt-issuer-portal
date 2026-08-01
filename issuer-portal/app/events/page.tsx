@@ -29,10 +29,10 @@ import { useState, useSyncExternalStore } from "react";
 import type { EventRow } from "@/utils/eventData";
 
 import { NewClientDrawer } from "@/components/Clients/NewClientDrawer";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 import { useEventRisk } from "@/hooks/useEventRisk";
 import { useEvents } from "@/hooks/useEvents";
 import { getMeetingUrl } from "@/utils/eventData";
-import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 const parseEventDate = (date: string): Date | null => {
   const [month, day, year] = date.split("/").map(Number);
@@ -166,6 +166,25 @@ const EventsDataGrid = ({
       valueGetter: (value, row) => {
         void value;
         return formatEventTitle(row);
+      },
+    },
+    {
+      field: "setKey",
+      flex: 1,
+      headerName: "Set Key",
+      minWidth: 220,
+      renderCell: (parameters: GridRenderCellParams<EventRow, string>) => {
+        const event = parameters.row;
+
+        return (
+          <Typography noWrap variant="body3">
+            {event.setKey}
+          </Typography>
+        );
+      },
+      valueGetter: (value, row) => {
+        void value;
+        return row.setKey;
       },
     },
     {

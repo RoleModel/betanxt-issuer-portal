@@ -93,6 +93,7 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     id,
     event: companyName,
     cusip,
+    setKey: asString(meeting.setKey ?? meeting.set_key) ?? null,
     eventDate,
     brokerSearchDate,
     recordDate,
