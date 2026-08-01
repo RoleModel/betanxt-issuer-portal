@@ -41,3 +41,6 @@ mock-api-server/.DS_Store
 docs/Proxy Card Design Client.pdf
 mock-api-server/playwright-report/*
 issuer-portal/playwright-upload-test.pdf
+
+# Sentry Config File
+.env.sentry-build-plugin

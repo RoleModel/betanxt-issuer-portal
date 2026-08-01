@@ -1,6 +1,6 @@
+import path from "node:path";
 import { withSentryConfig } from "@sentry/nextjs";
 import { withRelatedProject } from "@vercel/related-projects";
-import path from "node:path";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 
@@ -47,14 +47,18 @@ const nextConfig = {
 };
 
 // Wraps the build so Sentry can upload source maps and instrument the
-// runtimes. `org`/`project` come from SENTRY_ORG / SENTRY_PROJECT and the
-// upload token from SENTRY_AUTH_TOKEN, all build-time only — no secrets here.
+// runtimes. Org and project are the real values from `sentry wizard`, with env
+// overrides for anyone pointing a build at a different Sentry project. The
+// upload token is build-time only and never hardcoded: it comes from
+// SENTRY_AUTH_TOKEN, which `.env.sentry-build-plugin` (gitignored) supplies
+// locally and the CI/Vercel environment supplies for deploys.
 //
-// Note: `withSentryConfig`'s tree-shaking options are webpack-only, and this
-// app builds with Turbopack, so they are deliberately not set.
+// Note: `withSentryConfig`'s tree-shaking and automaticVercelMonitors options
+// are webpack-only, and this app builds with Turbopack, so they are omitted —
+// the wizard's generated config set them, but they would be inert here.
 export default withSentryConfig(nextConfig, {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+  org: process.env.SENTRY_ORG ?? "rolemodel-software",
+  project: process.env.SENTRY_PROJECT ?? "issuer-portal",
   authToken: process.env.SENTRY_AUTH_TOKEN,
 
   // Upload a wider set of client files so browser stack traces resolve.

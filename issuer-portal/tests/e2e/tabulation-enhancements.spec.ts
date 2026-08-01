@@ -42,7 +42,7 @@ test.describe("C1b — Director election grouping", () => {
     ).toBeVisible({ timeout: 30_000 });
 
     const grid = page.locator(".MuiDataGrid-root").first();
-    const text = (await grid.innerText()).replace(/\s+/g, " ");
+    const text = (await grid.innerText()).replaceAll(/\s+/g, " ");
     expect(text.indexOf("Election of the")).toBeGreaterThanOrEqual(0);
     expect(text.indexOf("1.01.")).toBeGreaterThan(
       text.indexOf("Election of the")
