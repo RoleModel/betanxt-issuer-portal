@@ -24,6 +24,7 @@ import {
 } from "@mui/material";
 import { DataGrid, getGridStringOperators } from "@mui/x-data-grid";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 
 import type { EventRow } from "@/utils/eventData";
@@ -135,7 +136,7 @@ const EventsDataGrid = ({
           <Typography
             noWrap
             variant="body3"
-            component="a"
+            component={Link}
             color="primary"
             href={`${getMeetingUrl(event)}/dashboard`}
           >
@@ -229,7 +230,7 @@ const EventsDataGrid = ({
             <Tooltip title="Open dashboard">
               <IconButton
                 aria-label={`Open dashboard for ${event.event} ${event.eventType}`}
-                component="a"
+                component={Link}
                 href={`${getMeetingUrl(event)}/dashboard`}
                 size="small"
               >
@@ -239,7 +240,7 @@ const EventsDataGrid = ({
             <Tooltip title="Edit event">
               <IconButton
                 aria-label={`Edit ${event.event} ${event.eventType}`}
-                component="a"
+                component={Link}
                 href={`/edit/${event.id}`}
                 size="small"
               >

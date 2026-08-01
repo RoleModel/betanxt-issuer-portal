@@ -8,10 +8,9 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  Stack,
   TextField,
 } from "@mui/material";
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import type { DSMDocumentOption, UploadFile } from "./types";
 
@@ -184,38 +183,36 @@ const FileUploadDialog = ({
             {uploadError}
           </Alert>
         ) : null}
-        <Stack spacing={2} sx={{ mb: 2 }}>
-          {fields.map((field) => (
-            <TextField
-              key={field.id}
-              fullWidth
-              label={field.label}
-              required={field.required}
-              type={field.type ?? "text"}
-              value={fieldValues[field.id] ?? ""}
-              onChange={(event) =>
-                onFieldChange?.(field.id, event.target.value)
-              }
-              slotProps={
-                field.type === "number"
-                  ? { htmlInput: { min: 0, step: 1 } }
-                  : undefined
-              }
-            />
-          ))}
-          {showDescription ? (
-            <TextField
-              label="Description"
-              placeholder="Add a description (optional)"
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-              }}
-              multiline
-              minRows={2}
-            />
-          ) : null}
-        </Stack>
+        {fields.map((field) => (
+          <TextField
+            key={field.id}
+            fullWidth
+            label={field.label}
+            required={field.required}
+            type={field.type ?? "text"}
+            margin="dense"
+            value={fieldValues[field.id] ?? ""}
+            onChange={(event) => onFieldChange?.(field.id, event.target.value)}
+            slotProps={
+              field.type === "number"
+                ? { htmlInput: { min: 0, step: 1 } }
+                : undefined
+            }
+          />
+        ))}
+        {showDescription ? (
+          <TextField
+            label="Description"
+            placeholder="Add a description (optional)"
+            value={description}
+            margin="normal"
+            onChange={(e) => {
+              setDescription(e.target.value);
+            }}
+            multiline
+            minRows={2}
+          />
+        ) : null}
         <BNFileUpload
           maxFiles={maxFiles}
           acceptedFileTypes={

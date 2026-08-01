@@ -3,11 +3,6 @@ import { useDrawingArea } from "@mui/x-charts";
 
 import { floorAndFormatNumber } from "@/utils/number-utilities";
 
-import {
-  centerLabelOffset,
-  centerLalbeSecondaryOffset,
-} from "../../utils/tabulation-card-layout";
-
 export interface PieChartData {
   total: number;
   label: string;

@@ -1,5 +1,6 @@
-import path from "node:path";
+import { withSentryConfig } from "@sentry/nextjs";
 import { withRelatedProject } from "@vercel/related-projects";
+import path from "node:path";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
 
@@ -23,6 +24,9 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_BASE_URL: apiBaseUrl,
   },
+  experimental: {
+    viewTransition: true,
+  },
   productionBrowserSourceMaps: true,
   // Deliberately NOT enabling `reactCompiler`. It forces Next to configure
   // babel-loader even under Turbopack (see `turbopackUseBuiltinBabel`), which
@@ -42,4 +46,22 @@ const nextConfig = {
   ],
 };
 
-export default nextConfig;
+// Wraps the build so Sentry can upload source maps and instrument the
+// runtimes. `org`/`project` come from SENTRY_ORG / SENTRY_PROJECT and the
+// upload token from SENTRY_AUTH_TOKEN, all build-time only — no secrets here.
+//
+// Note: `withSentryConfig`'s tree-shaking options are webpack-only, and this
+// app builds with Turbopack, so they are deliberately not set.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Upload a wider set of client files so browser stack traces resolve.
+  widenClientFileUpload: true,
+
+  // Proxy events through the app's own origin so ad-blockers don't drop them.
+  tunnelRoute: "/monitoring",
+
+  silent: !process.env.CI,
+});

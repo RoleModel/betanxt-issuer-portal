@@ -370,7 +370,7 @@ interface BrandingWithContrast extends BrandingColors {
 }
 
 const getContrastText = (color: string): string =>
-  getContrastRatio(color, "#fff") > 4.5 ? "#fff" : "#111";
+  getContrastRatio(color, "#fff") > 1.5 ? "#fff" : "#111";
 
 const addContrastText = (branding: BrandingColors): BrandingWithContrast => ({
   ...branding,
@@ -722,6 +722,7 @@ export const createClientTheme = (ticker?: string) => {
       MuiDataGrid: {
         styleOverrides: {
           root: ({ theme }: { theme: Theme }) => ({
+            "--DataGrid-t-color-border-base": theme.vars.palette.divider,
             fontSize: theme.typography.dataCell.fontSize,
             boxShadow: theme.shadows[5],
             borderRadius: theme.vars.shape.borderRadius,
@@ -732,9 +733,10 @@ export const createClientTheme = (ticker?: string) => {
             },
             "& .MuiDataGrid-toolbar": {
               backgroundColor: theme.vars.palette.dataGridHeaderRow.restingFill,
+              borderBottom: `solid 1px ${theme.vars.palette.grey[400]}`,
             },
             "& .MuiDataGrid-row": {
-              borderColor: theme.vars.palette.dataGridCellRow.border,
+              boxShadow: `0 -1px 0 0 ${theme.vars.palette.grey[200]}`,
             },
 
             // Header Row Styles
@@ -837,26 +839,26 @@ export const createClientTheme = (ticker?: string) => {
               height: theme.layout?.navbarHeight,
             },
             "&.MuiAppBar-root": {
-              backgroundColor: betanxtTheme.vars.palette.primary.dark,
-              color: betanxtTheme.vars.palette.primary.contrastText,
+              backgroundColor: betanxtTheme.vars.palette.common.white,
+              color: betanxtTheme.vars.palette.text.primary,
               borderBottom: `1px solid ${theme.vars.palette.divider}`,
               "& .MuiPaper-root": {
                 boxShadow: "none",
               },
               "& .MuiTabs-indicator": {
-                backgroundColor: theme.vars.palette.primary.contrastText,
+                backgroundColor: theme.vars.palette.primary.main,
                 height: 4,
               },
               "& .MuiTab-root ": {
-                color: theme.vars.palette.primary.contrastText,
+                color: theme.vars.palette.text.primary,
                 transition: theme.transitions.create(["color"]),
               },
               "& .MuiTab-root:hover ": {
-                color: theme.vars.palette.primary.contrastText,
-                boxShadow: `inset 0 -4px 0 0 ${theme.vars.palette.primary.light}`,
+                color: theme.vars.palette.primary.main,
+                boxShadow: `inset 0 -4px 0 0 ${theme.vars.palette.primary.main}`,
               },
               "& .MuiTabs-root .Mui-selected": {
-                color: theme.vars.palette.primary.contrastText,
+                color: theme.vars.palette.primary.main,
               },
             },
             ...theme.applyStyles("dark", {

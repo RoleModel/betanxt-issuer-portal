@@ -96,7 +96,7 @@ const BNAppBarClientMemo = (props: BNAppBarWrapperProps) => {
           disableRipple={false}
           disableTouchRipple={false}
         >
-          <Badge badgeContent={unreadCount} color="primary">
+          <Badge badgeContent={unreadCount} color="error">
             <NotificationsOutlined />
           </Badge>
         </IconButton>
@@ -123,7 +123,7 @@ const BNAppBarClientMemo = (props: BNAppBarWrapperProps) => {
     if (!showCSMBrandLogo) return null;
     const CSMLogo = () => (
       <Box sx={{ display: "flex", alignItems: "center", height: 44 }}>
-        <BNLogo color="white" height={28} />
+        <BNLogo height={28} />
       </Box>
     );
     CSMLogo.displayName = "CSMLogo";

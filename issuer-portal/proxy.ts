@@ -40,5 +40,9 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|fonts|logos|images).*)"],
+  // `monitoring` is Sentry's tunnel route (see next.config.ts). It must stay
+  // outside the auth check, otherwise error reports are redirected to /login.
+  matcher: [
+    "/((?!monitoring|_next/static|_next/image|favicon.ico|fonts|logos|images).*)",
+  ],
 };

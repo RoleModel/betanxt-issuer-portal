@@ -241,7 +241,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     headerLogoPath: "/logos/brands/calcimedica-inc_logo-dark.png",
     headerIconPath: "/logos/brands/calcimedica-inc_icon-dark.png",
     primaryColor: "#472f91",
-    secondaryColor: "#070101",
+    secondaryColor: "#F25B28",
   },
   "Artiva Biotherapeutics, Inc.": {
     companyName: "ArtivaBio",
@@ -284,8 +284,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     iconPath: "/logos/brands/boundless-big-inc_icon.png",
     headerLogoPath: "/logos/brands/boundless-big-inc_logo-dark.png",
     headerIconPath: "/logos/brands/boundless-big-inc_icon-dark.png",
-    primaryColor: "#ff4d29",
-    secondaryColor: "#ff4d29",
+    primaryColor: "#FA4D28",
+    secondaryColor: "#FA4D28",
   },
   "Lithium Americas Corp.": {
     companyName: "Lithium Americas",

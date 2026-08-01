@@ -41,7 +41,7 @@ const uncachedTables = new Set([
 /**
  * Normalises the several shapes `fetch` accepts into a plain URL string.
  *
- * @param url - The first argument handed to `fetch`
+ * @param URL - The first argument handed to `fetch`
  * @returns The request URL as a string
  */
 const toUrlString = (url: RequestInfo | URL): string => {
@@ -55,7 +55,7 @@ const toUrlString = (url: RequestInfo | URL): string => {
  * Decides whether a PostgREST request targets a table listed in
  * {@link uncachedTables} and must therefore bypass the data cache.
  *
- * @param url - The outgoing request URL
+ * @param URL - The outgoing request URL
  * @returns True when the request reads a user-mutated table
  */
 const isUncachedTableRequest = (url: RequestInfo | URL): boolean => {

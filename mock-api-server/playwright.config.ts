@@ -46,11 +46,12 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:3001',
-  //   reuseExistingServer: true,
-  //   timeout: 60000,
-  // },
+  /* Boot the API before the integration suite, which talks to it over HTTP.
+     Reuses an already-running dev server when there is one. */
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:3001/api/health",
+    reuseExistingServer: true,
+    timeout: 120_000,
+  },
 });
