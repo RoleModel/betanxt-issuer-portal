@@ -20,7 +20,6 @@ import {
   useState,
 } from "react";
 
-import { buildMockFollowUpJobs } from "@/components/Meeting/AdditionalMailingSummaryCard";
 import BrokerVotingChart from "@/components/Reporting/BrokerVotingChart";
 import EventSummaryTable from "@/components/Reporting/EventSummaryTable";
 import { GeoHeatmapCard } from "@/components/Reporting/GeoHeatmapCard";
@@ -65,8 +64,7 @@ interface PositionsVotedBuckets {
  *
  * An event selector scopes the Analytics charts; it defaults to the first
  * available meeting until the user picks one. The quorum timeline derives its
- * milestones from the meeting plus the shared mock follow-up mailings
- * ({@link buildMockFollowUpJobs}) and threads the selected meeting's quorum
+ * milestones from the meeting and threads the selected meeting's quorum
  * requirement into the threshold line.
  */
 const ReportingPage = () => {
@@ -189,15 +187,6 @@ const ReportingPage = () => {
     };
   }, [reportingData]);
 
-  const followUpMailings = useMemo(
-    () =>
-      buildMockFollowUpJobs(clientTicker).map((job, index) => ({
-        label: job.alternateJobName.split(" — ")[0] || `Follow-Up ${index + 1}`,
-        date: job.sentDate ?? null,
-      })),
-    [clientTicker]
-  );
-
   const quorumTimelineInput = useMemo(() => {
     const meetingDate = selectedMeeting?.meetingDate
       ? parseLocalDate(selectedMeeting.meetingDate)
@@ -219,15 +208,6 @@ const ReportingPage = () => {
         label: distribution
           ? `Mail Date · ${mailingDistributionShortLabel(distribution)}`
           : "Mail Date",
-      });
-    }
-
-    for (const mailing of followUpMailings) {
-      if (!mailing.date) continue;
-      milestones.push({
-        date: mailing.date,
-        kind: "followUp" as const,
-        label: mailing.label,
       });
     }
 
@@ -259,7 +239,7 @@ const ReportingPage = () => {
           : []
       ),
     };
-  }, [effectiveMeetingId, followUpMailings, positions, selectedMeeting]);
+  }, [effectiveMeetingId, positions, selectedMeeting]);
 
   const { points: quorumTimelinePoints, milestones: quorumTimelineMilestones } =
     useQuorumTimeline(quorumTimelineInput);

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 "use client";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -34,7 +37,27 @@ import buildApiClient from "@/domain-models/apiClient";
 
 type Document = components["schemas"]["Document"];
 
-const ADDITIONAL_MAILING_DOCUMENT_TYPE = "additional-mailing";
+/**
+ * A single follow-up ("FW") mailing job for an event. Most events have 1-3 of
+ * these; a few can have ~15, so this renders as a scrollable table.
+ */
+interface FollowUpJob {
+  id: string;
+  /** Alternate job name shown to the issuer */
+  alternateJobName: string;
+  /** Date the follow-up job was sent */
+  sentDate?: string;
+  /** Number of positions included in this follow-up job */
+  positions?: number;
+  /** URL of the PDF showing exactly what was mailed */
+  pdfUrl?: string;
+  /** Count of ad-hoc / email fulfillment requests (the "Q") tied to this job */
+  fulfillmentRequests?: number;
+  fullSetFulfillmentRequests?: number;
+  electronicFulfillmentRequests?: number;
+}
+
+const AdditionalMailingDocumentType = "additional-mailing";
 
 const additionalMailingFields: readonly FileUploadDialogField[] = [
   { id: "jobName", label: "Job Name", required: true },
@@ -131,79 +154,10 @@ const fileToDataUri = async (file: File): Promise<string> =>
     reader.readAsDataURL(file);
   });
 
-/**
- * A single follow-up ("FW") mailing job for an event. Most events have 1-3 of
- * these; a few can have ~15, so this renders as a scrollable table.
- */
-export interface FollowUpJob {
-  id: string;
-  /** Alternate job name shown to the issuer */
-  alternateJobName: string;
-  /** Date the follow-up job was sent */
-  sentDate?: string;
-  /** Number of positions included in this follow-up job */
-  positions?: number;
-  /** URL of the PDF showing exactly what was mailed */
-  pdfUrl?: string;
-  /** Count of ad-hoc / email fulfillment requests (the "Q") tied to this job */
-  fulfillmentRequests?: number;
-  fullSetFulfillmentRequests?: number;
-  electronicFulfillmentRequests?: number;
-}
-
 interface AdditionalMailingSummaryCardProps {
   readonly meetingId?: string;
   readonly jobs?: FollowUpJob[];
-  readonly loading?: boolean;
 }
-
-/**
- * Builds the prototype mock follow-up jobs for a client. The themed
- * proxy/document PDFs are generated per client by
- * scripts/generate-mock-mailing-pdfs.tsx into /public/mock-mailings/{TICKER}.
- *
- * Exported so reporting surfaces (e.g. the quorum timeline's follow-up
- * milestones) can reuse the same follow-up mailing data source until a real
- * endpoint exists.
- *
- * @param ticker - Client ticker; selects the per-client mock PDF directory
- * @returns Mock follow-up mailing jobs with sent dates and PDF URLs
- */
-export const buildMockFollowUpJobs = (ticker: string): FollowUpJob[] => {
-  const base = `/mock-mailings/${ticker.toUpperCase()}`;
-  return [
-    {
-      id: "fw-1",
-      alternateJobName: "FW1 — Proxy Card (Reminder, Unvoted)",
-      sentDate: "04/18/2026",
-      positions: 1240,
-      pdfUrl: `${base}/fw1-reminder-unvoted.pdf`,
-      fulfillmentRequests: 30000,
-      fullSetFulfillmentRequests: 17000,
-      electronicFulfillmentRequests: 23000,
-    },
-    {
-      id: "fw-2",
-      alternateJobName: "FW2 — Supplemental Proxy Material",
-      sentDate: "04/25/2026",
-      positions: 318,
-      pdfUrl: `${base}/fw2-supplemental-proxy.pdf`,
-      fulfillmentRequests: 3450,
-      fullSetFulfillmentRequests: 450,
-      electronicFulfillmentRequests: 2600,
-    },
-    {
-      id: "fw-3",
-      alternateJobName: "FW3 — Shareholder Letter (Retail)",
-      sentDate: "05/02/2026",
-      positions: 904,
-      pdfUrl: `${base}/fw3-second-reminder-retail.pdf`,
-      fulfillmentRequests: 4045,
-      fullSetFulfillmentRequests: 345,
-      electronicFulfillmentRequests: 2500,
-    },
-  ];
-};
 
 const formatNumber = (num: number | null | undefined): string =>
   num === null || num === undefined ? "0" : num.toLocaleString("en-US");
@@ -237,7 +191,7 @@ const AdditionalMailingSummaryCard: React.FC<
     Document[]
   >(
     hasNonEmptyString(meetingId)
-      ? `/meetings/${meetingId}/documents?type=${ADDITIONAL_MAILING_DOCUMENT_TYPE}`
+      ? `/meetings/${meetingId}/documents?type=${AdditionalMailingDocumentType}`
       : null,
     async () => {
       if (!hasNonEmptyString(meetingId)) return [];
@@ -248,7 +202,7 @@ const AdditionalMailingSummaryCard: React.FC<
         {
           params: {
             path: { meetingId },
-            query: { type: ADDITIONAL_MAILING_DOCUMENT_TYPE },
+            query: { type: AdditionalMailingDocumentType },
           },
         }
       );
@@ -304,7 +258,7 @@ const AdditionalMailingSummaryCard: React.FC<
         body: {
           title: jobName,
           description: JSON.stringify(metadata),
-          type: ADDITIONAL_MAILING_DOCUMENT_TYPE,
+          type: AdditionalMailingDocumentType,
           file: await fileToDataUri(file),
         },
       }

@@ -1,4 +1,5 @@
-import { apiClient } from "../apiClient";
+import { randomUUID } from "node:crypto";
+
 import type { components } from "@/types/api";
 import type { Database } from "@/utils/supabase/database.types";
 
@@ -197,26 +198,74 @@ export async function listPositionVotes(options?: {
   }
 }
 
+/**
+ * Pulls `positionId` off an unvalidated request body.
+ *
+ * The OpenAPI `CastVoteRequest` omits `positionId`, but `position_vote`
+ * requires it to attach the vote to a holding, so it is read defensively from
+ * the raw body rather than through the generated type.
+ *
+ * @param body - Parsed JSON request body of unknown shape
+ * @returns The position id, or null when absent or not a non-empty string
+ */
+function readPositionId(body: unknown): string | null {
+  if (typeof body !== "object" || body === null) {
+    return null;
+  }
+  const { positionId } = body as { positionId?: unknown };
+  return typeof positionId === "string" && positionId.length > 0
+    ? positionId
+    : null;
+}
+
+/**
+ * Records a vote cast by a position against a proposal.
+ *
+ * @param body - A `CastVoteRequest` plus the `positionId` the vote belongs to
+ * @returns The stored vote, or a 400 error when `positionId` is missing or the insert fails
+ */
 export async function createPositionVote(
   body: unknown
 ): Promise<ApiResponse<PositionVote>> {
-  const { data, error, response } = await apiClient.POST("/position_votes", {
-    body: body as CastVoteRequest,
-  });
+  const request = body as CastVoteRequest;
+  const positionId = readPositionId(body);
+
+  if (positionId === null) {
+    return {
+      data: undefined,
+      error: { message: "positionId is required", statusCode: 400 },
+      response: new Response(null, { status: 400 }),
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("position_vote")
+    .insert({
+      id: randomUUID(),
+      position_id: positionId,
+      proposal_id: request.proposalId,
+      vote: request.vote,
+      shares_voting: request.sharesVoting,
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  const response = new Response(null, { status: error ? 400 : 201 });
 
   if (error) {
     return {
       data: undefined,
       error: {
         message: error.message ?? "Failed to create position vote",
-        statusCode: response.status,
+        statusCode: 400,
       },
       response,
     };
   }
 
   return {
-    data,
+    data: transformPositionVote(data),
     error: undefined,
     response,
   };
