@@ -26,13 +26,19 @@ Login was implemented without a spec and without any test coverage. A stale `iss
 - **FR-007**: While a sign-in is in flight the submit control MUST be disabled and show a pending state.
 - **FR-008**: A signed-in user's session MUST carry their `type` (ISSUER, ADMIN, PARENT_CLIENT, SOLICITOR, CSM) and the client ticker(s) they may access.
 - **FR-009**: Single-client users (ISSUER) MUST be scoped to their one `client_ticker`. Multi-client users (CSM, SOLICITOR, PARENT_CLIENT) MUST be scoped to their `clientTickers` list.
-- **FR-010**: When `NEXT_PUBLIC_BYPASS_AUTH` is `true`, route protection is disabled and the `bypass`/`bypass` credential pair signs in as the role named by `NEXT_PUBLIC_BYPASS_USER_ROLE`. This is a development affordance and MUST remain off in production.
+- **FR-010**: When `NEXT_PUBLIC_BYPASS_AUTH` is `true`, route protection is disabled and the `bypass`/`bypass` credential pair signs in as the role named by `NEXT_PUBLIC_BYPASS_USER_ROLE`. This is a development affordance and MUST remain off in production. Note it short-circuits only _route protection_ and the `bypass`/`bypass` pair — real credentials still authenticate normally while it is on.
 - **FR-011**: After a successful sign-in the client MUST fully reload so session, SWR, and router caches are rebuilt rather than reused from the signed-out state.
 
 ## Key Entities
 
 - **Mock user directory** (`issuer-portal/auth.ts`) — username, password, `type`, `account_id`, `client_ticker`, `clientTickers`. Credentials are compared in plaintext against this map; there is no user database behind login.
 - **Session token** — JWT strategy, 30-day `maxAge`, refreshed every 24h. `clientTickers` is re-read from the live directory on every token refresh so ticker-list changes apply without re-login.
+
+## Validation
+
+Covered by `issuer-portal/tests/e2e/login.spec.ts` — form rendering, rejected credentials, account-enumeration resistance, successful sign-in, and per-user client scoping — via the helpers in `issuer-portal/tests/helpers/auth.ts`.
+
+**FR-001 and FR-002 are currently unverified.** `issuer-portal/.env`, which is tracked in git, sets `NEXT_PUBLIC_BYPASS_AUTH=true`, so route protection is off in local development: an unauthenticated deep link renders the protected page instead of redirecting to `/login`. `proxy.ts` reads that flag server-side, so it cannot be toggled per test. The route-protection test skips itself rather than reporting a false pass — run with `NEXT_PUBLIC_BYPASS_AUTH=false` to exercise it.
 
 ## Known Gaps (not yet requirements)
 

@@ -1,8 +1,7 @@
 /* eslint-disable sonarjs/function-name */
+import { createElement } from "react";
 import type { PieArcLabelProps } from "@mui/x-charts/PieChart";
 import type { ReactElement } from "react";
-
-import { createElement } from "react";
 
 export const tabulationCardMinHeight = 300;
 export const tabulationCardHeaderMinHeight = 10;
