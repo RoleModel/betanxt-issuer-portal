@@ -12,7 +12,7 @@ import {
 export interface VoteBreakdownLeaf {
   source: string;
   holderType: "Registered" | "Beneficial";
-  vote: "For" | "Against" | "Abstain";
+  vote: "For" | "Against" | "Abstain" | "Withhold";
   shares: number;
 }
 
@@ -52,10 +52,13 @@ const SOURCE_LABELS: Record<string, string> = {
   WEB: "Web",
 };
 
+// Director elections are cast FOR/WITHHOLD rather than FOR/AGAINST/ABSTAIN;
+// omitting WITHHOLD silently dropped every withheld vote from the chart.
 const VOTE_LABELS: Record<string, VoteBreakdownLeaf["vote"]> = {
   ABSTAIN: "Abstain",
   AGAINST: "Against",
   FOR: "For",
+  WITHHOLD: "Withhold",
 };
 
 const asArray = (value: unknown): unknown[] =>
