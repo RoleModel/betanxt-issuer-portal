@@ -30,8 +30,6 @@ import { useState } from "react";
 import type { TabulationPosition } from "@/hooks/useTabulationInsights";
 
 import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
-import { exportPositionsToPdf } from "@/utils/exportPositionsPdf";
-import { exportPositionsToXlsx } from "@/utils/exportPositionsXlsx";
 import { formatTabulationMetric } from "@/utils/tabulation-display";
 import {
   dateFilterOperators,
@@ -503,12 +501,18 @@ const PositionsTable = ({
     }, []);
   };
 
+  // The PDF and spreadsheet writers are loaded on demand. Imported statically
+  // they pulled @react-pdf/pdfkit and xlsx (~2.4MB) into this page's chunk, and
+  // parsing them on load was a measurable chunk of the tabulation page's long
+  // animation frames even though neither is needed until an export is clicked.
   const handleExportPdf = async (): Promise<void> => {
     if (isExporting) return;
 
     setIsExporting(true);
 
     try {
+      const { exportPositionsToPdf } =
+        await import("@/utils/exportPositionsPdf");
       await exportPositionsToPdf({
         clientTicker,
         meetingTitle,
@@ -520,7 +524,9 @@ const PositionsTable = ({
     }
   };
 
-  const handleExportXlsx = (): void => {
+  const handleExportXlsx = async (): Promise<void> => {
+    const { exportPositionsToXlsx } =
+      await import("@/utils/exportPositionsXlsx");
     exportPositionsToXlsx({
       clientTicker,
       meetingTitle,
@@ -575,7 +581,7 @@ const PositionsTable = ({
                 key="export-excel"
                 onClick={() => {
                   onMenuItemClick();
-                  handleExportXlsx();
+                  void handleExportXlsx();
                 }}
               >
                 Export as Excel

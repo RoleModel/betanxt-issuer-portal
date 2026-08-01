@@ -19,8 +19,10 @@ const SENTRY_DSN =
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN ?? SENTRY_DSN,
 
-  // Full sampling while developing, 10% of production traffic.
-  tracesSampleRate: process.env.NODE_ENV === "development" ? 1 : 0.1,
+  // Flat 10% in every environment. Development previously sampled at 100%,
+  // which flooded the project with local page loads (ui.long-animation-frame
+  // in particular) and drowned out real signal.
+  tracesSampleRate: 0.1,
 
   // Session Replay: 10% of all sessions, plus every session that errors.
   replaysSessionSampleRate: 0.1,

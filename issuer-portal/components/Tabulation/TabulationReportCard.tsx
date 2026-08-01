@@ -12,7 +12,6 @@ import { useClient } from "@/contexts/ClientContext";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
 import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
-import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
 import {
   formatQuorumRequirementPercentLabel,
   quorumRequiredShares,
@@ -171,6 +170,10 @@ const TabulationReportCard = ({
       }),
     };
 
+    // Loaded on demand: a static import pulls @react-pdf into the tabulation
+    // page's chunk, where parsing it contributes to long animation frames even
+    // though no PDF is produced until this handler runs.
+    const { exportTabulationPdf } = await import("@/utils/exportTabulationPdf");
     await exportTabulationPdf({
       tabulationData,
       clientTicker: currentMeeting.ticker,

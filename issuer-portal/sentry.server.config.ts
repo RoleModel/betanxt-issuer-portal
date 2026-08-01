@@ -14,8 +14,10 @@ const DEFAULT_DSN =
 Sentry.init({
   dsn: process.env.SENTRY_DSN ?? DEFAULT_DSN,
 
-  // Full sampling while developing, 10% of production traffic.
-  tracesSampleRate: process.env.NODE_ENV === "development" ? 1 : 0.1,
+  // Flat 10% in every environment. Development previously sampled at 100%,
+  // which flooded the project with local page loads (ui.long-animation-frame
+  // in particular) and drowned out real signal.
+  tracesSampleRate: 0.1,
 
   // Attach local variable values to stack frames.
   includeLocalVariables: true,
