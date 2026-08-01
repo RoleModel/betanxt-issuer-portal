@@ -185,6 +185,7 @@ const jobStatusColorsDark = {
 const baseThemeOptions = {
   cssVariables: {
     colorSchemeSelector: "class",
+    nativeColor: true,
   },
   colorSchemes: {
     light: {
@@ -836,26 +837,26 @@ export const createClientTheme = (ticker?: string) => {
               height: theme.layout?.navbarHeight,
             },
             "&.MuiAppBar-root": {
-              backgroundColor: theme.vars.palette.common.white,
-              color: theme.vars.palette.text.primary,
+              backgroundColor: betanxtTheme.vars.palette.primary.dark,
+              color: betanxtTheme.vars.palette.primary.contrastText,
               borderBottom: `1px solid ${theme.vars.palette.divider}`,
               "& .MuiPaper-root": {
                 boxShadow: "none",
               },
               "& .MuiTabs-indicator": {
-                backgroundColor: theme.vars.palette.primary.main,
+                backgroundColor: theme.vars.palette.primary.contrastText,
                 height: 4,
               },
               "& .MuiTab-root ": {
-                color: theme.vars.palette.text.primary,
+                color: theme.vars.palette.primary.contrastText,
                 transition: theme.transitions.create(["color"]),
               },
               "& .MuiTab-root:hover ": {
-                color: theme.vars.palette.primary.main,
-                boxShadow: `inset 0 -4px 0 0 ${theme.vars.palette.primary.main}`,
+                color: theme.vars.palette.primary.contrastText,
+                boxShadow: `inset 0 -4px 0 0 ${theme.vars.palette.primary.light}`,
               },
               "& .MuiTabs-root .Mui-selected": {
-                color: theme.vars.palette.primary.main,
+                color: theme.vars.palette.primary.contrastText,
               },
             },
             ...theme.applyStyles("dark", {

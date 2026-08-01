@@ -18,18 +18,18 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import DocumentStackIcon from "@rolemodel/betanxt-design-system/components/icons/brand/DocumentStackIcon";
 import React, { useState } from "react";
 import useSWR from "swr";
 
-import DocumentStackIcon from "@rolemodel/betanxt-design-system/components/icons/brand/DocumentStackIcon";
+import type { components } from "@/domain-models/generated-schema";
 
 import DocumentThumbnail from "@/components/Documents/DocumentThumbnail";
-import EmptyState from "@/components/EmptyState";
 import DocumentViewer from "@/components/Documents/DocumentViewer";
+import EmptyState from "@/components/EmptyState";
 import FileUploadDialog, {
   type FileUploadDialogField,
 } from "@/components/FileUpload/FileUploadDialog";
-import type { components } from "@/domain-models/generated-schema";
 import buildApiClient from "@/domain-models/apiClient";
 
 type Document = components["schemas"]["Document"];
@@ -321,7 +321,9 @@ const AdditionalMailingSummaryCard: React.FC<
 
     await mutateUploadedDocuments(
       (currentDocuments) => [data, ...(currentDocuments ?? [])],
-      { revalidate: false }
+      {
+        revalidate: false,
+      }
     );
     setUploadFields({
       jobName: "",
@@ -337,10 +339,8 @@ const AdditionalMailingSummaryCard: React.FC<
       <Card variant="outlined" elevation={0}>
         <CardHeader
           title="Additional Mailing Summary"
-          titleTypographyProps={{ variant: "subtitle1", fontWeight: 600 }}
           action={
             <Button
-              size="small"
               startIcon={<AddIcon />}
               onClick={() => {
                 setUploadDialogOpen(true);

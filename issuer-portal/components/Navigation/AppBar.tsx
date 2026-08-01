@@ -1,10 +1,11 @@
+/* eslint-disable react/destructuring-assignment */
+/* eslint-disable react-doctor/react-compiler-no-manual-memoization */
 "use client";
 
 import type { User } from "next-auth";
 
 import NotificationsOutlined from "@mui/icons-material/NotificationsOutlined";
-import { Badge, IconButton, Typography } from "@mui/material";
-import { Box } from "@mui/material";
+import { Badge, Box, IconButton, Typography } from "@mui/material";
 import { BNAppBar } from "@rolemodel/betanxt-design-system/components/app-bar/BNAppBar";
 import { BNLogo } from "@rolemodel/betanxt-design-system/components/BNLogo";
 import Image from "next/image";
@@ -59,7 +60,7 @@ export const BNAppBarClient = (props: BNAppBarWrapperProps) => {
   );
 };
 
-const BNAppBarClientMemo = React.memo((props: BNAppBarWrapperProps) => {
+const BNAppBarClientMemo = (props: BNAppBarWrapperProps) => {
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
   const {
@@ -88,6 +89,7 @@ const BNAppBarClientMemo = React.memo((props: BNAppBarWrapperProps) => {
     () => (
       <>
         <IconButton
+          color="inherit"
           ref={notificationButtonRef}
           onClick={handleNotificationClick}
           aria-label="notifications"
@@ -121,7 +123,7 @@ const BNAppBarClientMemo = React.memo((props: BNAppBarWrapperProps) => {
     if (!showCSMBrandLogo) return null;
     const CSMLogo = () => (
       <Box sx={{ display: "flex", alignItems: "center", height: 44 }}>
-        <BNLogo height={28} />
+        <BNLogo color="white" height={28} />
       </Box>
     );
     CSMLogo.displayName = "CSMLogo";
@@ -155,16 +157,11 @@ const BNAppBarClientMemo = React.memo((props: BNAppBarWrapperProps) => {
   return (
     <Box onClick={handleWrapperClick}>
       <BNAppBar {...appBarProps}>
-        {props.appSwitcher ? (
-          <Box
-            aria-label="Client and Application Switcher"
-            role="complementary"
-          >
-            <ClientAppSwitcher />
-          </Box>
-        ) : null}
+        <Box aria-label="Client and Application Switcher">
+          <ClientAppSwitcher />
+        </Box>
       </BNAppBar>
-      {!!currentMeetingId && (
+      {!(currentMeetingId == null) && (
         <Box
           sx={{
             paddingInline: 3,
@@ -191,7 +188,7 @@ const BNAppBarClientMemo = React.memo((props: BNAppBarWrapperProps) => {
                     : theme.vars.palette.warning.contrastText,
             }}
           >
-            {meetingStatus === "COMPLETE" && meetingDateLabel
+            {meetingStatus === "COMPLETE" && meetingDateLabel != null
               ? `You are viewing a past meeting from ${meetingDateLabel}.`
               : !meetingStatus || meetingStatus === "ACTIVE"
                 ? "You are viewing an active meeting."
@@ -201,6 +198,6 @@ const BNAppBarClientMemo = React.memo((props: BNAppBarWrapperProps) => {
       )}
     </Box>
   );
-});
+};
 
 export { BNAppBar };
