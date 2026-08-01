@@ -16,24 +16,28 @@ export interface PieChartData {
     color: string;
   }[];
 }
-const StyledNumberText = styled("text")<{ fill?: string }>(({ theme, fill }) => ({
-  fill: fill || theme.vars.palette.text.primary,
-  textAnchor: "middle",
-  dominantBaseline: "central",
-  lineHeight: 1.3,
-  fontWeight: 600,
-  fontSize: 40,
-}));
+const StyledNumberText = styled("text")<{ fill?: string }>(
+  ({ theme, fill }) => ({
+    fill: fill || theme.vars.palette.text.primary,
+    textAnchor: "middle",
+    dominantBaseline: "central",
+    lineHeight: 1.3,
+    fontWeight: 600,
+    fontSize: 40,
+  })
+);
 
-const StyledDescriptionText = styled("text")<{ fill?: string }>(({ theme, fill }) => ({
-  fill: fill || theme.vars.palette.text.secondary,
-  textAnchor: "middle",
-  dominantBaseline: "central",
-  lineHeight: "20px",
-  fontWeight: 400,
-  fontSize: 16,
-  fontStyle: "normal",
-}));
+const StyledDescriptionText = styled("text")<{ fill?: string }>(
+  ({ theme, fill }) => ({
+    fill: fill || theme.vars.palette.text.secondary,
+    textAnchor: "middle",
+    dominantBaseline: "central",
+    lineHeight: "20px",
+    fontWeight: 400,
+    fontSize: 16,
+    fontStyle: "normal",
+  })
+);
 const StyledG = styled("g")(({ theme }) => ({
   fill: theme.vars.palette.background.paper,
 }));
@@ -46,7 +50,11 @@ const PieCenterLabel = ({ data }: { readonly data: PieChartData }) => {
         <title>{data.centerTooltip}</title>
         {data.centerValue ?? floorAndFormatNumber(data.total)}
       </StyledNumberText>
-      <StyledDescriptionText fill={data.fill} transform="translate(0, 30)" tabIndex={0}>
+      <StyledDescriptionText
+        fill={data.fill}
+        transform="translate(0, 30)"
+        tabIndex={0}
+      >
         {data.label}
       </StyledDescriptionText>
     </StyledG>
