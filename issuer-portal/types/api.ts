@@ -488,6 +488,11 @@ export interface components {
       /** @example WEN */
       ticker?: string;
       /**
+       * @description Broadridge set key identifying the mailing set for this event. Follows the ${TICKER}J${YEAR} convention, e.g. WENJ2026.
+       * @example WENJ2026
+       */
+      setKey?: string | null;
+      /**
        * Format: date
        * @example 2025-02-15
        */
@@ -1186,6 +1191,7 @@ export interface components {
       title: string;
       cusip: string;
       ticker: string;
+      setKey?: string | null;
       /** Format: date */
       recordDate: string;
       /** Format: date */
@@ -1223,6 +1229,7 @@ export interface components {
     UpdateMeetingRequest: {
       title?: string;
       cusip?: string;
+      setKey?: string | null;
       /** Format: date */
       brokerSearchDate?: string | null;
       /** Format: date */

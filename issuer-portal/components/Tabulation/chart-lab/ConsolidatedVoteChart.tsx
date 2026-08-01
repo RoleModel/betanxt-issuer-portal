@@ -1,12 +1,12 @@
 "use client";
 
-import type { VoteBreakdownLeaf } from "./useVoteBreakdown";
-
 import { Box, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { PieChart } from "@mui/x-charts/PieChart";
 
 import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
+
+import type { VoteBreakdownLeaf } from "./useVoteBreakdown";
 
 interface ConsolidatedVoteChartProps {
   readonly leaves: readonly VoteBreakdownLeaf[];
@@ -16,14 +16,14 @@ interface ConsolidatedVoteChartProps {
 
 /** Base hue per source; rings step lighter as they move outward. */
 const SOURCE_PALETTE = [
-  "var(--mui-palette-primary-main)",
-  "var(--mui-palette-secondary-main)",
-  "var(--mui-palette-success-main)",
+  "var(--mui-palette-chartSeries-6-main)",
+  "var(--mui-palette-chartSeries-7-main)",
+  "var(--mui-palette-chartSeries-5-main)",
   "var(--mui-palette-warning-main)",
 ];
 
 /** Hex fallbacks — `alpha()` cannot operate on CSS variables. */
-const SOURCE_HEX = ["#5b8def", "#9c6ade", "#4caf82", "#e0a458"];
+const SOURCE_HEX = ["#7e57c2", "#447a44", "#eb6333", "#e0a458"];
 
 const VOTE_ORDER: VoteBreakdownLeaf["vote"][] = ["For", "Against", "Abstain"];
 const HOLDER_ORDER: VoteBreakdownLeaf["holderType"][] = [
@@ -143,7 +143,7 @@ export const ConsolidatedVoteChart = ({
   return (
     <PieChart
       height={height}
-      hideLegend
+      hideLegend={false}
       margin={{ bottom: 8, left: 8, right: 8, top: 8 }}
       series={[
         {
@@ -174,6 +174,7 @@ export const ConsolidatedVoteChart = ({
           valueFormatter: (item) => `${formatShares(item.value)} shares`,
         },
       ]}
+
       sx={{
         "& .MuiPieArcLabel-root": {
           fill: "var(--mui-palette-common-white)",

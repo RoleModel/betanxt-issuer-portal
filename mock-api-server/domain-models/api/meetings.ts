@@ -124,6 +124,7 @@ function transformMeeting(databaseMeeting: MeetingRowWithRelations): Meeting {
     title: nullToUndefined(databaseMeeting.title),
     cusip: nullToUndefined(databaseMeeting.cusip),
     ticker: nullToUndefined(databaseMeeting.ticker),
+    setKey: nullToUndefined(databaseMeeting.set_key),
     preFilingDate: nullToUndefined(databaseMeeting.pre_filing_date),
     filingDate: nullToUndefined(databaseMeeting.filing_date),
     brokerSearchDate: nullToUndefined(databaseMeeting.broker_search_date),
@@ -328,6 +329,7 @@ export async function createMeeting(
       title: meetingData.title,
       cusip: meetingData.cusip,
       ticker: meetingData.ticker,
+      set_key: meetingData.setKey,
       meeting_date: meetingData.meetingDate,
       record_date: meetingData.recordDate,
       mailing_date: meetingData.mailingDate,
@@ -477,6 +479,9 @@ export async function updateMeeting(
     }
     if (meetingData.cusip !== undefined) {
       databaseUpdate.cusip = meetingData.cusip;
+    }
+    if (meetingData.setKey !== undefined) {
+      databaseUpdate.set_key = meetingData.setKey;
     }
     if (meetingData.brokerSearchDate !== undefined) {
       databaseUpdate.broker_search_date = meetingData.brokerSearchDate;

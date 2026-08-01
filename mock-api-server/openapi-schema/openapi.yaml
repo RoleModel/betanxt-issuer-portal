@@ -2776,6 +2776,12 @@ components:
         ticker:
           type: string
           example: "WEN"
+        setKey:
+          type: string
+          nullable: true
+          description: >-
+            Broadridge set key identifying the mailing set for this event. Follows the ${TICKER}J${YEAR} convention, e.g. WENJ2026.
+          example: "WENJ2026"
         preFilingDate:
           type: string
           format: date
@@ -3769,6 +3775,10 @@ components:
           type: string
         ticker:
           type: string
+        setKey:
+          type: string
+          nullable: true
+          description: Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026).
         recordDate:
           type: string
           format: date
@@ -3832,6 +3842,10 @@ components:
           maxLength: 200
         cusip:
           type: string
+        setKey:
+          type: string
+          nullable: true
+          description: Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026).
         brokerSearchDate:
           type: string
           format: date

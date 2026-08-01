@@ -1819,7 +1819,7 @@ const main = async () => {
 
         sqlStatements.push(
           `INSERT INTO meeting(` +
-            `id, title, cusip, ticker, pre_filing_date, filing_date, broker_search_date, ` +
+            `id, title, cusip, ticker, set_key, pre_filing_date, filing_date, broker_search_date, ` +
             `record_date, mailing_date, meeting_date, cutoff_date, ` +
             `meeting_type, meeting_year, status, current_phase, overall_completion, ` +
             `distribution_type, transfer_agent, transfer_agent_confirmed, employee_stock_plans, plan_administrator, ` +
@@ -1831,6 +1831,9 @@ const main = async () => {
             `${sqlValue(meeting.type)}, ` +
             `${sqlValue(account.cusip)}, ` +
             `${sqlValue(client.ticker)}, ` +
+            // Broadridge set key: ${TICKER}J${YEAR}, matching the key carried
+            // on this meeting's positions.
+            `${sqlValue(`${client.ticker.toUpperCase()}J${yearConfig.year}`)}, ` +
             `${sqlValue(preFilingDate)}, ` +
             `${sqlValue(filingDate)}, ` +
             `${sqlValue(brokerSearchDate)}, ` +
