@@ -4,19 +4,22 @@ import { Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 
 import QuorumGaugeCard from "@/components/Meeting/QuorumGaugeCard";
+import BeneficialVsRegisteredCard from "@/components/Tabulation/BeneficialVsRegisteredCard";
 import ProposalDetailsCard from "@/components/Tabulation/ProposalDetailsCard";
 import SharesVotedCard from "@/components/Tabulation/SharesVotedCard";
 import { TabulationDistributionDrawer } from "@/components/Tabulation/TabulationDistributionDrawer";
 import TabulationReportCard from "@/components/Tabulation/TabulationReportCard";
-import VotingSourceBreakdownCard from "@/components/Tabulation/VotingSourceBreakdownCard";
+import VotingActivityCard from "@/components/Tabulation/VotingActivityCard";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useTabulationInsights } from "@/hooks/useTabulationInsights";
 
 /**
- * Tabulation tab for a meeting. Feeds the cards from one
- * {@link useTabulationInsights} fetch, including one combined holder-type and
- * voting-source chart plus the separate per-proposal vote-outcome chart.
+ * Tabulation tab for a meeting. Feeds the insight cards from a single
+ * {@link useTabulationInsights} fetch: the registered-only voting method
+ * counts go to `VotingActivityCard` and the full proposal list goes to
+ * `SharesVotedCard` for its per-proposal selector (both replacing the former
+ * aggregate voting summary).
  */
 
 const TabulationPageContent = () => {
@@ -29,7 +32,8 @@ const TabulationPageContent = () => {
     proposals,
     filteredPositions,
     quorumGauge,
-    votingSourceBreakdown,
+    beneficialVsRegistered,
+    registeredVotingMethods,
     loading: tabulationLoading,
     clientTicker,
   } = useTabulationInsights(currentMeeting?.id, currentMeeting);
@@ -66,12 +70,13 @@ const TabulationPageContent = () => {
           <TabulationReportCard variant="secondary" />
         </Grid>
         <Grid
-          size={{ sm: 12, md: 6, lg: 6 }}
+          size={{ sm: 12, md: 6, lg: 3 }}
           sx={{ display: "flex", width: "100%" }}
         >
-          <VotingSourceBreakdownCard
-            breakdown={votingSourceBreakdown}
-            loading={tabulationLoading}
+          <VotingActivityCard
+            meetingId={meetingId}
+            registeredVotingMethodsOverride={registeredVotingMethods}
+            loadingOverride={tabulationLoading}
           />
         </Grid>
         <Grid
@@ -82,6 +87,16 @@ const TabulationPageContent = () => {
             meetingId={meetingId}
             proposalsOverride={proposals}
             loading={tabulationLoading}
+          />
+        </Grid>
+        <Grid
+          size={{ sm: 12, md: 6, lg: 3 }}
+          sx={{ display: "flex", width: "100%" }}
+        >
+          <BeneficialVsRegisteredCard
+            meetingId={meetingId}
+            chartOverride={beneficialVsRegistered}
+            loadingOverride={tabulationLoading}
           />
         </Grid>
         <Grid size={12}>
