@@ -1,9 +1,6 @@
 import type { VoteMatrixRow } from "@/hooks/useTabulationInsights";
 
-export type VoteOutcomeKey = keyof Pick<
-  VoteMatrixRow,
-  "against" | "abstain" | "for" | "withhold"
->;
+export type VoteOutcomeKey = keyof Pick<VoteMatrixRow, "against" | "abstain" | "for" | "withhold">;
 export type VoteSourceId = "ivr" | "print" | "web";
 export type HolderType = "Beneficial" | "Registered";
 
@@ -40,16 +37,16 @@ export const voteOutcomes: readonly VoteOutcome[] = [
     label: "Against",
   },
   {
-    color: "var(--mui-palette-chartSeries-7-main)",
-    contrastColor: "var(--mui-palette-chartSeries-7-contrastText)",
-    key: "withhold",
-    label: "Withhold",
-  },
-  {
     color: "var(--mui-palette-warning-main)",
     contrastColor: "var(--mui-palette-warning-contrastText)",
     key: "abstain",
     label: "Abstain",
+  },
+  {
+    color: "var(--mui-palette-chartSeries-7-main)",
+    contrastColor: "var(--mui-palette-chartSeries-7-contrastText)",
+    key: "withhold",
+    label: "Withhold",
   },
 ];
 
@@ -95,15 +92,11 @@ export const minimumOutcomeShare = 0.035;
 export const sumRowOutcomes = (row: VoteMatrixRow): number =>
   row.for + row.against + row.withhold + row.abstain;
 
-// --- Voting-source chart -----------------------------------------------------
-// Geometry and colour rules shared by the chart, its bar patterns, its legend
-// swatches and the totals overlay, so the pieces cannot drift apart.
+// --- Voting-source chart ----------------------------------------------------- Geometry and colour rules shared by the chart, its bar patterns, its legend swatches and the totals overlay, so the pieces cannot drift apart.
 
 /** SVG <pattern> id for one source, namespaced by the caller's unique prefix. */
-export const getSourcePatternId = (
-  prefix: string,
-  sourceId: VoteSourceId
-): string => `${prefix}-${sourceId}`;
+export const getSourcePatternId = (prefix: string, sourceId: VoteSourceId): string =>
+  `${prefix}-${sourceId}`;
 
 /**
  * How much of the contrast colour survives in the hatch marks. At 100% the

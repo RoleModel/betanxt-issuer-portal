@@ -3,7 +3,7 @@
 import { Box } from "@mui/material";
 import { useId } from "react";
 
-import { LegendToggle } from "./LegendToggle";
+import { LegendToggle } from "@/components/ui/LegendToggle";
 import { SourcePatternDefinitions } from "./SourcePatternDefinitions";
 import {
   getSourcePatternId,

@@ -20,6 +20,8 @@ import PieChart2IconWithAccent from "@rolemodel/betanxt-design-system/components
 
 import type { VoteMatrixProposal, VoteMatrixRow } from "@/hooks/useTabulationInsights";
 
+import { LegendToggle } from "@/components/ui/LegendToggle";
+
 import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
 import { formatNumber } from "../../utils/number-utilities";
 import {
@@ -30,7 +32,6 @@ import {
 import { formatTabulationMetric } from "../../utils/tabulation-display";
 import EmptyState from "../EmptyState";
 import PieCenterLabel from "../Reporting/PieChartCenterLabel";
-import { LegendToggle } from "./LegendToggle";
 import {
   holderStyles,
   holderTypes,
@@ -265,6 +266,7 @@ const HolderOutcomeChartCard = ({
                     highlighted: { additionalRadius: 1 },
                     innerRadius: 0,
                     outerRadius: 100,
+                    paddingAngle: 0,
                     valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
                   },
                   {
@@ -276,8 +278,9 @@ const HolderOutcomeChartCard = ({
                     data: showNeutralRings ? neutralRingData : outcomeRingData,
                     highlightScope: { fade: "global", highlight: "item" },
                     highlighted: { additionalRadius: 1 },
-                    innerRadius: 102,
+                    innerRadius: 100,
                     outerRadius: 128,
+                    paddingAngle: 0,
                     valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
                   },
                 ]}

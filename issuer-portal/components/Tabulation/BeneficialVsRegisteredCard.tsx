@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-return */
 "use client";
 
 import type { BarLabelProps } from "@mui/x-charts/BarChart";

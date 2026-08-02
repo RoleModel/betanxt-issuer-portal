@@ -41,15 +41,6 @@ export const tabulationDonutChartMargin = {
   top: 30,
 } as const;
 
-export const tabulationVoteDistributionColors: Readonly<
-  Record<string, string>
-> = {
-  "dtc-unvoted": "var(--mui-palette-primary-light)",
-  "dtc-voted": "var(--mui-palette-primary-main)",
-  "non-dtc-unvoted": "var(--mui-palette-secondary-light)",
-  "non-dtc-voted": "var(--mui-palette-secondary-main)",
-};
-
 export const tabulationCardStyles = {
   display: "flex",
   flex: 1,
