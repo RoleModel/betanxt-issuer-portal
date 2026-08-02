@@ -9,7 +9,6 @@ import type { HolderCategory } from "@/utils/holderCategory";
 import buildApiClient from "@/domain-models/apiClient";
 import {
   getHolderTypeFromCategory,
-  isRegisteredOnlyHolder,
   normalizeHolderCategory,
 } from "@/utils/holderCategory";
 import { buildQuorumGaugeModel } from "@/utils/quorum";
@@ -43,6 +42,29 @@ interface PositionVoteRecord {
   proposalId: string;
   vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD";
   sharesVoting: number;
+}
+
+const voteMatrixSources = [
+  { key: "WEB", label: "Web" },
+  { key: "PRINT", label: "Print" },
+  { key: "IVR", label: "IVR" },
+] as const;
+
+type VoteMatrixSource = (typeof voteMatrixSources)[number]["label"];
+
+export interface VoteMatrixRow {
+  against: number;
+  abstain: number;
+  for: number;
+  holderType: "Beneficial" | "Registered";
+  source: VoteMatrixSource;
+  withhold: number;
+}
+
+export interface VoteMatrixProposal {
+  readonly proposalId: string;
+  readonly proposalLabel: string;
+  readonly rows: readonly VoteMatrixRow[];
 }
 
 interface ProposalVoteCounts {
@@ -100,18 +122,6 @@ interface DirectorOption {
   label: string;
 }
 
-interface BeneficialRegisteredBreakdown {
-  beneficial: number;
-  registered: number;
-}
-
-/** Vote counts per voting channel (WEB / PRINT / IVR sources). */
-export interface VotingMethodCounts {
-  web: number;
-  paper: number;
-  phone: number;
-}
-
 interface TabulationInsightsResult {
   loading: boolean;
   proposals: ProposalVoting[];
@@ -123,9 +133,7 @@ interface TabulationInsightsResult {
   accountTypes: string[];
   setKeys: string[];
   directors: DirectorOption[];
-  beneficialVsRegistered: BeneficialRegisteredBreakdown;
-  /** Voting-method counts restricted to REGISTERED holders (Voting Activity chart, FR-001/FR-002). */
-  registeredVotingMethods: VotingMethodCounts;
+  voteMatrixProposals: readonly VoteMatrixProposal[];
   meetingTitle: string;
   clientTicker: string;
 }
@@ -314,6 +322,25 @@ const getHolderType = (
   position: TabulationPosition
 ): "beneficial" | "registered" =>
   getHolderTypeFromCategory(position.holderCategory, position.accountType);
+
+const createVoteMatrixRows = (): VoteMatrixRow[] => {
+  const rows: VoteMatrixRow[] = [];
+
+  for (const holderType of ["Registered", "Beneficial"] as const) {
+    for (const source of voteMatrixSources) {
+      rows.push({
+        against: 0,
+        abstain: 0,
+        for: 0,
+        holderType,
+        source: source.label,
+        withhold: 0,
+      });
+    }
+  }
+
+  return rows;
+};
 
 const buildVotingSummary = (parameters: {
   positions: TabulationPosition[];
@@ -916,42 +943,58 @@ export function useTabulationInsights(
     [meeting?.quorumRequirement, representedShares, totalSharesOutstanding]
   );
 
-  const beneficialVsRegistered = React.useMemo(
-    () => ({
-      beneficial: filteredPositions
-        .filter(
-          (position) =>
-            getHolderType(position) === "beneficial" &&
-            position.voteStatus === "Voted"
-        )
-        .reduce((sum, position) => sum + position.sharesVoted, 0),
-      registered: filteredPositions
-        .filter(
-          (position) =>
-            getHolderType(position) === "registered" &&
-            position.voteStatus === "Voted"
-        )
-        .reduce((sum, position) => sum + position.sharesVoted, 0),
-    }),
-    [filteredPositions]
-  );
-
-  // Registered-only (PLAN excluded) voting methods for the Voting Activity chart (FR-001/FR-002)
-  const registeredVotingMethods = React.useMemo(() => {
-    const registeredPositions = filteredPositions.filter((position) =>
-      isRegisteredOnlyHolder(position.holderCategory, position.accountType)
+  const voteMatrixProposals = React.useMemo(() => {
+    const positionsById = new Map(
+      filteredPositions.map((position) => [position.id, position])
     );
+    const matricesByProposalId = new Map<string, VoteMatrixProposal>();
 
-    return {
-      web: registeredPositions.filter((position) => position.source === "WEB")
-        .length,
-      paper: registeredPositions.filter(
-        (position) => position.source === "PRINT"
-      ).length,
-      phone: registeredPositions.filter((position) => position.source === "IVR")
-        .length,
-    };
-  }, [filteredPositions]);
+    for (const proposal of proposalsForDisplay) {
+      matricesByProposalId.set(proposal.proposalId, {
+        proposalId: proposal.proposalId,
+        proposalLabel: `Proposal ${proposal.proposalNumber}: ${proposal.proposalTitle}`,
+        rows: createVoteMatrixRows(),
+      });
+    }
+
+    for (const vote of positionVotes) {
+      const matrix = matricesByProposalId.get(vote.proposalId);
+      const position = positionsById.get(vote.positionId);
+      if (!matrix || !position || position.voteStatus !== "Voted") {
+        continue;
+      }
+
+      const source = voteMatrixSources.find(
+        (candidate) => candidate.key === position.source.toUpperCase()
+      );
+      if (!source) {
+        continue;
+      }
+
+      const holderType =
+        getHolderType(position) === "registered" ? "Registered" : "Beneficial";
+      const row = matrix.rows.find(
+        (candidate) =>
+          candidate.holderType === holderType &&
+          candidate.source === source.label
+      );
+      if (!row) {
+        continue;
+      }
+
+      if (vote.vote === "FOR") {
+        row.for += vote.sharesVoting;
+      } else if (vote.vote === "AGAINST") {
+        row.against += vote.sharesVoting;
+      } else if (vote.vote === "ABSTAIN") {
+        row.abstain += vote.sharesVoting;
+      } else {
+        row.withhold += vote.sharesVoting;
+      }
+    }
+
+    return [...matricesByProposalId.values()];
+  }, [filteredPositions, positionVotes, proposalsForDisplay]);
 
   return {
     loading,
@@ -964,8 +1007,7 @@ export function useTabulationInsights(
     accountTypes,
     setKeys,
     directors,
-    beneficialVsRegistered,
-    registeredVotingMethods,
+    voteMatrixProposals,
     meetingTitle,
     clientTicker,
   };

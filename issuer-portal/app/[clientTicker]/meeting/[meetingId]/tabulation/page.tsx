@@ -4,22 +4,18 @@ import { Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 
 import QuorumGaugeCard from "@/components/Meeting/QuorumGaugeCard";
-import BeneficialVsRegisteredCard from "@/components/Tabulation/BeneficialVsRegisteredCard";
 import ProposalDetailsCard from "@/components/Tabulation/ProposalDetailsCard";
-import SharesVotedCard from "@/components/Tabulation/SharesVotedCard";
 import { TabulationDistributionDrawer } from "@/components/Tabulation/TabulationDistributionDrawer";
 import TabulationReportCard from "@/components/Tabulation/TabulationReportCard";
-import VotingActivityCard from "@/components/Tabulation/VotingActivityCard";
+import VoteMatrixChartCard from "@/components/Tabulation/VoteMatrixChartCard";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useTabulationInsights } from "@/hooks/useTabulationInsights";
 
 /**
- * Tabulation tab for a meeting. Feeds the insight cards from a single
- * {@link useTabulationInsights} fetch: the registered-only voting method
- * counts go to `VotingActivityCard` and the full proposal list goes to
- * `SharesVotedCard` for its per-proposal selector (both replacing the former
- * aggregate voting summary).
+ * Tabulation tab for a meeting. Feeds a single chart from
+ * {@link useTabulationInsights}, combining holder type, voting source, and
+ * proposal-level vote outcome while keeping the detailed table below it.
  */
 
 const TabulationPageContent = () => {
@@ -32,8 +28,7 @@ const TabulationPageContent = () => {
     proposals,
     filteredPositions,
     quorumGauge,
-    beneficialVsRegistered,
-    registeredVotingMethods,
+    voteMatrixProposals,
     loading: tabulationLoading,
     clientTicker,
   } = useTabulationInsights(currentMeeting?.id, currentMeeting);
@@ -70,33 +65,12 @@ const TabulationPageContent = () => {
           <TabulationReportCard variant="secondary" />
         </Grid>
         <Grid
-          size={{ sm: 12, md: 6, lg: 3 }}
+          size={{ sm: 12, md: 6, lg: 9 }}
           sx={{ display: "flex", width: "100%" }}
         >
-          <VotingActivityCard
-            meetingId={meetingId}
-            registeredVotingMethodsOverride={registeredVotingMethods}
-            loadingOverride={tabulationLoading}
-          />
-        </Grid>
-        <Grid
-          size={{ sm: 12, md: 6, lg: 3 }}
-          sx={{ display: "flex", width: "100%" }}
-        >
-          <SharesVotedCard
-            meetingId={meetingId}
-            proposalsOverride={proposals}
+          <VoteMatrixChartCard
             loading={tabulationLoading}
-          />
-        </Grid>
-        <Grid
-          size={{ sm: 12, md: 6, lg: 3 }}
-          sx={{ display: "flex", width: "100%" }}
-        >
-          <BeneficialVsRegisteredCard
-            meetingId={meetingId}
-            chartOverride={beneficialVsRegistered}
-            loadingOverride={tabulationLoading}
+            proposals={voteMatrixProposals}
           />
         </Grid>
         <Grid size={12}>
