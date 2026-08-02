@@ -8,6 +8,8 @@ import type { VoteMatrixProposal } from "@/hooks/useTabulationInsights";
 import HolderOutcomeChartCard from "./HolderOutcomeChartCard";
 import VotingSourceChartCard from "./VotingSourceChartCard";
 import {
+  type HolderType,
+  holderTypes,
   sumRowOutcomes,
   type VoteOutcomeKey,
   type VoteSourceId,
@@ -29,6 +31,9 @@ const VoteMatrixChartCard = ({
   const [hiddenSourceIds, setHiddenSourceIds] = useState<
     ReadonlySet<VoteSourceId>
   >(() => new Set());
+  const [hiddenHolderTypes, setHiddenHolderTypes] = useState<
+    ReadonlySet<HolderType>
+  >(() => new Set());
   const [selectedProposalId, setSelectedProposalId] = useState("");
   const selectedProposal =
     proposals.find((proposal) => proposal.proposalId === selectedProposalId) ??
@@ -44,6 +49,19 @@ const VoteMatrixChartCard = ({
         next.add(outcomeKey);
       }
       return next;
+    });
+  };
+  const toggleHolderType = (holderType: HolderType): void => {
+    setHiddenHolderTypes((previous) => {
+      const next = new Set(previous);
+      if (next.has(holderType)) {
+        next.delete(holderType);
+      } else {
+        next.add(holderType);
+      }
+      // Never hide the last one - an axis with no bands renders nothing and
+      // leaves no way back other than reloading.
+      return next.size === holderTypes.length ? previous : next;
     });
   };
   const toggleSource = (sourceId: VoteSourceId): void => {
@@ -68,8 +86,10 @@ const VoteMatrixChartCard = ({
       }}
     >
       <VotingSourceChartCard
+        hiddenHolderTypes={hiddenHolderTypes}
         hiddenSourceIds={hiddenSourceIds}
         loading={loading}
+        onHolderTypeToggle={toggleHolderType}
         onSourceToggle={toggleSource}
         rows={rows}
         totalShares={totalShares}
