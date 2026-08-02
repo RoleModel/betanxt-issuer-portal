@@ -87,7 +87,8 @@ export const VoteDistributionLegend = ({
             <Box
               key={accountType.id}
               sx={{
-                backgroundColor: status.colorByAccountType[accountType.id],
+                backgroundColor:
+                  status.styleByAccountType[accountType.id].color,
                 flex: 1,
               }}
             />
