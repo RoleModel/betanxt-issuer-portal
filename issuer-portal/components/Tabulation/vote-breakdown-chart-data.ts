@@ -16,6 +16,12 @@ export interface VoteOutcome {
 
 export interface VoteSource {
   readonly color: string;
+  /**
+   * Foreground for anything drawn on top of `color` - the hatch strokes and
+   * dots in the bar patterns. Paired explicitly rather than derived, because
+   * `color` is a resolved CSS value, not a palette key.
+   */
+  readonly contrastColor: string;
   readonly id: VoteSourceId;
   readonly label: VoteMatrixRow["source"];
 }
@@ -48,9 +54,24 @@ export const voteOutcomes: readonly VoteOutcome[] = [
 ];
 
 export const voteSources: readonly VoteSource[] = [
-  { color: "var(--mui-palette-primary-main)", id: "web", label: "Web" },
-  { color: "var(--mui-palette-secondary-main)", id: "print", label: "Print" },
-  { color: "var(--mui-palette-chartSeries-6-main)", id: "ivr", label: "IVR" },
+  {
+    color: "var(--mui-palette-chartSeries-4-main)",
+    contrastColor: "var(--mui-palette-chartSeries-4-contrastText)",
+    id: "web",
+    label: "Web",
+  },
+  {
+    color: "var(--mui-palette-chartSeries-2-main)",
+    contrastColor: "var(--mui-palette-chartSeries-2-contrastText)",
+    id: "print",
+    label: "Print",
+  },
+  {
+    color: "var(--mui-palette-chartSeries-6-main)",
+    contrastColor: "var(--mui-palette-chartSeries-6-contrastText)",
+    id: "ivr",
+    label: "IVR",
+  },
 ];
 
 export const holderTypes = ["Registered", "Beneficial"] as const;

@@ -1,21 +1,10 @@
 "use client";
 
-import { HowToVoteOutlined } from "@mui/icons-material";
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-  Typography,
-} from "@mui/material";
+import { Box, Card, CardContent, CardHeader, Skeleton, Typography } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { useXScale, useYScale } from "@mui/x-charts/hooks";
-import {
-  PatternCircles,
-  PatternLines,
-  PatternOrientation,
-} from "@visx/pattern";
+import BarChartIcon from "@rolemodel/betanxt-design-system/components/icons/brand/BarChartIcon";
+import { PatternCircles, PatternLines, PatternOrientation } from "@visx/pattern";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import type { VoteMatrixRow } from "@/hooks/useTabulationInsights";
@@ -27,10 +16,7 @@ import {
   tabulationCardHeaderStyles,
   tabulationCardStyles,
 } from "../../utils/tabulation-card-layout";
-import {
-  formatTabulationMetric,
-  type TabulationDisplayMode,
-} from "../../utils/tabulation-display";
+import { formatTabulationMetric, type TabulationDisplayMode } from "../../utils/tabulation-display";
 import { EmptyState } from "../EmptyState";
 import {
   holderTypes,
@@ -40,16 +26,26 @@ import {
   voteSources,
 } from "./vote-breakdown-chart-data";
 
-const patternForeground = "var(--mui-palette-common-black)";
+const getSourcePatternId = (prefix: string, source: VoteSourceId): string => `${prefix}-${source}`;
 
-const getSourcePatternId = (prefix: string, source: VoteSourceId): string =>
-  `${prefix}-${source}`;
+/**
+ * How much of the contrast colour survives in the hatch marks. At 100% the
+ * pattern is pure white or pure black against the bar, which reads as harsh;
+ * mixing the bar colour back in keeps the texture legible without the hard
+ * edge. Raise for more definition, lower for a subtler weave.
+ */
+const patternContrastMix = 45;
+
+/** Hatch colour for a pattern drawn on top of `source.color`. */
+const getPatternForeground = (source: VoteSource): string =>
+  `color-mix(in srgb, ${source.contrastColor} ${patternContrastMix}%, ${source.color})`;
 
 const SourcePatternDefinitions = ({ prefix }: { readonly prefix: string }) => {
   return (
     <defs>
       {voteSources.map((source) => {
         const id = getSourcePatternId(prefix, source.id);
+        const patternForeground = getPatternForeground(source);
 
         if (source.id === "web") {
           return (
@@ -58,10 +54,7 @@ const SourcePatternDefinitions = ({ prefix }: { readonly prefix: string }) => {
               height={6}
               id={id}
               key={id}
-              orientation={[
-                PatternOrientation.horizontal,
-                PatternOrientation.vertical,
-              ]}
+              orientation={[PatternOrientation.horizontal, PatternOrientation.vertical]}
               stroke={patternForeground}
               strokeWidth={0.8}
               width={6}
@@ -131,17 +124,11 @@ interface BarLabelAtBaseProps {
 /** Gap between the label and the bar end, inside or outside. */
 const labelInset = 8;
 
-const BarLabelAtBase = ({
-  displayMode,
-  holderTotals,
-  totalShares,
-}: BarLabelAtBaseProps) => {
+const BarLabelAtBase = ({ displayMode, holderTotals, totalShares }: BarLabelAtBaseProps) => {
   const xScale = useXScale<"linear">();
   const yScale = useYScale<"band">();
   const labelNodes = useRef(new Map<string, SVGTextElement | null>());
-  const [labelWidths, setLabelWidths] = useState<ReadonlyMap<string, number>>(
-    () => new Map()
-  );
+  const [labelWidths, setLabelWidths] = useState<ReadonlyMap<string, number>>(() => new Map());
 
   const labels = holderTypes.flatMap((holderType, index) => {
     const total = holderTotals[index] ?? 0;
@@ -153,8 +140,7 @@ const BarLabelAtBase = ({
 
     return [
       {
-        displayedTotal:
-          displayMode === "numbers" ? total : (total / totalShares) * 100,
+        displayedTotal: displayMode === "numbers" ? total : (total / totalShares) * 100,
         holderType,
         text: formatTabulationMetric(total, totalShares, displayMode).display,
         y,
@@ -165,9 +151,7 @@ const BarLabelAtBase = ({
   // Re-measure only when the rendered strings change. Glyph width depends on
   // the text and the (fixed) font, not on the scales, so resizing does not need
   // a fresh measurement - the fit calculation below reads the scales directly.
-  const labelSignature = labels
-    .map((label) => `${label.holderType}:${label.text}`)
-    .join("|");
+  const labelSignature = labels.map((label) => `${label.holderType}:${label.text}`).join("|");
 
   // Measured rather than estimated from character count: an estimate misjudges
   // exactly the boundary cases this exists to catch. A layout effect runs
@@ -203,8 +187,7 @@ const BarLabelAtBase = ({
         // Before the first measurement, assume it fits: that keeps the label in
         // its usual place for one frame instead of flicking it outside.
         const fitsInsideBar =
-          measuredWidth === undefined ||
-          measuredWidth + labelInset * 2 <= barEnd - barStart;
+          measuredWidth === undefined || measuredWidth + labelInset * 2 <= barEnd - barStart;
 
         return (
           <text
@@ -251,54 +234,39 @@ const VotingSourceChartCard = ({
   const sourceSeries = voteSources.map((source) => {
     const actualValues = holderTypes.map((holderType) =>
       rows
-        .filter(
-          (row) => row.holderType === holderType && row.source === source.label
-        )
-        .reduce((sum, row) => sum + sumRowOutcomes(row), 0)
+        .filter((row) => row.holderType === holderType && row.source === source.label)
+        .reduce((sum, row) => sum + sumRowOutcomes(row), 0),
     );
 
     return {
       color: `url(#${getSourcePatternId(patternPrefix, source.id)})`,
       data: actualValues.map((value) =>
-        displayMode === "numbers" ? value : (value / totalShares) * 100
+        displayMode === "numbers" ? value : (value / totalShares) * 100,
       ),
       id: source.id,
       label: source.label,
       stack: "source",
       ...(hiddenSourceIds.has(source.id) ? { hidden: true } : {}),
-      valueFormatter: (
-        displayedValue: number | null,
-        context: { dataIndex: number }
-      ) => {
+      valueFormatter: (displayedValue: number | null, context: { dataIndex: number }) => {
         const actualValue =
           displayMode === "numbers"
             ? (displayedValue ?? 0)
             : (actualValues[context.dataIndex] ?? 0);
-        const metric = formatTabulationMetric(
-          actualValue,
-          totalShares,
-          displayMode
-        );
+        const metric = formatTabulationMetric(actualValue, totalShares, displayMode);
         return `${source.label}: ${metric.display} (${metric.alternate})`;
       },
     };
   });
-  const visibleSourceLabels = voteSources.reduce<Set<VoteMatrixRow["source"]>>(
-    (labels, source) => {
-      if (!hiddenSourceIds.has(source.id)) {
-        labels.add(source.label);
-      }
-      return labels;
-    },
-    new Set()
-  );
+  const visibleSourceLabels = voteSources.reduce<Set<VoteMatrixRow["source"]>>((labels, source) => {
+    if (!hiddenSourceIds.has(source.id)) {
+      labels.add(source.label);
+    }
+    return labels;
+  }, new Set());
   const visibleHolderTotals = holderTypes.map((holderType) =>
     rows
-      .filter(
-        (row) =>
-          row.holderType === holderType && visibleSourceLabels.has(row.source)
-      )
-      .reduce((sum, row) => sum + sumRowOutcomes(row), 0)
+      .filter((row) => row.holderType === holderType && visibleSourceLabels.has(row.source))
+      .reduce((sum, row) => sum + sumRowOutcomes(row), 0),
   );
 
   return (
@@ -322,8 +290,10 @@ const VotingSourceChartCard = ({
             <Skeleton height={300} variant="rectangular" width="100%" />
           ) : totalShares === 0 ? (
             <EmptyState
-              description="Once shares are voted, this chart will show the results by source."
-              icon={<HowToVoteOutlined color="disabled" fontSize="large" />}
+              description="Once shares are voted, they will appear here."
+              icon={
+                <BarChartIcon accentColor="var(--mui-palette-primary-light)" fontSize="large" />
+              }
               minHeight="unset"
               title="No votes recorded yet"
             />
@@ -344,9 +314,7 @@ const VotingSourceChartCard = ({
                 xAxis={[
                   {
                     valueFormatter: (value: number) =>
-                      displayMode === "numbers"
-                        ? formatNumber(value)
-                        : `${value.toFixed(0)}%`,
+                      displayMode === "numbers" ? formatNumber(value) : `${value.toFixed(0)}%`,
                   },
                 ]}
                 yAxis={[{ data: holderTypes, scaleType: "band", width: 100 }]}
