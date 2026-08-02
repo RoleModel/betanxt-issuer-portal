@@ -3,10 +3,11 @@
 
 import type {
   GridColDef,
+  GridFilterItem,
   GridFilterModel,
   GridFilterOperator,
   GridRenderCellParams,
-} from "@mui/x-data-grid";
+} from "@mui/x-data-grid-pro";
 
 import { Add, DashboardOutlined, EditOutlined } from "@mui/icons-material";
 import {
@@ -21,21 +22,21 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { DataGrid, getGridStringOperators } from "@mui/x-data-grid";
+import { DataGridPro, getGridStringOperators } from "@mui/x-data-grid-pro";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 
+import type { SavedFilter } from "@/hooks/useSavedFilters";
 import type { EventRow } from "@/utils/eventData";
 
 import { NewClientDrawer } from "@/components/Clients/NewClientDrawer";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 import { SavedFilterPanel } from "@/components/ui/SavedFilterPanel";
 import { SavedFilterToolbar } from "@/components/ui/SavedFilterToolbar";
-import type { SavedFilter } from "@/hooks/useSavedFilters";
-import { useSavedFilters } from "@/hooks/useSavedFilters";
-import { CustomTooltip } from "@/components/ui/CustomToolTip";
 import { useEventRisk } from "@/hooks/useEventRisk";
 import { useEvents } from "@/hooks/useEvents";
+import { useSavedFilters } from "@/hooks/useSavedFilters";
 import { getMeetingUrl } from "@/utils/eventData";
 
 const parseEventDate = (date: string): Date | null => {
@@ -52,9 +53,6 @@ const parseEventDate = (date: string): Date | null => {
   const parsedDate = new Date(year, month - 1, day);
   return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
 };
-
-const formatEventTitle = (event: EventRow): string =>
-  `${event.eventType} · ${event.eventDate}`;
 
 const AT_RISK_LABEL = "At Risk";
 const ON_SCHEDULE_LABEL = "On Schedule";
@@ -126,14 +124,49 @@ const EventsDataGrid = ({
   // user's assigned tickers change, so this stays in step with that reset.
   const [filterModel, setFilterModel] =
     useState<GridFilterModel>(initialFilterModel);
+  const filterModelRef = useRef<GridFilterModel>(initialFilterModel);
   const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
   const { savedFilters, saveFilter, removeFilter } =
     useSavedFilters("events-index");
+  const hasQuickSearch =
+    filterModel.quickFilterValues?.some((value) => value.trim().length > 0) ??
+    false;
+  const hasColumnSearch = filterModel.items.some((item) => {
+    if (typeof item.value === "string") {
+      return item.value.trim().length > 0;
+    }
+
+    return item.value !== undefined && item.value !== null;
+  });
+  const rows =
+    hasQuickSearch || hasColumnSearch
+      ? events
+      : events.filter((event) => event.meetingStatus === "ACTIVE");
+
+  const updateFilterModel = (next: GridFilterModel) => {
+    filterModelRef.current = next;
+    setFilterModel(next);
+  };
 
   const handleFilterModelChange = (next: GridFilterModel) => {
-    setFilterModel(next);
+    updateFilterModel(next);
     // Editing filters by hand means the result is no longer the saved group.
     setActiveFilterId(null);
+  };
+
+  const handleAddFilter = () => {
+    const current = filterModelRef.current;
+    updateFilterModel({
+      ...current,
+      items: [
+        ...current.items,
+        {
+          field: "client",
+          id: crypto.randomUUID(),
+          operator: "contains",
+        },
+      ],
+    });
   };
 
   const columns: GridColDef<EventRow>[] = [
@@ -152,39 +185,42 @@ const EventsDataGrid = ({
         const event = parameters.row;
 
         return (
-          <Typography
-            noWrap
-            variant="body3"
-            component={Link}
-            color="primary"
-            href={`${getMeetingUrl(event)}/dashboard`}
+          <Stack
+            alignItems="center"
+            direction="row"
+            minWidth={0}
+            spacing={0.75}
           >
-            {event.event} ({event.clientTicker})
-          </Typography>
+            <Typography
+              noWrap
+              variant="body3"
+              component={Link}
+              color="primary"
+              href={`${getMeetingUrl(event)}/dashboard`}
+            >
+              {event.event} ({event.clientTicker})
+            </Typography>
+            <Typography color="text.secondary" noWrap variant="body3">
+              · {event.eventType}
+            </Typography>
+          </Stack>
         );
       },
       valueGetter: (value, row) => {
         void value;
-        return `${row.event} ${row.clientTicker}`;
+        return `${row.event} ${row.clientTicker} ${row.eventType}`;
       },
     },
     {
-      field: "event",
-      flex: 1,
-      headerName: "Event",
-      minWidth: 220,
-      renderCell: (parameters: GridRenderCellParams<EventRow, string>) => {
-        const event = parameters.row;
-
-        return (
-          <Typography noWrap variant="body3">
-            {formatEventTitle(event)}
-          </Typography>
-        );
-      },
+      field: "eventDate",
+      headerName: "Event date",
+      minWidth: 140,
+      type: "date",
+      valueFormatter: (value: Date | null) =>
+        value === null ? "Not set" : value.toLocaleDateString("en-US"),
       valueGetter: (value, row) => {
         void value;
-        return formatEventTitle(row);
+        return parseEventDate(row.eventDate);
       },
     },
     {
@@ -298,12 +334,18 @@ const EventsDataGrid = ({
   }
 
   return (
-    <DataGrid
+    <DataGridPro
       columns={columns}
+      filterDebounceMs={0}
       filterModel={filterModel}
       onFilterModelChange={handleFilterModelChange}
       slotProps={{
         filterPanel: {
+          onAddFilter: handleAddFilter,
+          onClearFilters: () => {
+            updateFilterModel({ items: [] });
+            setActiveFilterId(null);
+          },
           onSaveFilters: (name: string) => {
             saveFilter(name, filterModel);
           },
@@ -311,21 +353,33 @@ const EventsDataGrid = ({
         toolbar: {
           activeFilterId,
           onApply: (filter: SavedFilter) => {
-            setFilterModel(filter.filterModel);
+            updateFilterModel(filter.filterModel);
             setActiveFilterId(filter.id);
           },
           onClear: () => {
-            setFilterModel({ items: [] });
+            updateFilterModel({ items: [] });
             setActiveFilterId(null);
           },
           onDelete: (id: string) => {
             removeFilter(id);
             setActiveFilterId((current) => (current === id ? null : current));
           },
+          onRemoveFilter: (filterId: GridFilterItem["id"]) => {
+            updateFilterModel({
+              ...filterModelRef.current,
+              items: filterModelRef.current.items.filter(
+                (item) => item.id !== filterId
+              ),
+            });
+            setActiveFilterId(null);
+          },
           savedFilters,
         },
       }}
-      slots={{ filterPanel: SavedFilterPanel, toolbar: SavedFilterToolbar }}
+      slots={{
+        filterPanel: SavedFilterPanel,
+        toolbar: SavedFilterToolbar,
+      }}
       initialState={{
         pagination: {
           paginationModel: {
@@ -340,12 +394,16 @@ const EventsDataGrid = ({
       key={`events-grid-${assignedTickersKey}`}
       loading={loading}
       localeText={{ noRowsLabel: emptyMessage }}
+      pagination
       pageSizeOptions={[10, 25, 50]}
-      rows={events}
+      rows={rows}
       disableRowSelectionOnClick
       rowHeight={56}
       showToolbar
       sx={{
+        "& .MuiDataGrid-scrollShadow--vertical": {
+          backgroundColor: "transparent",
+        },
         "& .MuiDataGrid-cell": {
           alignItems: "center",
           display: "flex",
@@ -417,7 +475,7 @@ const EventsPage = () => {
               assignedTickers={assignedTickers}
               assignedTickersKey={assignedTickersKey}
               emptyMessage={emptyMessage}
-              events={activeEvents}
+              events={events}
               loading={loading}
             />
           </Box>

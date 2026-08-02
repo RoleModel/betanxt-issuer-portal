@@ -116,6 +116,13 @@ interface UseEventsResult {
   revalidate: () => Promise<EventRow[] | undefined>;
 }
 
+interface EventsPage {
+  readonly events: EventRow[];
+  readonly totalCount: number;
+}
+
+const EVENTS_PAGE_SIZE = 100;
+
 export function useEvents(): UseEventsResult {
   const { data: session } = useSession();
   const isBypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
@@ -151,29 +158,26 @@ export function useEvents(): UseEventsResult {
     }
 
     const api = await buildApiClient();
-    const allEvents: EventRow[] = [];
-    let page = 1;
-    // The deployed mock API returns an empty page for oversized limits. Keep
-    // requests at the API's reliable 100-row page size and continue paging.
-    const PAGE_SIZE = 100;
-
-    while (true) {
+    const fetchEventsPage = async (
+      page: number
+    ): Promise<EventsPage | null> => {
       const { data, error } = await api.GET("/meetings", {
-        params: { query: { page, limit: PAGE_SIZE } },
+        params: { query: { page, limit: EVENTS_PAGE_SIZE } },
       });
 
       if (error || !data) {
-        break;
+        return null;
       }
 
       const dataRecord = asRecord(data);
       if (!dataRecord) {
-        break;
+        return null;
       }
 
       const meetings = Array.isArray(dataRecord.meetings)
         ? dataRecord.meetings
         : [];
+      const events: EventRow[] = [];
 
       for (const meeting of meetings) {
         const record = asRecord(meeting);
@@ -184,19 +188,48 @@ export function useEvents(): UseEventsResult {
         if (!row) {
           continue;
         }
-        allEvents.push(row);
+        events.push(row);
       }
 
       const paginationRecord = asRecord(dataRecord.pagination);
       const totalCount =
         typeof paginationRecord?.total === "number"
           ? paginationRecord.total
-          : 0;
+          : events.length;
 
-      if (meetings.length < PAGE_SIZE || allEvents.length >= totalCount) {
-        break;
+      return { events, totalCount };
+    };
+
+    // The deployed mock API returns an empty page for oversized limits. Keep
+    // requests at the API's reliable 100-row page size, but load the remaining
+    // pages concurrently once the first response gives us the total.
+    const firstPage = await fetchEventsPage(1);
+    if (!firstPage) {
+      return [];
+    }
+
+    const pageCount = Math.max(
+      1,
+      Math.ceil(firstPage.totalCount / EVENTS_PAGE_SIZE)
+    );
+    const additionalPageNumbers: number[] = [];
+
+    for (let page = 2; page <= pageCount; page++) {
+      additionalPageNumbers.push(page);
+    }
+
+    const additionalPages = await Promise.all(
+      additionalPageNumbers.map((page) => fetchEventsPage(page))
+    );
+    const allEvents = [...firstPage.events];
+
+    for (const additionalPage of additionalPages) {
+      if (!additionalPage) {
+        continue;
       }
-      page++;
+      for (const event of additionalPage.events) {
+        allEvents.push(event);
+      }
     }
 
     return allEvents;

@@ -1,10 +1,12 @@
 "use client";
+import type { GridFilterItem, ToolbarButtonProps } from "@mui/x-data-grid-pro";
+
 import CancelIcon from "@mui/icons-material/Cancel";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchIcon from "@mui/icons-material/Search";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
-import { Box, Chip, IconButton, Tooltip } from "@mui/material";
+import { Box, Chip, Stack, Tooltip } from "@mui/material";
 import InputAdornment from "@mui/material/InputAdornment";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -21,7 +23,11 @@ import {
   QuickFilterTrigger,
   Toolbar,
   ToolbarButton,
-} from "@mui/x-data-grid";
+  gridColumnLookupSelector,
+  gridFilterActiveItemsSelector,
+  useGridApiContext,
+  useGridSelector,
+} from "@mui/x-data-grid-pro";
 import * as React from "react";
 
 import type { SavedFilter } from "@/hooks/useSavedFilters";
@@ -36,9 +42,10 @@ export interface SavedFilterToolbarProps {
   readonly onApply: (filter: SavedFilter) => void;
   readonly onClear: () => void;
   readonly onDelete: (id: string) => void;
+  readonly onRemoveFilter: (filterId: GridFilterItem["id"]) => void;
 }
 
-declare module "@mui/x-data-grid" {
+declare module "@mui/x-data-grid-pro" {
   interface ToolbarPropsOverrides extends SavedFilterToolbarProps {}
 }
 
@@ -52,8 +59,90 @@ const StyledTextField = styled(TextField)<{
   transition: theme.transitions.create(["width", "opacity"]),
 }));
 
+const StyledToolbarButton = styled(
+  ToolbarButton as React.ComponentType<ToolbarButtonProps>
+)<{ ownerState: OwnerState }>(({ theme, ownerState }) => ({
+  gridArea: "1 / 1",
+  width: "min-content",
+  height: "min-content",
+  zIndex: 1,
+  opacity: ownerState.expanded ? 0 : 1,
+  pointerEvents: ownerState.expanded ? "none" : "auto",
+  transition: theme.transitions.create(["opacity"]),
+}));
+
+const formatFilterValue = (
+  filter: GridFilterItem,
+  columnType: string | undefined
+): string => {
+  if (filter.value === undefined || filter.value === null) {
+    return "";
+  }
+
+  if (columnType !== "date") {
+    return String(filter.value);
+  }
+
+  const date = new Date(String(filter.value));
+  return Number.isNaN(date.getTime())
+    ? String(filter.value)
+    : date.toLocaleDateString("en-US");
+};
+
+interface ActiveFilterChipsProps {
+  readonly onRemoveFilter: (filterId: GridFilterItem["id"]) => void;
+}
+
+const ActiveFilterChips = ({ onRemoveFilter }: ActiveFilterChipsProps) => {
+  const apiRef = useGridApiContext();
+  const activeFilters = useGridSelector(apiRef, gridFilterActiveItemsSelector);
+  const columns = useGridSelector(apiRef, gridColumnLookupSelector);
+
+  if (activeFilters.length === 0) {
+    return null;
+  }
+
+  return (
+    <Stack
+      aria-label="Active filters"
+      component="ul"
+      direction="row"
+      gap={0.75}
+      sx={{ listStyle: "none", m: 0, minWidth: 0, overflowX: "auto", p: 0 }}
+    >
+      {activeFilters.map((filter) => {
+        const column = columns[filter.field];
+        const field = column?.headerName ?? filter.field;
+        const operator =
+          column?.filterOperators?.find(
+            (candidate) => candidate.value === filter.operator
+          )?.label ?? filter.operator;
+        const value = formatFilterValue(filter, column?.type);
+        const label = [field, operator, value].filter(Boolean).join(" ");
+        const key =
+          filter.id ??
+          `${filter.field}-${filter.operator}-${String(filter.value)}`;
+
+        return (
+          <li key={key}>
+            <Chip
+              label={label}
+              onDelete={() => {
+                onRemoveFilter(filter.id);
+              }}
+              size="small"
+              variant="outlined"
+            />
+          </li>
+        );
+      })}
+    </Stack>
+  );
+};
+
 /**
- * The standard grid toolbar controls, plus saved filter groups as chips.
+ * The standard grid toolbar controls, active filter chips, and saved filter
+ * groups.
  *
  * Follows the MUI custom-toolbar recipe, including the search that slides open
  * from its trigger rather than occupying the bar permanently. Groups are
@@ -69,6 +158,7 @@ export function SavedFilterToolbar({
   onApply,
   onClear,
   onDelete,
+  onRemoveFilter,
 }: SavedFilterToolbarProps) {
   const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
   const exportMenuTriggerRef = React.useRef<HTMLButtonElement>(null);
@@ -80,6 +170,8 @@ export function SavedFilterToolbar({
           <FilterListIcon fontSize="small" />
         </FilterPanelTrigger>
       </Tooltip>
+
+      <ActiveFilterChips onRemoveFilter={onRemoveFilter} />
 
       {savedFilters.length > 0 ? (
         <Box
@@ -123,55 +215,34 @@ export function SavedFilterToolbar({
         </Box>
       ) : null}
 
-      <Tooltip title="Columns">
-        <ColumnsPanelTrigger render={<ToolbarButton />}>
-          <ViewColumnIcon fontSize="small" />
-        </ColumnsPanelTrigger>
-      </Tooltip>
-      <Tooltip title="Export">
-        <ToolbarButton
-          ref={exportMenuTriggerRef}
-          id="export-menu-trigger"
-          aria-controls="export-menu"
-          aria-haspopup="true"
-          aria-expanded={exportMenuOpen ? "true" : undefined}
-          onClick={() => setExportMenuOpen(true)}
-        >
-          <FileDownloadIcon fontSize="small" />
-        </ToolbarButton>
-      </Tooltip>
-      <Menu
-        id="export-menu"
-        anchorEl={exportMenuTriggerRef.current}
-        open={exportMenuOpen}
-        onClose={() => setExportMenuOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{
-          list: {
-            "aria-labelledby": "export-menu-trigger",
-          },
-        }}
-      >
-        <ExportPrint render={<MenuItem />} onClick={() => setExportMenuOpen(false)}>
-          Print
-        </ExportPrint>
-        <ExportCsv render={<MenuItem />} onClick={() => setExportMenuOpen(false)}>
-          Download as CSV
-        </ExportCsv>
-      </Menu>
-
       <QuickFilter
         render={(quickFilterProps, state) => (
           <div
             {...quickFilterProps}
             style={{ display: "flex", marginLeft: "auto", overflow: "clip" }}
           >
-            <Tooltip title="Search">
-              <QuickFilterTrigger render={<ToolbarButton />}>
-                <SearchIcon fontSize="small" />
-              </QuickFilterTrigger>
-            </Tooltip>
+            <QuickFilterTrigger
+              render={(triggerProps, state) => (
+                <Tooltip title="Search" enterDelay={0}>
+                  <StyledToolbarButton
+                    aria-controls={triggerProps["aria-controls"]}
+                    aria-disabled={state.expanded}
+                    aria-expanded={triggerProps["aria-expanded"]}
+                    className={triggerProps.className}
+                    color="default"
+                    disabled={triggerProps.disabled}
+                    id={triggerProps.id}
+                    onClick={triggerProps.onClick}
+                    ownerState={{ expanded: state.expanded }}
+                    ref={triggerProps.ref}
+                    tabIndex={triggerProps.tabIndex}
+                    title={triggerProps.title}
+                  >
+                    <SearchIcon fontSize="small" />
+                  </StyledToolbarButton>
+                </Tooltip>
+              )}
+            />
             <Box
               sx={{
                 display: "flex",
@@ -219,19 +290,54 @@ export function SavedFilterToolbar({
                   />
                 )}
               />
-              {state.expanded && state.value !== "" ? (
-                <QuickFilterClear
-                  render={
-                    <IconButton aria-label="Clear search" size="small">
-                      <CancelIcon fontSize="small" />
-                    </IconButton>
-                  }
-                />
-              ) : null}
             </Box>
           </div>
         )}
       />
+
+      <Tooltip title="Columns">
+        <ColumnsPanelTrigger render={<ToolbarButton />}>
+          <ViewColumnIcon fontSize="small" />
+        </ColumnsPanelTrigger>
+      </Tooltip>
+      <Tooltip title="Export">
+        <ToolbarButton
+          ref={exportMenuTriggerRef}
+          id="export-menu-trigger"
+          aria-controls="export-menu"
+          aria-haspopup="true"
+          aria-expanded={exportMenuOpen ? "true" : undefined}
+          onClick={() => setExportMenuOpen(true)}
+        >
+          <FileDownloadIcon fontSize="small" />
+        </ToolbarButton>
+      </Tooltip>
+      <Menu
+        id="export-menu"
+        anchorEl={exportMenuTriggerRef.current}
+        open={exportMenuOpen}
+        onClose={() => setExportMenuOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{
+          list: {
+            "aria-labelledby": "export-menu-trigger",
+          },
+        }}
+      >
+        <ExportPrint
+          render={<MenuItem />}
+          onClick={() => setExportMenuOpen(false)}
+        >
+          Print
+        </ExportPrint>
+        <ExportCsv
+          render={<MenuItem />}
+          onClick={() => setExportMenuOpen(false)}
+        >
+          Download as CSV
+        </ExportCsv>
+      </Menu>
     </Toolbar>
   );
 }
