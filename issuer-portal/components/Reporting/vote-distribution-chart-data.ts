@@ -15,6 +15,13 @@ export type VoteDistributionSliceId = `${AccountTypeId}-${VoteStatusId}`;
 
 export interface AccountType {
   readonly color: string;
+  /**
+   * Foreground for arc labels drawn on this account's slices - the inner ring
+   * and both of its outer segments. The `light` shade of each account colour
+   * stays on the same side of the light/dark line as its `main`, so one
+   * contrast value covers both rings and MUI exposes no `lightContrastText`.
+   */
+  readonly contrastColor: string;
   readonly id: AccountTypeId;
   readonly label: string;
 }
@@ -27,9 +34,15 @@ export interface VoteStatus {
 }
 
 export const accountTypes: readonly AccountType[] = [
-  { color: "var(--mui-palette-primary-main)", id: "dtc", label: "DTC/CDS" },
+  {
+    color: "var(--mui-palette-primary-main)",
+    contrastColor: "var(--mui-palette-primary-contrastText)",
+    id: "dtc",
+    label: "DTC/CDS",
+  },
   {
     color: "var(--mui-palette-secondary-main)",
+    contrastColor: "var(--mui-palette-secondary-contrastText)",
     id: "non-dtc",
     label: "Non-DTC",
   },
@@ -66,5 +79,32 @@ export const buildSliceId = (
  */
 export const minimumStatusShare = 0.035;
 
+/**
+ * Where each ring's arc labels sit, measured from the centre. The inner ring
+ * is a filled circle, so without this its labels land on top of the centre
+ * total; pushing them outward keeps both readable.
+ */
+export const accountArcLabelRadius = 68;
+export const statusArcLabelRadius = 110;
+
 /** Greyed ring shown when the legend has hidden everything. */
 export const neutralRingColor = "var(--mui-palette-action-disabledBackground)";
+
+/**
+ * Every fill the donut can paint, mapped to the foreground its arc labels
+ * should use. Built from the same definitions the rings are, so a colour
+ * change cannot leave a label unreadable behind it.
+ */
+export const arcLabelContrastByColor: ReadonlyMap<string, string> = new Map([
+  ...accountTypes.map((accountType): [string, string] => [
+    accountType.color,
+    accountType.contrastColor,
+  ]),
+  ...accountTypes.flatMap((accountType) =>
+    voteStatuses.map((status): [string, string] => [
+      status.colorByAccountType[accountType.id],
+      accountType.contrastColor,
+    ])
+  ),
+  [neutralRingColor, "var(--mui-palette-text-primary)"],
+]);

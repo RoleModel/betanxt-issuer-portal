@@ -2,11 +2,12 @@
 
 import { HowToVoteOutlined } from "@mui/icons-material";
 import { Box, Card, CardContent, CardHeader } from "@mui/material";
-import { PieChart as MuiPieChart } from "@mui/x-charts/PieChart";
+import { PieChart as MuiPieChart, pieClasses } from "@mui/x-charts/PieChart";
 import { useState } from "react";
 
 import EmptyState from "@/components/EmptyState";
 import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
+import { createContrastPieArcLabel } from "@/components/ui/ContrastPieArcLabel";
 import SkeletonChart from "@/components/ui/SkeletonChart";
 import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
 import {
@@ -14,19 +15,20 @@ import {
   tabulationChartHeight,
   tabulationDonutCenterY,
   tabulationDonutChartMargin,
+  tabulationMinArcLabelAngle,
 } from "@/utils/tabulation-card-layout";
 import { formatTabulationMetric } from "@/utils/tabulation-display";
 
-import type {
-  AccountTypeId,
-  VoteStatusId,
-} from "./vote-distribution-chart-data";
+import type { AccountTypeId, VoteStatusId } from "./vote-distribution-chart-data";
 
 import {
+  accountArcLabelRadius,
   accountTypes,
+  arcLabelContrastByColor,
   buildSliceId,
   minimumStatusShare,
   neutralRingColor,
+  statusArcLabelRadius,
   voteStatuses,
 } from "./vote-distribution-chart-data";
 import { VoteDistributionLegend } from "./VoteDistributionLegend";
@@ -49,6 +51,9 @@ const accountRingOuterRadius = 92;
 const statusRingInnerRadius = 94;
 const statusRingOuterRadius = 126;
 
+/** Stable across renders: the colour mapping never changes. */
+const ContrastPieArcLabel = createContrastPieArcLabel(arcLabelContrastByColor);
+
 const toggle = <T,>(previous: ReadonlySet<T>, value: T): ReadonlySet<T> => {
   const next = new Set(previous);
   if (next.has(value)) {
@@ -59,23 +64,16 @@ const toggle = <T,>(previous: ReadonlySet<T>, value: T): ReadonlySet<T> => {
   return next;
 };
 
-const VoteDistributionChart = ({
-  data,
-  loading,
-}: VoteDistributionChartProps) => {
+const VoteDistributionChart = ({ data, loading }: VoteDistributionChartProps) => {
   const { displayMode } = useTabulationDisplay();
-  const [hiddenAccountTypes, setHiddenAccountTypes] = useState<
-    ReadonlySet<AccountTypeId>
-  >(() => new Set());
-  const [hiddenStatuses, setHiddenStatuses] = useState<
-    ReadonlySet<VoteStatusId>
-  >(() => new Set());
+  const [hiddenAccountTypes, setHiddenAccountTypes] = useState<ReadonlySet<AccountTypeId>>(
+    () => new Set(),
+  );
+  const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<VoteStatusId>>(() => new Set());
 
   const valueBySliceId = new Map(data.map((item) => [item.id, item.value]));
-  const sliceValue = (
-    accountType: AccountTypeId,
-    status: VoteStatusId
-  ): number => valueBySliceId.get(buildSliceId(accountType, status)) ?? 0;
+  const sliceValue = (accountType: AccountTypeId, status: VoteStatusId): number =>
+    valueBySliceId.get(buildSliceId(accountType, status)) ?? 0;
 
   // Every slice regardless of the legend, so each slice's share of the whole
   // stays correct and so "nothing recorded" stays distinguishable from
@@ -83,22 +81,17 @@ const VoteDistributionChart = ({
   const recordedTotal = data.reduce((sum, item) => sum + item.value, 0);
   const recordedVotedTotal = accountTypes.reduce(
     (sum, accountType) => sum + sliceValue(accountType.id, "voted"),
-    0
+    0,
   );
 
   const visibleAccountTypes = accountTypes.filter(
-    (accountType) => !hiddenAccountTypes.has(accountType.id)
+    (accountType) => !hiddenAccountTypes.has(accountType.id),
   );
-  const visibleStatuses = voteStatuses.filter(
-    (status) => !hiddenStatuses.has(status.id)
-  );
+  const visibleStatuses = voteStatuses.filter((status) => !hiddenStatuses.has(status.id));
 
   // Indexed by visibleAccountTypes; both rings walk that same list.
   const accountTotals = visibleAccountTypes.map((accountType) =>
-    visibleStatuses.reduce(
-      (sum, status) => sum + sliceValue(accountType.id, status.id),
-      0
-    )
+    visibleStatuses.reduce((sum, status) => sum + sliceValue(accountType.id, status.id), 0),
   );
   const visibleTotal = accountTotals.reduce((sum, total) => sum + total, 0);
 
@@ -106,16 +99,10 @@ const VoteDistributionChart = ({
   // everything reported shares outstanding as votes.
   const visibleVotedTotal = visibleAccountTypes.reduce(
     (sum, accountType) =>
-      hiddenStatuses.has("voted")
-        ? sum
-        : sum + sliceValue(accountType.id, "voted"),
-    0
+      hiddenStatuses.has("voted") ? sum : sum + sliceValue(accountType.id, "voted"),
+    0,
   );
-  const totalMetric = formatTabulationMetric(
-    visibleVotedTotal,
-    recordedTotal,
-    displayMode
-  );
+  const totalMetric = formatTabulationMetric(visibleVotedTotal, recordedTotal, displayMode);
 
   const showNeutralRings = recordedTotal > 0 && visibleTotal === 0;
   const neutralRingData = accountTypes.map((accountType) => ({
@@ -155,9 +142,8 @@ const VoteDistributionChart = ({
     }
 
     const weightedTotal = statusValues.reduce(
-      (sum, item) =>
-        sum + Math.max(item.value / accountTotal, minimumStatusShare),
-      0
+      (sum, item) => sum + Math.max(item.value / accountTotal, minimumStatusShare),
+      0,
     );
 
     return statusValues.map(({ status, value }) => {
@@ -168,31 +154,19 @@ const VoteDistributionChart = ({
         color: status.colorByAccountType[accountType.id],
         id,
         label: `${accountType.label} · ${status.label}`,
-        value:
-          (Math.max(value / accountTotal, minimumStatusShare) / weightedTotal) *
-          accountTotal,
+        value: (Math.max(value / accountTotal, minimumStatusShare) / weightedTotal) * accountTotal,
       };
     });
   });
 
   const formatDonutValue = (id: string, value: number): string => {
     const actualValue = actualStatusValues.get(id) ?? value;
-    const metric = formatTabulationMetric(
-      actualValue,
-      recordedTotal,
-      displayMode
-    );
+    const metric = formatTabulationMetric(actualValue, recordedTotal, displayMode);
     return `${metric.display} (${metric.alternate})`;
   };
 
   if (loading === true) {
-    return (
-      <SkeletonChart
-        height={300}
-        showLegend
-        title="Vote Distribution by Account Type"
-      />
-    );
+    return <SkeletonChart height={300} showLegend title="Vote Distribution by Account Type" />;
   }
 
   // Keyed off the recorded totals, not the visible ones: hiding every legend
@@ -200,10 +174,7 @@ const VoteDistributionChart = ({
   if (data.length === 0 || recordedVotedTotal === 0) {
     return (
       <Card>
-        <CardHeader
-          sx={tabulationCardHeaderStyles}
-          title="Vote Distribution by Account Type"
-        />
+        <CardHeader sx={tabulationCardHeaderStyles} title="Vote Distribution by Account Type" />
         <CardContent sx={{ p: 0 }}>
           <EmptyState
             description="Once shares are voted, this chart will break the results down by account type."
@@ -218,10 +189,7 @@ const VoteDistributionChart = ({
 
   return (
     <Card>
-      <CardHeader
-        sx={tabulationCardHeaderStyles}
-        title="Vote Distribution by Account Type"
-      />
+      <CardHeader sx={tabulationCardHeaderStyles} title="Vote Distribution by Account Type" />
       <CardContent>
         <Box
           sx={{
@@ -238,28 +206,36 @@ const VoteDistributionChart = ({
             margin={tabulationDonutChartMargin}
             series={[
               {
+                arcLabel: (item) => (showNeutralRings ? "" : (item.label ?? "")),
+                arcLabelMinAngle: tabulationMinArcLabelAngle,
+                arcLabelRadius: accountArcLabelRadius,
                 cy: tabulationDonutCenterY,
                 data: showNeutralRings ? neutralRingData : accountRingData,
                 highlightScope: { fade: "global", highlight: "item" },
                 innerRadius: 0,
                 outerRadius: accountRingOuterRadius,
-                valueFormatter: (item) =>
-                  formatDonutValue(String(item.id), item.value),
+                valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
               },
               {
                 arcLabel: (item) =>
-                  showNeutralRings
-                    ? ""
-                    : (statusArcLabels.get(String(item.id)) ?? ""),
+                  showNeutralRings ? "" : (statusArcLabels.get(String(item.id)) ?? ""),
+                arcLabelMinAngle: tabulationMinArcLabelAngle,
+                arcLabelRadius: statusArcLabelRadius,
                 cy: tabulationDonutCenterY,
                 data: showNeutralRings ? neutralRingData : statusRingData,
                 highlightScope: { fade: "global", highlight: "item" },
                 innerRadius: statusRingInnerRadius,
                 outerRadius: statusRingOuterRadius,
-                valueFormatter: (item) =>
-                  formatDonutValue(String(item.id), item.value),
+                valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
               },
             ]}
+            slots={{ pieArcLabel: ContrastPieArcLabel }}
+            sx={{
+              [`& .${pieClasses.arcLabel}`]: {
+                fontSize: 13,
+                fontWeight: 700,
+              },
+            }}
           >
             <PieCenterLabel
               data={{
@@ -270,6 +246,8 @@ const VoteDistributionChart = ({
                 label: "Total Votes",
                 sliceData: [],
                 total: visibleVotedTotal,
+                fill: "var(--mui-palette-primary-contrastText)",
+                showStroke: false,
               }}
             />
           </MuiPieChart>
@@ -277,9 +255,7 @@ const VoteDistributionChart = ({
             hiddenAccountTypes={hiddenAccountTypes}
             hiddenStatuses={hiddenStatuses}
             onAccountTypeToggle={(accountType) => {
-              setHiddenAccountTypes((previous) =>
-                toggle(previous, accountType)
-              );
+              setHiddenAccountTypes((previous) => toggle(previous, accountType));
             }}
             onStatusToggle={(status) => {
               setHiddenStatuses((previous) => toggle(previous, status));
