@@ -155,7 +155,7 @@ const EventsDataGrid = ({
   };
 
   const handleAddFilter = () => {
-    const current = filterModelRef.current;
+    const { current } = filterModelRef;
     updateFilterModel({
       ...current,
       items: [
@@ -185,12 +185,7 @@ const EventsDataGrid = ({
         const event = parameters.row;
 
         return (
-          <Stack
-            alignItems="center"
-            direction="row"
-            minWidth={0}
-            spacing={0.75}
-          >
+          <Stack direction="column" minWidth={0}>
             <Typography
               noWrap
               variant="body3"
@@ -198,10 +193,10 @@ const EventsDataGrid = ({
               color="primary"
               href={`${getMeetingUrl(event)}/dashboard`}
             >
-              {event.event} ({event.clientTicker})
+              {event.event}
             </Typography>
             <Typography color="text.secondary" noWrap variant="body3">
-              · {event.eventType}
+              {event.eventType}
             </Typography>
           </Stack>
         );
@@ -209,18 +204,6 @@ const EventsDataGrid = ({
       valueGetter: (value, row) => {
         void value;
         return `${row.event} ${row.clientTicker} ${row.eventType}`;
-      },
-    },
-    {
-      field: "eventDate",
-      headerName: "Event date",
-      minWidth: 140,
-      type: "date",
-      valueFormatter: (value: Date | null) =>
-        value === null ? "Not set" : value.toLocaleDateString("en-US"),
-      valueGetter: (value, row) => {
-        void value;
-        return parseEventDate(row.eventDate);
       },
     },
     {
@@ -242,6 +225,19 @@ const EventsDataGrid = ({
         return row.setKey;
       },
     },
+    {
+      field: "eventDate",
+      headerName: "Event date",
+      minWidth: 140,
+      type: "date",
+      valueFormatter: (value: Date | null) =>
+        value === null ? "Not set" : value.toLocaleDateString("en-US"),
+      valueGetter: (value, row) => {
+        void value;
+        return parseEventDate(row.eventDate);
+      },
+    },
+
     {
       field: "recordDate",
       headerName: "Record date",
@@ -338,6 +334,7 @@ const EventsDataGrid = ({
       columns={columns}
       filterDebounceMs={0}
       filterModel={filterModel}
+      autoHeight
       onFilterModelChange={handleFilterModelChange}
       slotProps={{
         filterPanel: {
@@ -470,7 +467,7 @@ const EventsPage = () => {
         />
         <CardContent sx={{ pt: 0 }}>
           {error !== null && <Alert severity="error">{error}</Alert>}
-          <Box sx={{ height: 680, width: "100%" }}>
+          <Box sx={{ display: "flex", maxHeight: 1280, width: "100%" }}>
             <EventsDataGrid
               assignedTickers={assignedTickers}
               assignedTickersKey={assignedTickersKey}

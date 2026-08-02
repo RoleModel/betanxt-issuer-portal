@@ -32,9 +32,9 @@ import * as React from "react";
 
 import type { SavedFilter } from "@/hooks/useSavedFilters";
 
-type OwnerState = {
+interface OwnerState {
   expanded: boolean;
-};
+}
 
 export interface SavedFilterToolbarProps {
   readonly savedFilters: readonly SavedFilter[];
@@ -152,14 +152,14 @@ const ActiveFilterChips = ({ onRemoveFilter }: ActiveFilterChipsProps) => {
  * Clicking a chip applies that group, and clicking the active chip clears it,
  * so a saved filter reads as a toggle rather than a one-way trip.
  */
-export function SavedFilterToolbar({
+export const SavedFilterToolbar = ({
   savedFilters,
   activeFilterId,
   onApply,
   onClear,
   onDelete,
   onRemoveFilter,
-}: SavedFilterToolbarProps) {
+}: SavedFilterToolbarProps) => {
   const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
   const exportMenuTriggerRef = React.useRef<HTMLButtonElement>(null);
 
@@ -307,7 +307,9 @@ export function SavedFilterToolbar({
           aria-controls="export-menu"
           aria-haspopup="true"
           aria-expanded={exportMenuOpen ? "true" : undefined}
-          onClick={() => setExportMenuOpen(true)}
+          onClick={() => {
+            setExportMenuOpen(true);
+          }}
         >
           <FileDownloadIcon fontSize="small" />
         </ToolbarButton>
@@ -316,7 +318,9 @@ export function SavedFilterToolbar({
         id="export-menu"
         anchorEl={exportMenuTriggerRef.current}
         open={exportMenuOpen}
-        onClose={() => setExportMenuOpen(false)}
+        onClose={() => {
+          setExportMenuOpen(false);
+        }}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         slotProps={{
@@ -327,17 +331,21 @@ export function SavedFilterToolbar({
       >
         <ExportPrint
           render={<MenuItem />}
-          onClick={() => setExportMenuOpen(false)}
+          onClick={() => {
+            setExportMenuOpen(false);
+          }}
         >
           Print
         </ExportPrint>
         <ExportCsv
           render={<MenuItem />}
-          onClick={() => setExportMenuOpen(false)}
+          onClick={() => {
+            setExportMenuOpen(false);
+          }}
         >
           Download as CSV
         </ExportCsv>
       </Menu>
     </Toolbar>
   );
-}
+};

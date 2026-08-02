@@ -219,7 +219,7 @@ export function useEvents(): UseEventsResult {
     }
 
     const additionalPages = await Promise.all(
-      additionalPageNumbers.map((page) => fetchEventsPage(page))
+      additionalPageNumbers.map(async (page) => await fetchEventsPage(page))
     );
     const allEvents = [...firstPage.events];
 
