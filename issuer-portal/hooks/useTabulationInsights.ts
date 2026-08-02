@@ -9,7 +9,6 @@ import type { HolderCategory } from "@/utils/holderCategory";
 import buildApiClient from "@/domain-models/apiClient";
 import {
   getHolderTypeFromCategory,
-  isRegisteredOnlyHolder,
   normalizeHolderCategory,
 } from "@/utils/holderCategory";
 import { buildQuorumGaugeModel } from "@/utils/quorum";
@@ -100,16 +99,16 @@ interface DirectorOption {
   label: string;
 }
 
-interface BeneficialRegisteredBreakdown {
-  beneficial: number;
-  registered: number;
+export interface VotingSourceTotals {
+  web: number;
+  print: number;
+  ivr: number;
 }
 
-/** Vote counts per voting channel (WEB / PRINT / IVR sources). */
-export interface VotingMethodCounts {
-  web: number;
-  paper: number;
-  phone: number;
+/** Voted shares split by holder type and submission source. */
+export interface VotingSourceBreakdown {
+  beneficial: VotingSourceTotals;
+  registered: VotingSourceTotals;
 }
 
 interface TabulationInsightsResult {
@@ -123,9 +122,7 @@ interface TabulationInsightsResult {
   accountTypes: string[];
   setKeys: string[];
   directors: DirectorOption[];
-  beneficialVsRegistered: BeneficialRegisteredBreakdown;
-  /** Voting-method counts restricted to REGISTERED holders (Voting Activity chart, FR-001/FR-002). */
-  registeredVotingMethods: VotingMethodCounts;
+  votingSourceBreakdown: VotingSourceBreakdown;
   meetingTitle: string;
   clientTicker: string;
 }
@@ -916,41 +913,30 @@ export function useTabulationInsights(
     [meeting?.quorumRequirement, representedShares, totalSharesOutstanding]
   );
 
-  const beneficialVsRegistered = React.useMemo(
-    () => ({
-      beneficial: filteredPositions
-        .filter(
-          (position) =>
-            getHolderType(position) === "beneficial" &&
-            position.voteStatus === "Voted"
-        )
-        .reduce((sum, position) => sum + position.sharesVoted, 0),
-      registered: filteredPositions
-        .filter(
-          (position) =>
-            getHolderType(position) === "registered" &&
-            position.voteStatus === "Voted"
-        )
-        .reduce((sum, position) => sum + position.sharesVoted, 0),
-    }),
-    [filteredPositions]
-  );
-
-  // Registered-only (PLAN excluded) voting methods for the Voting Activity chart (FR-001/FR-002)
-  const registeredVotingMethods = React.useMemo(() => {
-    const registeredPositions = filteredPositions.filter((position) =>
-      isRegisteredOnlyHolder(position.holderCategory, position.accountType)
-    );
-
-    return {
-      web: registeredPositions.filter((position) => position.source === "WEB")
-        .length,
-      paper: registeredPositions.filter(
-        (position) => position.source === "PRINT"
-      ).length,
-      phone: registeredPositions.filter((position) => position.source === "IVR")
-        .length,
+  const votingSourceBreakdown = React.useMemo(() => {
+    const breakdown: VotingSourceBreakdown = {
+      beneficial: { ivr: 0, print: 0, web: 0 },
+      registered: { ivr: 0, print: 0, web: 0 },
     };
+
+    for (const position of filteredPositions) {
+      if (position.voteStatus !== "Voted") {
+        continue;
+      }
+
+      const holderType = getHolderType(position);
+      const source = position.source.toUpperCase();
+
+      if (source === "WEB") {
+        breakdown[holderType].web += position.sharesVoted;
+      } else if (source === "PRINT") {
+        breakdown[holderType].print += position.sharesVoted;
+      } else if (source === "IVR") {
+        breakdown[holderType].ivr += position.sharesVoted;
+      }
+    }
+
+    return breakdown;
   }, [filteredPositions]);
 
   return {
@@ -964,8 +950,7 @@ export function useTabulationInsights(
     accountTypes,
     setKeys,
     directors,
-    beneficialVsRegistered,
-    registeredVotingMethods,
+    votingSourceBreakdown,
     meetingTitle,
     clientTicker,
   };
