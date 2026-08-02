@@ -12,6 +12,8 @@ test("tabulation combines holder type, source, and outcome in one chart", async 
   await expect(
     page.getByText("Voted shares by holder type, voting source, and outcome")
   ).toBeVisible();
+  await expect(page.getByTestId("vote-matrix-total-registered")).toBeVisible();
+  await expect(page.getByTestId("vote-matrix-total-beneficial")).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Voting Activity" })
   ).toHaveCount(0);

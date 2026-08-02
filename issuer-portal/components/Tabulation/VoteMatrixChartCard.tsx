@@ -11,6 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
+import { useXScale, useYScale } from "@mui/x-charts/hooks";
 import { useId, useState } from "react";
 
 import type {
@@ -25,7 +26,10 @@ import {
   tabulationCardHeaderStyles,
   tabulationCardStyles,
 } from "../../utils/tabulation-card-layout";
-import { formatTabulationMetric } from "../../utils/tabulation-display";
+import {
+  formatTabulationMetric,
+  type TabulationDisplayMode,
+} from "../../utils/tabulation-display";
 
 interface VoteMatrixChartCardProps {
   readonly loading: boolean;
@@ -47,15 +51,19 @@ interface VoteSource {
 }
 
 const voteOutcomes: readonly VoteOutcomeSeries[] = [
-  { color: "var(--mui-palette-success-main)", key: "for", label: "For" },
-  { color: "var(--mui-palette-error-main)", key: "against", label: "Against" },
+  { color: "var(--mui-palette-primary-main)", key: "for", label: "For" },
   {
-    color: "var(--mui-palette-warning-main)",
+    color: "var(--mui-palette-secondary-main)",
+    key: "against",
+    label: "Against",
+  },
+  {
+    color: "var(--mui-palette-chartSeries-6-main)",
     key: "withhold",
     label: "Withhold",
   },
   {
-    color: "var(--mui-palette-primary-light)",
+    color: "var(--mui-palette-warning-main)",
     key: "abstain",
     label: "Abstain",
   },
@@ -153,6 +161,63 @@ const SourceLegendSwatch = ({ source }: { readonly source: VoteSource }) => (
   </Box>
 );
 
+interface BarLabelAtBaseProps {
+  readonly displayMode: TabulationDisplayMode;
+  readonly holderTotals: readonly number[];
+  readonly totalShares: number;
+}
+
+/**
+ * Renders one total at the lower-right of each full stacked bar. This is an
+ * overlay rather than a regular bar label because a chart row has nine nested
+ * source/outcome series but should expose only one holder-type total.
+ */
+const BarLabelAtBase = ({
+  displayMode,
+  holderTotals,
+  totalShares,
+}: BarLabelAtBaseProps) => {
+  const xScale = useXScale<"linear">();
+  const yScale = useYScale<"band">();
+
+  return (
+    <g aria-label="Holder type totals">
+      {holderTypes.map((holderType, index) => {
+        const total = holderTotals[index] ?? 0;
+        if (total === 0) {
+          return null;
+        }
+
+        const displayedTotal =
+          displayMode === "numbers" ? total : (total / totalShares) * 100;
+        const metric = formatTabulationMetric(total, totalShares, displayMode);
+        const y = yScale(holderType);
+
+        if (y === undefined) {
+          return null;
+        }
+
+        return (
+          <text
+            data-testid={`vote-matrix-total-${holderType.toLowerCase()}`}
+            dominantBaseline="auto"
+            fill="var(--mui-palette-text-primary)"
+            key={holderType}
+            paintOrder="stroke"
+            stroke="var(--mui-palette-background-paper)"
+            strokeWidth="3"
+            textAnchor="end"
+            x={xScale(displayedTotal) - 6}
+            y={y + yScale.bandwidth() - 7}
+          >
+            {metric.display}
+          </text>
+        );
+      })}
+    </g>
+  );
+};
+
 /**
  * A single proposal-level figure for the three related tabulation questions:
  * holder type, voting source, and vote outcome. The two bars are holder type;
@@ -172,6 +237,14 @@ const VoteMatrixChartCard = ({
   const totalShares = rows.reduce(
     (sum, row) => sum + row.for + row.against + row.withhold + row.abstain,
     0
+  );
+  const holderTotals = holderTypes.map((holderType) =>
+    rows
+      .filter((row) => row.holderType === holderType)
+      .reduce(
+        (sum, row) => sum + row.for + row.against + row.withhold + row.abstain,
+        0
+      )
   );
 
   return (
@@ -217,7 +290,7 @@ const VoteMatrixChartCard = ({
               height={310}
               hideLegend
               layout="horizontal"
-              margin={{ bottom: 30, left: 105, right: 24, top: 12 }}
+              margin={{ bottom: 30, left: 10, right: 24, top: 12 }}
               series={voteOutcomes.flatMap((outcome) =>
                 voteSources.map((source) => {
                   const actualValues = holderTypes.map((holderType) => {
@@ -263,6 +336,11 @@ const VoteMatrixChartCard = ({
               yAxis={[{ data: holderTypes, scaleType: "band" }]}
             >
               <SourcePatternDefinitions prefix={patternPrefix} />
+              <BarLabelAtBase
+                displayMode={displayMode}
+                holderTotals={holderTotals}
+                totalShares={totalShares}
+              />
             </BarChart>
             <Box
               aria-label="Vote outcome and source legend"
