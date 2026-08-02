@@ -94,3 +94,37 @@ export const minimumOutcomeShare = 0.035;
 
 export const sumRowOutcomes = (row: VoteMatrixRow): number =>
   row.for + row.against + row.withhold + row.abstain;
+
+// --- Voting-source chart -----------------------------------------------------
+// Geometry and colour rules shared by the chart, its bar patterns, its legend
+// swatches and the totals overlay, so the pieces cannot drift apart.
+
+/** SVG <pattern> id for one source, namespaced by the caller's unique prefix. */
+export const getSourcePatternId = (
+  prefix: string,
+  sourceId: VoteSourceId
+): string => `${prefix}-${sourceId}`;
+
+/**
+ * How much of the contrast colour survives in the hatch marks. At 100% the
+ * pattern is pure white or pure black against the bar, which reads as harsh;
+ * mixing the bar colour back in keeps the texture legible without the hard
+ * edge. Raise for more definition, lower for a subtler weave.
+ */
+export const patternContrastMix = 45;
+
+/** Hatch colour for a pattern drawn on top of `source.color`. */
+export const getPatternForeground = (source: VoteSource): string =>
+  `color-mix(in srgb, ${source.contrastColor} ${patternContrastMix}%, ${source.color})`;
+
+/** Tile size for the bar patterns and their legend swatches. */
+export const patternTileSize = 6;
+
+/** Edge length of a legend swatch. */
+export const legendSwatchSize = 20;
+
+/** Gap between a bar total and the bar end, whether it sits inside or outside. */
+export const barLabelInset = 8;
+
+/** Plot height for the voting-source bar chart. */
+export const votingSourceChartHeight = 340;

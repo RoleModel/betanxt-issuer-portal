@@ -95,8 +95,10 @@ const VoteMatrixChartCard = ({
         totalShares={totalShares}
       />
       <HolderOutcomeChartCard
+        hiddenHolderTypes={hiddenHolderTypes}
         hiddenOutcomeKeys={hiddenOutcomeKeys}
         loading={loading}
+        onHolderTypeToggle={toggleHolderType}
         onOutcomeToggle={toggleOutcome}
         onProposalChange={setSelectedProposalId}
         proposals={proposals}

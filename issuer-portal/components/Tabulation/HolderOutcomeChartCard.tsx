@@ -10,7 +10,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { PieArcLabel, PieChart, pieClasses, type PieArcLabelProps } from "@mui/x-charts/PieChart";
+import {
+  PieChart as MuiPieChart,
+  PieArcLabel,
+  pieClasses,
+  type PieArcLabelProps,
+} from "@mui/x-charts/PieChart";
 import PieChart2IconWithAccent from "@rolemodel/betanxt-design-system/components/icons/brand/PieChart2Icon";
 
 import type { VoteMatrixProposal, VoteMatrixRow } from "@/hooks/useTabulationInsights";
@@ -25,11 +30,13 @@ import {
 import { formatTabulationMetric } from "../../utils/tabulation-display";
 import EmptyState from "../EmptyState";
 import PieCenterLabel from "../Reporting/PieChartCenterLabel";
+import { LegendToggle } from "./LegendToggle";
 import {
   holderStyles,
   holderTypes,
   minimumOutcomeShare,
   voteOutcomes,
+  type HolderType,
   type VoteOutcomeKey,
 } from "./vote-breakdown-chart-data";
 
@@ -68,8 +75,10 @@ const toProposalShortLabel = (proposalLabel: string): string => {
 };
 
 export interface HolderOutcomeChartCardProps {
+  readonly hiddenHolderTypes: ReadonlySet<HolderType>;
   readonly hiddenOutcomeKeys: ReadonlySet<VoteOutcomeKey>;
   readonly loading: boolean;
+  readonly onHolderTypeToggle: (holderType: HolderType) => void;
   readonly onOutcomeToggle: (outcomeKey: VoteOutcomeKey) => void;
   readonly onProposalChange: (proposalId: string) => void;
   readonly proposals: readonly VoteMatrixProposal[];
@@ -79,8 +88,10 @@ export interface HolderOutcomeChartCardProps {
 }
 
 const HolderOutcomeChartCard = ({
+  hiddenHolderTypes,
   hiddenOutcomeKeys,
   loading,
+  onHolderTypeToggle,
   onOutcomeToggle,
   onProposalChange,
   proposals,
@@ -90,7 +101,10 @@ const HolderOutcomeChartCard = ({
 }: HolderOutcomeChartCardProps) => {
   const { displayMode } = useTabulationDisplay();
   const visibleOutcomes = voteOutcomes.filter((outcome) => !hiddenOutcomeKeys.has(outcome.key));
-  const holderTotals = holderTypes.map((holderType) =>
+  // Both rings walk this list, and holderTotals is indexed by it, so filtering
+  // here is what removes a holder type from the whole donut.
+  const visibleHolderTypes = holderTypes.filter((holderType) => !hiddenHolderTypes.has(holderType));
+  const holderTotals = visibleHolderTypes.map((holderType) =>
     rows
       .filter((row) => row.holderType === holderType)
       .reduce(
@@ -113,7 +127,7 @@ const HolderOutcomeChartCard = ({
   const showNeutralRings = recordedTotalShares > 0 && visibleTotalShares === 0;
   // Equal, greyed slices so the donut keeps its geometry while nothing is
   // selected, rather than collapsing to nothing.
-  const neutralRingData = holderTypes.map((holderType) => ({
+  const neutralRingData = visibleHolderTypes.map((holderType) => ({
     color: "var(--mui-palette-action-disabledBackground)",
     id: holderType,
     label: holderType,
@@ -121,7 +135,7 @@ const HolderOutcomeChartCard = ({
   }));
   const actualOutcomeValues = new Map<string, number>();
   const outcomeArcLabels = new Map<string, string>();
-  const holderRingData = holderTypes.flatMap((holderType, index) => {
+  const holderRingData = visibleHolderTypes.flatMap((holderType, index) => {
     const value = holderTotals[index] ?? 0;
     return value > 0
       ? [
@@ -136,7 +150,7 @@ const HolderOutcomeChartCard = ({
   });
   // Outer values are ordered by holder and each group sums to its inner slice,
   // keeping the shared ring boundaries aligned.
-  const outcomeRingData = holderTypes.flatMap((holderType, holderIndex) => {
+  const outcomeRingData = visibleHolderTypes.flatMap((holderType, holderIndex) => {
     const holderTotal = holderTotals[holderIndex] ?? 0;
     const holderRows = rows.filter((row) => row.holderType === holderType);
     const outcomeValues = visibleOutcomes.flatMap((outcome) => {
@@ -236,7 +250,7 @@ const HolderOutcomeChartCard = ({
                 height: "100%",
               }}
             >
-              <PieChart
+              <MuiPieChart
                 height={300}
                 hideLegend
                 margin={{ bottom: 8, left: 8, right: 8, top: 8 }}
@@ -287,7 +301,7 @@ const HolderOutcomeChartCard = ({
                     total: visibleTotalShares,
                   }}
                 />
-              </PieChart>
+              </MuiPieChart>
               <Box
                 aria-label="Voting outcome legend"
                 sx={{
@@ -297,6 +311,27 @@ const HolderOutcomeChartCard = ({
                   justifyContent: "center",
                 }}
               >
+                {holderTypes.map((holderType) => (
+                  <LegendToggle
+                    hidden={hiddenHolderTypes.has(holderType)}
+                    key={holderType}
+                    label={holderType}
+                    onToggle={() => {
+                      onHolderTypeToggle(holderType);
+                    }}
+                    testId={`outcome-holder-legend-${holderType.toLowerCase()}`}
+                  >
+                    <Box
+                      aria-hidden="true"
+                      sx={{
+                        backgroundColor: holderStyles[holderType].color,
+                        borderRadius: "2px",
+                        height: 20,
+                        width: 20,
+                      }}
+                    />
+                  </LegendToggle>
+                ))}
                 {voteOutcomes.map((outcome) => (
                   <Box
                     aria-pressed={!hiddenOutcomeKeys.has(outcome.key)}
