@@ -79,8 +79,8 @@ const SourcePatternDefinitions = ({ prefix }: { readonly prefix: string }) => {
 
         return (
           <PatternCircles
-            background={source.color}
-            fill={patternForeground}
+            background={patternForeground}
+            fill={source.color}
             height={6}
             id={id}
             key={id}

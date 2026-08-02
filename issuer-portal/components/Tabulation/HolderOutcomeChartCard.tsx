@@ -10,18 +10,11 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import {
-  PieArcLabel,
-  PieChart,
-  pieClasses,
-  type PieArcLabelProps,
-} from "@mui/x-charts/PieChart";
+import { PieArcLabel, PieChart, pieClasses, type PieArcLabelProps } from "@mui/x-charts/PieChart";
+import PieChart2IconWithAccent from "@rolemodel/betanxt-design-system/components/icons/brand/PieChart2Icon";
 
-import type {
-  VoteMatrixProposal,
-  VoteMatrixRow,
-} from "@/hooks/useTabulationInsights";
-import { HowToVoteOutlined } from "@mui/icons-material";
+import type { VoteMatrixProposal, VoteMatrixRow } from "@/hooks/useTabulationInsights";
+
 import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
 import { formatNumber } from "../../utils/number-utilities";
 import {
@@ -30,6 +23,7 @@ import {
   tabulationCardStyles,
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
+import EmptyState from "../EmptyState";
 import PieCenterLabel from "../Reporting/PieChartCenterLabel";
 import {
   holderStyles,
@@ -38,16 +32,12 @@ import {
   voteOutcomes,
   type VoteOutcomeKey,
 } from "./vote-breakdown-chart-data";
-import EmptyState from "../EmptyState";
 
 const outcomeArcLabelMinAngle = 24;
 const outcomeArcLabelRadius = 116;
 
 const arcLabelContrastColors = new Map<string, string>([
-  ...voteOutcomes.map((outcome): [string, string] => [
-    outcome.color,
-    outcome.contrastColor,
-  ]),
+  ...voteOutcomes.map((outcome): [string, string] => [outcome.color, outcome.contrastColor]),
   ...Object.values(holderStyles).map((holder): [string, string] => [
     holder.color,
     holder.contrastColor,
@@ -61,9 +51,7 @@ const ContrastPieArcLabel = ({ color, style, ...props }: PieArcLabelProps) => {
       color={color}
       style={{
         ...style,
-        fill:
-          arcLabelContrastColors.get(color) ??
-          "var(--mui-palette-text-primary)",
+        fill: arcLabelContrastColors.get(color) ?? "var(--mui-palette-text-primary)",
       }}
     />
   );
@@ -76,9 +64,7 @@ const ContrastPieArcLabel = ({ color, style, ...props }: PieArcLabelProps) => {
  */
 const toProposalShortLabel = (proposalLabel: string): string => {
   const separatorIndex = proposalLabel.indexOf(":");
-  return separatorIndex === -1
-    ? proposalLabel
-    : proposalLabel.slice(0, separatorIndex).trim();
+  return separatorIndex === -1 ? proposalLabel : proposalLabel.slice(0, separatorIndex).trim();
 };
 
 export interface HolderOutcomeChartCardProps {
@@ -103,38 +89,26 @@ const HolderOutcomeChartCard = ({
   totalShares,
 }: HolderOutcomeChartCardProps) => {
   const { displayMode } = useTabulationDisplay();
-  const visibleOutcomes = voteOutcomes.filter(
-    (outcome) => !hiddenOutcomeKeys.has(outcome.key)
-  );
+  const visibleOutcomes = voteOutcomes.filter((outcome) => !hiddenOutcomeKeys.has(outcome.key));
   const holderTotals = holderTypes.map((holderType) =>
     rows
       .filter((row) => row.holderType === holderType)
       .reduce(
         (sum, row) =>
           sum +
-          visibleOutcomes.reduce(
-            (outcomeTotal, outcome) => outcomeTotal + row[outcome.key],
-            0
-          ),
-        0
-      )
+          visibleOutcomes.reduce((outcomeTotal, outcome) => outcomeTotal + row[outcome.key], 0),
+        0,
+      ),
   );
-  const visibleTotalShares = holderTotals.reduce(
-    (sum, holderTotal) => sum + holderTotal,
-    0
-  );
+  const visibleTotalShares = holderTotals.reduce((sum, holderTotal) => sum + holderTotal, 0);
   // Totals across every outcome, ignoring the legend. This separates "this
   // proposal genuinely has no votes" from "the user has toggled the outcomes
   // off", which previously looked identical and swapped the whole chart -
   // legend included - for an empty state with no way back.
   const recordedTotalShares = rows.reduce(
     (sum, row) =>
-      sum +
-      voteOutcomes.reduce(
-        (outcomeTotal, outcome) => outcomeTotal + row[outcome.key],
-        0
-      ),
-    0
+      sum + voteOutcomes.reduce((outcomeTotal, outcome) => outcomeTotal + row[outcome.key], 0),
+    0,
   );
   const showNeutralRings = recordedTotalShares > 0 && visibleTotalShares === 0;
   // Equal, greyed slices so the donut keeps its geometry while nothing is
@@ -175,9 +149,8 @@ const HolderOutcomeChartCard = ({
     }
 
     const weightedTotal = outcomeValues.reduce(
-      (sum, item) =>
-        sum + Math.max(item.value / holderTotal, minimumOutcomeShare),
-      0
+      (sum, item) => sum + Math.max(item.value / holderTotal, minimumOutcomeShare),
+      0,
     );
 
     return outcomeValues.map(({ outcome, value }) => {
@@ -188,26 +161,16 @@ const HolderOutcomeChartCard = ({
         color: outcome.color,
         id,
         label: `${holderType} · ${outcome.label}`,
-        value:
-          (Math.max(value / holderTotal, minimumOutcomeShare) / weightedTotal) *
-          holderTotal,
+        value: (Math.max(value / holderTotal, minimumOutcomeShare) / weightedTotal) * holderTotal,
       };
     });
   });
   const formatDonutValue = (id: string, value: number): string => {
     const actualValue = actualOutcomeValues.get(id) ?? value;
-    const metric = formatTabulationMetric(
-      actualValue,
-      totalShares,
-      displayMode
-    );
+    const metric = formatTabulationMetric(actualValue, totalShares, displayMode);
     return `${metric.display} (${metric.alternate})`;
   };
-  const centerMetric = formatTabulationMetric(
-    visibleTotalShares,
-    totalShares,
-    displayMode
-  );
+  const centerMetric = formatTabulationMetric(visibleTotalShares, totalShares, displayMode);
 
   return (
     <Card sx={tabulationCardStyles}>
@@ -254,7 +217,12 @@ const HolderOutcomeChartCard = ({
           ) : recordedTotalShares === 0 ? (
             <EmptyState
               description="Once shares are voted, they will appear here."
-              icon={<HowToVoteOutlined color="disabled" fontSize="large" />}
+              icon={
+                <PieChart2IconWithAccent
+                  accentColor="var(--mui-palette-primary-light)"
+                  fontSize="large"
+                />
+              }
               minHeight="unset"
               title="No votes recorded yet"
             />
@@ -274,40 +242,35 @@ const HolderOutcomeChartCard = ({
                 margin={{ bottom: 8, left: 8, right: 8, top: 8 }}
                 series={[
                   {
-                    arcLabel: (item) =>
-                      showNeutralRings ? "" : (item.label ?? ""),
+                    arcLabel: (item) => (showNeutralRings ? "" : (item.label ?? "")),
                     arcLabelMinAngle: 20,
                     arcLabelRadius: 68,
                     cornerRadius: 3,
                     data: showNeutralRings ? neutralRingData : holderRingData,
                     highlightScope: { fade: "global", highlight: "item" },
-                    highlighted: { additionalRadius: 2 },
+                    highlighted: { additionalRadius: 1 },
                     innerRadius: 0,
                     outerRadius: 100,
-                    valueFormatter: (item) =>
-                      formatDonutValue(String(item.id), item.value),
+                    valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
                   },
                   {
                     arcLabel: (item) =>
-                      showNeutralRings
-                        ? ""
-                        : (outcomeArcLabels.get(String(item.id)) ?? ""),
+                      showNeutralRings ? "" : (outcomeArcLabels.get(String(item.id)) ?? ""),
                     arcLabelMinAngle: outcomeArcLabelMinAngle,
                     arcLabelRadius: outcomeArcLabelRadius,
                     cornerRadius: 2,
                     data: showNeutralRings ? neutralRingData : outcomeRingData,
-                    highlightScope: { fade: "global", highlight: "series" },
-                    highlighted: { additionalRadius: 2 },
+                    highlightScope: { fade: "global", highlight: "item" },
+                    highlighted: { additionalRadius: 1 },
                     innerRadius: 102,
                     outerRadius: 128,
-                    valueFormatter: (item) =>
-                      formatDonutValue(String(item.id), item.value),
+                    valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
                   },
                 ]}
                 slots={{ pieArcLabel: ContrastPieArcLabel }}
                 sx={{
                   [`& .${pieClasses.arcLabel}`]: {
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: 700,
                   },
                 }}
@@ -319,10 +282,7 @@ const HolderOutcomeChartCard = ({
                       : `${formatNumber(visibleTotalShares)} visible shares voted`,
                     centerValue: centerMetric.display,
                     fill: "var(--mui-palette-primary-contrastText)",
-                    label:
-                      displayMode === "numbers"
-                        ? "Shares voted"
-                        : "of voted shares",
+                    label: displayMode === "numbers" ? "Shares voted" : "of voted shares",
                     sliceData: [],
                     total: visibleTotalShares,
                   }}

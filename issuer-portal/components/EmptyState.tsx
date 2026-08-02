@@ -4,6 +4,8 @@ import { Box, Paper, Stack, Typography } from "@mui/material";
 import HandTouchIcon from "@rolemodel/betanxt-design-system/components/icons/brand/HandTouchIcon";
 import React from "react";
 
+const defaultEmptyStateIcon = <HandTouchIcon />;
+
 interface EmptyStateProps {
   readonly icon?: React.ReactNode;
   readonly title: string;
@@ -11,11 +13,10 @@ interface EmptyStateProps {
   readonly description?: string | React.ReactNode;
   readonly action?: React.ReactNode;
   readonly children?: React.ReactNode;
-  readonly dangerouslySetInnerHTML?: boolean;
 }
 
 export const EmptyState = ({
-  icon = <HandTouchIcon />,
+  icon = defaultEmptyStateIcon,
   title,
   minHeight = 400,
   description,
@@ -23,11 +24,11 @@ export const EmptyState = ({
   children,
 }: EmptyStateProps) => {
   return (
-    <Box sx={{ p: 1 }}>
+    <Box sx={{ p: 1, width: "100%", height: "100%" }}>
       <Paper
         elevation={0}
-        sx={(theme) => ({
-          background: theme.vars.palette.tableCellRow.fill,
+        sx={{
+          background: "var(--mui-palette-tableCellRow-fill)",
           border: "1px solid",
           borderColor: "divider",
           borderRadius: 1,
@@ -36,14 +37,11 @@ export const EmptyState = ({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          minHeight: minHeight || 400,
-        })}
+          minHeight,
+          height: "100%",
+        }}
       >
-        <Stack
-          spacing={1}
-          alignItems="center"
-          sx={{ maxWidth: 600, textAlign: "center" }}
-        >
+        <Stack spacing={1} alignItems="center" sx={{ maxWidth: 600, textAlign: "center" }}>
           <Box
             sx={{
               display: "flex",
@@ -88,7 +86,7 @@ export const EmptyState = ({
             {description}
           </Typography>
           {children}
-          {action ? <Box sx={{ mt: 3 }}>{action}</Box> : null}
+          {action === undefined || action === null ? null : <Box sx={{ mt: 3 }}>{action}</Box>}
         </Stack>
       </Paper>
     </Box>
