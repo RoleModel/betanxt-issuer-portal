@@ -1,6 +1,8 @@
 "use client";
 
-import React from "react";
+import type { Dispatch, SetStateAction } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 import type { ProposalVoting, VotingSummary } from "@/types/phases";
@@ -129,7 +131,7 @@ interface TabulationInsightsResult {
   summary: VotingSummary | null;
   quorumGauge: QuorumGaugeViewModel | null;
   filters: TabulationFilters;
-  setFilters: React.Dispatch<React.SetStateAction<TabulationFilters>>;
+  setFilters: Dispatch<SetStateAction<TabulationFilters>>;
   accountTypes: string[];
   setKeys: string[];
   directors: DirectorOption[];
@@ -413,22 +415,19 @@ export function useTabulationInsights(
   meetingId?: string,
   meeting?: components["schemas"]["Meeting"] | null
 ): TabulationInsightsResult {
-  const [loading, setLoading] = React.useState(true);
-  const [positions, setPositions] = React.useState<TabulationPosition[]>([]);
-  const [proposals, setProposals] = React.useState<ProposalRecord[]>([]);
-  const [positionVotes, setPositionVotes] = React.useState<
-    PositionVoteRecord[]
-  >([]);
-  const [meetingTitle, setMeetingTitle] = React.useState("");
-  const [clientTicker, setClientTicker] = React.useState("");
-  const [filters, setFilters] =
-    React.useState<TabulationFilters>(DEFAULT_FILTERS);
+  const [loading, setLoading] = useState(true);
+  const [positions, setPositions] = useState<TabulationPosition[]>([]);
+  const [proposals, setProposals] = useState<ProposalRecord[]>([]);
+  const [positionVotes, setPositionVotes] = useState<PositionVoteRecord[]>([]);
+  const [meetingTitle, setMeetingTitle] = useState("");
+  const [clientTicker, setClientTicker] = useState("");
+  const [filters, setFilters] = useState<TabulationFilters>(DEFAULT_FILTERS);
   const [tabulationReportVotedShares, setTabulationReportVotedShares] =
-    React.useState<number | null>(null);
+    useState<number | null>(null);
   const [tabulationReportTotalShares, setTabulationReportTotalShares] =
-    React.useState<number | null>(null);
+    useState<number | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!meetingId) {
       return;
     }
@@ -567,7 +566,7 @@ export function useTabulationInsights(
     };
   }, [meetingId]);
 
-  const accountTypes = React.useMemo(
+  const accountTypes = useMemo(
     () =>
       [
         ...new Set(
@@ -575,11 +574,11 @@ export function useTabulationInsights(
             position.accountType ? [position.accountType] : []
           )
         ),
-      ].sort(),
+      ].sort((a: string, b: string) => a.localeCompare(b)),
     [positions]
   );
 
-  const setKeys = React.useMemo(
+  const setKeys = useMemo(
     () =>
       [
         ...new Set(
@@ -587,11 +586,11 @@ export function useTabulationInsights(
             position.setKey ? [position.setKey] : []
           )
         ),
-      ].sort(),
+      ].sort((a: string, b: string) => a.localeCompare(b)),
     [positions]
   );
 
-  const directors = React.useMemo(
+  const directors = useMemo(
     () =>
       proposals.flatMap(
         (proposal: ProposalRecord): { id: string; label: string }[] =>
@@ -607,7 +606,7 @@ export function useTabulationInsights(
     [proposals]
   );
 
-  const filteredPositions = React.useMemo(() => {
+  const filteredPositions = useMemo(() => {
     const directorPositionIds = new Set(
       positionVotes.flatMap((vote: PositionVoteRecord): string[] =>
         !filters.directorProposalId ||
@@ -682,7 +681,7 @@ export function useTabulationInsights(
     });
   }, [filters, positionVotes, positions]);
 
-  const proposalsForDisplay = React.useMemo(() => {
+  const proposalsForDisplay = useMemo(() => {
     const filtersForProposalAggregation = {
       ...filters,
       voteStatus: "All" as const,
@@ -865,7 +864,7 @@ export function useTabulationInsights(
     });
   }, [filters, positionVotes, positions, proposals]);
 
-  const totalSharesOutstanding = React.useMemo(() => {
+  const totalSharesOutstanding = useMemo(() => {
     if (
       tabulationReportTotalShares !== null &&
       tabulationReportTotalShares > 0
@@ -887,7 +886,7 @@ export function useTabulationInsights(
     tabulationReportTotalShares,
   ]);
 
-  const representedShares = React.useMemo(() => {
+  const representedShares = useMemo(() => {
     const hasActiveFilters = Object.values(filters).some((value) =>
       isActiveFilterValue(value)
     );
@@ -917,7 +916,7 @@ export function useTabulationInsights(
     tabulationReportVotedShares,
   ]);
 
-  const summary = React.useMemo(
+  const summary = useMemo(
     () =>
       buildVotingSummary({
         positions: filteredPositions,
@@ -933,7 +932,7 @@ export function useTabulationInsights(
     ]
   );
 
-  const quorumGauge = React.useMemo(
+  const quorumGauge = useMemo(
     () =>
       buildQuorumGaugeModel({
         totalOutstandingShares: totalSharesOutstanding,
@@ -943,7 +942,7 @@ export function useTabulationInsights(
     [meeting?.quorumRequirement, representedShares, totalSharesOutstanding]
   );
 
-  const voteMatrixProposals = React.useMemo(() => {
+  const voteMatrixProposals = useMemo(() => {
     const positionsById = new Map(
       filteredPositions.map((position) => [position.id, position])
     );
@@ -982,14 +981,32 @@ export function useTabulationInsights(
         continue;
       }
 
-      if (vote.vote === "FOR") {
-        row.for += vote.sharesVoting;
-      } else if (vote.vote === "AGAINST") {
-        row.against += vote.sharesVoting;
-      } else if (vote.vote === "ABSTAIN") {
-        row.abstain += vote.sharesVoting;
-      } else {
-        row.withhold += vote.sharesVoting;
+      switch (vote.vote) {
+        case "FOR": {
+          row.for += vote.sharesVoting;
+
+          break;
+        }
+        case "AGAINST": {
+          row.against += vote.sharesVoting;
+
+          break;
+        }
+        case "ABSTAIN": {
+          row.abstain += vote.sharesVoting;
+
+          break;
+        }
+        case "WITHHOLD": {
+          row.withhold += vote.sharesVoting;
+
+          break;
+        }
+        default: {
+          // Unknown vote types count as withheld, matching the prior
+          // catch-all rather than silently dropping the shares.
+          row.withhold += vote.sharesVoting;
+        }
       }
     }
 
