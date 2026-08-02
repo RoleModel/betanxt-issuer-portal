@@ -1,5 +1,6 @@
 "use client";
 
+import { HowToVoteOutlined } from "@mui/icons-material";
 import {
   Box,
   Card,
@@ -15,12 +16,9 @@ import {
   PatternLines,
   PatternOrientation,
 } from "@visx/pattern";
-import { useId } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 
 import type { VoteMatrixRow } from "@/hooks/useTabulationInsights";
-
-import { EmptyState } from "../EmptyState";
-import { HowToVoteOutlined } from "@mui/icons-material";
 
 import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
 import { formatNumber } from "../../utils/number-utilities";
@@ -33,6 +31,7 @@ import {
   formatTabulationMetric,
   type TabulationDisplayMode,
 } from "../../utils/tabulation-display";
+import { EmptyState } from "../EmptyState";
 import {
   holderTypes,
   sumRowOutcomes,
@@ -129,6 +128,9 @@ interface BarLabelAtBaseProps {
   readonly totalShares: number;
 }
 
+/** Gap between the label and the bar end, inside or outside. */
+const labelInset = 8;
+
 const BarLabelAtBase = ({
   displayMode,
   holderTotals,
@@ -136,20 +138,73 @@ const BarLabelAtBase = ({
 }: BarLabelAtBaseProps) => {
   const xScale = useXScale<"linear">();
   const yScale = useYScale<"band">();
+  const labelNodes = useRef(new Map<string, SVGTextElement | null>());
+  const [labelWidths, setLabelWidths] = useState<ReadonlyMap<string, number>>(
+    () => new Map()
+  );
+
+  const labels = holderTypes.flatMap((holderType, index) => {
+    const total = holderTotals[index] ?? 0;
+    const y = yScale(holderType);
+
+    if (total === 0 || y === undefined) {
+      return [];
+    }
+
+    return [
+      {
+        displayedTotal:
+          displayMode === "numbers" ? total : (total / totalShares) * 100,
+        holderType,
+        text: formatTabulationMetric(total, totalShares, displayMode).display,
+        y,
+      },
+    ];
+  });
+
+  // Re-measure only when the rendered strings change. Glyph width depends on
+  // the text and the (fixed) font, not on the scales, so resizing does not need
+  // a fresh measurement - the fit calculation below reads the scales directly.
+  const labelSignature = labels
+    .map((label) => `${label.holderType}:${label.text}`)
+    .join("|");
+
+  // Measured rather than estimated from character count: an estimate misjudges
+  // exactly the boundary cases this exists to catch. A layout effect runs
+  // before paint, so the flip is never visible. The equality bail is a second
+  // guard - without it a re-render would re-measure and loop.
+  // Measuring before paint is the one case React prescribes a layout effect
+  // plus state for, so the set-state-in-effect rule is suppressed deliberately
+  // rather than worked around. The equality bail below is what keeps it from
+  // becoming the update chain that rule is guarding against.
+  useLayoutEffect(() => {
+    const measured = new Map<string, number>();
+    for (const [key, node] of labelNodes.current) {
+      if (node) {
+        measured.set(key, node.getComputedTextLength());
+      }
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLabelWidths((previous) => {
+      const unchanged =
+        previous.size === measured.size &&
+        [...measured].every(([key, width]) => previous.get(key) === width);
+      return unchanged ? previous : measured;
+    });
+  }, [labelSignature]);
 
   return (
     <g aria-label="Holder type totals">
-      {holderTypes.map((holderType, index) => {
-        const total = holderTotals[index] ?? 0;
-        const y = yScale(holderType);
-
-        if (total === 0 || y === undefined) {
-          return null;
-        }
-
-        const displayedTotal =
-          displayMode === "numbers" ? total : (total / totalShares) * 100;
-        const metric = formatTabulationMetric(total, totalShares, displayMode);
+      {labels.map(({ displayedTotal, holderType, text, y }) => {
+        const barStart = xScale(0);
+        const barEnd = xScale(displayedTotal);
+        const measuredWidth = labelWidths.get(holderType);
+        // Before the first measurement, assume it fits: that keeps the label in
+        // its usual place for one frame instead of flicking it outside.
+        const fitsInsideBar =
+          measuredWidth === undefined ||
+          measuredWidth + labelInset * 2 <= barEnd - barStart;
 
         return (
           <text
@@ -159,13 +214,16 @@ const BarLabelAtBase = ({
             fontWeight="bold"
             key={holderType}
             paintOrder="stroke"
+            ref={(node) => {
+              labelNodes.current.set(holderType, node);
+            }}
             stroke="var(--mui-palette-background-paper)"
             strokeWidth="2"
-            textAnchor="end"
-            x={xScale(displayedTotal) - 8}
+            textAnchor={fitsInsideBar ? "end" : "start"}
+            x={fitsInsideBar ? barEnd - labelInset : barEnd + labelInset}
             y={y + yScale.bandwidth() - 8}
           >
-            {metric.display}
+            {text}
           </text>
         );
       })}
