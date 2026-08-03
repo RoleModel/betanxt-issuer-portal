@@ -1,28 +1,19 @@
 "use client";
 
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Card, CardContent, CardHeader, Chip, Stack, Typography } from "@mui/material";
 import { Gauge } from "@mui/x-charts/Gauge";
 
+import GaugeCenterLabel from "@/components/Reporting/GaugeCenterLabel";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
+
 import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
-import {
-  formatQuorumRequirementPercentLabel,
-  type QuorumGaugeViewModel,
-} from "../../utils/quorum";
+import { formatQuorumRequirementPercentLabel, type QuorumGaugeViewModel } from "../../utils/quorum";
 import {
   tabulationCardContentStartStyles,
   tabulationCardHeaderStyles,
   tabulationCardStyles,
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
-import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 interface QuorumGaugeCardProps {
   readonly title?: string;
@@ -31,12 +22,7 @@ interface QuorumGaugeCardProps {
   readonly className?: string;
 }
 
-const QuorumGaugeCard = ({
-  title,
-  model,
-  loading = false,
-  className,
-}: QuorumGaugeCardProps) => {
+const QuorumGaugeCard = ({ title, model, loading = false, className }: QuorumGaugeCardProps) => {
   const { displayMode } = useTabulationDisplay();
   const quorumMet = model?.quorumMet === true;
   const statusLabel = quorumMet ? "Quorum Met" : "Below Quorum";
@@ -44,15 +30,15 @@ const QuorumGaugeCard = ({
   const displayTitle = title ?? "Quorum tracker";
   const representedShares = model?.representedShares ?? 0;
   const totalOutstandingShares = model?.totalOutstandingShares ?? 0;
-  const representedMetric = formatTabulationMetric(
+  const representedMetric: ReturnType<typeof formatTabulationMetric> = formatTabulationMetric(
     representedShares,
     totalOutstandingShares,
-    displayMode
+    displayMode,
   );
   const requiredMetric = formatTabulationMetric(
     model?.requiredShares ?? 0,
     totalOutstandingShares,
-    displayMode
+    displayMode,
   );
 
   return (
@@ -99,15 +85,10 @@ const QuorumGaugeCard = ({
                       ? representedShares
                       : Math.min(model.percentRepresented, 100)
                   }
-                  valueMax={
-                    displayMode === "numbers"
-                      ? Math.max(totalOutstandingShares, 1)
-                      : 100
-                  }
+                  valueMax={displayMode === "numbers" ? Math.max(totalOutstandingShares, 1) : 100}
                   startAngle={-110}
                   endAngle={110}
-                  text={() => representedMetric.display}
-                  sx={(theme) => ({
+                  sx={{
                     "& .MuiGauge-valueArc": {
                       fill: model.quorumMet
                         ? "var(--mui-palette-primary-main)"
@@ -116,14 +97,23 @@ const QuorumGaugeCard = ({
                     "& .MuiGauge-referenceArc": {
                       fill: "var(--mui-palette-divider)",
                     },
-                    "&.MuiChartsSurface-root .MuiGauge-valueText": {
-                      fontSize: 36,
-                      strokeWidth: 1.5,
-                      stroke: theme.vars.palette.text.primary,
-                      transform: "translate(0px, 0px)",
-                    },
-                  })}
-                />
+                  }}
+                >
+                  {/* In place of Gauge's own `text`, so the figure reads as the
+                      same kind of number the donuts show. */}
+                  <GaugeCenterLabel
+                    data={{
+                      centerTooltip: representedMetric.alternate,
+                      centerValue: representedMetric.display,
+                      label:
+                        displayMode === "numbers"
+                          ? "Shares represented"
+                          : "of outstanding",
+                      sliceData: [],
+                      total: representedShares,
+                    }}
+                  />
+                </Gauge>
               </Box>
             </CustomTooltip>
 
