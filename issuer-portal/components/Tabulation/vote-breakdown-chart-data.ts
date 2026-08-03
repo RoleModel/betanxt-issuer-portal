@@ -1,4 +1,5 @@
 import type { VoteMatrixRow } from "@/hooks/useTabulationInsights";
+
 import { voteChartColors } from "@/utils/vote-chart-colors";
 
 export type VoteOutcomeKey = keyof Pick<
@@ -87,7 +88,7 @@ export const pieVoteOutcomes: readonly PieVoteOutcome[] = [
     ...voteChartColors.outcomes.abstain,
     key: "abstain",
     keys: ["abstain", "withhold"],
-    label: "Abstain / Withhold",
+    label: "Withhold / Abstain",
   },
 ];
 
