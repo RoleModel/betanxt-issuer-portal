@@ -299,7 +299,6 @@ const PastMeetingsPage = () => {
           orderBy={orderBy}
           onRequestSort={handleRequestSort}
           meetings={sortedMeetings}
-          rawMeetingsCount={meetings.length}
           loading={loading}
           formatDate={formatDate}
         />

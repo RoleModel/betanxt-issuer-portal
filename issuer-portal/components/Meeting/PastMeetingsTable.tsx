@@ -18,11 +18,11 @@ import {
   Typography,
 } from "@mui/material";
 import NextLink from "next/link";
-import React from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
 import CusipValue from "@/components/ui/CusipValue";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 import SkeletonTable from "@/components/ui/SkeletonTable";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import { truncateNumber } from "@/utils/number-utilities";
@@ -43,7 +43,6 @@ interface PastMeetingsTableProps {
   readonly orderBy?: keyof PastMeetingData;
   readonly onRequestSort?: (property: keyof PastMeetingData) => void;
   readonly meetings: PastMeetingData[];
-  readonly rawMeetingsCount?: number;
   readonly loading: boolean;
   readonly formatDate: (dateString: string) => string;
   readonly error?: string | null;
@@ -60,7 +59,6 @@ const PastMeetingsTable = ({
   orderBy = "meetingDate",
   onRequestSort,
   meetings,
-  rawMeetingsCount: _rawMeetingsCount = meetings.length,
   loading,
   formatDate,
   error,
@@ -110,7 +108,7 @@ const PastMeetingsTable = ({
     );
   }
 
-  if (error) {
+  if (error != null) {
     return (
       <Card>
         {showHeader ? <CardHeader title="Past Meetings" /> : null}
@@ -175,7 +173,7 @@ const PastMeetingsTable = ({
                     </TableCell>
                     <TableCell size="small">
                       <Typography variant="body3">
-                        {meeting.meetingDate
+                        {meeting.meetingDate != null
                           ? formatDate(meeting.meetingDate)
                           : "TBD"}
                       </Typography>
@@ -192,15 +190,17 @@ const PastMeetingsTable = ({
                               mb: 0.5,
                             }}
                           >
-                            <Typography
-                              variant="body3"
-                              sx={{ fontWeight: 600 }}
+                            <CustomTooltip
+                              title={truncateNumber(meeting.votingShares)}
+                              placement="top"
                             >
-                              {meeting.participationPercent}%
-                            </Typography>
-                            <Typography variant="body3" color="text.secondary">
-                              {truncateNumber(meeting.votingShares)}
-                            </Typography>
+                              <Typography
+                                variant="body3"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {meeting.participationPercent}%
+                              </Typography>
+                            </CustomTooltip>
                           </Box>
                           <LinearProgress
                             variant="determinate"
