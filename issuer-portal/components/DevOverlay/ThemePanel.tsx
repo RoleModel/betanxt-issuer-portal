@@ -144,7 +144,9 @@ export const ThemePanel = ({
         "Issuer Portal — client color theme pipeline",
         [
           "Everything that turns a client ticker into a rendered theme, in reading order.",
-          ...themePipeline.map((step) => `- **${step.title}** — ${step.detail}`),
+          ...themePipeline.map(
+            (step) => `- **${step.title}** — ${step.detail}`
+          ),
         ],
         found
       ),

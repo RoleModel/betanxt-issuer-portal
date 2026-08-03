@@ -118,6 +118,26 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   const parameters = new URL(request.url).searchParams;
+  const requestedNames = parameters.get("components");
+
+  // Which of these names the repo actually defines. The overlay asks so it can
+  // tell an app component from a library one by the file system rather than by
+  // guessing at a name — MUI X chart internals and the app's own chart
+  // components are named too much alike for a heuristic to settle it.
+  if (requestedNames !== null) {
+    const names = requestedNames
+      .split(",")
+      .filter((name) => COMPONENT_NAME_PATTERN.test(name))
+      .slice(0, 24);
+    const index = await getFileIndex();
+
+    return NextResponse.json({
+      known: names.filter((name) =>
+        index.some((filePath) => scoreCandidate(filePath, name) === 0)
+      ),
+    });
+  }
+
   const requestedPath = parameters.get("file");
 
   if (requestedPath !== null) {

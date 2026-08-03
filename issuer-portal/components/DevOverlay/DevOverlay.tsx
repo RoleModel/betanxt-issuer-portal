@@ -12,6 +12,7 @@ import {
   getComponentStack,
   getDomPath,
   getMuiComponentName,
+  markKnownComponents,
   readComputedStyles,
 } from "./inspect";
 import { ThemePanel } from "./ThemePanel";
@@ -55,6 +56,46 @@ const excerpt = (source: string, line: number): string => {
 };
 
 /**
+ * Names already confirmed against the repo, so hovering does not re-ask.
+ *
+ * @remarks
+ * Module-level rather than component state: the answer for a given name cannot
+ * change while the dev server is running, and the map has to survive the
+ * overlay being toggled off and on.
+ */
+const knownComponentCache = new Map<string, boolean>();
+
+const confirmAppComponents = async (
+  names: readonly string[]
+): Promise<ReadonlySet<string>> => {
+  const unasked = names.filter((name) => !knownComponentCache.has(name));
+
+  if (unasked.length > 0) {
+    try {
+      const response = await fetch(
+        `/api/dev/source?components=${encodeURIComponent(unasked.join(","))}`
+      );
+      const data: unknown = await response.json();
+      const known = Reflect.get(data as object, "known");
+      const found = new Set(
+        Array.isArray(known) ? known.filter((n): n is string => typeof n === "string") : []
+      );
+
+      for (const name of unasked) {
+        knownComponentCache.set(name, found.has(name));
+      }
+    } catch {
+      // Leave them unresolved; the name heuristic already picked a default.
+      for (const name of unasked) {
+        knownComponentCache.set(name, false);
+      }
+    }
+  }
+
+  return new Set(names.filter((name) => knownComponentCache.get(name) === true));
+};
+
+/**
  * Hover-to-inspect overlay for local development.
  *
  * @remarks
@@ -72,15 +113,20 @@ export const DevOverlay = () => {
   const { currentClient } = useClient();
   const [inspection, setInspection] = useState<Inspection | null>(null);
   const [isInspecting, setIsInspecting] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
   const [selectedComponent, setSelectedComponent] = useState<string | null>(
     null
   );
   const [source, setSource] = useState<SourceResult | null>(null);
   const [sourceError, setSourceError] = useState<string | null>(null);
   const [openPanel, setOpenPanel] = useState<"theme" | "tokens" | null>(null);
+  const [knownNames, setKnownNames] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
   // Shadows `isInspecting` for the window listeners, which are registered once.
   const inspectingRef = useRef(false);
   const autoLoadedKey = useRef<string | null>(null);
+  const pinnedRef = useRef(false);
 
   const loadSource = useCallback(async (name: string): Promise<void> => {
     setSelectedComponent(name);
@@ -114,33 +160,84 @@ export const DevOverlay = () => {
 
     let frame = 0;
 
+    /** `null` when the event came from the overlay's own chrome. */
+    const inspectableTarget = (event: MouseEvent): Element | null => {
+      const { target } = event;
+
+      // Element, not HTMLElement: everything inside a chart is SVG, and
+      // SVGElement does not extend HTMLElement — testing for HTMLElement meant
+      // no chart was ever inspectable.
+      if (
+        !(target instanceof Element) ||
+        target.closest(".ipdev-card") !== null ||
+        target.closest(".ipdev-panel") !== null ||
+        target.closest(".ipdev-hint") !== null
+      ) {
+        return null;
+      }
+
+      return target;
+    };
+
+    const inspect = (target: Element): void => {
+      setInspection({
+        computed: readComputedStyles(target),
+        domPath: getDomPath(target),
+        element: describeElement(target),
+        muiName: getMuiComponentName(target),
+        rect: target.getBoundingClientRect(),
+        stack: getComponentStack(target),
+      });
+    };
+
     const onPointerMove = (event: MouseEvent): void => {
-      if (!inspectingRef.current) {
+      // A pinned inspection stops following the pointer, which is the whole
+      // point of pinning: the card can be read and copied from without the
+      // target changing on the way to it.
+      if (!inspectingRef.current || pinnedRef.current) {
         return;
       }
 
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const { target } = event;
-
-        if (
-          !(target instanceof HTMLElement) ||
-          target.closest(".ipdev-card") !== null ||
-          target.closest(".ipdev-panel") !== null ||
-          target.closest(".ipdev-hint") !== null
-        ) {
-          return;
+        const target = inspectableTarget(event);
+        if (target !== null) {
+          inspect(target);
         }
-
-        setInspection({
-          computed: readComputedStyles(target),
-          domPath: getDomPath(target),
-          element: describeElement(target),
-          muiName: getMuiComponentName(target),
-          rect: target.getBoundingClientRect(),
-          stack: getComponentStack(target),
-        });
       });
+    };
+
+    /**
+     * Click pins whatever is under the pointer; clicking again releases it.
+     *
+     * @remarks
+     * Capturing and suppressing the click matters — while inspecting, the
+     * pointer is over real controls, and pinning a row in a table must not also
+     * navigate away from the page being inspected.
+     */
+    const onClick = (event: MouseEvent): void => {
+      if (!inspectingRef.current) {
+        return;
+      }
+
+      const target = inspectableTarget(event);
+      if (target === null) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (pinnedRef.current) {
+        pinnedRef.current = false;
+        setIsPinned(false);
+        inspect(target);
+        return;
+      }
+
+      pinnedRef.current = true;
+      setIsPinned(true);
+      inspect(target);
     };
 
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -149,6 +246,8 @@ export const DevOverlay = () => {
         setIsInspecting(inspectingRef.current);
 
         if (!inspectingRef.current) {
+          pinnedRef.current = false;
+          setIsPinned(false);
           setInspection(null);
         }
         return;
@@ -156,7 +255,9 @@ export const DevOverlay = () => {
 
       if (event.key === "Escape") {
         inspectingRef.current = false;
+        pinnedRef.current = false;
         setIsInspecting(false);
+        setIsPinned(false);
         setInspection(null);
         setOpenPanel(null);
         return;
@@ -173,17 +274,45 @@ export const DevOverlay = () => {
     };
 
     window.addEventListener("mousemove", onPointerMove, true);
+    window.addEventListener("click", onClick, true);
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("mousemove", onPointerMove, true);
+      window.removeEventListener("click", onClick, true);
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [enabled]);
 
+  // Ask the repo which of these names it actually defines, then classify from
+  // the answer rather than from the shape of the name.
+  useEffect(() => {
+    if (inspection === null) {
+      return;
+    }
+
+    let cancelled = false;
+    const names = inspection.stack.map((frame) => frame.name);
+
+    void confirmAppComponents(names).then((known) => {
+      if (!cancelled) {
+        setKnownNames(known);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [inspection]);
+
+  const stack =
+    inspection === null
+      ? []
+      : markKnownComponents(inspection.stack, knownNames);
+
   // The first app component in the stack is the one worth opening by default.
-  const suggested = inspection?.stack.find((frame) => frame.isAppComponent);
+  const suggested = stack.find((frame) => frame.isAppComponent);
 
   // Keyed on the element, not on the selection: picking a different component
   // out of the chain must survive the next re-render rather than snapping back
@@ -206,7 +335,7 @@ export const DevOverlay = () => {
     return null;
   }
 
-  const selectedFrame = inspection?.stack.find(
+  const selectedFrame = stack.find(
     (frame) => frame.name === selectedComponent
   );
 
@@ -216,7 +345,7 @@ export const DevOverlay = () => {
 
       {inspection === null ? null : (
         <div
-          className="ipdev-highlight"
+          className={`ipdev-highlight${isPinned ? " is-pinned" : ""}`}
           style={{
             height: inspection.rect.height + 6,
             left: inspection.rect.left - 3,
@@ -228,7 +357,11 @@ export const DevOverlay = () => {
 
       <div className="ipdev-hint">
         <span>
-          {isInspecting ? "inspecting — ⌥ or esc to stop" : "⌥ inspect"}
+          {isInspecting
+            ? isPinned
+              ? "pinned — click to release · esc to stop"
+              : "inspecting — click to pin · ⌥ or esc to stop"
+            : "⌥ inspect"}
         </span>
         <button
           aria-pressed={openPanel === "tokens"}
@@ -277,7 +410,7 @@ export const DevOverlay = () => {
           <div className="ipdev-section">
             <h4>Component tree — innermost first</h4>
             <div className="ipdev-chain">
-              {inspection.stack.map((frame, index) => (
+              {stack.map((frame, index) => (
                 <span key={frame.name}>
                   {index === 0 ? null : (
                     <span className="ipdev-chain-sep"> ‹ </span>

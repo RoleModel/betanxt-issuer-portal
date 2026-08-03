@@ -103,11 +103,25 @@ export interface ComponentFrame {
   readonly props: readonly [string, string][];
 }
 
-/** MUI, design-system and other vendor components all render through these. */
-const libraryPrefixes = ["Mui", "BN", "Grid", "Pie", "Chart", "Styled"];
+/**
+ * Vendor components, which are never what a reader is looking for.
+ *
+ * @remarks
+ * Prefix matching alone is not enough. `Mui` and `BN` are reliable, but MUI X
+ * charts render through a deep stack of internals — `PiePlot`, `ChartsSurface`,
+ * `DrawingProvider` — whose names collide with the app's own (`PieChartCenterLabel`,
+ * `ChartToggle`). Charts were the case that exposed it: every frame in a donut
+ * matched a naive prefix list, so no chart ever offered an app component to
+ * open. Only names that cannot be the app's are matched here; anything else is
+ * confirmed against the repo by {@link markKnownComponents}.
+ */
+const vendorPrefixes = ["Mui", "BN", "Emotion", "Styled"];
+const vendorPattern =
+  /^(?:Charts?[A-Z]|Pie(?:Arc|Plot|Chart$)|Bar(?:Plot|Element)|Line(?:Plot|Element)|Gauge[A-Z]|Axis|Drawing|Animated|Highlighted|Responsive|Localization|Transition|Portal|Popper|Modal|Backdrop|Grow|Fade|Slide|Collapse|NoSsr|Router|Link$|Image$)/u;
 
 const looksLikeAppComponent = (name: string): boolean =>
-  libraryPrefixes.every((prefix) => !name.startsWith(prefix));
+  vendorPrefixes.every((prefix) => !name.startsWith(prefix)) &&
+  !vendorPattern.test(name);
 
 const MAX_PROP_LENGTH = 80;
 
@@ -209,6 +223,28 @@ export const getComponentStack = (
 
   return frames;
 };
+
+/**
+ * Re-marks a stack against the components the repo actually contains.
+ *
+ * @param stack - Frames as read from the fiber tree.
+ * @param known - Names the dev source route resolved to a file.
+ * @returns The same frames, with `isAppComponent` decided by the file system
+ * rather than by guessing at a name.
+ *
+ * @remarks
+ * The name heuristic has to run first — it decides which names are worth asking
+ * about — but it cannot be the final word, because a vendor component and an app
+ * component can be named alike. Whether a file exists is not a guess.
+ */
+export const markKnownComponents = (
+  stack: readonly ComponentFrame[],
+  known: ReadonlySet<string>
+): readonly ComponentFrame[] =>
+  stack.map((frame) => ({
+    ...frame,
+    isAppComponent: known.has(frame.name),
+  }));
 
 /** `MuiCard-root` → `Card`, so the nearest design-system component is named. */
 export const getMuiComponentName = (element: Element): string | null => {

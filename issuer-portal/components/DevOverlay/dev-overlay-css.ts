@@ -19,6 +19,14 @@ export const devOverlayCss = `
   transition: all 60ms linear;
 }
 
+/* A pinned target no longer tracks the pointer, so the outline has to say so
+   on its own — otherwise a stationary highlight looks like a stuck one. */
+.ipdev-highlight.is-pinned {
+  border-style: dashed;
+  border-color: #ffb300;
+  box-shadow: 0 0 0 4px rgba(255, 179, 0, 0.2);
+}
+
 .ipdev-hint {
   position: fixed;
   bottom: 14px;
