@@ -10,12 +10,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import {
-  PieChart as MuiPieChart,
-  PieArcLabel,
-  pieClasses,
-  type PieArcLabelProps,
-} from "@mui/x-charts/PieChart";
+import { PieChart as MuiPieChart, pieClasses } from "@mui/x-charts/PieChart";
 import PieChart2IconWithAccent from "@rolemodel/betanxt-design-system/components/icons/brand/PieChart2Icon";
 
 import type {
@@ -47,6 +42,7 @@ import {
 
 const outcomeArcLabelMinAngle = 24;
 const outcomeArcLabelRadius = 116;
+const hiddenOutcomeColor = "var(--mui-palette-grey-300)";
 
 const arcLabelContrastColors = new Map<string, string>([
   ...voteOutcomes.map((outcome): [string, string] => [
@@ -87,6 +83,16 @@ export interface HolderOutcomeChartCardProps {
   readonly totalShares: number;
 }
 
+/**
+ * Shows the selected proposal's vote outcomes inside their holder-type totals.
+ *
+ * @remarks
+ * Holder legend toggles remove an entire holder from both rings. Outcome
+ * toggles preserve their original arc geometry as neutral-grey arcs and hide their
+ * labels, so the remaining colored arcs retain their share of the proposal's
+ * original vote total. The centre overlay uses the paired contrast token for
+ * the inner slice painted at the chart centre.
+ */
 const HolderOutcomeChartCard = ({
   hiddenHolderTypes,
   hiddenOutcomeKeys,
@@ -125,6 +131,19 @@ const HolderOutcomeChartCard = ({
     (sum, holderTotal) => sum + holderTotal,
     0
   );
+  const allHolderTotals = visibleHolderTypes.map((holderType) =>
+    rows
+      .filter((row) => row.holderType === holderType)
+      .reduce(
+        (sum, row) =>
+          sum +
+          voteOutcomes.reduce(
+            (outcomeTotal, outcome) => outcomeTotal + row[outcome.key],
+            0
+          ),
+        0
+      )
+  );
   // Totals across every outcome, ignoring the legend. This separates "this
   // proposal genuinely has no votes" from "the user has toggled the outcomes
   // off", which previously looked identical and swapped the whole chart -
@@ -142,7 +161,7 @@ const HolderOutcomeChartCard = ({
   // Equal, greyed slices so the donut keeps its geometry while nothing is
   // selected, rather than collapsing to nothing.
   const neutralRingData = visibleHolderTypes.map((holderType) => ({
-    color: "var(--mui-palette-action-disabledBackground)",
+    color: hiddenOutcomeColor,
     id: holderType,
     label: holderType,
     value: 1,
@@ -150,7 +169,7 @@ const HolderOutcomeChartCard = ({
   const actualOutcomeValues = new Map<string, number>();
   const outcomeArcLabels = new Map<string, string>();
   const holderRingData = visibleHolderTypes.flatMap((holderType, index) => {
-    const value = holderTotals[index] ?? 0;
+    const value = allHolderTotals[index] ?? 0;
     return value > 0
       ? [
           {
@@ -162,13 +181,26 @@ const HolderOutcomeChartCard = ({
         ]
       : [];
   });
+  // Every pie slice meets at the chart centre. MUI paints the final inner
+  // slice last, so use that holder's paired contrast token for the overlay.
+  const centerHolderType = [...visibleHolderTypes]
+    .reverse()
+    .find(
+      (holderType) =>
+        (allHolderTotals[visibleHolderTypes.indexOf(holderType)] ?? 0) > 0
+    );
+  const centerLabelColor = showNeutralRings
+    ? "var(--mui-palette-text-primary)"
+    : centerHolderType === undefined
+      ? "var(--mui-palette-text-primary)"
+      : holderStyles[centerHolderType].contrastColor;
   // Outer values are ordered by holder and each group sums to its inner slice,
   // keeping the shared ring boundaries aligned.
   const outcomeRingData = visibleHolderTypes.flatMap(
     (holderType, holderIndex) => {
-      const holderTotal = holderTotals[holderIndex] ?? 0;
+      const holderTotal = allHolderTotals[holderIndex] ?? 0;
       const holderRows = rows.filter((row) => row.holderType === holderType);
-      const outcomeValues = visibleOutcomes.flatMap((outcome) => {
+      const outcomeValues = voteOutcomes.flatMap((outcome) => {
         const value = holderRows.reduce(
           (sum, row) => sum + row[outcome.key],
           0
@@ -188,12 +220,15 @@ const HolderOutcomeChartCard = ({
 
       return outcomeValues.map(({ outcome, value }) => {
         const id = `${holderType}-${outcome.key}`;
+        const isHidden = hiddenOutcomeKeys.has(outcome.key);
         actualOutcomeValues.set(id, value);
-        outcomeArcLabels.set(id, outcome.label);
+        if (!isHidden) {
+          outcomeArcLabels.set(id, outcome.label);
+        }
         return {
-          color: outcome.color,
+          color: isHidden ? hiddenOutcomeColor : outcome.color,
           id,
-          label: `${holderType} · ${outcome.label}`,
+          label: isHidden ? "" : `${holderType} · ${outcome.label}`,
           value:
             (Math.max(value / holderTotal, minimumOutcomeShare) /
               weightedTotal) *
@@ -218,7 +253,7 @@ const HolderOutcomeChartCard = ({
   );
 
   return (
-    <Card sx={tabulationCardStyles}>
+    <Card data-testid="holder-outcome-chart-card" sx={tabulationCardStyles}>
       <CardHeader
         action={
           proposals.length > 1 ? (
@@ -322,7 +357,7 @@ const HolderOutcomeChartCard = ({
                 slots={{ pieArcLabel: ContrastPieArcLabel }}
                 sx={{
                   [`& .${pieClasses.arcLabel}`]: {
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: 700,
                   },
                 }}
@@ -333,7 +368,7 @@ const HolderOutcomeChartCard = ({
                       ? "No outcomes selected - use the legend below"
                       : `${formatNumber(visibleTotalShares)} visible shares voted`,
                     centerValue: centerMetric.display,
-                    fill: "var(--mui-palette-primary-contrastText)",
+                    fill: centerLabelColor,
                     label:
                       displayMode === "numbers"
                         ? "Shares voted"

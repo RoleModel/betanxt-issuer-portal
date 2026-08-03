@@ -2,7 +2,6 @@ import type {} from "@mui/material/themeCssVarsAugmentation";
 import type { Metadata, Viewport } from "next";
 
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter";
-import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import { LicenseInfo } from "@mui/x-license";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -70,16 +69,7 @@ const RootLayout = ({ children }: { readonly children: React.ReactNode }) => {
       suppressHydrationWarning
       className={`${roboto.variable} ${robotoCondensed.variable} ${Tungsten.variable}`}
     >
-      <head>
-        {process.env.NODE_ENV === "development" && (
-          <script
-            src="https://mcp.figma.com/mcp/html-to-design/capture.js"
-            async
-          />
-        )}
-      </head>
       <body>
-        <InitColorSchemeScript attribute="class" />
         <AppRouterCacheProvider options={{ key: "mui", enableCssLayer: true }}>
           <SessionProvider>
             <SWRProvider>

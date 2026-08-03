@@ -25,6 +25,7 @@ import {
   formatTabulationPercentage,
 } from "../../utils/tabulation-display";
 import { asArray, asRecord, asString } from "../../utils/typeUtils";
+import { voteChartColors } from "../../utils/vote-chart-colors";
 
 interface Position {
   accountType: string;
@@ -43,10 +44,12 @@ interface BeneficialVsRegisteredCardProps {
   readonly loadingOverride?: boolean;
 }
 
-const beneficialBarColor = "var(--mui-palette-secondary-main)";
-const beneficialBarContrastText = "var(--mui-palette-secondary-contrastText)";
-const registeredBarColor = "var(--mui-palette-primary-main)";
-const registeredBarContrastText = "var(--mui-palette-primary-contrastText)";
+const beneficialBarColor = voteChartColors.holders.beneficial.color;
+const beneficialBarContrastText =
+  voteChartColors.holders.beneficial.contrastColor;
+const registeredBarColor = voteChartColors.holders.registered.color;
+const registeredBarContrastText =
+  voteChartColors.holders.registered.contrastColor;
 
 const toFiniteNumber = (value: unknown): number => {
   if (typeof value === "number" && Number.isFinite(value)) {

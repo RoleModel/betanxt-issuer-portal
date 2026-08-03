@@ -36,11 +36,15 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
   const currentVotePercentage = currentData
     ? Number.parseFloat(currentData.vote_percentage)
     : 0;
+  const votedPercentage = Math.min(
+    Math.max(Math.round(currentVotePercentage), 0),
+    100
+  );
 
   const progress = currentData
     ? {
-        voted: Math.round(currentVotePercentage),
-        unvoted: Math.max(100 - currentVotePercentage, 0),
+        voted: votedPercentage,
+        unvoted: 100 - votedPercentage,
       }
     : { voted: 0, unvoted: 0 };
   const meetingStatus = currentData?.status ?? currentMeeting?.status ?? "";

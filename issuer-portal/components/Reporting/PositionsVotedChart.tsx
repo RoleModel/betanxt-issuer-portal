@@ -142,13 +142,13 @@ const PositionsVotedChart = ({
       id: "voted",
       label: "Voted",
       value: selectedData.registered.voted,
-      color: "var(--mui-palette-chartSeries-1-main)",
+      color: "var(--mui-palette-voteDistribution-dtc-voted)",
     },
     {
       id: "not-voted",
       label: "Unvoted",
       value: selectedData.registered.notVoted,
-      color: "var(--mui-palette-chartSeries-4-main)",
+      color: "var(--mui-palette-voteDistribution-dtc-unvoted)",
     },
   ];
 
@@ -157,13 +157,13 @@ const PositionsVotedChart = ({
       id: "voted",
       label: "Voted",
       value: selectedData.beneficial.voted,
-      color: "var(--mui-palette-chartSeries-1-main)",
+      color: "var(--mui-palette-voteDistribution-nonDtc-voted)",
     },
     {
       id: "not-voted",
       label: "Unvoted",
       value: selectedData.beneficial.notVoted,
-      color: "var(--mui-palette-chartSeries-4-main)",
+      color: "var(--mui-palette-voteDistribution-nonDtc-unvoted)",
     },
   ];
 

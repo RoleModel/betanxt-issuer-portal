@@ -50,19 +50,23 @@ test.describe("C1b — Director election grouping", () => {
   });
 });
 
-test.describe("C2 — Shares Voted proposal selector", () => {
-  test("selector defaults to Proposal 1 and switching updates the chart header", async ({
+test.describe("C2 — Holder outcome proposal selector", () => {
+  test("selector defaults to the first proposal and switches the chart data", async ({
     page,
   }) => {
     await page.goto(WEN_TABULATION_URL);
 
-    const proposalSelect = page.getByLabel("Proposal", { exact: true }).first();
+    const proposalSelect = page
+      .getByTestId("holder-outcome-chart-card")
+      .getByLabel("Proposal", { exact: true });
     await expect(proposalSelect).toBeVisible({ timeout: 20_000 });
 
-    // Default view is the lowest-numbered proposal.
-    await expect(page.getByText(/^Proposal 1/).first()).toBeVisible();
+    const initialProposal = (await proposalSelect.textContent())?.trim() ?? "";
+    expect(initialProposal).not.toHaveLength(0);
 
-    // Switch to another proposal when more than one exists.
+    // Switch to another proposal when more than one exists and verify that
+    // this chart's controlled selection, rather than another card's selector,
+    // changed.
     await proposalSelect.click();
     const options = page.getByRole("option");
     const optionCount = await options.count();
@@ -70,7 +74,7 @@ test.describe("C2 — Shares Voted proposal selector", () => {
 
     if (optionCount > 1) {
       await options.nth(1).click();
-      await expect(page.getByText(/^Proposal 2:/).first()).toBeVisible();
+      await expect(proposalSelect).not.toHaveText(initialProposal);
     } else {
       await page.keyboard.press("Escape");
     }

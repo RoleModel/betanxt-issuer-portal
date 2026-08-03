@@ -51,6 +51,7 @@ import { createClientThemeOptions } from "@rolemodel/client-theming/theme";
 
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
 import { clientBranding } from "@/utils/client-branding";
+import { generateChartPalette } from "@/utils/vote-chart-colors";
 
 const hasMainColor = (
   color: PaletteColorOptions
@@ -216,6 +217,37 @@ export interface LayoutVariables {
   eventTabsHeight: number;
 }
 
+interface VoteDistributionAccountPalette {
+  inner: string;
+  innerContrastText: string;
+  voted: string;
+  votedContrastText: string;
+  unvoted: string;
+  unvotedContrastText: string;
+}
+
+interface VoteDistributionPalette {
+  dtc: VoteDistributionAccountPalette;
+  nonDtc: VoteDistributionAccountPalette;
+}
+
+interface VoteChartColorPalette {
+  main: string;
+  contrastText: string;
+}
+
+interface VoteChartPalette {
+  registered: VoteChartColorPalette;
+  beneficial: VoteChartColorPalette;
+  web: VoteChartColorPalette;
+  print: VoteChartColorPalette;
+  ivr: VoteChartColorPalette;
+  for: VoteChartColorPalette;
+  against: VoteChartColorPalette;
+  abstain: VoteChartColorPalette;
+  withhold: VoteChartColorPalette;
+}
+
 declare module "@mui/material/styles" {
   interface Palette {
     keydate: Palette["primary"];
@@ -238,6 +270,8 @@ declare module "@mui/material/styles" {
     ];
     complete: string;
     aquaLight: string;
+    voteDistribution: VoteDistributionPalette;
+    voteChart: VoteChartPalette;
   }
   interface PaletteOptions {
     keydate?: PaletteOptions["primary"];
@@ -260,6 +294,8 @@ declare module "@mui/material/styles" {
     ];
     complete?: string;
     aquaLight?: string;
+    voteDistribution?: VoteDistributionPalette;
+    voteChart?: VoteChartPalette;
   }
 
   interface PaletteColor {
@@ -282,6 +318,10 @@ declare module "@mui/material/LinearProgress" {
     "chartSeries[5].main": true;
     "chartSeries[6].main": true;
     "chartSeries[7].main": true;
+    "voteChart.for": true;
+    "voteChart.against": true;
+    "voteChart.abstain": true;
+    "voteChart.withhold": true;
   }
 }
 
@@ -372,6 +412,74 @@ interface BrandingWithContrast extends BrandingColors {
 const getContrastText = (color: string): string =>
   getContrastRatio(color, "#fff") > 1.5 ? "#fff" : "#111";
 
+const getMostLegibleText = (color: string): string =>
+  getContrastRatio(color, "#fff") >= getContrastRatio(color, "#000")
+    ? "#fff"
+    : "#111";
+
+const createVoteDistributionAccountPalette = (
+  color: VoteChartColorPalette
+): VoteDistributionAccountPalette => {
+  const inner = `color-mix(in oklch, ${color.main} 85%, black 15%)`;
+  const unvoted = `color-mix(in oklch, ${color.main} 45%, white 55%)`;
+
+  return {
+    inner,
+    innerContrastText: color.contrastText,
+    voted: color.main,
+    votedContrastText: color.contrastText,
+    unvoted,
+    unvotedContrastText: "#111",
+  };
+};
+
+/**
+ * Resolves chart roles and their foreground colors for one client theme.
+ *
+ * @param primaryColor - The client primary brand color used for Registered.
+ * @param secondaryColor - The client secondary brand color used for
+ * Beneficial and source-color derivations.
+ * @returns The semantic chart palette installed at `palette.voteChart`.
+ *
+ * @remarks
+ * The role order comes from `generateChartPalette`. Each role receives a
+ * paired `contrastText` token, which chart overlays must use instead of a
+ * global palette contrast token because the underlying arc can be any role.
+ */
+const createVoteChartPalette = (
+  primaryColor: string,
+  secondaryColor: string
+): VoteChartPalette => {
+  const colors = generateChartPalette(primaryColor, secondaryColor);
+  const contrastTextByColor = [
+    getMostLegibleText(primaryColor),
+    getMostLegibleText(secondaryColor),
+    getMostLegibleText(secondaryColor),
+    "#111",
+    "#fff",
+    "#111",
+    "#fff",
+    "#111",
+    "#fff",
+  ] as const;
+  const colorAt = (index: number): VoteChartColorPalette => ({
+    main: colors[index] ?? primaryColor,
+    contrastText: contrastTextByColor[index] ?? "#111",
+  });
+
+  return {
+    registered: colorAt(0),
+    beneficial: colorAt(1),
+    web: colorAt(2),
+    print: colorAt(3),
+    ivr: colorAt(4),
+    for: colorAt(5),
+    against: colorAt(6),
+    abstain: colorAt(7),
+    withhold: colorAt(8),
+  };
+};
+
 const addContrastText = (branding: BrandingColors): BrandingWithContrast => ({
   ...branding,
   primaryContrastText: getContrastText(branding.primaryColor),
@@ -421,6 +529,12 @@ const linearProgressChartColors = new Set<string>([
   "chartSeries[6].main",
   "chartSeries[7].main",
 ]);
+const linearProgressVoteChartColors = new Set<string>([
+  "voteChart.for",
+  "voteChart.against",
+  "voteChart.abstain",
+  "voteChart.withhold",
+]);
 
 const getLinearProgressColorStyles = ({
   ownerState,
@@ -465,6 +579,23 @@ const getLinearProgressColorStyles = ({
     }
   }
 
+  if (linearProgressVoteChartColors.has(color)) {
+    const voteColor = /voteChart\.(?<role>for|against|abstain|withhold)/u.exec(
+      color
+    )?.groups?.role;
+
+    if (voteColor !== undefined) {
+      const chartColor = `var(--mui-palette-voteChart-${voteColor}-main)`;
+
+      return {
+        backgroundColor: `color-mix(in oklch, ${chartColor} 20%, transparent)`,
+        "& .MuiLinearProgress-bar": {
+          backgroundColor: chartColor,
+        },
+      };
+    }
+  }
+
   return {};
 };
 
@@ -475,6 +606,10 @@ const getLinearProgressColorStyles = ({
  */
 export const createClientTheme = (ticker?: string) => {
   const branding = getClientBranding(ticker);
+  const voteChart = createVoteChartPalette(
+    branding.primaryColor,
+    branding.secondaryColor
+  );
   const portableClientThemeOptions = createClientThemeOptions({
     primaryColor: branding.primaryColor,
     secondaryColor: branding.secondaryColor,
@@ -499,6 +634,11 @@ export const createClientTheme = (ticker?: string) => {
             dark: darken(branding.tertiaryColor, 0.2),
             contrastText: branding.tertiaryContrastText,
           },
+          voteDistribution: {
+            dtc: createVoteDistributionAccountPalette(voteChart.registered),
+            nonDtc: createVoteDistributionAccountPalette(voteChart.beneficial),
+          },
+          voteChart,
 
           appSwitcher: {
             background: "#171717",
@@ -583,6 +723,11 @@ export const createClientTheme = (ticker?: string) => {
       },
       dark: {
         palette: {
+          voteDistribution: {
+            dtc: createVoteDistributionAccountPalette(voteChart.registered),
+            nonDtc: createVoteDistributionAccountPalette(voteChart.beneficial),
+          },
+          voteChart,
           aquaLight: "#CFE2E5",
           keydate: {
             main: nxtBlue[900],

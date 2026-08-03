@@ -21,6 +21,7 @@ import { formatTabulationMetric } from "@/utils/tabulation-display";
 
 import type {
   AccountTypeId,
+  VoteDistributionData,
   VoteStatusId,
 } from "./vote-distribution-chart-data";
 
@@ -36,13 +37,6 @@ import {
   voteStatuses,
 } from "./vote-distribution-chart-data";
 import { VoteDistributionLegend } from "./VoteDistributionLegend";
-
-interface VoteDistributionData {
-  id: string;
-  label: string;
-  value: number;
-  color: string;
-}
 
 interface VoteDistributionChartProps {
   readonly data: VoteDistributionData[];

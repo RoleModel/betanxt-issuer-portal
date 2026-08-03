@@ -5,6 +5,7 @@ import { LineChart } from "@mui/x-charts";
 import React from "react";
 
 import SkeletonChart from "@/components/ui/SkeletonChart";
+import { voteChartColors } from "@/utils/vote-chart-colors";
 
 import CustomLegend from "./CustomLegend";
 
@@ -24,17 +25,17 @@ interface IndividualDirectorChartProps {
 const LEGEND_ITEMS = [
   {
     label: "For",
-    color: "var(--mui-palette-chartSeries-1-main)",
+    color: voteChartColors.outcomes.for.color,
     type: "line" as const,
   },
   {
     label: "Against",
-    color: "var(--mui-palette-chartSeries-5-main)",
+    color: voteChartColors.outcomes.against.color,
     type: "line" as const,
   },
   {
     label: "Abstain",
-    color: "var(--mui-palette-chartSeries-2-main)",
+    color: voteChartColors.outcomes.abstain.color,
     type: "line" as const,
   },
 ];
@@ -78,21 +79,21 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
           {
             data: forVotes,
             label: "For",
-            color: "var(--mui-palette-chartSeries-1-main)",
+            color: voteChartColors.outcomes.for.color,
             curve: "catmullRom",
             showMark: false,
           },
           {
             data: againstVotes,
             label: "Against",
-            color: "var(--mui-palette-chartSeries-5-main)",
+            color: voteChartColors.outcomes.against.color,
             curve: "catmullRom",
             showMark: false,
           },
           {
             data: abstainVotes,
             label: "Abstain",
-            color: "var(--mui-palette-chartSeries-2-main)",
+            color: voteChartColors.outcomes.abstain.color,
             curve: "catmullRom",
             showMark: false,
           },

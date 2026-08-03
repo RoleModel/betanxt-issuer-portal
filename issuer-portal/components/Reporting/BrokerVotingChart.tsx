@@ -13,6 +13,7 @@ import React, { useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import SkeletonChart from "@/components/ui/SkeletonChart";
 import { truncateNumber } from "@/utils/number-utilities";
+import { voteChartColors } from "@/utils/vote-chart-colors";
 
 interface BrokerVotingData {
   broker: string;
@@ -160,19 +161,19 @@ const BrokerVotingChart = ({
                 data: data.map((d) => d.for),
                 label: "For",
                 stack: "total",
-                color: "var(--mui-palette-chartSeries-1-main)",
+                color: voteChartColors.outcomes.for.color,
               },
               {
                 data: data.map((d) => d.against),
                 label: "Against",
                 stack: "total",
-                color: "var(--mui-palette-chartSeries-5-main)",
+                color: voteChartColors.outcomes.against.color,
               },
               {
                 data: data.map((d) => d.abstain),
                 label: "Abstain",
                 stack: "total",
-                color: "var(--mui-palette-action-active)",
+                color: voteChartColors.outcomes.abstain.color,
               },
             ]}
             height={Math.max(330, data.length * 50 + 80)}

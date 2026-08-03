@@ -44,6 +44,12 @@ interface ProposalGridRow {
   readonly totalSharesVoted: number;
 }
 
+type VotingMetricColor =
+  | "voteChart.abstain"
+  | "voteChart.against"
+  | "voteChart.for"
+  | "voteChart.withhold";
+
 const VotingMetricCell = ({
   percentage,
   shares,
@@ -53,7 +59,7 @@ const VotingMetricCell = ({
   readonly percentage: number;
   readonly shares: number;
   readonly totalShares: number;
-  readonly color: "primary" | "secondary" | "warning";
+  readonly color: VotingMetricColor;
 }) => {
   const { displayMode } = useTabulationDisplay();
   const isPercentage = displayMode === "percentages";
@@ -84,6 +90,13 @@ const VotingMetricCell = ({
           color={color}
           variant="determinate"
           value={progressValue}
+          sx={{
+            height: 6,
+            borderRadius: 3,
+            "& .MuiLinearProgress-bar": {
+              borderRadius: 3,
+            },
+          }}
         />
       </Box>
     </CustomTooltip>
@@ -175,6 +188,10 @@ const VotingTabulationTable = ({
     rows,
     (row) => row.recommendation
   );
+  const againstMetricColor: VotingMetricColor =
+    votingLabels.against === "Withhold"
+      ? "voteChart.withhold"
+      : "voteChart.against";
 
   const columns: GridColDef<ProposalGridRow>[] = [
     {
@@ -238,7 +255,7 @@ const VotingTabulationTable = ({
       ) =>
         parameters.row.isGroupHeader ? null : (
           <VotingMetricCell
-            color="secondary"
+            color="voteChart.for"
             percentage={parameters.row.forPercentage}
             shares={parameters.row.forShares}
             totalShares={parameters.row.totalSharesVoted}
@@ -262,7 +279,7 @@ const VotingTabulationTable = ({
       ) =>
         parameters.row.isGroupHeader ? null : (
           <VotingMetricCell
-            color="primary"
+            color={againstMetricColor}
             percentage={parameters.row.againstPercentage}
             shares={parameters.row.againstShares}
             totalShares={parameters.row.totalSharesVoted}
@@ -286,7 +303,7 @@ const VotingTabulationTable = ({
       ) =>
         parameters.row.isGroupHeader ? null : (
           <VotingMetricCell
-            color="warning"
+            color="voteChart.abstain"
             percentage={parameters.row.abstainPercentage}
             shares={parameters.row.abstainShares}
             totalShares={parameters.row.totalSharesVoted}

@@ -34,6 +34,7 @@ import {
   TabulationPieArcLabel,
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
+import { voteChartColors } from "../../utils/vote-chart-colors";
 import PieCenterLabel from "../Reporting/PieChartCenterLabel";
 
 interface SharesVotedChartProps {
@@ -103,19 +104,19 @@ const SharesVotedChart = ({
             id: 0,
             label: "For",
             shares: selectedProposal.votingResults.for.shares,
-            color: "var(--mui-palette-secondary-main)",
+            color: voteChartColors.outcomes.for.color,
           },
           {
             id: 1,
             label: "Against",
             shares: selectedProposal.votingResults.against.shares,
-            color: "var(--mui-palette-primary-main)",
+            color: voteChartColors.outcomes.against.color,
           },
           {
             id: 2,
             label: "Abstain",
             shares: selectedProposal.votingResults.abstain.shares,
-            color: "var(--mui-palette-warning-main)",
+            color: voteChartColors.outcomes.abstain.color,
           },
         ];
 

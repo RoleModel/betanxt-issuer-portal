@@ -22,6 +22,7 @@ import {
   TabulationPieArcLabel,
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
+import { voteChartColors } from "../../utils/vote-chart-colors";
 import PieCenterLabel from "../Reporting/PieChartCenterLabel";
 
 interface VotingActivityCardProps {
@@ -51,17 +52,17 @@ const votingMethodDefinitions = [
   {
     id: "web",
     label: "Web",
-    color: "var(--mui-palette-primary-main)",
+    color: voteChartColors.sources.web.color,
   },
   {
     id: "print",
     label: "Print",
-    color: "var(--mui-palette-secondary-main)",
+    color: voteChartColors.sources.print.color,
   },
   {
     id: "ivr",
     label: "IVR",
-    color: "var(--mui-palette-primary-light)",
+    color: voteChartColors.sources.ivr.color,
   },
 ] as const;
 
@@ -77,7 +78,7 @@ const buildVotingMethodsData = (
       id: "web",
       label: "Web",
       value: resolvedMethods.web,
-      color: "var(--mui-palette-primary-main)",
+      color: voteChartColors.sources.web.color,
       sharesVoted: 34,
     });
   }
@@ -87,7 +88,7 @@ const buildVotingMethodsData = (
       id: "print",
       label: "Print",
       value: resolvedMethods.paper,
-      color: "var(--mui-palette-secondary-main)",
+      color: voteChartColors.sources.print.color,
       sharesVoted: 12,
     });
   }
@@ -97,7 +98,7 @@ const buildVotingMethodsData = (
       id: "ivr",
       label: "IVR",
       value: resolvedMethods.phone,
-      color: "var(--mui-palette-primary-light)",
+      color: voteChartColors.sources.ivr.color,
       sharesVoted: 4,
     });
   }

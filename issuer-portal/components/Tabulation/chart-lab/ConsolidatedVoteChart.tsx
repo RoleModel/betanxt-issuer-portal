@@ -5,6 +5,7 @@ import { PieChart, pieClasses } from "@mui/x-charts/PieChart";
 import { mix } from "framer-motion";
 
 import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
+import { voteChartColors } from "@/utils/vote-chart-colors";
 
 import type { VoteBreakdownLeaf } from "./useVoteBreakdown";
 
@@ -23,10 +24,8 @@ interface Slice {
 
 /** Base hue per holder type — the innermost split. */
 const HOLDER_HEX: Record<VoteBreakdownLeaf["holderType"], string> = {
-  Beneficial:
-    "color-mix(in srgb, var(--mui-palette-primary-light) 80%, transparent 0%)",
-  Registered:
-    "color-mix(in srgb, var(--mui-palette-secondary-main) 80%, transparent 0%)",
+  Beneficial: `color-mix(in srgb, ${voteChartColors.holders.beneficial.color} 80%, transparent 0%)`,
+  Registered: `color-mix(in srgb, ${voteChartColors.holders.registered.color} 80%, transparent 0%)`,
 };
 
 const HOLDER_ORDER: VoteBreakdownLeaf["holderType"][] = [
