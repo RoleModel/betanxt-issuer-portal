@@ -29,6 +29,8 @@ After changing production variables, **redeploy issuer-portal** so `NEXT_PUBLIC_
 
 Errors, tracing and Session Replay report to the `rolemodel-software` / `issuer-portal` Sentry project. The DSN is committed as a fallback in `instrumentation-client.ts` / `sentry.server.config.ts` / `sentry.edge.config.ts` — a DSN is a public write-only ingest key, so no environment variable is needed just to report events.
 
+Sentry is enabled automatically in preview and production builds. It is disabled for local `next dev` by default so Fast Refresh and compiler errors do not flood the shared project. To deliberately test local reporting, set `NEXT_PUBLIC_SENTRY_ENABLED=true` for browser events and `SENTRY_ENABLED=true` for server/edge events in `issuer-portal/.env.local`.
+
 Source map upload is the part that needs a secret:
 
 | Variable | Where | Notes |

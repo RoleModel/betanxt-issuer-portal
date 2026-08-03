@@ -1,5 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
+import { isSentryEnabled } from "./lib/sentry";
+
 // A DSN is a public, write-only ingest key — safe to commit. The env var
 // takes precedence so a fork or a separate environment can redirect events.
 const SENTRY_DSN =
@@ -18,6 +20,9 @@ const SENTRY_DSN =
  */
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN ?? SENTRY_DSN,
+
+  // Keep local compiler and Fast Refresh errors out of the shared project.
+  enabled: isSentryEnabled(),
 
   // Flat 10% in every environment. Development previously sampled at 100%,
   // which flooded the project with local page loads (ui.long-animation-frame

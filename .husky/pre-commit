@@ -20,5 +20,7 @@ fi
 # local pre-commit hook.
 pnpm run lint
 pnpm --filter issuer-portal run type-check
-pnpm --filter mock-api-server run test:unit
+# Playwright forces color for useful worker output. Clear a user-level NO_COLOR
+# setting for this invocation so Node does not emit its conflicting-env warning.
+NO_COLOR= pnpm --filter mock-api-server run test:unit
 pnpm run check

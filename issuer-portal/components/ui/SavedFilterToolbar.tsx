@@ -61,7 +61,9 @@ const StyledTextField = styled(TextField)<{
 
 const StyledToolbarButton = styled(
   ToolbarButton as React.ComponentType<ToolbarButtonProps>
-)<{ ownerState: OwnerState }>(({ theme, ownerState }) => ({
+)<{
+  ownerState: OwnerState;
+}>(({ theme, ownerState }) => ({
   gridArea: "1 / 1",
   width: "min-content",
   height: "min-content",
@@ -131,7 +133,8 @@ const ActiveFilterChips = ({ onRemoveFilter }: ActiveFilterChipsProps) => {
                 onRemoveFilter(filter.id);
               }}
               size="small"
-              variant="outlined"
+              color="primary"
+              variant="filled"
             />
           </li>
         );
