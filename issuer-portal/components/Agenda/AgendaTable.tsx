@@ -19,6 +19,8 @@ import { useMeeting } from "@/contexts/MeetingContext";
 import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import { getVotingOptionsDisplay } from "@/utils/votingOptions";
 
+import GlossaryText from "@/components/ui/GlossaryText";
+
 interface AgendaTableProps {
   onUploadClick?: () => void;
 }
@@ -44,7 +46,7 @@ const AgendaTable = (_props: AgendaTableProps) => {
   return (
     <Card>
       <CardHeader
-        title="Meeting Agenda"
+        title={<GlossaryText>Meeting Agenda</GlossaryText>}
         sx={{
           backgroundColor: "background.default",
           borderBottom: "1px solid",

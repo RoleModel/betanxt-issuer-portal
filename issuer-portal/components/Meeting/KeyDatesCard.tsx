@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import React, { useRef } from "react";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import { getPhaseColor } from "@/components/mui-styling/theme";
 import {
   calculateDaysUntil,
@@ -222,7 +223,7 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
                           };
                         }}
                       >
-                        {phaseItem.title}
+                        <GlossaryText>{phaseItem.title}</GlossaryText>
                       </KeyDateTypography>
 
                       <KeyDateTypography

@@ -17,6 +17,7 @@ import React, { useEffect, useRef, useState } from "react";
 import type { KeyDate, Task } from "@/types/api-exports";
 import type { ContextMenuPosition } from "@/types/common";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import { shiftWeekendToMonday } from "@/components/Calendar/CalendarUtils";
 import TaskEditDialog from "@/components/Dialogs/TaskEditDialog";
 import { getPhaseColor } from "@/components/mui-styling/theme";
@@ -587,7 +588,7 @@ export const ListView: React.FC<ListViewProps> = ({
                                     theme.vars?.palette?.keydate?.contrastText,
                                 }}
                               >
-                                {keyDate.title}
+                                <GlossaryText>{keyDate.title}</GlossaryText>
                               </Typography>
                               <Typography
                                 variant="body3"

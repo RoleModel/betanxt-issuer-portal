@@ -10,6 +10,7 @@ import {
 import { BarChart } from "@mui/x-charts/BarChart";
 import React, { useState } from "react";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import { EmptyState } from "@/components/EmptyState";
 import SkeletonChart from "@/components/ui/SkeletonChart";
 import { truncateNumber } from "@/utils/number-utilities";
@@ -103,7 +104,7 @@ const BrokerVotingChart = ({
   return (
     <Card sx={{ height: "100%" }}>
       <CardHeader
-        title="Broker Voting by Proposal"
+        title={<GlossaryText>Broker Voting by Proposal</GlossaryText>}
         subheader={subheader}
         action={
           <TextField

@@ -14,6 +14,7 @@ import React, { useEffect, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import SkeletonTable from "@/components/ui/SkeletonTable";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import { useMailing } from "@/hooks/useMailing";
@@ -171,7 +172,7 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
                         color="text.secondary"
                         display="block"
                       >
-                        {item.label}
+                        <GlossaryText>{item.label}</GlossaryText>
                       </Typography>
                       <Typography
                         variant="body3"

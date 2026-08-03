@@ -16,6 +16,7 @@ import {
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
 import { useEffect, useState } from "react";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import { useClient } from "@/contexts/ClientContext";
 import { useMeeting } from "@/contexts/MeetingContext";
@@ -328,7 +329,7 @@ const DownloadReportsTable = ({
   return (
     <Card>
       <CardHeader
-        title="Download Meeting Reports"
+        title={<GlossaryText>Download Meeting Reports</GlossaryText>}
         subheader={
           currentClient?.company_name ?? currentClient?.short_name ?? "Company"
         }

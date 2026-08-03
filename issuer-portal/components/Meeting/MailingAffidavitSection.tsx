@@ -23,6 +23,7 @@ import Fade from "@mui/material/Fade";
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import type { UploadFile } from "@/components/FileUpload/types";
 import type { components } from "@/domain-models/generated-schema";
 
@@ -132,7 +133,7 @@ const MailingAffidavitSection = ({
         {
           params: { path: { meetingId } },
           body: {
-            title: "Affidavit of Mailing",
+            title: "<GlossaryText>Affidavit of Mailing</GlossaryText>",
             type: "affidavit-of-mailing",
             file: base64Data,
           },

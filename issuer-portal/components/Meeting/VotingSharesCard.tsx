@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import React from "react";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 
 interface MeetingAccessItem {
@@ -108,7 +109,9 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
               >
                 <TableCell>
                   <Box>
-                    <Typography variant="body3">{item.label}</Typography>
+                    <Typography variant="body3">
+                      <GlossaryText>{item.label}</GlossaryText>
+                    </Typography>
                     {item.fileDescription ? (
                       <Typography variant="caption" color="text.secondary">
                         {item.fileFormat} {item.fileDescription}
