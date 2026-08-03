@@ -14,8 +14,8 @@ export interface HolderTotalsBarLabelsProps {
   /** Parallel to `holderTypes` - both must describe the same visible bands. */
   readonly holderTotals: readonly number[];
   readonly holderTypes: readonly HolderType[];
-  /** Parallel foreground colors for labels that fit inside their source bar. */
-  readonly insideTextColors: readonly string[];
+  /** Foregrounds for labels that fit inside each holder's terminal source bar. */
+  readonly insideTextColors: ReadonlyMap<HolderType, string>;
   readonly totalShares: number;
 }
 
@@ -94,10 +94,12 @@ export const HolderTotalsBarLabels = ({
 
   return (
     <g aria-label="Holder type totals">
-      {labels.map(({ displayedTotal, holderType, text, y }, index) => {
+      {labels.map(({ displayedTotal, holderType, text, y }) => {
         const barStart = xScale(0);
         const barEnd = xScale(displayedTotal);
         const measuredWidth = labelWidths.get(holderType);
+        const insideTextColor =
+          insideTextColors.get(holderType) ?? "var(--mui-palette-text-primary)";
         // Before the first measurement, assume it fits: that keeps the label in
         // its usual place for one frame instead of flicking it outside.
         const fitsInsideBar =
@@ -106,10 +108,11 @@ export const HolderTotalsBarLabels = ({
 
         return (
           <text
+            data-inside-fill={insideTextColor}
             data-testid={`vote-matrix-total-${holderType.toLowerCase()}`}
             fill={
               fitsInsideBar
-                ? (insideTextColors[index] ?? "var(--mui-palette-text-primary)")
+                ? insideTextColor
                 : "var(--mui-palette-text-primary)"
             }
             fontSize="24"

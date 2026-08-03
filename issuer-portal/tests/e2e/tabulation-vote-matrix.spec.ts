@@ -21,3 +21,21 @@ test("tabulation combines holder type, source, and outcome in one chart", async 
     page.getByRole("heading", { name: "Beneficial vs. Registered" })
   ).toHaveCount(0);
 });
+
+test("source toggles update the total label foreground", async ({ page }) => {
+  await page.setViewportSize({ width: 1500, height: 950 });
+  await page.goto("/WEN/meeting/wen-special-meeting-2026/tabulation");
+
+  const beneficialTotal = page.getByTestId("vote-matrix-total-beneficial");
+  await expect(beneficialTotal).toBeVisible({ timeout: 30_000 });
+
+  const initialFill = await beneficialTotal.getAttribute("data-inside-fill");
+  expect(initialFill).not.toBeNull();
+
+  await page.getByTestId("source-legend-ivr").click();
+
+  await expect(beneficialTotal).not.toHaveAttribute(
+    "data-inside-fill",
+    initialFill
+  );
+});

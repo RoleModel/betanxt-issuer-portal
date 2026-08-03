@@ -39,6 +39,48 @@ export interface VotingSourceChartCardProps {
   readonly totalShares: number;
 }
 
+/**
+ * Resolves the foreground for each in-bar holder total.
+ *
+ * @param rows - Vote rows for the selected proposal.
+ * @param visibleHolderTypes - Holder bands currently rendered by the chart.
+ * @param hiddenSourceIds - Source series excluded by the legend.
+ * @returns A holder-keyed map of the terminal visible source's contrast color.
+ *
+ * @remarks
+ * The total label is right-aligned at the end of a stack. Its background is
+ * therefore the final non-empty visible source segment, not necessarily the
+ * final source in the fixed legend order. This map must be keyed by holder
+ * type: zero-total bands are omitted from the label list and would otherwise
+ * shift parallel array indexes.
+ */
+const getInsideTotalLabelColors = (
+  rows: readonly VoteMatrixRow[],
+  visibleHolderTypes: readonly HolderType[],
+  hiddenSourceIds: ReadonlySet<VoteSourceId>
+): ReadonlyMap<HolderType, string> =>
+  new Map(
+    visibleHolderTypes.map((holderType) => {
+      const terminalSource = [...voteSources].reverse().find((source) => {
+        if (hiddenSourceIds.has(source.id)) {
+          return false;
+        }
+
+        return rows.some(
+          (row) =>
+            row.holderType === holderType &&
+            row.source === source.label &&
+            sumRowOutcomes(row) > 0
+        );
+      });
+
+      return [
+        holderType,
+        terminalSource?.contrastColor ?? "var(--mui-palette-text-primary)",
+      ] as const;
+    })
+  );
+
 const VotingSourceChartCard = ({
   hiddenHolderTypes,
   hiddenSourceIds,
@@ -118,25 +160,11 @@ const VotingSourceChartCard = ({
       )
       .reduce((sum, row) => sum + sumRowOutcomes(row), 0)
   );
-  // The total label is anchored against the bar's right edge, so it sits over
-  // the final visible source segment. Its paired foreground is legible over
-  // that pattern without needing a high-contrast outline.
-  const insideTotalLabelColors = visibleHolderTypes.map((holderType) => {
-    const terminalSource = [...voteSources].reverse().find((source) => {
-      if (hiddenSourceIds.has(source.id)) {
-        return false;
-      }
-
-      return rows.some(
-        (row) =>
-          row.holderType === holderType &&
-          row.source === source.label &&
-          sumRowOutcomes(row) > 0
-      );
-    });
-
-    return terminalSource?.contrastColor ?? "var(--mui-palette-text-primary)";
-  });
+  const insideTotalLabelColors = getInsideTotalLabelColors(
+    rows,
+    visibleHolderTypes,
+    hiddenSourceIds
+  );
 
   return (
     <Card sx={tabulationCardStyles}>
