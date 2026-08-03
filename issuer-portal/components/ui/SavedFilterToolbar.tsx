@@ -25,12 +25,16 @@ import {
   ToolbarButton,
   gridColumnLookupSelector,
   gridFilterActiveItemsSelector,
+  gridPageCountSelector,
+  gridPaginationModelSelector,
   useGridApiContext,
   useGridSelector,
 } from "@mui/x-data-grid-pro";
 import * as React from "react";
 
 import type { SavedFilter } from "@/hooks/useSavedFilters";
+
+import GridTopPagination from "@/components/ui/GridTopPagination";
 
 interface OwnerState {
   expanded: boolean;
@@ -165,190 +169,202 @@ export const SavedFilterToolbar = ({
 }: SavedFilterToolbarProps) => {
   const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
   const exportMenuTriggerRef = React.useRef<HTMLButtonElement>(null);
+  const apiRef = useGridApiContext();
+  const pageCount = useGridSelector(apiRef, gridPageCountSelector);
+  const paginationModel = useGridSelector(apiRef, gridPaginationModelSelector);
 
   return (
-    <Toolbar>
-      <Tooltip title="Filters">
-        <FilterPanelTrigger render={<ToolbarButton />}>
-          <FilterListIcon fontSize="small" />
-        </FilterPanelTrigger>
-      </Tooltip>
+    <>
+      <GridTopPagination
+        count={pageCount}
+        onChange={(page) => {
+          apiRef.current.setPage(page - 1);
+        }}
+        page={paginationModel.page + 1}
+      />
+      <Toolbar>
+        <Tooltip title="Filters">
+          <FilterPanelTrigger render={<ToolbarButton />}>
+            <FilterListIcon fontSize="small" />
+          </FilterPanelTrigger>
+        </Tooltip>
 
-      <ActiveFilterChips onRemoveFilter={onRemoveFilter} />
+        <ActiveFilterChips onRemoveFilter={onRemoveFilter} />
 
-      {savedFilters.length > 0 ? (
-        <Box
-          aria-label="Saved filters"
-          component="ul"
-          sx={{
-            display: "flex",
-            gap: 0.75,
-            listStyle: "none",
-            m: 0,
-            minWidth: 0,
-            overflowX: "auto",
-            p: 0,
-            pl: 1,
-          }}
-        >
-          {savedFilters.map((filter) => {
-            const isActive = filter.id === activeFilterId;
-            return (
-              <li key={filter.id}>
-                <Chip
-                  aria-pressed={isActive}
-                  color={isActive ? "primary" : "default"}
-                  label={filter.name}
-                  onClick={() => {
-                    if (isActive) {
-                      onClear();
-                    } else {
-                      onApply(filter);
-                    }
-                  }}
-                  onDelete={() => {
-                    onDelete(filter.id);
-                  }}
-                  size="small"
-                  variant={isActive ? "filled" : "outlined"}
-                />
-              </li>
-            );
-          })}
-        </Box>
-      ) : null}
-
-      <QuickFilter
-        render={(quickFilterProps, state) => (
-          <div
-            {...quickFilterProps}
-            style={{ display: "flex", marginLeft: "auto", overflow: "clip" }}
+        {savedFilters.length > 0 ? (
+          <Box
+            aria-label="Saved filters"
+            component="ul"
+            sx={{
+              display: "flex",
+              gap: 0.75,
+              listStyle: "none",
+              m: 0,
+              minWidth: 0,
+              overflowX: "auto",
+              p: 0,
+              pl: 1,
+            }}
           >
-            <QuickFilterTrigger
-              render={(triggerProps, state) => (
-                <Tooltip title="Search" enterDelay={0}>
-                  <StyledToolbarButton
-                    aria-controls={triggerProps["aria-controls"]}
-                    aria-disabled={state.expanded}
-                    aria-expanded={triggerProps["aria-expanded"]}
-                    className={triggerProps.className}
-                    color="default"
-                    disabled={triggerProps.disabled}
-                    id={triggerProps.id}
-                    onClick={triggerProps.onClick}
-                    ownerState={{ expanded: state.expanded }}
-                    ref={triggerProps.ref}
-                    tabIndex={triggerProps.tabIndex}
-                    title={triggerProps.title}
-                  >
-                    <SearchIcon fontSize="small" />
-                  </StyledToolbarButton>
-                </Tooltip>
-              )}
-            />
-            <Box
-              sx={{
-                display: "flex",
-                overflow: "clip",
-                transition: "width 250ms ease-in-out",
-                width: state.expanded ? 220 : 0,
-              }}
-            >
-              <QuickFilterControl
-                aria-label="Search events"
-                placeholder="Search"
-                render={({ ref, ...controlProps }, state) => (
-                  // A plain input, as in the MUI recipe: TextField's prop surface
-                  // does not accept what the control passes down.
-                  <StyledTextField
-                    {...controlProps}
-                    ownerState={{ expanded: state.expanded }}
-                    inputRef={ref}
-                    aria-label="Search"
-                    placeholder="Search…"
-                    size="small"
-                    slotProps={{
-                      input: {
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon fontSize="small" />
-                          </InputAdornment>
-                        ),
-                        endAdornment: state.value ? (
-                          <InputAdornment position="end">
-                            <QuickFilterClear
-                              edge="end"
-                              size="small"
-                              aria-label="Clear search"
-                              material={{ sx: { marginRight: -0.75 } }}
-                            >
-                              <CancelIcon fontSize="small" />
-                            </QuickFilterClear>
-                          </InputAdornment>
-                        ) : null,
-                        ...controlProps.slotProps?.input,
-                      },
-                      ...controlProps.slotProps,
+            {savedFilters.map((filter) => {
+              const isActive = filter.id === activeFilterId;
+              return (
+                <li key={filter.id}>
+                  <Chip
+                    aria-pressed={isActive}
+                    color={isActive ? "primary" : "default"}
+                    label={filter.name}
+                    onClick={() => {
+                      if (isActive) {
+                        onClear();
+                      } else {
+                        onApply(filter);
+                      }
                     }}
+                    onDelete={() => {
+                      onDelete(filter.id);
+                    }}
+                    size="small"
+                    variant={isActive ? "filled" : "outlined"}
                   />
+                </li>
+              );
+            })}
+          </Box>
+        ) : null}
+
+        <QuickFilter
+          render={(quickFilterProps, state) => (
+            <div
+              {...quickFilterProps}
+              style={{ display: "flex", marginLeft: "auto", overflow: "clip" }}
+            >
+              <QuickFilterTrigger
+                render={(triggerProps, state) => (
+                  <Tooltip title="Search" enterDelay={0}>
+                    <StyledToolbarButton
+                      aria-controls={triggerProps["aria-controls"]}
+                      aria-disabled={state.expanded}
+                      aria-expanded={triggerProps["aria-expanded"]}
+                      className={triggerProps.className}
+                      color="default"
+                      disabled={triggerProps.disabled}
+                      id={triggerProps.id}
+                      onClick={triggerProps.onClick}
+                      ownerState={{ expanded: state.expanded }}
+                      ref={triggerProps.ref}
+                      tabIndex={triggerProps.tabIndex}
+                      title={triggerProps.title}
+                    >
+                      <SearchIcon fontSize="small" />
+                    </StyledToolbarButton>
+                  </Tooltip>
                 )}
               />
-            </Box>
-          </div>
-        )}
-      />
+              <Box
+                sx={{
+                  display: "flex",
+                  overflow: "clip",
+                  transition: "width 250ms ease-in-out",
+                  width: state.expanded ? 220 : 0,
+                }}
+              >
+                <QuickFilterControl
+                  aria-label="Search events"
+                  placeholder="Search"
+                  render={({ ref, ...controlProps }, state) => (
+                    // A plain input, as in the MUI recipe: TextField's prop surface
+                    // does not accept what the control passes down.
+                    <StyledTextField
+                      {...controlProps}
+                      ownerState={{ expanded: state.expanded }}
+                      inputRef={ref}
+                      aria-label="Search"
+                      placeholder="Search…"
+                      size="small"
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <SearchIcon fontSize="small" />
+                            </InputAdornment>
+                          ),
+                          endAdornment: state.value ? (
+                            <InputAdornment position="end">
+                              <QuickFilterClear
+                                edge="end"
+                                size="small"
+                                aria-label="Clear search"
+                                material={{ sx: { marginRight: -0.75 } }}
+                              >
+                                <CancelIcon fontSize="small" />
+                              </QuickFilterClear>
+                            </InputAdornment>
+                          ) : null,
+                          ...controlProps.slotProps?.input,
+                        },
+                        ...controlProps.slotProps,
+                      }}
+                    />
+                  )}
+                />
+              </Box>
+            </div>
+          )}
+        />
 
-      <Tooltip title="Columns">
-        <ColumnsPanelTrigger render={<ToolbarButton />}>
-          <ViewColumnIcon fontSize="small" />
-        </ColumnsPanelTrigger>
-      </Tooltip>
-      <Tooltip title="Export">
-        <ToolbarButton
-          ref={exportMenuTriggerRef}
-          id="export-menu-trigger"
-          aria-controls="export-menu"
-          aria-haspopup="true"
-          aria-expanded={exportMenuOpen ? "true" : undefined}
-          onClick={() => {
-            setExportMenuOpen(true);
-          }}
-        >
-          <FileDownloadIcon fontSize="small" />
-        </ToolbarButton>
-      </Tooltip>
-      <Menu
-        id="export-menu"
-        anchorEl={exportMenuTriggerRef.current}
-        open={exportMenuOpen}
-        onClose={() => {
-          setExportMenuOpen(false);
-        }}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{
-          list: {
-            "aria-labelledby": "export-menu-trigger",
-          },
-        }}
-      >
-        <ExportPrint
-          render={<MenuItem />}
-          onClick={() => {
+        <Tooltip title="Columns">
+          <ColumnsPanelTrigger render={<ToolbarButton />}>
+            <ViewColumnIcon fontSize="small" />
+          </ColumnsPanelTrigger>
+        </Tooltip>
+        <Tooltip title="Export">
+          <ToolbarButton
+            ref={exportMenuTriggerRef}
+            id="export-menu-trigger"
+            aria-controls="export-menu"
+            aria-haspopup="true"
+            aria-expanded={exportMenuOpen ? "true" : undefined}
+            onClick={() => {
+              setExportMenuOpen(true);
+            }}
+          >
+            <FileDownloadIcon fontSize="small" />
+          </ToolbarButton>
+        </Tooltip>
+        <Menu
+          id="export-menu"
+          anchorEl={exportMenuTriggerRef.current}
+          open={exportMenuOpen}
+          onClose={() => {
             setExportMenuOpen(false);
           }}
-        >
-          Print
-        </ExportPrint>
-        <ExportCsv
-          render={<MenuItem />}
-          onClick={() => {
-            setExportMenuOpen(false);
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
+          slotProps={{
+            list: {
+              "aria-labelledby": "export-menu-trigger",
+            },
           }}
         >
-          Download as CSV
-        </ExportCsv>
-      </Menu>
-    </Toolbar>
+          <ExportPrint
+            render={<MenuItem />}
+            onClick={() => {
+              setExportMenuOpen(false);
+            }}
+          >
+            Print
+          </ExportPrint>
+          <ExportCsv
+            render={<MenuItem />}
+            onClick={() => {
+              setExportMenuOpen(false);
+            }}
+          >
+            Download as CSV
+          </ExportCsv>
+        </Menu>
+      </Toolbar>
+    </>
   );
 };

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/todo */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 "use client";
 
 import type {
@@ -16,12 +18,17 @@ import { Box, Grid, IconButton, MenuItem, Typography } from "@mui/material";
 import {
   DataGrid,
   gridFilteredSortedRowIdsSelector,
+  gridPageCountSelector,
+  gridPaginationModelSelector,
   useGridApiRef,
 } from "@mui/x-data-grid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { TabulationPosition } from "@/hooks/useTabulationInsights";
 
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
+import GlossaryText from "@/components/ui/GlossaryText";
+import { GridTopPagination } from "@/components/ui/GridTopPagination";
 import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
 import { formatTabulationMetric } from "@/utils/tabulation-display";
 import {
@@ -31,8 +38,6 @@ import {
   singleSelectFilterOperators,
   textFilterOperators,
 } from "@/utils/tabulation-grid-filter-operators";
-import GlossaryText from "@/components/ui/GlossaryText";
-import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 // The built-in v8 grid toolbar accepts `additionalExportMenuItems`, but the
 // public slot-props type still points at the legacy toolbar props, so it has to
@@ -313,6 +318,28 @@ const PositionsTable = ({
 }: PositionsTableProps) => {
   const { displayMode } = useTabulationDisplay();
   const apiRef = useGridApiRef();
+  const [topPage, setTopPage] = useState(0);
+  const [topPageCount, setTopPageCount] = useState(1);
+
+  // Drives the pagination bar shown above the grid. Reading the grid's own
+  // filtered page selectors (the same ones the footer uses) keeps the top and
+  // bottom counts in sync; the subscription runs after commit to avoid updating
+  // during the grid's render.
+  useEffect(() => {
+    const api = apiRef.current;
+    if (!api) {
+      return undefined;
+    }
+
+    const syncPagination = () => {
+      setTopPage(gridPaginationModelSelector(apiRef).page);
+      setTopPageCount(gridPageCountSelector(apiRef));
+    };
+
+    syncPagination();
+    return api.subscribeEvent("stateChange", syncPagination);
+  }, [apiRef]);
+
   const [expandedPositionIds, setExpandedPositionIds] = useState<Set<string>>(
     new Set()
   );
@@ -531,6 +558,11 @@ const PositionsTable = ({
 
   return (
     <Box sx={{ width: "100%" }}>
+      <GridTopPagination
+        count={topPageCount}
+        onChange={(nextPage) => apiRef.current?.setPage(nextPage - 1)}
+        page={topPage + 1}
+      />
       <DataGrid
         apiRef={apiRef}
         autoHeight

@@ -1,9 +1,14 @@
+import { NextResponse } from "next/server";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { NextResponse } from "next/server";
+
+/* eslint-disable unicorn/no-top-level-assignment-in-function */
+/* eslint-disable compat/compat */
+/* eslint-disable func-style -- Next.js route handlers must be exported function declarations named GET/POST/etc. */
+/* eslint-disable @typescript-eslint/naming-convention -- Next.js requires the `GET` handler name; module constants use SCREAMING_CASE. */
+import { isDevOverlayEnabled } from "@/utils/developmentOverlay";
 
 import { sourceManifest } from "./source-manifest.generated";
-import { isDevOverlayEnabled } from "@/utils/developmentOverlay";
 
 /**
  * Serves a component's own source to the dev overlay.
@@ -27,7 +32,7 @@ import { isDevOverlayEnabled } from "@/utils/developmentOverlay";
 const SEARCH_ROOTS = ["components", "app", "contexts", "hooks", "utils", "lib"];
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx"]);
 const SKIP_DIRECTORIES = new Set(["node_modules", ".next", ".turbo", "dist"]);
-const COMPONENT_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9_]{0,63}$/u;
+const COMPONENT_NAME_PATTERN = /^[A-Za-z]\w{0,63}$/u;
 
 // Under `next dev` read the live tree; anywhere else there is none, so serve the
 // bundled snapshot instead.
@@ -117,7 +122,7 @@ const readSource = async (requested: string): Promise<string | null> => {
   }
 
   try {
-    return await readFile(path.resolve(process.cwd(), normalized), "utf8");
+    return await readFile(path.resolve(process.cwd(), normalized), "utf-8");
   } catch {
     return null;
   }
@@ -150,8 +155,9 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const parameters = new URL(request.url).searchParams;
-  const requestedNames = parameters.get("components");
+  const parameters = new URL(request.url);
+  const searchParameters = parameters.searchParams;
+  const requestedNames = searchParameters.get("components");
 
   // Which of these names the repo actually defines. The overlay asks so it can
   // tell an app component from a library one by the file system rather than by
@@ -171,7 +177,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     });
   }
 
-  const requestedPath = parameters.get("file");
+  const requestedPath = searchParameters.get("file");
 
   if (requestedPath !== null) {
     const source = await readSource(requestedPath);
@@ -184,7 +190,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       : NextResponse.json({ line: 1, path: toPosix(requestedPath), source });
   }
 
-  const name = parameters.get("component");
+  const name = searchParameters.get("component");
 
   if (name === null || !COMPONENT_NAME_PATTERN.test(name)) {
     return NextResponse.json(
@@ -196,6 +202,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   const index = await listSourcePaths();
   const byFilename = index
     .filter((filePath) => scoreCandidate(filePath, name) < 2)
+    // The array is already a fresh copy from `filter`, so sorting in place is safe.
     .sort(
       (first: string, second: string) =>
         scoreCandidate(first, name) - scoreCandidate(second, name)

@@ -8,8 +8,8 @@ import type { EventRow } from "@/utils/eventData";
 
 import { SavedFilterPanel } from "@/components/ui/SavedFilterPanel";
 import { SavedFilterToolbar } from "@/components/ui/SavedFilterToolbar";
-import { useEventRisk } from "@/hooks/useEventRisk";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
+import { useEventRisk } from "@/hooks/useEventRisk";
 
 import { createEventsDataGridColumns } from "./eventsDataGridColumns";
 import { useEventsFilterModel } from "./useEventsFilterModel";
@@ -85,74 +85,76 @@ export const EventsDataGrid = ({
   }
 
   return (
-    <DataGridPro
-      autoHeight
-      columns={columns}
-      disableRowSelectionOnClick
-      filterDebounceMs={0}
-      filterModel={filterModel}
-      initialState={{
-        pagination: { paginationModel: { page: 0, pageSize: 25 } },
-        sorting: { sortModel: [{ field: "recordDate", sort: "asc" }] },
-      }}
-      // Remounts when the signed-in user's assigned tickers change, which also
-      // resets the filter model seeded from them.
-      key={`events-grid-${assignedTickersKey}`}
-      loading={loading}
-      localeText={{ noRowsLabel: emptyMessage }}
-      onFilterModelChange={handleFilterModelChange}
-      pageSizeOptions={[10, 25, 50]}
-      pagination
-      rowHeight={56}
-      rows={rows}
-      showToolbar
-      slotProps={{
-        filterPanel: {
-          onAddFilter: handleAddFilter,
-          onClearFilters: clearFilters,
-          onSaveFilters: handleSaveFilters,
-          sx: {
-            // Event date takes a range and nothing else, so its row drops the
-            // operator select entirely and gives the space to the two pickers.
-            [`& .${gridClasses.filterForm}:has([data-event-date-range])`]: {
-              [`& .${gridClasses.filterFormOperatorInput}`]: {
-                display: "none",
+    <Box sx={{ display: "flex", width: "100%" }}>
+      <DataGridPro
+        autoHeight
+        columns={columns}
+        disableRowSelectionOnClick
+        filterDebounceMs={0}
+        filterModel={filterModel}
+        initialState={{
+          pagination: { paginationModel: { page: 0, pageSize: 25 } },
+          sorting: { sortModel: [{ field: "recordDate", sort: "asc" }] },
+        }}
+        // Remounts when the signed-in user's assigned tickers change, which also
+        // resets the filter model seeded from them.
+        key={`events-grid-${assignedTickersKey}`}
+        loading={loading}
+        localeText={{ noRowsLabel: emptyMessage }}
+        onFilterModelChange={handleFilterModelChange}
+        pageSizeOptions={[10, 25, 50]}
+        pagination
+        rowHeight={56}
+        rows={rows}
+        showToolbar
+        slotProps={{
+          filterPanel: {
+            onAddFilter: handleAddFilter,
+            onClearFilters: clearFilters,
+            onSaveFilters: handleSaveFilters,
+            sx: {
+              // Event date takes a range and nothing else, so its row drops the
+              // operator select entirely and gives the space to the two pickers.
+              [`& .${gridClasses.filterForm}:has([data-event-date-range])`]: {
+                [`& .${gridClasses.filterFormOperatorInput}`]: {
+                  display: "none",
+                },
+                [`& .${gridClasses.filterFormValueInput}`]: { width: "auto" },
               },
-              [`& .${gridClasses.filterFormValueInput}`]: { width: "auto" },
             },
           },
-        },
-        toolbar: {
-          activeFilterId,
-          onApply: handleApplySavedFilter,
-          onClear: clearFilters,
-          onDelete: handleDeleteSavedFilter,
-          onRemoveFilter: handleRemoveFilterItem,
-          savedFilters,
-        },
-      }}
-      slots={{
-        filterPanel: SavedFilterPanel,
-        toolbar: SavedFilterToolbar,
-      }}
-      sx={{
-        "& .MuiDataGrid-scrollShadow--vertical": {
-          backgroundColor: "transparent",
-        },
-        "& .MuiDataGrid-cell": {
-          alignItems: "center",
-          display: "flex",
-          py: 0,
-        },
-        "& .MuiDataGrid-cellContent": {
-          alignItems: "center",
-          display: "flex",
-          height: "100%",
-          minWidth: 0,
-          width: "100%",
-        },
-      }}
-    />
+          toolbar: {
+            activeFilterId,
+            onApply: handleApplySavedFilter,
+            onClear: clearFilters,
+            onDelete: handleDeleteSavedFilter,
+            onRemoveFilter: handleRemoveFilterItem,
+            savedFilters,
+          },
+        }}
+        slots={{
+          filterPanel: SavedFilterPanel,
+          toolbar: SavedFilterToolbar,
+        }}
+        sx={{
+          "& .MuiDataGrid-scrollShadow--vertical": {
+            backgroundColor: "transparent",
+          },
+          "& .MuiDataGrid-cell": {
+            alignItems: "center",
+            display: "flex",
+            py: 0,
+          },
+          "& .MuiDataGrid-cellContent": {
+            alignItems: "center",
+            display: "flex",
+            height: "100%",
+            minWidth: 0,
+            width: "100%",
+          },
+        }}
+      />
+    </Box>
   );
 };
 
