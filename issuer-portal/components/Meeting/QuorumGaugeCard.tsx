@@ -66,11 +66,9 @@ const QuorumGaugeCard = ({
         subheader={
           <CustomTooltip title={requiredMetric.alternate}>
             <span>
-              <GlossaryText>
-                {displayMode === "numbers"
-                  ? `Quorum requirement: ${requiredMetric.display} + 1`
-                  : `Quorum requirement: ${formatQuorumRequirementPercentLabel(model?.quorumRequirementPercent)} + 1`}
-              </GlossaryText>
+              {displayMode === "numbers"
+                ? `Quorum requirement: ${requiredMetric.display} + 1`
+                : `Quorum requirement: ${formatQuorumRequirementPercentLabel(model?.quorumRequirementPercent)} + 1`}
             </span>
           </CustomTooltip>
         }
@@ -144,11 +142,7 @@ const QuorumGaugeCard = ({
             </CustomTooltip>
 
             <Box sx={{ display: "flex", justifyContent: "center" }}>
-              <Chip
-                color={statusColor}
-                label={<GlossaryText>{statusLabel}</GlossaryText>}
-                size="small"
-              />
+              <Chip color={statusColor} label={statusLabel} size="small" />
             </Box>
           </Stack>
         )}
