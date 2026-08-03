@@ -66,6 +66,7 @@
   },
   "devDependencies": {
     "@mui/material": "^7",
+    "@types/node": "^24",
     "@types/react": "^18.3.31",
     "react": "^19",
     "react-dom": "^19",
