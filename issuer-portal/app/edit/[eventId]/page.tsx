@@ -489,7 +489,10 @@ const EditEventContent = () => {
 
         {meeting?.ticker ? (
           <Grid size={{ xs: 12, md: 12, lg: 4 }}>
-            <ClientFeaturesCard clientTicker={meeting.ticker} />
+            <ClientFeaturesCard
+              key={meeting.ticker}
+              clientTicker={meeting.ticker}
+            />
           </Grid>
         ) : null}
       </Grid>

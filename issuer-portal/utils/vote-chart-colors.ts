@@ -1,3 +1,5 @@
+/* eslint-disable sort-keys -- Object order mirrors the documented chart-role sequence. */
+
 /**
  * Builds the fixed, nine-role palette used by every voting chart.
  *
@@ -10,12 +12,47 @@
  * Withhold.
  *
  * @remarks
- * Only the holder and source roles are derived from client branding. Outcome
- * roles intentionally remain semantic so an expressive client brand cannot
- * make vote results harder to distinguish. Native CSS `color-mix()` keeps the
- * derived source colors responsive to the active theme without baking a
- * resolved color into application code.
+ * Holder roles are derived directly from client branding. Source roles rotate
+ * the primary hue by fixed channel offsets, keeping Web, Print, and IVR
+ * visually distinct from both holder categories in every client theme.
+ * Outcome roles intentionally remain semantic so an expressive client brand
+ * cannot make vote results harder to distinguish. Native CSS color functions
+ * keep the derived source colors responsive to the active theme without
+ * baking a resolved color into app code.
  */
+const sourceChannelHueOffsets = {
+  ivr: 280,
+  print: 190,
+  web: 100,
+} as const;
+
+/**
+ * Creates a source-channel color that is recognizable across client brands.
+ *
+ * @param hueOffset - Rotation from the client's primary hue for the voting
+ * source's semantic role.
+ * @param primaryColor - The active client's primary brand color.
+ * @param colorScheme - The scheme receiving the channel color.
+ * @returns A valid native CSS color expression for the source role.
+ *
+ * @remarks
+ * The fixed lightness and chroma make channels stable and readable, while the
+ * hue rotation keeps them visually related to the brand without becoming
+ * Registered or Beneficial. The dark scheme adds white in a second
+ * `color-mix()` because the CSS function accepts exactly two colors.
+ */
+const createSourceChannelColor = (
+  hueOffset: number,
+  primaryColor: string,
+  colorScheme: "dark" | "light"
+): string => {
+  const brandTinted = `oklch(from ${primaryColor} 52% 0.14 calc(h + ${hueOffset}))`;
+
+  return colorScheme === "dark"
+    ? `color-mix(in oklch, ${brandTinted} 78%, white 22%)`
+    : brandTinted;
+};
+
 export const generateChartPalette = (
   primaryColor: string,
   secondaryColor: string,
@@ -33,15 +70,21 @@ export const generateChartPalette = (
 ] => [
   primaryColor,
   secondaryColor,
-  colorScheme === "dark"
-    ? `color-mix(in oklch, ${secondaryColor} 76%, white 24%)`
-    : `color-mix(in oklch, ${secondaryColor} 82%, ${primaryColor} 18%)`,
-  colorScheme === "dark"
-    ? `color-mix(in oklch, ${primaryColor} 68%, white 32%)`
-    : `color-mix(in oklch, ${secondaryColor} 72%, white 28%)`,
-  colorScheme === "dark"
-    ? `color-mix(in oklch, ${secondaryColor} 60%, ${primaryColor} 20%, white 20%)`
-    : `color-mix(in oklch, ${secondaryColor} 72%, black 28%)`,
+  createSourceChannelColor(
+    sourceChannelHueOffsets.web,
+    primaryColor,
+    colorScheme
+  ),
+  createSourceChannelColor(
+    sourceChannelHueOffsets.print,
+    primaryColor,
+    colorScheme
+  ),
+  createSourceChannelColor(
+    sourceChannelHueOffsets.ivr,
+    primaryColor,
+    colorScheme
+  ),
   "oklch(57% 0.15 175)",
   "oklch(56% 0.2 28)",
   "oklch(78% 0.16 85)",

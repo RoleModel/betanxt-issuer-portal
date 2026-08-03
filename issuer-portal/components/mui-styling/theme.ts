@@ -446,12 +446,15 @@ const createVoteChartPalette = (
     secondaryColor,
     colorScheme
   );
+  // Source channels are deliberately dark in light mode and light in dark
+  // mode, so every in-bar total can use one readable foreground per scheme.
+  const sourceContrastText = colorScheme === "dark" ? "#111" : "#fff";
   const contrastTextByColor = [
     getMostLegibleText(primaryColor),
     getMostLegibleText(secondaryColor),
-    colorScheme === "dark" ? "#111" : getMostLegibleText(secondaryColor),
-    "#111",
-    colorScheme === "dark" ? "#111" : "#fff",
+    sourceContrastText,
+    sourceContrastText,
+    sourceContrastText,
     "#111",
     "#fff",
     "#111",

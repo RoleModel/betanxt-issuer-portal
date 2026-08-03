@@ -32,18 +32,17 @@ interface ClientFeaturesCardProps {
  * navigation tabs (Agenda, Mailing, Tabulation, Reports, NOBO, …) are visible
  * for a client. Renders nothing for non-CSM users.
  *
- * Local state initialises to {@link DEFAULT_FEATURE_KEYS} (rather than all
- * features) until the client's saved selection loads, so gated features like
- * NOBO never flash on by default. Chip toggles save optimistically: the chip
- * flips immediately, the client context is patched so `EventTabs` updates
- * without waiting on SWR revalidation, and the previous selection is restored
- * if the PUT fails.
+ * The chip state is derived from the client identified by `clientTicker`, not
+ * the global active client. This matters on Edit Event, which does not have a
+ * ticker in its URL and can manage a different client from the active context.
+ * Chip toggles remain optimistic while the PUT is in flight, then revalidate
+ * the client list so ticker-routed navigation uses the persisted selection.
  */
 export const ClientFeaturesCard = ({
   clientTicker,
 }: ClientFeaturesCardProps) => {
   const { data: session } = useSession();
-  const { currentClient, updateCurrentClientFeatures } = useClient();
+  const { availableClients } = useClient();
   const { mutate } = useSWRConfig();
   // The event manager lives outside [clientTicker] routes, so pass the
   // meeting's ticker explicitly for per-client flag targeting.
@@ -52,16 +51,19 @@ export const ClientFeaturesCard = ({
 
   // The NOBO chip is gated behind the Vercel `enable-nobo` flag — when the
   // flag is off, CSMs cannot toggle NOBO per client at all.
-  const visibleFeatureKeys = flags.enableNobo
-    ? ALL_FEATURE_KEYS
-    : ALL_FEATURE_KEYS.filter((feature) => feature !== FEATURE_KEYS.nobo);
+  const visibleFeatureKeys =
+    flags.enableNobo === true
+      ? ALL_FEATURE_KEYS
+      : ALL_FEATURE_KEYS.filter((feature) => feature !== FEATURE_KEYS.nobo);
 
-  const [enabledFeatures, setEnabledFeatures] = useState<ClientFeatureKey[]>(
-    () =>
-      Array.isArray(currentClient?.enabledFeatures)
-        ? currentClient.enabledFeatures
-        : DEFAULT_FEATURE_KEYS
-  );
+  const managedClient =
+    availableClients.find((client) => client.ticker === clientTicker) ?? null;
+  const savedFeatures = managedClient?.enabledFeatures ?? DEFAULT_FEATURE_KEYS;
+
+  const [pendingFeatures, setPendingFeatures] = useState<
+    ClientFeatureKey[] | null
+  >(null);
+  const enabledFeatures = pendingFeatures ?? savedFeatures;
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -72,11 +74,12 @@ export const ClientFeaturesCard = ({
     }
 
     const previousFeatures = enabledFeatures;
-    const nextFeatures = previousFeatures.includes(feature)
+    const enabledFeatureSet = new Set(previousFeatures);
+    const nextFeatures = enabledFeatureSet.has(feature)
       ? previousFeatures.filter((enabledFeature) => enabledFeature !== feature)
       : [...previousFeatures, feature];
 
-    setEnabledFeatures(nextFeatures);
+    setPendingFeatures(nextFeatures);
     setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
@@ -88,16 +91,15 @@ export const ClientFeaturesCard = ({
         body: { enabledFeatures: nextFeatures },
       });
 
-      if (!response.ok) {
+      if (response.ok !== true) {
         setSaveError("Failed to save feature settings");
-        setEnabledFeatures(previousFeatures);
+        setPendingFeatures(null);
+        setSaving(false);
         return;
       }
 
-      // Patch currentClient in context immediately so EventTabs re-renders
-      // without waiting for the SWR re-fetch round-trip.
-      updateCurrentClientFeatures(nextFeatures);
-      // Also invalidate the SWR cache so any re-mount gets fresh server data.
+      // Refresh the client list so ticker-routed pages use the persisted
+      // selection rather than the active global client from Edit Event.
       void mutate(
         (key) => Array.isArray(key) && key[0] === "/clients",
         undefined,
@@ -111,10 +113,10 @@ export const ClientFeaturesCard = ({
       }, 2000);
     } catch {
       setSaveError("Failed to save feature settings");
-      setEnabledFeatures(previousFeatures);
-    } finally {
-      setSaving(false);
+      setPendingFeatures(null);
     }
+
+    setSaving(false);
   };
 
   if (!isCSM) {
@@ -128,7 +130,7 @@ export const ClientFeaturesCard = ({
       <CardHeader
         title="Services & Features"
         action={saving ? <CircularProgress size={16} /> : null}
-        subheader="Enable or disable navigation tabs for this client. Changes take effect immediately. Dashboard is always visible."
+        subheader={`Enable or disable navigation tabs for ${managedClient?.company_name ?? clientTicker}. Changes take effect immediately. Dashboard is always visible.`}
       />
       <CardContent>
         <Stack direction="row" flexWrap="wrap" gap={0.75} mb={2}>
