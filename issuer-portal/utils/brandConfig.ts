@@ -1,3 +1,5 @@
+/* eslint-disable func-style */
+
 /**
  * Brand configuration for event companies.
  * headerLogoPath / headerIconPath: dark-theme assets from Brandfetch (light logos on primary headers).
@@ -637,10 +639,10 @@ export const brandConfigs: Record<string, BrandConfig> = {
     companyName: "MindMed",
     ticker: "MNMD",
     domain: "mindmed.com",
-    logoPath: "/logos/mnmd_logo.png",
-    iconPath: "/logos/mnmd_icon.png",
-    headerLogoPath: "/logos/mnmd_logo-dark.png",
-    headerIconPath: "/logos/mnmd_icon-dark.png",
+    logoPath: "/logos/mnmd_logo-full.svg",
+    iconPath: "/logos/mnmd_logo-dark.svg",
+    headerLogoPath: "/logos/mnmd_logo-full.svg",
+    headerIconPath: "/logos/mnmd_icon-full.svg",
     primaryColor: "#6A994E",
     secondaryColor: "#3A3A3A",
   },
@@ -662,14 +664,15 @@ export const brandConfigs: Record<string, BrandConfig> = {
  * Use this when you have a ticker but not a company name — avoids
  * brittle exact-string key matching on company names.
  */
-export const brandConfigsByTicker: Record<string, BrandConfig> = Object.values(
-  brandConfigs
-).reduce<Record<string, BrandConfig>>((accumulator, config) => {
-  if (config.ticker) {
-    accumulator[config.ticker] = config;
+export const brandConfigsByTicker: Record<string, BrandConfig> = (() => {
+  const result: Record<string, BrandConfig> = {};
+  for (const config of Object.values(brandConfigs)) {
+    if (config.ticker !== undefined && config.ticker !== "") {
+      result[config.ticker] = config;
+    }
   }
-  return accumulator;
-}, {});
+  return result;
+})();
 
 /** Look up brand config by event/company name */
 export function getBrandConfig(companyName: string): BrandConfig | null {

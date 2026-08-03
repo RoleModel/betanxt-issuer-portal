@@ -1,5 +1,3 @@
-/* eslint-disable react/destructuring-assignment */
-/* eslint-disable react-doctor/react-compiler-no-manual-memoization */
 "use client";
 
 import type { User } from "next-auth";

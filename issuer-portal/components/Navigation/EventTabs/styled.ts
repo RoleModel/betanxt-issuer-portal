@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/filename-case -- The `Navigation` directory name is intentional and shared by the rest of the app; renaming it is out of scope for lint cleanup. */
 "use client";
 
 import { IconButton, ToggleButton, styled } from "@mui/material";
@@ -41,7 +40,7 @@ export const DisplayToggleButton = styled(ToggleButton)(({ theme }) => ({
   // `&&:hover` and `&&.Mui-selected` have identical specificity (0,3,0), so the
   // source order here decides which one wins for a selected + hovered button.
   // Alphabetising would flip that, hence the targeted disable.
-  // eslint-disable-next-line sort-keys -- CSS cascade order is load-bearing here.
+
   "&&.Mui-selected": {
     "&:hover": {
       backgroundColor: theme.vars.palette.action.hover,

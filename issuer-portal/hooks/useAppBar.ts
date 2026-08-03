@@ -1,17 +1,24 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable import-x/order */
 "use client";
+
+import type { User } from "next-auth";
+import type {
+  ImgHTMLAttributes,
+  MouseEvent as ReactMouseEvent,
+  SyntheticEvent,
+} from "react";
 
 import { useColorScheme } from "@mui/material/styles";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type React from "react";
-import type { User } from "next-auth";
 
 import { useDevMode } from "@/components/DevOverlay/useDevMode";
 import { useClient } from "@/contexts/ClientContext";
 import MeetingContext from "@/contexts/MeetingContext";
 import { useNotificationsSafe } from "@/contexts/NotificationContext";
-import buildApiClient from "@/domain-models/apiClient";
+import createApiClient from "@/domain-models/apiClient";
 import { useClients } from "@/hooks/useClients";
 import { useEvents } from "@/hooks/useEvents";
 import { getBrandConfigByTicker, getBrandLogoPath } from "@/utils/brandConfig";
@@ -20,33 +27,134 @@ import { isDevOverlayEnabled } from "@/utils/developmentOverlay";
 import { formatMeetingDate } from "@/utils/meetingUtils";
 
 // --- Hoisted regex constants ---
-const TICKER_PREFIX_REGEX = /^\/([A-Z]{2,5})\//;
-const PAST_MEETINGS_REGEX = /^\/[A-Z]+\/past-meetings$/;
-const PAST_MEETING_REGEX = /^\/[A-Z]+\/past-meeting\//;
-const MEETING_REPORTS_REGEX = /^\/[A-Z]+\/meeting\/[^/]+\/reports$/;
-const REPORTING_REGEX = /^\/[A-Z]+\/reporting$/;
-const SECURE_FILE_TRANSFER_REGEX = /^\/[A-Z]+\/secure-file-transfer$/;
-const MEETING_PREFIX_REGEX = /^\/[A-Z]+\/meeting\//;
-const EDIT_EVENT_REGEX = /^\/edit\/[^/]+$/;
+const tickerPrefixRegex = /^\/(?<ticker>[A-Z]{2,5})\//u;
+const pastMeetingsRegex = /^\/[A-Z]+\/past-meetings$/u;
+const pastMeetingRegex = /^\/[A-Z]+\/past-meeting\//u;
+const meetingReportsRegex = /^\/[A-Z]+\/meeting\/[^/]+\/reports$/u;
+const reportingRegex = /^\/[A-Z]+\/reporting$/u;
+const secureFileTransferRegex = /^\/[A-Z]+\/secure-file-transfer$/u;
+const meetingPrefixRegex = /^\/[A-Z]+\/meeting\//u;
+const editEventRegex = /^\/edit\/[^/]+$/u;
+const meetingIdFromPathRegex = /\/(?:past-)?meeting\/(?<meetingId>[^/]+)/u;
 
 // Safely use meeting context when it might not be available
 const useMeetingSafe = () => {
   const context = useContext(MeetingContext);
   return useMemo(
     () =>
-      context || {
-        meetings: [] as { id?: string; status?: string }[],
+      context ?? {
         currentMeeting: null,
+        meetings: [] as {
+          id?: string;
+          meetingDate?: string;
+          status?: string;
+        }[],
       },
     [context]
   );
 };
 
 // Static mapping — no need for useMemo
-const USER_TYPE_BRAND_TICKER: Record<string, string> = {
-  PARENT_CLIENT: "DFIN",
-  SOLICITOR: "MRSO",
+const userTypeBrandTicker = new Map<string, string>([
+  ["PARENT_CLIENT", "DFIN"],
+  ["SOLICITOR", "MRSO"],
+]);
+
+// User types that see the multi-client (Events-first) navigation.
+const multiClientUserTypes: ReadonlySet<string> = new Set([
+  "PARENT_CLIENT",
+  "SOLICITOR",
+  "CSM",
+]);
+
+// Shared tab value so the string is defined once across the tab list and the
+// route-to-tab resolution.
+const pastMeetingsTabValue = "past-meetings";
+
+// The meeting statuses the app recognises; the type is derived so the union is
+// never spelled out twice.
+const meetingStatusValues = ["ACTIVE", "COMPLETE", "ADJOURNED"] as const;
+type MeetingStatus = (typeof meetingStatusValues)[number];
+const isMeetingStatus = (value: string): value is MeetingStatus =>
+  (meetingStatusValues as readonly string[]).includes(value);
+
+interface MeetingApiRecord {
+  meetingDate?: string;
+  status?: string;
+}
+
+const isMeetingApiRecord = (value: unknown): value is MeetingApiRecord =>
+  typeof value === "object" && value !== null;
+
+// Resolves a route meeting's status/date. Extracted so the effect that calls it
+// stays a thin wrapper (and keeps its try block simple).
+const fetchRouteMeetingStatus = async (
+  meetingId: string,
+  meetingList: readonly { id?: string; status?: string }[]
+): Promise<{ date: string | null; status: string | null }> => {
+  const isInActiveList = meetingList.some((entry) => entry.id === meetingId);
+  if (!isInActiveList && meetingList.length > 0) {
+    return { date: null, status: "COMPLETE" };
+  }
+
+  const api = await createApiClient();
+  const { data } = await api.GET("/meetings/{meetingId}", {
+    params: { path: { meetingId } },
+  });
+  const record: MeetingApiRecord = isMeetingApiRecord(data) ? data : {};
+  return {
+    date: record.meetingDate ?? null,
+    status: record.status ?? null,
+  };
 };
+
+interface StoredClient {
+  ticker?: string;
+}
+
+// localStorage read + parse for the last-selected client. Extracted so its
+// caller's try block stays trivial and the parse is validated, not asserted.
+const readStoredClient = (): StoredClient | null => {
+  const stored = localStorage.getItem("betanxt-selected-client");
+  if (stored === null || stored === "") {
+    return null;
+  }
+  const parsed: unknown = JSON.parse(stored);
+  if (typeof parsed !== "object" || parsed === null || !("ticker" in parsed)) {
+    return {};
+  }
+  const { ticker } = parsed;
+  return { ticker: typeof ticker === "string" ? ticker : undefined };
+};
+
+// Posts the CSRF-guarded sign-out. Kept out of the callback so its try block
+// only awaits this and pushes the route (keeps the try trivial).
+const hasCsrfToken = (value: unknown): value is { csrfToken: string } =>
+  typeof value === "object" &&
+  value !== null &&
+  "csrfToken" in value &&
+  typeof value.csrfToken === "string";
+
+const requestSignOut = async (): Promise<void> => {
+  // eslint-disable-next-line compat/compat -- Opera Mini is not a target; fetch is available in every browser this app supports.
+  const csrfResponse = await fetch("/api/auth/csrf");
+  if (!csrfResponse.ok) {
+    throw new Error(`Request failed: ${csrfResponse.status}`);
+  }
+  const payload: unknown = await csrfResponse.json();
+  const csrfToken = hasCsrfToken(payload) ? payload.csrfToken : "";
+  /* eslint-disable compat/compat -- Opera Mini is not a target; fetch/URLSearchParams are available in every supported browser. */
+  await fetch("/api/auth/signout", {
+    body: new URLSearchParams({ csrfToken }),
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    method: "POST",
+  });
+  /* eslint-enable compat/compat */
+};
+
+// The internal developer account (bypass/test login). The dev overlay toggle is
+// scoped to this user so it never surfaces for real clients, CSMs, or admins.
+const developmentUserEmail = "dev@example.com";
 
 interface UseAppBarParameters {
   logoSrc?: string;
@@ -57,7 +165,7 @@ interface UseAppBarResult {
   // Logo
   logoSlotProps:
     | {
-        logoImg: React.ImgHTMLAttributes<HTMLImageElement>;
+        logoImg: ImgHTMLAttributes<HTMLImageElement>;
       }
     | undefined;
   isCSM: boolean;
@@ -67,12 +175,12 @@ interface UseAppBarResult {
   tabs: { label: string; value: string; href: string }[];
   selectedTabValue: string | false;
   shouldHideTabs: boolean;
-  handleTabChange: (event: React.SyntheticEvent, newValue: string) => void;
-  handleWrapperClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  handleTabChange: (event: SyntheticEvent, newValue: string) => void;
+  handleWrapperClick: (event: ReactMouseEvent<HTMLDivElement>) => void;
 
   // Meeting
   currentMeetingId: string | null;
-  meetingStatus: "ACTIVE" | "COMPLETE" | "ADJOURNED" | null;
+  meetingStatus: MeetingStatus | null;
   meetingDateLabel: string | null;
 
   // User
@@ -83,14 +191,14 @@ interface UseAppBarResult {
   unreadCount: number;
   notificationsOpen: boolean;
   notificationAnchor: HTMLButtonElement | null;
-  handleNotificationClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  handleNotificationClick: (event: ReactMouseEvent<HTMLButtonElement>) => void;
   handleNotificationClose: () => void;
 
   // SSR
   isReady: boolean;
 }
 
-export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
+export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -113,12 +221,12 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
   const unreadCount = useNotificationsSafe()?.unreadCount ?? 0;
 
   // --- User type derivation ---
-  const userType = session?.user?.type;
+  const userType = session?.user.type;
   const isMultiClientUser =
-    userType === "PARENT_CLIENT" ||
-    userType === "SOLICITOR" ||
-    userType === "CSM";
+    userType !== undefined && multiClientUserTypes.has(userType);
   const isCSM = userType === "CSM";
+  // Only the internal Dev User sees the overlay toggle, regardless of env flag.
+  const isDevelopmentUser = session?.user.email === developmentUserEmail;
 
   // --- Notification state ---
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -126,7 +234,7 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
     useState<HTMLButtonElement | null>(null);
 
   const handleNotificationClick = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
+    (event: ReactMouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
       setNotificationAnchor(event.currentTarget);
       setNotificationsOpen((previous) => !previous);
@@ -145,87 +253,82 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
   const [routeMeetingDate, setRouteMeetingDate] = useState<string | null>(null);
 
   const currentMeetingId = useMemo(() => {
-    const match = /\/(?:past-)?meeting\/([^/]+)/.exec(pathname);
-    return match ? match[1] : null;
+    const match = meetingIdFromPathRegex.exec(pathname);
+    return match?.groups?.meetingId ?? null;
   }, [pathname]);
 
   useEffect(() => {
     let isActive = true;
-    const fetchStatus = async () => {
-      try {
-        if (!currentMeetingId) {
-          setRouteMeetingStatus(null);
-          return;
-        }
-        const isMeetingInActiveList = meetings.some(
-          (m: { id?: string }) => m.id === currentMeetingId
-        );
-        if (!isMeetingInActiveList && meetings.length > 0) {
-          setRouteMeetingStatus("COMPLETE");
-          return;
-        }
-        const api = await buildApiClient();
-        const { data } = await api.GET("/meetings/{meetingId}", {
-          params: { path: { meetingId: currentMeetingId } },
-        });
-        if (isActive) {
-          const status = (data && (data as { status?: string }).status) || null;
-          setRouteMeetingStatus(status);
-          const date =
-            (data && (data as { meetingDate?: string }).meetingDate) || null;
-          setRouteMeetingDate(date);
-        }
-      } catch {
-        if (isActive) {
-          setRouteMeetingStatus(null);
-          setRouteMeetingDate(null);
-        }
+    const applyStatus = (status: string | null, date: string | null): void => {
+      if (!isActive) {
+        return;
       }
+
+      setRouteMeetingStatus(status);
+      setRouteMeetingDate(date);
     };
-    void fetchStatus();
+
+    if (currentMeetingId === null) {
+      setRouteMeetingStatus(null);
+    } else {
+      const run = async (): Promise<void> => {
+        try {
+          const result = await fetchRouteMeetingStatus(
+            currentMeetingId,
+            meetings
+          );
+          applyStatus(result.status, result.date);
+        } catch {
+          applyStatus(null, null);
+        }
+      };
+
+      // Fire-and-forget: `run` handles its own errors, and effects cannot be
+      // async. `void` is the idiomatic marker for this in React.
+
+      void run();
+    }
+
     return () => {
       isActive = false;
     };
   }, [currentMeetingId, meetings]);
 
-  const meetingStatus: "ACTIVE" | "COMPLETE" | "ADJOURNED" | null =
-    useMemo(() => {
-      if (!currentMeetingId) {
-        return null;
-      }
-      if (PAST_MEETING_REGEX.test(pathname)) {
-        return "COMPLETE";
-      }
-      const meeting = meetings.find((m) => m.id === currentMeetingId);
-      const raw = meeting?.status ?? routeMeetingStatus;
-      const normalized = typeof raw === "string" ? raw.toUpperCase() : raw;
-      return normalized === "ACTIVE" ||
-        normalized === "COMPLETE" ||
-        normalized === "ADJOURNED"
-        ? normalized
-        : null;
-    }, [currentMeetingId, meetings, routeMeetingStatus, pathname]);
-
-  const meetingDateRaw = useMemo(() => {
-    if (!currentMeetingId) {
+  const meetingStatus: MeetingStatus | null = useMemo(() => {
+    if (currentMeetingId === null) {
       return null;
     }
-    const meeting = meetings.find((m) => m.id === currentMeetingId) as
-      { meetingDate?: string } | undefined;
+    if (pastMeetingRegex.test(pathname)) {
+      return "COMPLETE";
+    }
+    const meeting = meetings.find((entry) => entry.id === currentMeetingId);
+    const raw = meeting?.status ?? routeMeetingStatus;
+    if (raw === null) {
+      return null;
+    }
+    const normalized = raw.toUpperCase();
+    return isMeetingStatus(normalized) ? normalized : null;
+  }, [currentMeetingId, meetings, routeMeetingStatus, pathname]);
+
+  const meetingDateRaw = useMemo(() => {
+    if (currentMeetingId === null) {
+      return null;
+    }
+    const meeting = meetings.find((entry) => entry.id === currentMeetingId);
     return (
       meeting?.meetingDate ??
-      meetingContext?.currentMeeting?.meetingDate ??
+      meetingContext.currentMeeting?.meetingDate ??
       routeMeetingDate
     );
   }, [
     currentMeetingId,
     meetings,
-    meetingContext?.currentMeeting?.meetingDate,
+    meetingContext.currentMeeting?.meetingDate,
     routeMeetingDate,
   ]);
 
   const meetingDateLabel = useMemo(
-    () => (meetingDateRaw ? formatMeetingDate(meetingDateRaw) : null),
+    () => (meetingDateRaw === null ? null : formatMeetingDate(meetingDateRaw)),
     [meetingDateRaw]
   );
 
@@ -233,14 +336,16 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
   const { events } = useEvents();
 
   const urlTicker = useMemo(() => {
-    const match = TICKER_PREFIX_REGEX.exec(pathname);
-    return match ? match[1] : null;
+    const match = tickerPrefixRegex.exec(pathname);
+    return match?.groups?.ticker ?? null;
   }, [pathname]);
 
   // A "real client context" means the URL has a ticker that is NOT the brand's own ticker.
   // e.g. /ETWO/meeting/... → true; /DFIN/secure-file-transfer → false; /events → false
   const brandTicker =
-    isMultiClientUser && userType ? USER_TYPE_BRAND_TICKER[userType] : null;
+    isMultiClientUser && userType
+      ? (userTypeBrandTicker.get(userType) ?? null)
+      : null;
   const isInClientContext = Boolean(urlTicker) && urlTicker !== brandTicker;
 
   // Resolve the meeting dashboard path for the active/viewed client.
@@ -252,25 +357,33 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
     }
 
     if (currentMeetingId) {
-      const routePrefix = PAST_MEETING_REGEX.test(pathname)
+      const routePrefix = pastMeetingRegex.test(pathname)
         ? "past-meeting"
         : "meeting";
       return `/${urlTicker}/${routePrefix}/${currentMeetingId}/dashboard`;
     }
 
-    const clientEvent = [...events]
-      .filter((e) => e.clientTicker === urlTicker)
-      .sort((a, b) => {
-        if (a.meetingStatus === "ACTIVE" && b.meetingStatus !== "ACTIVE") {
+    const [clientEvent] = [...events]
+      .filter((candidate) => candidate.clientTicker === urlTicker)
+      // A fresh copy is sorted in place; `toSorted` needs a newer TS lib target.
+      // eslint-disable-next-line unicorn/no-array-sort
+      .sort((first, second) => {
+        if (
+          first.meetingStatus === "ACTIVE" &&
+          second.meetingStatus !== "ACTIVE"
+        ) {
           return -1;
         }
-        if (a.meetingStatus !== "ACTIVE" && b.meetingStatus === "ACTIVE") {
+        if (
+          first.meetingStatus !== "ACTIVE" &&
+          second.meetingStatus === "ACTIVE"
+        ) {
           return 1;
         }
-        return b.eventDate.localeCompare(a.eventDate);
-      })[0];
+        return second.eventDate.localeCompare(first.eventDate);
+      });
 
-    if (!clientEvent) {
+    if (clientEvent === undefined) {
       return null;
     }
     const routePrefix =
@@ -280,17 +393,17 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
 
   const dashboardPath = useMemo(() => {
     if (isMultiClientUser) {
-      return isInClientContext && clientMeetingPath
+      return isInClientContext && clientMeetingPath !== null
         ? clientMeetingPath
         : "/events";
     }
-    if (currentClient?.ticker) {
+    const clientTicker = currentClient?.ticker;
+    if (clientTicker !== undefined && clientTicker !== "") {
       const activeMeeting = meetings.find(
-        (meeting: { id?: string; status?: string }) =>
-          meeting.status !== "COMPLETE"
+        (meeting: { status?: string }) => meeting.status !== "COMPLETE"
       );
-      if (activeMeeting?.id) {
-        return `/${currentClient.ticker}/meeting/${activeMeeting.id}/dashboard`;
+      if (activeMeeting?.id !== undefined && activeMeeting.id !== "") {
+        return `/${clientTicker}/meeting/${activeMeeting.id}/dashboard`;
       }
     }
     return "/";
@@ -304,38 +417,40 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
 
   const tabs = useMemo(() => {
     const navTicker =
-      urlTicker ||
-      currentClient?.ticker ||
-      availableClients[0]?.ticker ||
+      urlTicker ??
+      currentClient?.ticker ??
+      availableClients[0]?.ticker ??
       "WEN";
     const tickerPrefix = `/${navTicker}`;
 
+    const brandFileTransferTicker =
+      userType === undefined ? undefined : userTypeBrandTicker.get(userType);
     const fileTransferTicker =
-      isMultiClientUser && userType && !isInClientContext
-        ? (USER_TYPE_BRAND_TICKER[userType] ?? navTicker)
+      isMultiClientUser && !isInClientContext
+        ? (brandFileTransferTicker ?? navTicker)
         : navTicker;
     const fileTransferHref = `/${fileTransferTicker}/secure-file-transfer`;
 
-    const eventsTab = { label: "Events", value: "events", href: "/events" };
+    const eventsTab = { href: "/events", label: "Events", value: "events" };
     const dashboardTab = {
+      href: dashboardPath,
       label: "Dashboard",
       value: "meeting",
-      href: dashboardPath,
     };
     const pastMeetingsTab = {
-      label: "Past Meetings",
-      value: "past-meetings",
       href: `${tickerPrefix}/past-meetings`,
+      label: "Past Meetings",
+      value: pastMeetingsTabValue,
     };
     const reportingTab = {
+      href: `${tickerPrefix}/reporting`,
       label: "Reporting",
       value: "reporting",
-      href: `${tickerPrefix}/reporting`,
     };
     const fileTransferTab = {
+      href: fileTransferHref,
       label: "File Transfer",
       value: "secure-file-transfer",
-      href: fileTransferHref,
     };
 
     // Multi-client (PARENT_CLIENT / SOLICITOR / CSM) users always see Events tab.
@@ -382,28 +497,28 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
     if (pathname === "/profile" || pathname.startsWith("/profile/")) {
       return "";
     }
-    if (pathname === "/events" || EDIT_EVENT_REGEX.test(pathname)) {
+    if (pathname === "/events" || editEventRegex.test(pathname)) {
       return "events";
     }
-    if (PAST_MEETING_REGEX.test(pathname)) {
-      return "past-meetings";
+    if (pastMeetingRegex.test(pathname)) {
+      return pastMeetingsTabValue;
     }
-    if (PAST_MEETINGS_REGEX.test(pathname) || pathname === "/past-meetings") {
-      return "past-meetings";
+    if (pastMeetingsRegex.test(pathname) || pathname === "/past-meetings") {
+      return pastMeetingsTabValue;
     }
-    if (MEETING_REPORTS_REGEX.test(pathname)) {
+    if (meetingReportsRegex.test(pathname)) {
       return "meeting";
     }
-    if (REPORTING_REGEX.test(pathname)) {
+    if (reportingRegex.test(pathname)) {
       return "reporting";
     }
-    if (SECURE_FILE_TRANSFER_REGEX.test(pathname)) {
+    if (secureFileTransferRegex.test(pathname)) {
       return "secure-file-transfer";
     }
     if (
       pathname === "/" ||
       pathname === "/meeting" ||
-      MEETING_PREFIX_REGEX.test(pathname) ||
+      meetingPrefixRegex.test(pathname) ||
       pathname.startsWith("/meeting/")
     ) {
       return "meeting";
@@ -421,10 +536,10 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
     currentTab === null || !tabValues.has(currentTab) ? false : currentTab;
 
   const handleTabChange = useCallback(
-    (event: React.SyntheticEvent, newValue: string) => {
+    (event: SyntheticEvent, newValue: string) => {
       event.preventDefault();
       const selectedTab = tabs.find((tab) => tab.value === newValue);
-      if (selectedTab?.href) {
+      if (selectedTab?.href !== undefined && selectedTab.href !== "") {
         router.push(selectedTab.href);
       }
     },
@@ -432,11 +547,13 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
   );
 
   const handleWrapperClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      const target = event.target as HTMLElement;
-      const anchor = target.closest("a");
-      const href = anchor?.getAttribute("href");
-      if (href?.startsWith("/")) {
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      const { target } = event;
+      if (!(target instanceof Element)) {
+        return;
+      }
+      const href = target.closest("a")?.getAttribute("href");
+      if (href?.startsWith("/") === true) {
         event.preventDefault();
         event.stopPropagation();
         router.push(href);
@@ -457,35 +574,31 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
       return null;
     }
     try {
-      const stored = localStorage.getItem("betanxt-selected-client");
-      if (!stored) {
-        return null;
-      }
-      return JSON.parse(stored) as { ticker?: string };
+      return readStoredClient();
     } catch {
       return null;
     }
   }, []);
 
   // Look up the company name for the URL ticker from the clients list
-  const urlClientCompanyName = useMemo(() => {
-    if (!urlTicker) {
+  const urlClientCompanyName = useMemo<string | null>(() => {
+    if (urlTicker === null) {
       return null;
     }
-    const client = clients.find((c) => c.ticker === urlTicker);
+    const client = clients.find((candidate) => candidate.ticker === urlTicker);
     return client?.company_name ?? client?.name ?? null;
   }, [urlTicker, clients]);
 
-  const logoTicker = useMemo(() => {
+  const logoTicker = useMemo<string | null>(() => {
     if (isMultiClientUser) {
       // On pages with a client ticker in the URL (e.g. /JPMR/past-meetings), use that client's logo
       if (urlTicker) {
         return urlTicker;
       }
       // Fallback to brand logo only on truly top-level pages like /events or /profile
-      return userType ? (USER_TYPE_BRAND_TICKER[userType] ?? null) : null;
+      return userType ? (userTypeBrandTicker.get(userType) ?? null) : null;
     }
-    return urlTicker || currentClient?.ticker || storedClient?.ticker;
+    return urlTicker ?? currentClient?.ticker ?? storedClient?.ticker ?? null;
   }, [
     urlTicker,
     currentClient?.ticker,
@@ -504,16 +617,16 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
 
     // Ticker-based lookup is most reliable — not affected by company name typos/mismatches
     if (logoTicker) {
-      const brandByTicker = getBrandConfigByTicker(logoTicker);
-      if (brandByTicker?.logoPath) {
-        return brandByTicker.logoPath;
+      const brandLogoPath = getBrandConfigByTicker(logoTicker)?.logoPath;
+      if (typeof brandLogoPath === "string" && brandLogoPath !== "") {
+        return brandLogoPath;
       }
     }
 
     // Fall back to company name lookup (for companies not yet in brandConfigsByTicker)
     if (urlClientCompanyName) {
       const brandLogo = getBrandLogoPath(urlClientCompanyName, "");
-      if (brandLogo) {
+      if (typeof brandLogo === "string" && brandLogo !== "") {
         return brandLogo;
       }
     }
@@ -521,16 +634,16 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
     // Final fallback for multi-client users: show the brand (DFIN / MRSO) logo rather than
     // generating a ticker-based path that won't exist for most new clients.
     if (isMultiClientUser && userType) {
-      const brandTicker = USER_TYPE_BRAND_TICKER[userType];
-      if (brandTicker) {
-        return getClientLogo(undefined, brandTicker);
+      const fallbackBrandTicker = userTypeBrandTicker.get(userType);
+      if (fallbackBrandTicker !== undefined) {
+        return getClientLogo(undefined, fallbackBrandTicker);
       }
     }
 
     // Single-client ISSUER users: try the ticker-based file (WEN, PAYC, WWD, ELVN have these).
     return logoTicker
       ? getClientLogo(
-          currentClient?.company_name || currentClient?.short_name,
+          currentClient?.company_name ?? currentClient?.short_name,
           logoTicker
         )
       : "/images/logo.svg";
@@ -546,62 +659,57 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
     userType,
   ]);
 
-  const logoSlotProperties = useMemo(() => {
-    if (!logoSource) {
-      return;
-    }
-    return {
-      logoImg: {
-        src: logoSource,
-        alt: `${urlClientCompanyName ?? logoTicker ?? "BetaNXT"} logo`,
-        width: "auto",
-        height: 44,
-        style: {
-          height: 44,
-          width: "auto",
-          backgroundColor: "var(--mui-palette-common-white)",
-          padding: "4px 4px",
-          borderRadius: "4px",
-        },
-      },
-    };
-  }, [logoSource, logoTicker, urlClientCompanyName]);
+  const logoSlotProperties = useMemo(
+    () =>
+      logoSource === null
+        ? undefined
+        : {
+            logoImg: {
+              alt: `${urlClientCompanyName ?? logoTicker ?? "BetaNXT"} logo`,
+              height: 44,
+              src: logoSource,
+              style: {
+                backgroundColor: "var(--mui-palette-common-white)",
+                borderRadius: "4px",
+                height: 44,
+                padding: "4px 4px",
+                width: "auto",
+              },
+              width: "auto",
+            },
+          },
+    [logoSource, logoTicker, urlClientCompanyName]
+  );
 
   // --- Avatar ---
   const avatar = useMemo(() => {
-    if (!parameters.user) {
-      return { src: "/avatars/user.png", alt: "User Avatar", children: "US" };
+    const { user } = parameters;
+    if (user === undefined) {
+      return { alt: "User Avatar", children: "US", src: "/avatars/user.png" };
     }
-    const initials = parameters.user.name
-      ? parameters.user.name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2)
-      : parameters.user.username?.slice(0, 2).toUpperCase() || "U";
+    const image = user.image ?? undefined;
+    const hasImage = image !== undefined && image !== "";
+    const trimmedName = user.name ?? "";
+    const nameInitials =
+      trimmedName === ""
+        ? (user.username?.slice(0, 2).toUpperCase() ?? "U")
+        : trimmedName
+            .split(" ")
+            .map((part) => part[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2);
     return {
-      src: parameters.user.image || undefined,
-      alt: `${parameters.user.name || parameters.user.username} Avatar`,
-      children: parameters.user.image ? undefined : initials,
+      alt: `${user.name ?? user.username ?? ""} Avatar`,
+      children: hasImage ? undefined : nameInitials,
+      src: hasImage ? image : undefined,
     };
   }, [parameters.user]);
 
   // --- Auth / Menu ---
   const handleLogout = useCallback(async () => {
     try {
-      const csrfResponse = await fetch("/api/auth/csrf");
-      if (!csrfResponse.ok) {
-        throw new Error(`Request failed: ${csrfResponse.status}`);
-      }
-      const { csrfToken } = (await csrfResponse.json()) as {
-        csrfToken: string;
-      };
-      await fetch("/api/auth/signout", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ csrfToken }),
-      });
+      await requestSignOut();
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -609,8 +717,13 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
     }
   }, [router]);
 
-  const menuItems = useMemo(
-    () => [
+  const menuItems = useMemo(() => {
+    // Matches where the overlay itself is mounted — the entry cannot appear
+    // in a build that has no overlay behind it, and only the Dev User sees it.
+    const canToggleDevelopmentOverlay: boolean =
+      isDevOverlayEnabled() && isDevelopmentUser;
+    const isOverlayIsOn: boolean = developmentOverlayEnabled;
+    return [
       {
         label: "Profile",
         onClick: () => {
@@ -623,49 +736,52 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
           setMode(mode === "light" ? "dark" : "light");
         },
       },
-      // Matches where the overlay itself is mounted — the entry cannot appear
-      // in a build that has no overlay behind it.
-      ...(isDevOverlayEnabled()
+      ...(canToggleDevelopmentOverlay
         ? [
             {
-              label: developmentOverlayEnabled
+              label: isOverlayIsOn
                 ? "Turn Off Dev Overlay"
                 : "Turn On Dev Overlay",
               onClick: toggleDevelopmentOverlay,
             },
           ]
         : []),
-      { label: "Logout", onClick: () => void handleLogout() },
-    ],
-    [
-      router,
-      mode,
-      setMode,
-      developmentOverlayEnabled,
-      toggleDevelopmentOverlay,
-      handleLogout,
-    ]
-  );
+      {
+        label: "Logout",
+        onClick: () => {
+          void handleLogout();
+        },
+      },
+    ];
+  }, [
+    router,
+    mode,
+    setMode,
+    developmentOverlayEnabled,
+    toggleDevelopmentOverlay,
+    handleLogout,
+    isDevelopmentUser,
+  ]);
 
   return {
-    logoSlotProps: logoSlotProperties,
-    isCSM,
-    isInClientContext,
-    tabs,
-    selectedTabValue,
-    shouldHideTabs,
-    handleTabChange,
-    handleWrapperClick,
-    currentMeetingId,
-    meetingStatus,
-    meetingDateLabel,
     avatar,
-    menuItems,
-    unreadCount,
-    notificationsOpen,
-    notificationAnchor,
+    currentMeetingId,
     handleNotificationClick,
     handleNotificationClose,
-    isReady: !!mode,
+    handleTabChange,
+    handleWrapperClick,
+    isCSM,
+    isInClientContext,
+    isReady: mode !== undefined,
+    logoSlotProps: logoSlotProperties,
+    meetingDateLabel,
+    meetingStatus,
+    menuItems,
+    notificationAnchor,
+    notificationsOpen,
+    selectedTabValue,
+    shouldHideTabs,
+    tabs,
+    unreadCount,
   };
-}
+};

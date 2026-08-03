@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/filename-case, github/filenames-match-regex -- Filename intentionally stays camelCase: every other hook in `hooks/` (and the import in app/events/page.tsx) follows `useXxx.ts`, so renaming this one file to kebab-case would make the directory less consistent, not more. */
 "use client";
 
 import useSWR from "swr";

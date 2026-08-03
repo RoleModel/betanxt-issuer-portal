@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/filename-case -- The `Navigation` directory name is intentional and shared by the rest of the app; renaming it is out of scope for lint cleanup. */
 import type { NavigationTab } from "./types";
 
 const buildNavigationTabs = (currentPhase: number): NavigationTab[] => [

@@ -1,5 +1,3 @@
-/* eslint-disable sort-keys -- Object order mirrors the documented chart-role sequence. */
-
 /**
  * Builds the fixed, nine-role palette used by every voting chart.
  *
