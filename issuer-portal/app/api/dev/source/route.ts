@@ -82,12 +82,56 @@ const scoreCandidate = (filePath: string, name: string): number => {
   return base.toLowerCase() === name.toLowerCase() ? 1 : 2;
 };
 
+/**
+ * Reads one file named by repo-relative path.
+ *
+ * @param requested - Path as sent by the client.
+ * @returns The file's text, or `null` when the path escapes the search roots.
+ *
+ * @remarks
+ * The overlay asks for named pipeline files by path rather than by component,
+ * so the path has to be checked rather than trusted: it must resolve inside one
+ * of the search roots and carry a source extension. Development-only or not,
+ * a handler that reads an arbitrary path is a handler that reads `.env`.
+ */
+const readByPath = async (requested: string): Promise<string | null> => {
+  const root = process.cwd();
+  const resolved = path.resolve(root, requested);
+  const isUnderSearchRoot = SEARCH_ROOTS.some((directory) =>
+    resolved.startsWith(`${path.join(root, directory)}${path.sep}`)
+  );
+
+  if (!isUnderSearchRoot || !SOURCE_EXTENSIONS.has(path.extname(resolved))) {
+    return null;
+  }
+
+  try {
+    return await readFile(resolved, "utf8");
+  } catch {
+    return null;
+  }
+};
+
 export async function GET(request: Request): Promise<NextResponse> {
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const name = new URL(request.url).searchParams.get("component");
+  const parameters = new URL(request.url).searchParams;
+  const requestedPath = parameters.get("file");
+
+  if (requestedPath !== null) {
+    const source = await readByPath(requestedPath);
+
+    return source === null
+      ? NextResponse.json(
+          { error: `Cannot read ${requestedPath}` },
+          { status: 404 }
+        )
+      : NextResponse.json({ line: 1, path: requestedPath, source });
+  }
+
+  const name = parameters.get("component");
 
   if (name === null || !COMPONENT_NAME_PATTERN.test(name)) {
     return NextResponse.json(

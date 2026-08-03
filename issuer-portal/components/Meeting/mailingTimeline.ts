@@ -61,8 +61,8 @@ export const formatMailingStatusDate = (
 ): string | null =>
   hasNonEmptyString(statusDate)
     ? parseLocalDate(statusDate).toLocaleDateString("en-US", {
-        month: "short",
         day: "numeric",
+        month: "short",
         year: "numeric",
       })
     : null;

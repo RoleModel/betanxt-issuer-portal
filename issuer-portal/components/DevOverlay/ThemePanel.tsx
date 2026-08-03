@@ -2,16 +2,42 @@
 
 import { useMemo, useState } from "react";
 
+import type { FetchedFile } from "./download";
 import type { ClientPalette, DerivedRole } from "./theme-pipeline";
 
+import { downloadText, fetchRepoFile, toSourceBundle } from "./download";
 import {
   brandedTickers,
   buildClientPalette,
   darkThemeSurfaceColor,
   themePipeline,
+  themeSourceFiles,
   wasLightenedForDark,
 } from "./theme-pipeline";
 import { getCurrentScheme, toHex } from "./tokens";
+
+/** `--ticker-role: #hex;` for every value the pipeline derived. */
+const toPaletteCss = (palette: ClientPalette): string => {
+  const section = (title: string, roles: readonly DerivedRole[]): string[] => [
+    `  /* ${title} */`,
+    ...roles.map((role) => {
+      const hex = toHex(role.value);
+      return `  --${palette.ticker.toLowerCase()}-${role.label}: ${hex ?? role.value};`;
+    }),
+    "",
+  ];
+
+  return [
+    `/* ${palette.ticker} — derived by the portal's client-theme pipeline */`,
+    "/* Authored values are color-mix()/oklch() expressions; these are resolved. */",
+    ":root {",
+    ...section("Approved brand colors", palette.seeds),
+    ...section("Primary as a palette role", palette.primaryRole),
+    ...section("Dark-mode accents", palette.darkSeeds),
+    ...section("Vote-chart roles", palette.chartRoles),
+    "}",
+  ].join("\n");
+};
 
 const SwatchChip = ({
   onCopy,
@@ -90,12 +116,41 @@ export const ThemePanel = ({
     [ticker]
   );
 
-  const copy = (text: string): void => {
-    void navigator.clipboard?.writeText(text);
-    setFlash(`${text} copied`);
+  const announce = (message: string): void => {
+    setFlash(message);
     window.setTimeout(() => {
       setFlash(null);
     }, 1600);
+  };
+
+  const copy = (text: string): void => {
+    void navigator.clipboard?.writeText(text);
+    announce(`${text} copied`);
+  };
+
+  const downloadGeneratorSource = async (): Promise<void> => {
+    announce("reading pipeline source…");
+    const files = await Promise.all(themeSourceFiles.map(fetchRepoFile));
+    const found = files.filter((file): file is FetchedFile => file !== null);
+
+    if (found.length === 0) {
+      announce("could not read the pipeline source");
+      return;
+    }
+
+    downloadText(
+      "issuer-portal-client-theme-pipeline.md",
+      toSourceBundle(
+        "Issuer Portal — client color theme pipeline",
+        [
+          "Everything that turns a client ticker into a rendered theme, in reading order.",
+          ...themePipeline.map((step) => `- **${step.title}** — ${step.detail}`),
+        ],
+        found
+      ),
+      "text/markdown"
+    );
+    announce(`${found.length} files downloaded`);
   };
 
   const lightenedSeeds =
@@ -141,6 +196,33 @@ export const ThemePanel = ({
             </button>
           ))}
         </div>
+        <button
+          className="ipdev-btn"
+          onClick={() => {
+            void downloadGeneratorSource();
+          }}
+          title="Download every file that builds a client theme, as one annotated Markdown bundle"
+          type="button"
+        >
+          ⬇ generator source
+        </button>
+        {palette === null ? null : (
+          <button
+            className="ipdev-btn"
+            onClick={() => {
+              downloadText(
+                `${palette.ticker.toLowerCase()}-palette.css`,
+                toPaletteCss(palette),
+                "text/css"
+              );
+              announce(`${palette.ticker} palette downloaded`);
+            }}
+            title="Download this client's derived palette as resolved CSS custom properties"
+            type="button"
+          >
+            ⬇ {palette.ticker} palette CSS
+          </button>
+        )}
         {flash === null ? null : <span className="ipdev-mono">{flash}</span>}
       </div>
 

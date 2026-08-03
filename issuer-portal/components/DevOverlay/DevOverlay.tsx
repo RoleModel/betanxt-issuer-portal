@@ -121,7 +121,7 @@ export const DevOverlay = () => {
 
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const {target} = event;
+        const { target } = event;
 
         if (
           !(target instanceof HTMLElement) ||

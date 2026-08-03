@@ -140,8 +140,20 @@ const describeValue = (value: unknown): string => {
       if (isRecord(value) && "$$typeof" in value) {
         return "<element>";
       }
-      const keys = Object.keys(value);
-      return `{ ${keys.slice(0, 4).join(", ")}${keys.length > 4 ? ", …" : ""} }`;
+      // Next's `params` and `searchParams` are promises behind a proxy that
+      // warns the moment anything enumerates them. Describing a value must
+      // never provoke the thing being described, so thenables are named and
+      // left alone, and any other exotic object is caught rather than trusted.
+      if (isRecord(value) && typeof value.then === "function") {
+        return "Promise";
+      }
+
+      try {
+        const keys = Object.keys(value);
+        return `{ ${keys.slice(0, 4).join(", ")}${keys.length > 4 ? ", …" : ""} }`;
+      } catch {
+        return "{ … }";
+      }
     }
     default: {
       return String(value);
@@ -156,10 +168,14 @@ const describeProperties = (
     return [];
   }
 
-  return Object.entries(properties)
-    .filter(([key]) => key !== "children")
-    .slice(0, 12)
-    .map(([key, value]): [string, string] => [key, describeValue(value)]);
+  try {
+    return Object.entries(properties)
+      .filter(([key]) => key !== "children")
+      .slice(0, 12)
+      .map(([key, value]): [string, string] => [key, describeValue(value)]);
+  } catch {
+    return [];
+  }
 };
 
 /**

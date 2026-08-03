@@ -63,6 +63,22 @@ export const themePipeline: readonly PipelineStep[] = [
   },
 ];
 
+/**
+ * Every file that participates in building a client theme, in reading order.
+ *
+ * @remarks
+ * This is what the panel's download hands over: the pipeline's prose is only
+ * useful next to the code it describes, and a developer picking the work up
+ * should not have to go find six files across four directories first.
+ */
+export const themeSourceFiles: readonly string[] = [
+  "components/mui-styling/ThemeRegistry.tsx",
+  "utils/client-branding.ts",
+  "utils/brand-theme-colors.ts",
+  "utils/vote-chart-colors.ts",
+  "components/mui-styling/theme.ts",
+];
+
 export interface DerivedRole {
   readonly label: string;
   /** The expression as authored — often color-mix() or oklch(). */

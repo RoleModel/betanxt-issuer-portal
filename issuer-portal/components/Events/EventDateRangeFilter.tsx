@@ -70,6 +70,37 @@ const startOfDay = (date: Date): number =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
 /**
+ * Makes the pickers match the Column select they sit beside.
+ *
+ * @remarks
+ * Two problems, both caused by the filter panel rather than by the pickers.
+ * Hiding the operator select frees its share of the row and the value input
+ * stretches into it, which left the pair spread across the whole panel — hence
+ * the fixed width. And the panel flattens the outline on inputs it did not
+ * render itself, so the notched border is asserted here instead of inherited;
+ * without it the fields read as plain text on the panel background while the
+ * selects beside them are clearly bordered controls.
+ */
+const pickerStyles = {
+  width: 168,
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "background.paper",
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "divider",
+    borderStyle: "solid",
+    borderWidth: 1,
+  },
+  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "text.primary",
+  },
+  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "primary.main",
+    borderWidth: 2,
+  },
+} as const;
+
+/**
  * Two date pickers standing in for the usual operator + single-value input.
  *
  * @remarks
@@ -95,7 +126,7 @@ const EventDateRangeInput = ({
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       {/* The marker lets the panel hide the operator select on this row only —
           "Between" is the only operator, so the dropdown is dead weight. */}
-      <Stack data-event-date-range direction="row" spacing={1} sx={{ pt: 1 }}>
+      <Stack data-event-date-range direction="row" spacing={1}>
         <DatePicker
           label="Start date"
           maxDate={fromIsoDate(end) ?? undefined}
@@ -104,8 +135,13 @@ const EventDateRangeInput = ({
           }}
           slotProps={{
             field: { clearable: true },
-            textField: { inputRef: focusElementRef, size: "small" },
+            textField: {
+              inputRef: focusElementRef,
+              size: "small",
+              variant: "outlined",
+            },
           }}
+          sx={pickerStyles}
           value={fromIsoDate(start)}
         />
         <DatePicker
@@ -116,8 +152,9 @@ const EventDateRangeInput = ({
           }}
           slotProps={{
             field: { clearable: true },
-            textField: { size: "small" },
+            textField: { size: "small", variant: "outlined" },
           }}
+          sx={pickerStyles}
           value={fromIsoDate(end)}
         />
       </Stack>
