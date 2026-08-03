@@ -20,6 +20,7 @@ export const EventPrimaryCell = ({ event }: { readonly event: EventRow }) => (
       href={`${getMeetingUrl(event)}/dashboard`}
       noWrap
       variant="body3"
+      sx={{ fontWeight: 600 }}
     >
       {event.event}
     </Typography>

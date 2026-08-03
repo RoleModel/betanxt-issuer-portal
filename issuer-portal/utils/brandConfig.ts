@@ -142,7 +142,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     headerLogoPath: "/logos/brands/lineage-cell-therapeutics-inc_logo-dark.svg",
     headerIconPath: "/logos/brands/lineage-cell-therapeutics-inc_icon-dark.png",
     primaryColor: "#339ef0",
-    secondaryColor: "#000a2b",
+    secondaryColor: "#3465CC",
   },
   "Inozyme Pharma, Inc.": {
     companyName: "Inozyme Pharma",
@@ -641,8 +641,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     iconPath: "",
     headerLogoPath: "/logos/mnmd_logo-dark.png",
     headerIconPath: "/logos/mnmd_icon-dark.png",
-    primaryColor: "#7c3aed",
-    secondaryColor: "#4c1d95",
+    primaryColor: "#6A994E",
+    secondaryColor: "#3A3A3A",
   },
   "Adaptive Biotechnologies Corporation": {
     companyName: "Adaptive Biotechnologies",

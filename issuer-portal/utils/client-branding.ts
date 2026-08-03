@@ -1,6 +1,13 @@
 // Shared client branding utilities
 
-export const clientBranding = [
+export interface ClientBranding {
+  readonly primaryColor: string;
+  readonly secondaryColor: string;
+  readonly tertiaryColor: string;
+  readonly ticker: string;
+}
+
+export const clientBranding: readonly ClientBranding[] = [
   {
     primaryColor: "#0078A3",
     secondaryColor: "#DAD55E",

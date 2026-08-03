@@ -41,7 +41,11 @@ export const EmptyState = ({
           height: "100%",
         }}
       >
-        <Stack spacing={1} alignItems="center" sx={{ maxWidth: 600, textAlign: "center" }}>
+        <Stack
+          spacing={1}
+          alignItems="center"
+          sx={{ maxWidth: 600, textAlign: "center" }}
+        >
           <Box
             sx={{
               display: "flex",
@@ -86,7 +90,9 @@ export const EmptyState = ({
             {description}
           </Typography>
           {children}
-          {action === undefined || action === null ? null : <Box sx={{ mt: 3 }}>{action}</Box>}
+          {action === undefined || action === null ? null : (
+            <Box sx={{ mt: 3 }}>{action}</Box>
+          )}
         </Stack>
       </Paper>
     </Box>
