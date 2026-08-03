@@ -3,6 +3,8 @@
  *
  * @param primaryColor - The active client's approved primary brand color.
  * @param secondaryColor - The active client's approved secondary brand color.
+ * @param colorScheme - The active scheme. Dark source fills are lightened so
+ * their patterns remain visible against the portal's dark canvas.
  * @returns Chart colors in the semantic order documented in the repository
  * README: Registered, Beneficial, Web, Print, IVR, For, Against, Abstain, and
  * Withhold.
@@ -16,7 +18,8 @@
  */
 export const generateChartPalette = (
   primaryColor: string,
-  secondaryColor: string
+  secondaryColor: string,
+  colorScheme: "dark" | "light" = "light"
 ): readonly [
   string,
   string,
@@ -30,9 +33,15 @@ export const generateChartPalette = (
 ] => [
   primaryColor,
   secondaryColor,
-  `color-mix(in oklch, ${secondaryColor} 82%, ${primaryColor} 18%)`,
-  `color-mix(in oklch, ${secondaryColor} 72%, white 28%)`,
-  `color-mix(in oklch, ${secondaryColor} 72%, black 28%)`,
+  colorScheme === "dark"
+    ? `color-mix(in oklch, ${secondaryColor} 76%, white 24%)`
+    : `color-mix(in oklch, ${secondaryColor} 82%, ${primaryColor} 18%)`,
+  colorScheme === "dark"
+    ? `color-mix(in oklch, ${primaryColor} 68%, white 32%)`
+    : `color-mix(in oklch, ${secondaryColor} 72%, white 28%)`,
+  colorScheme === "dark"
+    ? `color-mix(in oklch, ${secondaryColor} 60%, ${primaryColor} 20%, white 20%)`
+    : `color-mix(in oklch, ${secondaryColor} 72%, black 28%)`,
   "oklch(57% 0.15 175)",
   "oklch(56% 0.2 28)",
   "oklch(78% 0.16 85)",

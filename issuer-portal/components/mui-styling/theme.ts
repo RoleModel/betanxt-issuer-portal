@@ -25,7 +25,6 @@ import {
   purple,
   teal,
 } from "@mui/material/colors";
-import { darken, getContrastRatio, lighten } from "@mui/material/styles";
 import { deepmerge } from "@mui/utils";
 import { components } from "@rolemodel/betanxt-design-system/themes/base/components";
 import { layout } from "@rolemodel/betanxt-design-system/themes/base/layout";
@@ -50,6 +49,11 @@ import betanxtTheme from "@rolemodel/betanxt-design-system/themes/betanxtTheme";
 import { createClientThemeOptions } from "@rolemodel/client-theming/theme";
 
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
+import {
+  createBrandPaletteColor,
+  createDarkThemeColors,
+  getMostLegibleText,
+} from "@/utils/brand-theme-colors";
 import { clientBranding } from "@/utils/client-branding";
 import { generateChartPalette } from "@/utils/vote-chart-colors";
 
@@ -403,20 +407,6 @@ interface BrandingColors {
   ticker: string;
 }
 
-interface BrandingWithContrast extends BrandingColors {
-  primaryContrastText: string;
-  secondaryContrastText: string;
-  tertiaryContrastText: string;
-}
-
-const getContrastText = (color: string): string =>
-  getContrastRatio(color, "#fff") > 1.5 ? "#fff" : "#111";
-
-const getMostLegibleText = (color: string): string =>
-  getContrastRatio(color, "#fff") >= getContrastRatio(color, "#000")
-    ? "#fff"
-    : "#111";
-
 const createVoteDistributionAccountPalette = (
   color: VoteChartColorPalette
 ): VoteDistributionAccountPalette => {
@@ -448,15 +438,20 @@ const createVoteDistributionAccountPalette = (
  */
 const createVoteChartPalette = (
   primaryColor: string,
-  secondaryColor: string
+  secondaryColor: string,
+  colorScheme: "dark" | "light"
 ): VoteChartPalette => {
-  const colors = generateChartPalette(primaryColor, secondaryColor);
+  const colors = generateChartPalette(
+    primaryColor,
+    secondaryColor,
+    colorScheme
+  );
   const contrastTextByColor = [
     getMostLegibleText(primaryColor),
     getMostLegibleText(secondaryColor),
-    getMostLegibleText(secondaryColor),
+    colorScheme === "dark" ? "#111" : getMostLegibleText(secondaryColor),
     "#111",
-    "#fff",
+    colorScheme === "dark" ? "#111" : "#fff",
     "#111",
     "#fff",
     "#111",
@@ -480,18 +475,11 @@ const createVoteChartPalette = (
   };
 };
 
-const addContrastText = (branding: BrandingColors): BrandingWithContrast => ({
-  ...branding,
-  primaryContrastText: getContrastText(branding.primaryColor),
-  secondaryContrastText: getContrastText(branding.secondaryColor),
-  tertiaryContrastText: getContrastText(branding.tertiaryColor),
-});
-
 const [defaultClientBranding] = clientBranding;
 
-const getClientBranding = (ticker?: string): BrandingWithContrast => {
+const getClientBranding = (ticker?: string): BrandingColors => {
   if (ticker === undefined || ticker.length === 0) {
-    return addContrastText(defaultClientBranding);
+    return defaultClientBranding;
   }
 
   const branding = clientBranding.find(
@@ -499,23 +487,23 @@ const getClientBranding = (ticker?: string): BrandingWithContrast => {
   );
 
   if (branding !== undefined) {
-    return addContrastText(branding);
+    return branding;
   }
 
   const normalizedTicker = ticker.toUpperCase();
   const brand = getBrandConfigByTicker(normalizedTicker);
 
   if (brand === null) {
-    return addContrastText(defaultClientBranding);
+    return defaultClientBranding;
   }
 
   // Use the secondary brand color as the tertiary fallback.
-  return addContrastText({
+  return {
     primaryColor: brand.primaryColor,
     secondaryColor: brand.secondaryColor,
     tertiaryColor: brand.secondaryColor,
     ticker: brand.ticker ?? normalizedTicker,
-  });
+  };
 };
 
 const linearProgressPhaseColors = new Set<string>(phaseColorNames);
@@ -606,9 +594,16 @@ const getLinearProgressColorStyles = ({
  */
 export const createClientTheme = (ticker?: string) => {
   const branding = getClientBranding(ticker);
-  const voteChart = createVoteChartPalette(
+  const darkBranding = createDarkThemeColors(branding);
+  const lightVoteChart = createVoteChartPalette(
     branding.primaryColor,
-    branding.secondaryColor
+    branding.secondaryColor,
+    "light"
+  );
+  const darkVoteChart = createVoteChartPalette(
+    darkBranding.primaryColor,
+    darkBranding.secondaryColor,
+    "dark"
   );
   const portableClientThemeOptions = createClientThemeOptions({
     primaryColor: branding.primaryColor,
@@ -621,24 +616,23 @@ export const createClientTheme = (ticker?: string) => {
       light: {
         palette: {
           primary: {
-            main: branding.primaryColor,
-            contrastText: branding.primaryContrastText,
+            ...createBrandPaletteColor(branding.primaryColor, "light"),
           },
           secondary: {
-            main: branding.secondaryColor,
-            contrastText: branding.secondaryContrastText,
+            ...createBrandPaletteColor(branding.secondaryColor, "light"),
           },
           tertiary: {
-            main: branding.tertiaryColor,
-            light: lighten(branding.tertiaryColor, 0.2),
-            dark: darken(branding.tertiaryColor, 0.2),
-            contrastText: branding.tertiaryContrastText,
+            ...createBrandPaletteColor(branding.tertiaryColor, "light"),
           },
           voteDistribution: {
-            dtc: createVoteDistributionAccountPalette(voteChart.registered),
-            nonDtc: createVoteDistributionAccountPalette(voteChart.beneficial),
+            dtc: createVoteDistributionAccountPalette(
+              lightVoteChart.registered
+            ),
+            nonDtc: createVoteDistributionAccountPalette(
+              lightVoteChart.beneficial
+            ),
           },
-          voteChart,
+          voteChart: lightVoteChart,
 
           appSwitcher: {
             background: "#171717",
@@ -723,11 +717,22 @@ export const createClientTheme = (ticker?: string) => {
       },
       dark: {
         palette: {
-          voteDistribution: {
-            dtc: createVoteDistributionAccountPalette(voteChart.registered),
-            nonDtc: createVoteDistributionAccountPalette(voteChart.beneficial),
+          primary: {
+            ...createBrandPaletteColor(darkBranding.primaryColor, "dark"),
           },
-          voteChart,
+          secondary: {
+            ...createBrandPaletteColor(darkBranding.secondaryColor, "dark"),
+          },
+          tertiary: {
+            ...createBrandPaletteColor(darkBranding.tertiaryColor, "dark"),
+          },
+          voteDistribution: {
+            dtc: createVoteDistributionAccountPalette(darkVoteChart.registered),
+            nonDtc: createVoteDistributionAccountPalette(
+              darkVoteChart.beneficial
+            ),
+          },
+          voteChart: darkVoteChart,
           aquaLight: "#CFE2E5",
           keydate: {
             main: nxtBlue[900],
@@ -1119,7 +1124,10 @@ export const createClientTheme = (ticker?: string) => {
     },
   });
 
-  return deepmerge(clientThemeOptions, portableClientThemeOptions);
+  // Apply the portal's dark-scheme overrides after the portable defaults. The
+  // package deliberately mirrors one brand color into both modes; this app
+  // supplies contrast-checked dark values for its denser data UI.
+  return deepmerge(portableClientThemeOptions, clientThemeOptions);
 };
 
 // Export theme options instead of created themes to avoid duplicate CSS variable generation
