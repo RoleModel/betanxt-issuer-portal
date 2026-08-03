@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { Gauge } from "@mui/x-charts/Gauge";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import GaugeCenterLabel from "@/components/Reporting/GaugeCenterLabel";
 import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
@@ -61,13 +62,15 @@ const QuorumGaugeCard = ({
   return (
     <Card className={className} elevation={3} sx={tabulationCardStyles}>
       <CardHeader
-        title={displayTitle}
+        title={<GlossaryText>{displayTitle}</GlossaryText>}
         subheader={
           <CustomTooltip title={requiredMetric.alternate}>
             <span>
-              {displayMode === "numbers"
-                ? `Quorum requirement: ${requiredMetric.display} + 1`
-                : `Quorum requirement: ${formatQuorumRequirementPercentLabel(model?.quorumRequirementPercent)} + 1`}
+              <GlossaryText>
+                {displayMode === "numbers"
+                  ? `Quorum requirement: ${requiredMetric.display} + 1`
+                  : `Quorum requirement: ${formatQuorumRequirementPercentLabel(model?.quorumRequirementPercent)} + 1`}
+              </GlossaryText>
             </span>
           </CustomTooltip>
         }
@@ -141,7 +144,11 @@ const QuorumGaugeCard = ({
             </CustomTooltip>
 
             <Box sx={{ display: "flex", justifyContent: "center" }}>
-              <Chip color={statusColor} label={statusLabel} size="small" />
+              <Chip
+                color={statusColor}
+                label={<GlossaryText>{statusLabel}</GlossaryText>}
+                size="small"
+              />
             </Box>
           </Stack>
         )}

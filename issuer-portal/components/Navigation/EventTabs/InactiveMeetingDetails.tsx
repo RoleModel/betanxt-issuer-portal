@@ -4,6 +4,8 @@ import { Box, Stack, Typography } from "@mui/material";
 
 import type { MeetingTab } from "./types";
 
+import GlossaryText from "@/components/ui/GlossaryText";
+
 export const InactiveMeetingDetails = ({
   meeting,
 }: {
@@ -26,7 +28,7 @@ export const InactiveMeetingDetails = ({
             color: "inherit",
           }}
         >
-          Meeting Date
+          <GlossaryText>Meeting Date</GlossaryText>
         </Typography>
         <Typography
           variant="h6"

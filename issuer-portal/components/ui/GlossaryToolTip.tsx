@@ -4,6 +4,7 @@ import type { LinkProps } from "@mui/material/Link";
 import type { TooltipProps } from "@mui/material/Tooltip";
 import type { MouseEvent, ReactNode } from "react";
 
+import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
 
 import type { GlossaryTermId } from "@/contexts/GlossaryContext";
@@ -116,6 +117,40 @@ export const GlossaryTooltip = ({
       >
         {children ?? entry.term}
       </Link>
+    </CustomTooltip>
+  );
+};
+
+/**
+ * A glossary term that explains itself on hover but is not itself clickable.
+ *
+ * @remarks
+ * For terms that sit inside a control which already owns the click — a
+ * navigation tab, a menu item, a sort button. {@link GlossaryTooltip} renders a
+ * real `<button>`, and nesting one inside a tab breaks both the navigation and
+ * the announced role, so those places get the definition without the
+ * click-through to the drawer. Dotted rather than dashed, so the two are
+ * distinguishable: dashed means "opens the glossary", dotted means "hover me".
+ */
+export const GlossaryHint = ({
+  children,
+  placement = "top",
+  term,
+}: Omit<GlossaryTooltipProps, "linkProps" | "onClick">) => {
+  const entry = termsDefinitions[term];
+
+  return (
+    <CustomTooltip placement={placement} title={entry.definition}>
+      <Box
+        component="span"
+        sx={{
+          borderBottom: "1px dotted",
+          borderBottomColor: "currentColor",
+          cursor: "help",
+        }}
+      >
+        {children ?? entry.term}
+      </Box>
     </CustomTooltip>
   );
 };

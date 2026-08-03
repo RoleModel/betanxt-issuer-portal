@@ -16,6 +16,8 @@ import type { MeetingNavigationBarProperties } from "./types";
 
 import { DisplayToggleButton } from "./styled";
 
+import GlossaryText from "@/components/ui/GlossaryText";
+
 export const MeetingNavigationBar = ({
   isPending,
   activeTab,
@@ -86,7 +88,9 @@ export const MeetingNavigationBar = ({
                 <Tab
                   key={tab.label}
                   value={tab.label}
-                  label={tab.label}
+                  label={
+                    <GlossaryText interactive={false}>{tab.label}</GlossaryText>
+                  }
                   component={NextLink}
                   href={tabHref}
                   sx={(theme) => ({

@@ -3,6 +3,7 @@
 import { Box, Stack } from "@mui/material";
 import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BNTypographyPair";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import { getCusipLabel } from "@/utils/cusipDisplay";
 
 import type { MeetingTab } from "./types";
@@ -23,7 +24,7 @@ export const ActiveMeetingDetails = ({
             color: "text.secondary",
             variant: "caption",
             fontWeight: 500,
-            text: getCusipLabel(meeting.cusip),
+            text: <GlossaryText>{getCusipLabel(meeting.cusip)}</GlossaryText>,
           }}
           secondary={{
             variant: "body3",
@@ -37,7 +38,7 @@ export const ActiveMeetingDetails = ({
             color: "text.secondary",
             variant: "caption",
             fontWeight: 500,
-            text: "Record Date",
+            text: <GlossaryText>Record Date</GlossaryText>,
           }}
           secondary={{
             variant: "body3",
@@ -51,7 +52,7 @@ export const ActiveMeetingDetails = ({
             color: "text.secondary",
             variant: "caption",
             fontWeight: 500,
-            text: "Mailing Date",
+            text: <GlossaryText>Mailing Date</GlossaryText>,
           }}
           secondary={{
             variant: "body3",
@@ -65,7 +66,7 @@ export const ActiveMeetingDetails = ({
             color: "text.secondary",
             variant: "caption",
             fontWeight: 500,
-            text: "Meeting Date",
+            text: <GlossaryText>Meeting Date</GlossaryText>,
           }}
           secondary={{
             variant: "body3",

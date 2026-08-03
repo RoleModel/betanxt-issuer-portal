@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import type { GlossaryTermId } from "@/contexts/GlossaryContext";
 
-import { GlossaryTooltip } from "@/components/ui/GlossaryToolTip";
+import { GlossaryHint, GlossaryTooltip } from "@/components/ui/GlossaryToolTip";
 import { termsDefinitions } from "@/lib/termsDefinitions";
 
 /**
@@ -63,13 +63,39 @@ const aliasesFor = (term: string): readonly string[] => {
   return [...found].filter((candidate) => candidate.length >= 3);
 };
 
+/**
+ * What the product calls things, mapped to what the glossary calls them.
+ *
+ * @remarks
+ * Glossary entries are titled formally — "Beneficial Owner", "Registered
+ * Shareholder" — while the interface uses the short form the business uses:
+ * a chart legend says "Beneficial", a column header says "Registered". Deriving
+ * aliases from the entry titles alone therefore misses exactly the places the
+ * terms appear most. Each entry here is a deliberate claim that the shorthand
+ * means the formal term, so it is listed rather than guessed at.
+ */
+const shorthandAliases: readonly TermAlias[] = [
+  { alias: "Beneficial", id: "beneficialowner" },
+  { alias: "Beneficial Holder", id: "beneficialowner" },
+  { alias: "Registered", id: "registeredshareholder" },
+  { alias: "Registered Holder", id: "registeredshareholder" },
+  { alias: "Holder of Record", id: "holderofrecord" },
+  { alias: "Street Name", id: "streetnameshareholders" },
+  { alias: "Non-vote", id: "brokernonvote" },
+  { alias: "Broker Search", id: "broker" },
+  { alias: "Transfer Agent", id: "transferagent" },
+  { alias: "Vote Instruction Form", id: "votinginstructionform" },
+];
+
 /** Longest alias first, so "Proxy Statement" wins over a bare "Proxy". */
 const termAliases: readonly TermAlias[] = Object.entries(termsDefinitions)
   .flatMap(([id, entry]) =>
-    aliasesFor(entry.term).map(
-      (alias): TermAlias => ({ alias, id: id as GlossaryTermId })
-    )
+    aliasesFor(entry.term).map((alias): TermAlias => ({
+      alias,
+      id: id as GlossaryTermId,
+    }))
   )
+  .concat(shorthandAliases)
   .sort((first, second) => second.alias.length - first.alias.length);
 
 const escapeForRegex = (value: string): string =>
@@ -87,7 +113,7 @@ const escapeForRegex = (value: string): string =>
 const glossaryPattern = new RegExp(
   `(?<![A-Za-z])(${termAliases
     .map((entry) => escapeForRegex(entry.alias))
-    .join("|")})(?![A-Za-z])`,
+    .join("|")})(s?)(?![A-Za-z])`,
   "giu"
 );
 
@@ -96,6 +122,14 @@ const idForAlias = new Map<string, GlossaryTermId>(
 );
 
 export interface GlossaryTextProps {
+  /**
+   * Whether a matched term opens the glossary when clicked. Default `true`.
+   *
+   * @remarks
+   * Set `false` for copy that sits inside a control which already owns the
+   * click — a navigation tab, a menu item. The definition still shows on hover.
+   */
+  readonly interactive?: boolean;
   /**
    * Plain copy to scan. Anything that is not a glossary term is untouched.
    *
@@ -106,7 +140,10 @@ export interface GlossaryTextProps {
   readonly children: string | null | undefined;
 }
 
-export const GlossaryText = ({ children }: GlossaryTextProps) => {
+export const GlossaryText = ({
+  children,
+  interactive = true,
+}: GlossaryTextProps) => {
   if (children === null || children === undefined || children.length === 0) {
     return null;
   }
@@ -121,8 +158,12 @@ export const GlossaryText = ({ children }: GlossaryTextProps) => {
   glossaryPattern.lastIndex = 0;
 
   for (const match of children.matchAll(glossaryPattern)) {
-    const matched = match[1];
-    const id = matched === undefined ? undefined : idForAlias.get(matched.toLowerCase());
+    const alias = match[1];
+    // The plural "s" is underlined with the term but is not part of its name.
+    const matched =
+      alias === undefined ? undefined : `${alias}${match[2] ?? ""}`;
+    const id =
+      alias === undefined ? undefined : idForAlias.get(alias.toLowerCase());
 
     if (matched === undefined || id === undefined || linked.has(id)) {
       continue;
@@ -136,9 +177,15 @@ export const GlossaryText = ({ children }: GlossaryTextProps) => {
     }
 
     parts.push(
-      <GlossaryTooltip key={`${id}-${start}`} term={id}>
-        {matched}
-      </GlossaryTooltip>
+      interactive ? (
+        <GlossaryTooltip key={`${id}-${start}`} term={id}>
+          {matched}
+        </GlossaryTooltip>
+      ) : (
+        <GlossaryHint key={`${id}-${start}`} term={id}>
+          {matched}
+        </GlossaryHint>
+      )
     );
     lastIndex = start + matched.length;
   }
