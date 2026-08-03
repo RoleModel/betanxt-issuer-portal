@@ -1,6 +1,6 @@
 {
   "name": "@rolemodel/client-theming",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Portable per-client branding: Brandfetch integration, brand registry, and contrast-aware MUI theme generation.",
   "keywords": [
     "brandfetch",
@@ -54,7 +54,8 @@
     }
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "build": "npm run clean && tsc -p tsconfig.build.json",
