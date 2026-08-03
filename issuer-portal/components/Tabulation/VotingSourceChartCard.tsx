@@ -118,6 +118,25 @@ const VotingSourceChartCard = ({
       )
       .reduce((sum, row) => sum + sumRowOutcomes(row), 0)
   );
+  // The total label is anchored against the bar's right edge, so it sits over
+  // the final visible source segment. Its paired foreground is legible over
+  // that pattern without needing a high-contrast outline.
+  const insideTotalLabelColors = visibleHolderTypes.map((holderType) => {
+    const terminalSource = [...voteSources].reverse().find((source) => {
+      if (hiddenSourceIds.has(source.id)) {
+        return false;
+      }
+
+      return rows.some(
+        (row) =>
+          row.holderType === holderType &&
+          row.source === source.label &&
+          sumRowOutcomes(row) > 0
+      );
+    });
+
+    return terminalSource?.contrastColor ?? "var(--mui-palette-text-primary)";
+  });
 
   return (
     <Card sx={tabulationCardStyles}>
@@ -177,6 +196,7 @@ const VotingSourceChartCard = ({
                   displayMode={displayMode}
                   holderTotals={visibleHolderTotals}
                   holderTypes={visibleHolderTypes}
+                  insideTextColors={insideTotalLabelColors}
                   totalShares={totalShares}
                 />
               </BarChart>

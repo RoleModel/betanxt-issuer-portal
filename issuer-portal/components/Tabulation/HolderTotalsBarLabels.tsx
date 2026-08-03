@@ -14,6 +14,8 @@ export interface HolderTotalsBarLabelsProps {
   /** Parallel to `holderTypes` - both must describe the same visible bands. */
   readonly holderTotals: readonly number[];
   readonly holderTypes: readonly HolderType[];
+  /** Parallel foreground colors for labels that fit inside their source bar. */
+  readonly insideTextColors: readonly string[];
   readonly totalShares: number;
 }
 
@@ -21,14 +23,16 @@ export interface HolderTotalsBarLabelsProps {
  * Total per holder-type band, drawn over the bars as a chart child so it can
  * read the axis scales.
  *
- * Each label sits inside its bar's right edge, and flips to just outside when
- * the bar is too short to hold it - otherwise a short bar's label runs left
- * past the bar start and collides with the axis.
+ * Each label sits inside its bar's right edge using the terminal source
+ * segment's paired contrast color. It flips to `text.primary` just outside
+ * when the bar is too short to hold it, avoiding both the former outline and
+ * an unreadable foreground on the card background.
  */
 export const HolderTotalsBarLabels = ({
   displayMode,
   holderTotals,
   holderTypes: visibleHolderTypes,
+  insideTextColors,
   totalShares,
 }: HolderTotalsBarLabelsProps) => {
   const xScale = useXScale<"linear">();
@@ -90,7 +94,7 @@ export const HolderTotalsBarLabels = ({
 
   return (
     <g aria-label="Holder type totals">
-      {labels.map(({ displayedTotal, holderType, text, y }) => {
+      {labels.map(({ displayedTotal, holderType, text, y }, index) => {
         const barStart = xScale(0);
         const barEnd = xScale(displayedTotal);
         const measuredWidth = labelWidths.get(holderType);
@@ -103,16 +107,17 @@ export const HolderTotalsBarLabels = ({
         return (
           <text
             data-testid={`vote-matrix-total-${holderType.toLowerCase()}`}
-            fill="var(--mui-palette-text-primary)"
+            fill={
+              fitsInsideBar
+                ? (insideTextColors[index] ?? "var(--mui-palette-text-primary)")
+                : "var(--mui-palette-text-primary)"
+            }
             fontSize="24"
             fontWeight="bold"
             key={holderType}
-            paintOrder="stroke"
             ref={(node) => {
               labelNodes.current.set(holderType, node);
             }}
-            stroke="var(--mui-palette-background-paper)"
-            strokeWidth="2"
             textAnchor={fitsInsideBar ? "end" : "start"}
             x={fitsInsideBar ? barEnd - barLabelInset : barEnd + barLabelInset}
             y={y + yScale.bandwidth() - barLabelInset}
