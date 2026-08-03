@@ -1,5 +1,7 @@
 "use client";
 
+import type { SxProps, Theme } from "@mui/material/styles";
+
 import BookmarkAddOutlinedIcon from "@mui/icons-material/BookmarkAddOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import DeleteSweepOutlinedIcon from "@mui/icons-material/DeleteSweepOutlined";
@@ -18,6 +20,8 @@ export interface SavedFilterPanelProps {
   readonly onAddFilter: () => void;
   readonly onClearFilters: () => void;
   readonly onSaveFilters: (name: string) => void;
+  /** Styling for the panel root, for grid-specific tweaks to the filter rows. */
+  readonly sx?: SxProps<Theme>;
 }
 
 declare module "@mui/x-data-grid-pro" {
@@ -40,6 +44,7 @@ export const SavedFilterPanel = ({
   onAddFilter,
   onClearFilters,
   onSaveFilters,
+  sx,
 }: SavedFilterPanelProps) => {
   const apiRef = useGridApiContext();
   const [draftName, setDraftName] = useState("");
@@ -58,7 +63,7 @@ export const SavedFilterPanel = ({
   };
 
   return (
-    <Box>
+    <Box sx={sx}>
       <GridFilterPanel disableAddFilterButton disableRemoveAllButton />
       <Stack
         alignItems="center"

@@ -1,7 +1,7 @@
 "use client";
 
 import { Box } from "@mui/material";
-import { DataGridPro } from "@mui/x-data-grid-pro";
+import { DataGridPro, gridClasses } from "@mui/x-data-grid-pro";
 import { useSyncExternalStore } from "react";
 
 import type { EventRow } from "@/utils/eventData";
@@ -9,13 +9,16 @@ import type { EventRow } from "@/utils/eventData";
 import { SavedFilterPanel } from "@/components/ui/SavedFilterPanel";
 import { SavedFilterToolbar } from "@/components/ui/SavedFilterToolbar";
 import { useEventRisk } from "@/hooks/useEventRisk";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 import { createEventsDataGridColumns } from "./eventsDataGridColumns";
 import { useEventsFilterModel } from "./useEventsFilterModel";
 
 // The grid renders only on the client; this defers it until after hydration
 // rather than rendering a server pass the grid would immediately discard.
-const subscribeToClientRender = (): (() => void) => () => {};
+const subscribeToClientRender = (): (() => void) => () => {
+  /* empty */
+};
 const getClientRenderSnapshot = (): boolean => true;
 const getServerRenderSnapshot = (): boolean => false;
 
@@ -40,6 +43,7 @@ export const EventsDataGrid = ({
     getServerRenderSnapshot
   );
   const { atRiskMeetingIds } = useEventRisk();
+  const { flags } = useFeatureFlags();
   const {
     activeFilterId,
     clearFilters,
@@ -56,6 +60,7 @@ export const EventsDataGrid = ({
   const columns = createEventsDataGridColumns({
     assignedTickers,
     atRiskMeetingIds,
+    showEventStatus: flags.eventStatus,
   });
 
   // Without an active search the index shows upcoming events only; searching
@@ -106,6 +111,16 @@ export const EventsDataGrid = ({
           onAddFilter: handleAddFilter,
           onClearFilters: clearFilters,
           onSaveFilters: handleSaveFilters,
+          sx: {
+            // Event date takes a range and nothing else, so its row drops the
+            // operator select entirely and gives the space to the two pickers.
+            [`& .${gridClasses.filterForm}:has([data-event-date-range])`]: {
+              [`& .${gridClasses.filterFormOperatorInput}`]: {
+                display: "none",
+              },
+              [`& .${gridClasses.filterFormValueInput}`]: { width: "auto" },
+            },
+          },
         },
         toolbar: {
           activeFilterId,

@@ -16,6 +16,7 @@ import {
   EventPrimaryCell,
   EventStatusCell,
 } from "./EventDataGridCells";
+import { eventDateRangeOperator } from "./EventDateRangeFilter";
 import {
   AT_RISK_LABEL,
   ON_SCHEDULE_LABEL,
@@ -36,13 +37,20 @@ export const myClientsOnlyFilterOperator = (
   },
 });
 
-/** Shared config for the three date columns, which differ only in their source. */
+/**
+ * Shared config for the three date columns, which differ only in their source.
+ *
+ * @remarks
+ * Filtering is off by default: only Client and Event date are filterable, and
+ * the event-date column opts back in with its own range operator.
+ */
 const dateColumn = (
   field: string,
   headerName: string,
   getDate: (row: EventRow) => string | null | undefined
 ): GridColDef<EventRow> => ({
   field,
+  filterable: false,
   headerName,
   minWidth: 140,
   type: "date",
@@ -58,11 +66,14 @@ const dateColumn = (
 interface EventsDataGridColumnsOptions {
   readonly assignedTickers: ReadonlySet<string> | null;
   readonly atRiskMeetingIds: ReadonlySet<string>;
+  /** `event-status` flag — hides the risk-status column while it is off. */
+  readonly showEventStatus: boolean;
 }
 
 export const createEventsDataGridColumns = ({
   assignedTickers,
   atRiskMeetingIds,
+  showEventStatus,
 }: EventsDataGridColumnsOptions): GridColDef<EventRow>[] => [
   {
     field: "client",
@@ -84,37 +95,47 @@ export const createEventsDataGridColumns = ({
     },
   },
   {
-    field: "setKey",
+    field: "cusip",
+    filterable: false,
     flex: 1,
-    headerName: "Set Key",
+    headerName: "CUSIP",
     minWidth: 220,
     renderCell: (parameters: GridRenderCellParams<EventRow, string>) => (
       <Typography noWrap variant="body3">
-        {parameters.row.setKey}
+        {parameters.row.cusip}
       </Typography>
     ),
     valueGetter: (value, row) => {
       void value;
-      return row.setKey;
+      return row.cusip;
     },
   },
-  dateColumn("eventDate", "Event date", (row) => row.eventDate),
+  {
+    ...dateColumn("eventDate", "Event date", (row) => row.eventDate),
+    filterOperators: [eventDateRangeOperator],
+    filterable: true,
+  },
   dateColumn("recordDate", "Record date", (row) => row.recordDate),
   dateColumn("mailingDate", "Mail date", (row) => row.mailingDate),
-  {
-    field: "riskStatus",
-    headerName: "Status",
-    minWidth: 150,
-    renderCell: (parameters: GridRenderCellParams<EventRow, string>) => (
-      <EventStatusCell value={parameters.value} />
-    ),
-    type: "singleSelect",
-    valueGetter: (value, row) => {
-      void value;
-      return getEventRiskLabel(row, atRiskMeetingIds);
-    },
-    valueOptions: [ON_SCHEDULE_LABEL, AT_RISK_LABEL],
-  },
+  ...(showEventStatus
+    ? [
+        {
+          field: "riskStatus",
+          filterable: false,
+          headerName: "Status",
+          minWidth: 150,
+          renderCell: (parameters: GridRenderCellParams<EventRow, string>) => (
+            <EventStatusCell value={parameters.value} />
+          ),
+          type: "singleSelect" as const,
+          valueGetter: (value: unknown, row: EventRow) => {
+            void value;
+            return getEventRiskLabel(row, atRiskMeetingIds);
+          },
+          valueOptions: [ON_SCHEDULE_LABEL, AT_RISK_LABEL],
+        } satisfies GridColDef<EventRow>,
+      ]
+    : []),
   {
     align: "right",
     field: "actions",

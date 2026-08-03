@@ -7,6 +7,8 @@ import { useClient } from "@/contexts/ClientContext";
 interface FeatureFlags {
   /** Vercel `enable-nobo` flag — gates NOBO/Engage functionality per client. */
   enableNobo: boolean;
+  /** Vercel `event-status` flag — gates the risk-status column in the event index. */
+  eventStatus: boolean;
   /**
    * Vercel `configure-distribution` flag — gates the Configure Distribution
    * feature (automated daily tabulation delivery). Phase 2, off for MVP.
@@ -25,6 +27,7 @@ const defaultFlags: FeatureFlags = {
   configureDistribution: false,
   enableNobo: false,
   enableTabulationTrackerColors: false,
+  eventStatus: false,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -53,6 +56,7 @@ const fetchFeatureFlags = async (
     configureDistribution: data.configureDistribution === true,
     enableNobo: data.enableNobo === true,
     enableTabulationTrackerColors: data.enableTabulationTrackerColors === true,
+    eventStatus: data.eventStatus === true,
   };
 };
 

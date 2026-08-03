@@ -4,6 +4,7 @@ import {
   configureDistributionFlag,
   enableTabulationTrackerColorsFlag,
   enableNoboFlag,
+  eventStatusFlag,
 } from "@/flags";
 
 /**
@@ -13,16 +14,22 @@ import {
  * flags directly.
  */
 export async function GET() {
-  const [enableNobo, configureDistribution, enableTabulationTrackerColors] =
-    await Promise.all([
-      enableNoboFlag(),
-      configureDistributionFlag(),
-      enableTabulationTrackerColorsFlag(),
-    ]);
+  const [
+    enableNobo,
+    configureDistribution,
+    enableTabulationTrackerColors,
+    eventStatus,
+  ] = await Promise.all([
+    enableNoboFlag(),
+    configureDistributionFlag(),
+    enableTabulationTrackerColorsFlag(),
+    eventStatusFlag(),
+  ]);
 
   return NextResponse.json({
     configureDistribution,
     enableTabulationTrackerColors,
     enableNobo,
+    eventStatus,
   });
 }
