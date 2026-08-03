@@ -97,6 +97,14 @@ export const HolderTotalsBarLabels = ({
       {labels.map(({ displayedTotal, holderType, text, y }) => {
         const barStart = xScale(0);
         const barEnd = xScale(displayedTotal);
+
+        // With every source hidden, MUI has no series values from which to
+        // derive an x-axis domain. Skip the transient label render until a
+        // numeric scale exists instead of passing NaN to the SVG `x` attribute.
+        if (!Number.isFinite(barStart) || !Number.isFinite(barEnd)) {
+          return null;
+        }
+
         const measuredWidth = labelWidths.get(holderType);
         const insideTextColor =
           insideTextColors.get(holderType) ?? "var(--mui-palette-text-primary)";

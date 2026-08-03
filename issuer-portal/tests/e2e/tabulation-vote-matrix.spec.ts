@@ -30,7 +30,9 @@ test("source toggles update the total label foreground", async ({ page }) => {
   await expect(beneficialTotal).toBeVisible({ timeout: 30_000 });
 
   const initialFill = await beneficialTotal.getAttribute("data-inside-fill");
-  expect(initialFill).not.toBeNull();
+  if (initialFill === null) {
+    throw new Error("Expected the beneficial total to expose its inside fill");
+  }
 
   await page.getByTestId("source-legend-ivr").click();
 
@@ -38,4 +40,32 @@ test("source toggles update the total label foreground", async ({ page }) => {
     "data-inside-fill",
     initialFill
   );
+});
+
+test("hiding all sources does not render totals with invalid coordinates", async ({
+  page,
+}) => {
+  const svgErrors: string[] = [];
+  page.on("console", (message) => {
+    if (
+      message.type() === "error" &&
+      message.text().includes('Expected length, "NaN"')
+    ) {
+      svgErrors.push(message.text());
+    }
+  });
+
+  await page.setViewportSize({ width: 1500, height: 950 });
+  await page.goto("/WEN/meeting/wen-special-meeting-2026/tabulation");
+  await expect(page.getByTestId("vote-matrix-total-beneficial")).toBeVisible({
+    timeout: 30_000,
+  });
+
+  for (const source of ["web", "print", "ivr"] as const) {
+    await page.getByTestId(`source-legend-${source}`).click();
+  }
+
+  await expect(page.getByTestId("vote-matrix-total-registered")).toHaveCount(0);
+  await expect(page.getByTestId("vote-matrix-total-beneficial")).toHaveCount(0);
+  expect(svgErrors).toEqual([]);
 });

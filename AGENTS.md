@@ -14,6 +14,10 @@ From the repo root run `npm run dev` to start both workspaces through Turbo. `np
 
 Formatting is enforced by Prettier (`prettier.config.js`) with 2-space indentation, LF line endings, no semicolons, and single quotes. Imports are auto-sorted by `@trivago/prettier-plugin-sort-imports`; use the `@/...` alias for local modules and group third-party modules first. Prefer PascalCase for React components, camelCase for functions and variables, and kebab-case for files except Next.js route conventions under `app/`. Commit only formatted code; run `npm run format` before pushing.
 
+### Documentation
+
+When creating or materially changing TypeScript code, add or update TSDoc (`/** ... */`) for every public, shared, or reusable API and for non-obvious business rules, calculations, data transformations, and UI behavior. Document the contract and important invariants or edge cases; include `@param` and `@returns` when they clarify how a function is used. Keep documentation synchronized with behavior. Do not duplicate information already expressed by TypeScript types or add comments to trivial, self-explanatory code.
+
 ## Testing Guidelines
 
 Playwright drives browser tests located in `issuer-portal/tests/e2e/*.spec.ts`. Name new specs with descriptive verbs (`user-login.spec.ts`) and colocate shared fixtures in `issuer-portal/tests`. Run the full suite with `npm run test`; add `--ui` or `--headed` when debugging. For unit-style scenarios, prefer lightweight tests under `issuer-portal/tests/*.test.ts` and ensure any new data contracts update `domain-models/generated-schema.ts`. Investigate flaky tests before merging and attach Playwright reports on failures.
