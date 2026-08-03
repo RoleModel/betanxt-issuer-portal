@@ -108,7 +108,8 @@ const VoteDistributionChart = ({
     (sum, accountType) =>
       sum +
       voteStatuses.reduce(
-        (statusSum, status) => statusSum + sliceValue(accountType.id, status.id),
+        (statusSum, status) =>
+          statusSum + sliceValue(accountType.id, status.id),
         0
       ),
     0

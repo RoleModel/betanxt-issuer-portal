@@ -1,8 +1,7 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
-
 import { useEffect, useMemo, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 import type { ProposalVoting, VotingSummary } from "@/types/phases";

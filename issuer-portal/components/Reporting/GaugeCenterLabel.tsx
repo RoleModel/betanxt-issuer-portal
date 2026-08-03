@@ -20,11 +20,7 @@ import { CenterLabelContent } from "./PieChartCenterLabel";
  * a gauge arc struck between -110° and 110° sits low in its box, so the
  * drawing-area centre would float the number above the arc.
  */
-export const GaugeCenterLabel = ({
-  data,
-}: {
-  readonly data: PieChartData;
-}) => {
+export const GaugeCenterLabel = ({ data }: { readonly data: PieChartData }) => {
   const { cx, cy } = useGaugeState();
 
   return (

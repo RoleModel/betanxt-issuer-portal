@@ -132,8 +132,18 @@ const voteDistributionSlices: readonly Omit<VoteDistributionData, "value">[] = [
 
 /**
  * Builds the report donut from the live positions shared with Tabulation.
- * Voted positions contribute only their recorded `sharesVoted`; unvoted
- * positions contribute their full outstanding shares.
+ *
+ * @param positions - Every position in scope for the meeting.
+ * @returns One slice per account type and vote status, each carrying shares.
+ *
+ * @remarks
+ * Every position contributes all of its shares, split between voted and not
+ * voted. A holder who votes part of a position leaves the rest unvoted, and
+ * that remainder belongs in the Not Voted ring — it used to be counted nowhere.
+ * The status label decides nothing here: a position marked Voted for 100 of its
+ * 900 shares is 100 voted and 800 not, whatever it is called. That reading is
+ * what makes each ring sum to the shares actually on the register, which is the
+ * only way the centre percentage can mean "share of the register that voted".
  */
 export const buildVoteDistributionData = (
   positions: readonly Position[]
@@ -153,20 +163,17 @@ export const buildVoteDistributionData = (
       accountType = "non-dtc";
     }
 
-    let status: VoteStatusId | null = null;
-    if (position.voteStatus === "Voted") {
-      status = "voted";
-    } else if (position.voteStatus === "Unvoted") {
-      status = "unvoted";
-    }
-
-    if (accountType === null || status === null) {
+    if (accountType === null) {
       continue;
     }
 
-    const sliceId = buildSliceId(accountType, status);
-    values[sliceId] +=
-      status === "voted" ? (position.sharesVoted ?? 0) : (position.shares ?? 0);
+    const shares = position.shares ?? 0;
+    // Clamped both ways: a feed that reports more voted than held must not
+    // produce a negative Not Voted slice, which would silently shrink the ring.
+    const voted = Math.min(Math.max(position.sharesVoted ?? 0, 0), shares);
+
+    values[buildSliceId(accountType, "voted")] += voted;
+    values[buildSliceId(accountType, "unvoted")] += shares - voted;
   }
 
   return voteDistributionSlices.flatMap((slice) => {

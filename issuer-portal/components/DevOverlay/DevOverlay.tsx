@@ -78,7 +78,9 @@ const confirmAppComponents = async (
       const data: unknown = await response.json();
       const known = Reflect.get(data as object, "known");
       const found = new Set(
-        Array.isArray(known) ? known.filter((n): n is string => typeof n === "string") : []
+        Array.isArray(known)
+          ? known.filter((n): n is string => typeof n === "string")
+          : []
       );
 
       for (const name of unasked) {
@@ -92,7 +94,9 @@ const confirmAppComponents = async (
     }
   }
 
-  return new Set(names.filter((name) => knownComponentCache.get(name) === true));
+  return new Set(
+    names.filter((name) => knownComponentCache.get(name) === true)
+  );
 };
 
 /**
@@ -335,9 +339,7 @@ export const DevOverlay = () => {
     return null;
   }
 
-  const selectedFrame = stack.find(
-    (frame) => frame.name === selectedComponent
-  );
+  const selectedFrame = stack.find((frame) => frame.name === selectedComponent);
 
   return (
     <>
@@ -345,7 +347,7 @@ export const DevOverlay = () => {
 
       {inspection === null ? null : (
         <div
-          className={`ipdev-highlight${isPinned ? " is-pinned" : ""}`}
+          className={`ipdev-highlight${isPinned ? "is-pinned" : ""}`}
           style={{
             height: inspection.rect.height + 6,
             left: inspection.rect.left - 3,
