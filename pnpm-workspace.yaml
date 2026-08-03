@@ -1,6 +1,7 @@
 packages:
   - "issuer-portal"
   - "mock-api-server"
+  - "client-theming"
 
 minimumReleaseAge: 0
 

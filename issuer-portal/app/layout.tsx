@@ -20,6 +20,7 @@ import MuiXLicense from "@/components/MuiXLicense";
 import { ChatbotProvider } from "@/contexts/ChatbotContext";
 import { ClientProvider } from "@/contexts/ClientContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { isDevOverlayEnabled } from "@/utils/developmentOverlay";
 
 LicenseInfo.setLicenseKey(process.env.NEXT_PUBLIC_MUI_XGRID_LICENSE ?? "");
 
@@ -82,8 +83,10 @@ const RootLayout = ({ children }: { readonly children: React.ReactNode }) => {
                       <MuiXLicense />
                       <RootLayoutClient>{children}</RootLayoutClient>
                       {/* Inside ClientProvider: the overlay reads the active
-                          ticker to open its theme panel on the right client. */}
-                      {process.env.NODE_ENV === "development" && <DevOverlay />}
+                          ticker to open its theme panel on the right client.
+                          Gated on a flag (not NODE_ENV) so it can be switched
+                          on for Vercel Preview — see isDevOverlayEnabled. */}
+                      {isDevOverlayEnabled() && <DevOverlay />}
                     </ThemeRegistry>
                   </ChatbotProvider>
                 </NotificationProvider>

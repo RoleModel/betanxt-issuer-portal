@@ -64,6 +64,7 @@ export default [
       "**/types/api.ts",
       "**/utils/supabase/database.types.ts",
       "**/domain-models/generated-schema.ts",
+      "**/source-manifest.generated.ts",
     ],
   },
   ...core.map(warningOnly),

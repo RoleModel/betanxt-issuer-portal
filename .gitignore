@@ -40,3 +40,6 @@ issuer-portal/playwright-upload-test.pdf
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Dev-overlay source snapshot (regenerated on postinstall/predev/prebuild)
+issuer-portal/app/api/dev/source/source-manifest.generated.ts

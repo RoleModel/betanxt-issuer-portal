@@ -16,6 +16,7 @@ import { useClients } from "@/hooks/useClients";
 import { useEvents } from "@/hooks/useEvents";
 import { getBrandConfigByTicker, getBrandLogoPath } from "@/utils/brandConfig";
 import { computeClientLogoSrc } from "@/utils/client-branding";
+import { isDevOverlayEnabled } from "@/utils/developmentOverlay";
 import { formatMeetingDate } from "@/utils/meetingUtils";
 
 // --- Hoisted regex constants ---
@@ -624,7 +625,7 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
       },
       // Matches where the overlay itself is mounted — the entry cannot appear
       // in a build that has no overlay behind it.
-      ...(process.env.NODE_ENV === "development"
+      ...(isDevOverlayEnabled()
         ? [
             {
               label: developmentOverlayEnabled

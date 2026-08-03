@@ -1,8 +1,8 @@
 import "react";
 
 declare module "react" {
-  export const ViewTransition: React.ComponentType<{
-    children?: React.ReactNode;
+  export const ViewTransition: ComponentType<{
+    children?: ReactNode;
     name?: string;
   }>;
 }
