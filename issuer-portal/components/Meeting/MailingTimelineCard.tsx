@@ -149,7 +149,11 @@ const MailingTimelineCard = ({
           </Select>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={closeStatusDialog} disabled={isUpdatingStatus}>
+          <Button
+            variant="outlined"
+            onClick={closeStatusDialog}
+            disabled={isUpdatingStatus}
+          >
             Cancel
           </Button>
           <Button

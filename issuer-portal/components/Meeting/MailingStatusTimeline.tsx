@@ -115,7 +115,7 @@ const MailingStatusTimeline = ({
                   ) : null}
                 </TimelineSeparator>
                 <TimelineContent sx={{ py: 0.8, px: 2 }}>
-                  {!isLast && (
+                  {!isLast && isCompleted ? (
                     <Typography
                       variant="body3"
                       color="text.secondary"
@@ -123,7 +123,7 @@ const MailingStatusTimeline = ({
                     >
                       {formattedDate}
                     </Typography>
-                  )}
+                  ) : undefined}
                   <Stack direction="row" alignItems="center" spacing={1}>
                     {isCurrent ? (
                       <Chip
@@ -139,11 +139,7 @@ const MailingStatusTimeline = ({
                             />
                           ) : undefined
                         }
-                        label={
-                          isCompleted
-                            ? `${step.label} - ${formattedDate}`
-                            : step.label
-                        }
+                        label={step.label}
                         size="small"
                         sx={{
                           bgcolor:
