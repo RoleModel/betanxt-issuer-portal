@@ -11,13 +11,13 @@ import { useSession } from "next-auth/react";
 import React, { Suspense, useMemo, useState } from "react";
 
 import { ResetDemoDataDialog } from "@/components/Dialogs/ResetDemoDataDialog";
-import { InfoDialog } from "@/components/InfoDialog";
 import { BNAppBarClient } from "@/components/Navigation/AppBar";
 import { EventTabs } from "@/components/Navigation/EventTabs";
 import IssuerSpeedDial from "@/components/SpeedDial";
 import SupportContactsPopover from "@/components/SupportContactsPopover";
 import { useChatbotContext } from "@/contexts/ChatbotContext";
 import { useClient } from "@/contexts/ClientContext";
+import { useGlossary } from "@/contexts/GlossaryContext";
 
 import Loading from "../../app/loading";
 
@@ -36,13 +36,13 @@ const Layout = ({
 }: PropsWithChildren<LayoutProps>) => {
   const [open, setOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-  const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
   const [resetDialogOpen, setResetDialogOpen] = React.useState(false);
   const [phaseCompleteSnackbar, setPhaseCompleteSnackbar] = useState({
     open: false,
     message: "",
   });
   const { openChatbot } = useChatbotContext();
+  const { openGlossary } = useGlossary();
 
   // Expose snackbar handler globally for phase completion
   React.useEffect(() => {
@@ -95,11 +95,7 @@ const Layout = ({
   };
 
   const handleGlossaryClick = () => {
-    setInfoDialogOpen(true);
-  };
-
-  const handleInfoDialogClose = () => {
-    setInfoDialogOpen(false);
+    openGlossary();
   };
 
   const handleContactsClick = () => {
@@ -210,12 +206,6 @@ const Layout = ({
             setOpen(false);
             setAnchorEl(null);
           }}
-        />
-        <InfoDialog
-          open={infoDialogOpen}
-          onClose={handleInfoDialogClose}
-          term=""
-          definition=""
         />
         <ResetDemoDataDialog
           open={resetDialogOpen}
