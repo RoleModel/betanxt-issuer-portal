@@ -30,18 +30,20 @@ const StyledNumberText = styled("text")<{
   dominantBaseline: "central",
   lineHeight: 1.3,
   fontWeight: 600,
-  fontSize: 32,
+  fontSize: 24,
 }));
 
-const StyledDescriptionText = styled("text")<{ fill?: string }>(({ theme, fill }) => ({
-  fill: (fill ?? "") || theme.vars.palette.text.secondary,
-  textAnchor: "middle",
-  dominantBaseline: "central",
-  lineHeight: "20px",
-  fontWeight: 400,
-  fontSize: 16,
-  fontStyle: "normal",
-}));
+const StyledDescriptionText = styled("text")<{ fill?: string }>(
+  ({ theme, fill }) => ({
+    fill: (fill ?? "") || theme.vars.palette.text.secondary,
+    textAnchor: "middle",
+    dominantBaseline: "central",
+    lineHeight: "20px",
+    fontWeight: 400,
+    fontSize: 14,
+    fontStyle: "normal",
+  })
+);
 const StyledG = styled("g")(({ theme }) => ({
   fill: theme.vars.palette.background.paper,
 }));
@@ -74,13 +76,17 @@ export const CenterLabelContent = ({
       <title>{data.centerTooltip}</title>
       {data.centerValue ?? floorAndFormatNumber(data.total)}
     </StyledNumberText>
-    <StyledDescriptionText
-      fill={data.fill}
-      transform="translate(0, 30)"
-      tabIndex={0}
-    >
-      {data.label}
-    </StyledDescriptionText>
+    {/* An empty label means the figure stands on its own — the gauge already
+        says what it is measuring in its card header and status chip. */}
+    {data.label.length === 0 ? null : (
+      <StyledDescriptionText
+        fill={data.fill}
+        transform="translate(0, 30)"
+        tabIndex={0}
+      >
+        {data.label}
+      </StyledDescriptionText>
+    )}
   </StyledG>
 );
 

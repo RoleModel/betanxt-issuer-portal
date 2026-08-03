@@ -1,13 +1,24 @@
 "use client";
 
-import { Box, Card, CardContent, CardHeader, Chip, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { Gauge } from "@mui/x-charts/Gauge";
 
 import GaugeCenterLabel from "@/components/Reporting/GaugeCenterLabel";
 import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
-import { formatQuorumRequirementPercentLabel, type QuorumGaugeViewModel } from "../../utils/quorum";
+import {
+  formatQuorumRequirementPercentLabel,
+  type QuorumGaugeViewModel,
+} from "../../utils/quorum";
 import {
   tabulationCardContentStartStyles,
   tabulationCardHeaderStyles,
@@ -22,7 +33,12 @@ interface QuorumGaugeCardProps {
   readonly className?: string;
 }
 
-const QuorumGaugeCard = ({ title, model, loading = false, className }: QuorumGaugeCardProps) => {
+const QuorumGaugeCard = ({
+  title,
+  model,
+  loading = false,
+  className,
+}: QuorumGaugeCardProps) => {
   const { displayMode } = useTabulationDisplay();
   const quorumMet = model?.quorumMet === true;
   const statusLabel = quorumMet ? "Quorum Met" : "Below Quorum";
@@ -30,15 +46,16 @@ const QuorumGaugeCard = ({ title, model, loading = false, className }: QuorumGau
   const displayTitle = title ?? "Quorum tracker";
   const representedShares = model?.representedShares ?? 0;
   const totalOutstandingShares = model?.totalOutstandingShares ?? 0;
-  const representedMetric: ReturnType<typeof formatTabulationMetric> = formatTabulationMetric(
-    representedShares,
-    totalOutstandingShares,
-    displayMode,
-  );
+  const representedMetric: ReturnType<typeof formatTabulationMetric> =
+    formatTabulationMetric(
+      representedShares,
+      totalOutstandingShares,
+      displayMode
+    );
   const requiredMetric = formatTabulationMetric(
     model?.requiredShares ?? 0,
     totalOutstandingShares,
-    displayMode,
+    displayMode
   );
 
   return (
@@ -85,9 +102,18 @@ const QuorumGaugeCard = ({ title, model, loading = false, className }: QuorumGau
                       ? representedShares
                       : Math.min(model.percentRepresented, 100)
                   }
-                  valueMax={displayMode === "numbers" ? Math.max(totalOutstandingShares, 1) : 100}
+                  valueMax={
+                    displayMode === "numbers"
+                      ? Math.max(totalOutstandingShares, 1)
+                      : 100
+                  }
                   startAngle={-110}
                   endAngle={110}
+                  // Gauge renders its own value text whenever `text` resolves to
+                  // anything, and falls back to the raw value when the prop is
+                  // omitted — which showed the figure twice. Returning null is
+                  // how GaugeValueText is opted out of.
+                  text={() => null}
                   sx={{
                     "& .MuiGauge-valueArc": {
                       fill: model.quorumMet
@@ -105,10 +131,7 @@ const QuorumGaugeCard = ({ title, model, loading = false, className }: QuorumGau
                     data={{
                       centerTooltip: representedMetric.alternate,
                       centerValue: representedMetric.display,
-                      label:
-                        displayMode === "numbers"
-                          ? "Shares represented"
-                          : "of outstanding",
+                      label: "",
                       sliceData: [],
                       total: representedShares,
                     }}
