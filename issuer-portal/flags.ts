@@ -77,3 +77,23 @@ export const enableTabulationTrackerColorsFlag = flag<boolean, FlagEntities>({
   identify,
   adapter: vercelAdapter(),
 });
+
+/**
+ * Enable the CSM tabulation report approval workflow (prototype).
+ *
+ * When on, active meetings hold their tabulation numbers in a
+ * PENDING_REVIEW state until a CSM approves and releases them — the portal
+ * equivalent of the CSM holding the daily report email until it has been
+ * QC'd. Targeting: rules on `team.ticker` control which issuers are gated.
+ */
+export const enableCsmTabulationApprovalFlag = flag<boolean, FlagEntities>({
+  key: "enable-csm-tabulation-approval",
+  description: "Enable the CSM tabulation report approval workflow",
+  defaultValue: false,
+  options: [
+    { value: false, label: "Off" },
+    { value: true, label: "On" },
+  ],
+  identify,
+  adapter: vercelAdapter(),
+});

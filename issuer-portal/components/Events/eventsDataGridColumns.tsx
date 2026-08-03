@@ -1,10 +1,6 @@
 "use client";
 
-import type {
-  GridColDef,
-  GridFilterOperator,
-  GridRenderCellParams,
-} from "@mui/x-data-grid-pro";
+import type { GridColDef, GridFilterOperator, GridRenderCellParams } from "@mui/x-data-grid-pro";
 
 import { Typography } from "@mui/material";
 import { getGridStringOperators } from "@mui/x-data-grid-pro";
@@ -14,6 +10,7 @@ import type { EventRow } from "@/utils/eventData";
 import {
   EventActionsCell,
   EventPrimaryCell,
+  EventReportStatusCell,
   EventStatusCell,
 } from "./EventDataGridCells";
 import {
@@ -25,7 +22,7 @@ import {
 
 /** Restricts the grid to the signed-in CSM's own clients. */
 export const myClientsOnlyFilterOperator = (
-  assignedTickers: ReadonlySet<string>
+  assignedTickers: ReadonlySet<string>,
 ): GridFilterOperator<EventRow, string> => ({
   label: "My Clients",
   requiresFilterValue: false,
@@ -40,7 +37,7 @@ export const myClientsOnlyFilterOperator = (
 const dateColumn = (
   field: string,
   headerName: string,
-  getDate: (row: EventRow) => string | null | undefined
+  getDate: (row: EventRow) => string | null | undefined,
 ): GridColDef<EventRow> => ({
   field,
   headerName,
@@ -58,21 +55,22 @@ const dateColumn = (
 interface EventsDataGridColumnsOptions {
   readonly assignedTickers: ReadonlySet<string> | null;
   readonly atRiskMeetingIds: ReadonlySet<string>;
+  readonly onEditReportStatus: (row: EventRow, anchor: HTMLElement) => void;
+  readonly showReviewColumn: boolean;
 }
 
 export const createEventsDataGridColumns = ({
   assignedTickers,
   atRiskMeetingIds,
+  onEditReportStatus,
+  showReviewColumn,
 }: EventsDataGridColumnsOptions): GridColDef<EventRow>[] => [
   {
     field: "client",
     filterOperators:
       assignedTickers === null
         ? getGridStringOperators()
-        : [
-            myClientsOnlyFilterOperator(assignedTickers),
-            ...getGridStringOperators(),
-          ],
+        : [myClientsOnlyFilterOperator(assignedTickers), ...getGridStringOperators()],
     headerName: "Client",
     minWidth: 320,
     renderCell: (parameters: GridRenderCellParams<EventRow, string>) => (
@@ -115,6 +113,29 @@ export const createEventsDataGridColumns = ({
     },
     valueOptions: [ON_SCHEDULE_LABEL, AT_RISK_LABEL],
   },
+  ...(showReviewColumn
+    ? ([
+        {
+          field: "reportStatus",
+          headerName: "Report Status",
+          minWidth: 150,
+          renderCell: (parameters: GridRenderCellParams<EventRow, string>) => (
+            <EventReportStatusCell
+              onClick={(event) => {
+                onEditReportStatus(parameters.row, event.currentTarget);
+              }}
+              value={parameters.value}
+            />
+          ),
+          type: "singleSelect",
+          valueGetter: (value, row) => {
+            void value;
+            return row.reportStatus === "VERIFIED" ? "Verified" : "Needs review";
+          },
+          valueOptions: ["Needs review", "Verified"],
+        },
+      ] as GridColDef<EventRow>[])
+    : []),
   {
     align: "right",
     field: "actions",
@@ -123,7 +144,7 @@ export const createEventsDataGridColumns = ({
     headerName: "Actions",
     minWidth: 100,
     renderCell: (parameters: GridRenderCellParams<EventRow>) => (
-      <EventActionsCell event={parameters.row} />
+      <EventActionsCell event={parameters.row} showReviewAction={showReviewColumn} />
     ),
     sortable: false,
     width: 120,

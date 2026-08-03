@@ -28,14 +28,13 @@ function transformProposalRow(row: ProposalRow): Proposal {
     directorTermYears: nullToUndefined(row.director_term_years),
     directorClass: nullToUndefined(row.director_class),
     termExpirationYear: nullToUndefined(row.term_expiration_year),
-    frequencyOptions: nullToUndefined(
-      row.frequency_options as Record<string, never>
-    ),
+    frequencyOptions: nullToUndefined(row.frequency_options as Record<string, never>),
     recommendation: nullToUndefined(row.recommendation),
     meetingId: nullToUndefined(row.meeting_id),
     totalVotesFor: nullToUndefined(row.total_votes_for),
     totalVotesAgainst: nullToUndefined(row.total_votes_against),
     totalVotesAbstain: nullToUndefined(row.total_votes_abstain),
+    brokerNonVotes: nullToUndefined(row.broker_non_votes),
     totalSharesEligible: nullToUndefined(row.total_shares_eligible),
     forPercentage: nullToUndefined(row.for_percentage),
     againstPercentage: nullToUndefined(row.against_percentage),
@@ -60,13 +59,10 @@ interface ApiResponse<T> {
 
 export async function listProposals(
   meetingId: string,
-  proposalType?: string
+  proposalType?: string,
 ): Promise<ApiResponse<Proposal[]>> {
   try {
-    let query = supabase
-      .from("proposal")
-      .select("*")
-      .eq("meeting_id", meetingId);
+    let query = supabase.from("proposal").select("*").eq("meeting_id", meetingId);
 
     if (proposalType) {
       query = query.eq("proposal_type", proposalType);
@@ -104,7 +100,7 @@ export async function listProposals(
 
 export async function createProposal(
   meetingId: string,
-  body: CreateProposalRequest
+  body: CreateProposalRequest,
 ): Promise<ApiResponse<Proposal>> {
   try {
     const request = body;
@@ -154,15 +150,9 @@ export async function createProposal(
   }
 }
 
-export async function getProposalById(
-  id: string
-): Promise<ApiResponse<Proposal>> {
+export async function getProposalById(id: string): Promise<ApiResponse<Proposal>> {
   try {
-    const { data, error } = await supabase
-      .from("proposal")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data, error } = await supabase.from("proposal").select("*").eq("id", id).single();
 
     if (error) {
       return {
@@ -192,7 +182,7 @@ export async function getProposalById(
 
 export async function updateProposal(
   id: string,
-  body: UpdateProposalRequest
+  body: UpdateProposalRequest,
 ): Promise<ApiResponse<Proposal>> {
   try {
     const request = body;
@@ -223,6 +213,18 @@ export async function updateProposal(
     }
     if (request.recommendation !== undefined) {
       updateData.recommendation = request.recommendation;
+    }
+    if (request.totalVotesFor !== undefined) {
+      updateData.total_votes_for = request.totalVotesFor;
+    }
+    if (request.totalVotesAgainst !== undefined) {
+      updateData.total_votes_against = request.totalVotesAgainst;
+    }
+    if (request.totalVotesAbstain !== undefined) {
+      updateData.total_votes_abstain = request.totalVotesAbstain;
+    }
+    if (request.brokerNonVotes !== undefined) {
+      updateData.broker_non_votes = request.brokerNonVotes;
     }
 
     const { data, error } = await supabase

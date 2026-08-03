@@ -12,10 +12,7 @@ import {
 } from "@mui/material";
 import PieChart2IconWithAccent from "@rolemodel/betanxt-design-system/components/icons/brand/PieChart2Icon";
 
-import type {
-  VoteMatrixProposal,
-  VoteMatrixRow,
-} from "@/hooks/useTabulationInsights";
+import type { VoteMatrixProposal, VoteMatrixRow } from "@/hooks/useTabulationInsights";
 
 import ConfiguredPieChart from "@/components/Reporting/ConfiguredPieChart";
 import { LegendToggle } from "@/components/ui/LegendToggle";
@@ -43,10 +40,7 @@ const outcomeArcLabelRadius = 116;
 const hiddenOutcomeColor = "var(--mui-palette-grey-300)";
 
 const arcLabelContrastColors = new Map<string, string>([
-  ...voteOutcomes.map((outcome): [string, string] => [
-    outcome.color,
-    outcome.contrastColor,
-  ]),
+  ...voteOutcomes.map((outcome): [string, string] => [outcome.color, outcome.contrastColor]),
   ...Object.values(holderStyles).map((holder): [string, string] => [
     holder.color,
     holder.contrastColor,
@@ -60,9 +54,7 @@ const arcLabelContrastColors = new Map<string, string>([
  */
 const toProposalShortLabel = (proposalLabel: string): string => {
   const separatorIndex = proposalLabel.indexOf(":");
-  return separatorIndex === -1
-    ? proposalLabel
-    : proposalLabel.slice(0, separatorIndex).trim();
+  return separatorIndex === -1 ? proposalLabel : proposalLabel.slice(0, separatorIndex).trim();
 };
 
 export interface HolderOutcomeChartCardProps {
@@ -101,43 +93,29 @@ const HolderOutcomeChartCard = ({
   totalShares,
 }: HolderOutcomeChartCardProps) => {
   const { displayMode } = useTabulationDisplay();
-  const visibleOutcomes = voteOutcomes.filter(
-    (outcome) => !hiddenOutcomeKeys.has(outcome.key)
-  );
+  const visibleOutcomes = voteOutcomes.filter((outcome) => !hiddenOutcomeKeys.has(outcome.key));
   // Both rings walk this list, and holderTotals is indexed by it, so filtering
   // here is what removes a holder type from the whole donut.
-  const visibleHolderTypes = holderTypes.filter(
-    (holderType) => !hiddenHolderTypes.has(holderType)
-  );
+  const visibleHolderTypes = holderTypes.filter((holderType) => !hiddenHolderTypes.has(holderType));
   const holderTotals = visibleHolderTypes.map((holderType) =>
     rows
       .filter((row) => row.holderType === holderType)
       .reduce(
         (sum, row) =>
           sum +
-          visibleOutcomes.reduce(
-            (outcomeTotal, outcome) => outcomeTotal + row[outcome.key],
-            0
-          ),
-        0
-      )
+          visibleOutcomes.reduce((outcomeTotal, outcome) => outcomeTotal + row[outcome.key], 0),
+        0,
+      ),
   );
-  const visibleTotalShares = holderTotals.reduce(
-    (sum, holderTotal) => sum + holderTotal,
-    0
-  );
+  const visibleTotalShares = holderTotals.reduce((sum, holderTotal) => sum + holderTotal, 0);
   const allHolderTotals = visibleHolderTypes.map((holderType) =>
     rows
       .filter((row) => row.holderType === holderType)
       .reduce(
         (sum, row) =>
-          sum +
-          voteOutcomes.reduce(
-            (outcomeTotal, outcome) => outcomeTotal + row[outcome.key],
-            0
-          ),
-        0
-      )
+          sum + voteOutcomes.reduce((outcomeTotal, outcome) => outcomeTotal + row[outcome.key], 0),
+        0,
+      ),
   );
   // Totals across every outcome, ignoring the legend. This separates "this
   // proposal genuinely has no votes" from "the user has toggled the outcomes
@@ -145,12 +123,8 @@ const HolderOutcomeChartCard = ({
   // legend included - for an empty state with no way back.
   const recordedTotalShares = rows.reduce(
     (sum, row) =>
-      sum +
-      voteOutcomes.reduce(
-        (outcomeTotal, outcome) => outcomeTotal + row[outcome.key],
-        0
-      ),
-    0
+      sum + voteOutcomes.reduce((outcomeTotal, outcome) => outcomeTotal + row[outcome.key], 0),
+    0,
   );
   const showNeutralRings = recordedTotalShares > 0 && visibleTotalShares === 0;
   // Equal, greyed slices so the donut keeps its geometry while nothing is
@@ -180,10 +154,7 @@ const HolderOutcomeChartCard = ({
   // slice last, so use that holder's paired contrast token for the overlay.
   const centerHolderType = [...visibleHolderTypes]
     .reverse()
-    .find(
-      (holderType) =>
-        (allHolderTotals[visibleHolderTypes.indexOf(holderType)] ?? 0) > 0
-    );
+    .find((holderType) => (allHolderTotals[visibleHolderTypes.indexOf(holderType)] ?? 0) > 0);
   const centerLabelColor = showNeutralRings
     ? "var(--mui-palette-text-primary)"
     : centerHolderType === undefined
@@ -191,61 +162,44 @@ const HolderOutcomeChartCard = ({
       : holderStyles[centerHolderType].contrastColor;
   // Outer values are ordered by holder and each group sums to its inner slice,
   // keeping the shared ring boundaries aligned.
-  const outcomeRingData = visibleHolderTypes.flatMap(
-    (holderType, holderIndex) => {
-      const holderTotal = allHolderTotals[holderIndex] ?? 0;
-      const holderRows = rows.filter((row) => row.holderType === holderType);
-      const outcomeValues = voteOutcomes.flatMap((outcome) => {
-        const value = holderRows.reduce(
-          (sum, row) => sum + row[outcome.key],
-          0
-        );
-        return value > 0 ? [{ outcome, value }] : [];
-      });
+  const outcomeRingData = visibleHolderTypes.flatMap((holderType, holderIndex) => {
+    const holderTotal = allHolderTotals[holderIndex] ?? 0;
+    const holderRows = rows.filter((row) => row.holderType === holderType);
+    const outcomeValues = voteOutcomes.flatMap((outcome) => {
+      const value = holderRows.reduce((sum, row) => sum + row[outcome.key], 0);
+      return value > 0 ? [{ outcome, value }] : [];
+    });
 
-      if (holderTotal === 0 || outcomeValues.length === 0) {
-        return [];
-      }
-
-      const weightedTotal = outcomeValues.reduce(
-        (sum, item) =>
-          sum + Math.max(item.value / holderTotal, minimumOutcomeShare),
-        0
-      );
-
-      return outcomeValues.map(({ outcome, value }) => {
-        const id = `${holderType}-${outcome.key}`;
-        const isHidden = hiddenOutcomeKeys.has(outcome.key);
-        actualOutcomeValues.set(id, value);
-        if (!isHidden) {
-          outcomeArcLabels.set(id, outcome.label);
-        }
-        return {
-          color: isHidden ? hiddenOutcomeColor : outcome.color,
-          id,
-          label: isHidden ? "" : `${holderType} · ${outcome.label}`,
-          value:
-            (Math.max(value / holderTotal, minimumOutcomeShare) /
-              weightedTotal) *
-            holderTotal,
-        };
-      });
+    if (holderTotal === 0 || outcomeValues.length === 0) {
+      return [];
     }
-  );
+
+    const weightedTotal = outcomeValues.reduce(
+      (sum, item) => sum + Math.max(item.value / holderTotal, minimumOutcomeShare),
+      0,
+    );
+
+    return outcomeValues.map(({ outcome, value }) => {
+      const id = `${holderType}-${outcome.key}`;
+      const isHidden = hiddenOutcomeKeys.has(outcome.key);
+      actualOutcomeValues.set(id, value);
+      if (!isHidden) {
+        outcomeArcLabels.set(id, outcome.label);
+      }
+      return {
+        color: isHidden ? hiddenOutcomeColor : outcome.color,
+        id,
+        label: isHidden ? "" : `${holderType} · ${outcome.label}`,
+        value: (Math.max(value / holderTotal, minimumOutcomeShare) / weightedTotal) * holderTotal,
+      };
+    });
+  });
   const formatDonutValue = (id: string, value: number): string => {
     const actualValue = actualOutcomeValues.get(id) ?? value;
-    const metric = formatTabulationMetric(
-      actualValue,
-      totalShares,
-      displayMode
-    );
+    const metric = formatTabulationMetric(actualValue, totalShares, displayMode);
     return `${metric.display} (${metric.alternate})`;
   };
-  const centerMetric = formatTabulationMetric(
-    visibleTotalShares,
-    totalShares,
-    displayMode
-  );
+  const centerMetric = formatTabulationMetric(visibleTotalShares, totalShares, displayMode);
 
   return (
     <Card data-testid="holder-outcome-chart-card" sx={tabulationCardStyles}>
@@ -280,11 +234,11 @@ const HolderOutcomeChartCard = ({
       <CardContent sx={tabulationCardContentStyles}>
         <Box
           sx={{
-            display: "flex",
             alignItems: "center",
+            display: "flex",
             flexDirection: "column",
-            width: "100%",
             height: "100%",
+            width: "100%",
           }}
         >
           {loading ? (
@@ -304,11 +258,11 @@ const HolderOutcomeChartCard = ({
           ) : (
             <Box
               sx={{
-                display: "flex",
                 alignItems: "center",
+                display: "flex",
                 flexDirection: "column",
-                width: "100%",
                 height: "100%",
+                width: "100%",
               }}
             >
               <ConfiguredPieChart
@@ -319,10 +273,7 @@ const HolderOutcomeChartCard = ({
                     : `${formatNumber(visibleTotalShares)} visible shares voted`,
                   centerValue: centerMetric.display,
                   fill: centerLabelColor,
-                  label:
-                    displayMode === "numbers"
-                      ? "Shares voted"
-                      : "of voted shares",
+                  label: displayMode === "numbers" ? "Shares voted" : "of voted shares",
                   sliceData: [],
                   total: visibleTotalShares,
                 }}
@@ -330,36 +281,31 @@ const HolderOutcomeChartCard = ({
                 margin={{ bottom: 8, left: 8, right: 8, top: 8 }}
                 rings={[
                   {
-                    arcLabel: (item) =>
-                      showNeutralRings ? "" : (item.label ?? ""),
+                    arcLabel: (item) => (showNeutralRings ? "" : (item.label ?? "")),
                     arcLabelMinAngle: 20,
                     arcLabelRadius: 68,
                     cornerRadius: 3,
                     data: showNeutralRings ? neutralRingData : holderRingData,
-                    highlightScope: { fade: "global", highlight: "item" },
                     highlighted: { additionalRadius: 1 },
+                    highlightScope: { fade: "global", highlight: "item" },
                     innerRadius: 0,
                     outerRadius: 100,
                     paddingAngle: 0,
-                    valueFormatter: (item) =>
-                      formatDonutValue(String(item.id), item.value),
+                    valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
                   },
                   {
                     arcLabel: (item) =>
-                      showNeutralRings
-                        ? ""
-                        : (outcomeArcLabels.get(String(item.id)) ?? ""),
+                      showNeutralRings ? "" : (outcomeArcLabels.get(String(item.id)) ?? ""),
                     arcLabelMinAngle: outcomeArcLabelMinAngle,
                     arcLabelRadius: outcomeArcLabelRadius,
                     cornerRadius: 2,
                     data: showNeutralRings ? neutralRingData : outcomeRingData,
-                    highlightScope: { fade: "global", highlight: "item" },
                     highlighted: { additionalRadius: 1 },
+                    highlightScope: { fade: "global", highlight: "item" },
                     innerRadius: 100,
                     outerRadius: 128,
                     paddingAngle: 0,
-                    valueFormatter: (item) =>
-                      formatDonutValue(String(item.id), item.value),
+                    valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
                   },
                 ]}
               />

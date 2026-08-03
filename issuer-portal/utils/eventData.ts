@@ -7,14 +7,7 @@ export interface EventRow {
   id: string;
   event: string;
   cusip: string;
-  /**
-   * Broadridge set key for the event, e.g. `WENJ2025`.
-   *
-   * Optional because the API does not serve it yet: `setKey` is on the
-   * Position schema but not on Meeting, so every meeting returns none. The
-   * column renders blank until it is added to the meeting schema and seeded.
-   */
-  setKey?: string | null;
+  setKey: string | null;
   eventDate: string;
   mailingDate?: string | null;
   brokerSearchDate?: string | null;
@@ -23,6 +16,8 @@ export interface EventRow {
   meetingId: string;
   clientTicker: string;
   meetingStatus: "ACTIVE" | "COMPLETE";
+  /** Internal CSM tabulation QC state; null when no review record exists yet */
+  reportStatus: "PENDING_REVIEW" | "VERIFIED" | null;
   mailingStatus: string | null;
   exchange: string | null;
   quorumRequirement: number | null;
@@ -30,7 +25,6 @@ export interface EventRow {
 
 /** Build a meeting URL for an event row */
 export function getMeetingUrl(row: EventRow): string {
-  const routePrefix =
-    row.meetingStatus === "ACTIVE" ? "meeting" : "past-meeting";
+  const routePrefix = row.meetingStatus === "ACTIVE" ? "meeting" : "past-meeting";
   return `/${row.clientTicker}/${routePrefix}/${row.meetingId}`;
 }

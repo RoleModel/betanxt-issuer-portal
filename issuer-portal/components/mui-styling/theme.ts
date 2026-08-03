@@ -1,4 +1,3 @@
-/* eslint-disable import-x/order */
 "use client";
 
 /* eslint-disable sort-keys, @typescript-eslint/naming-convention -- MUI theme object order and CSS-variable palette keys are semantic. */
@@ -615,6 +614,7 @@ export const createClientTheme = (ticker?: string) => {
     colorSchemes: {
       light: {
         palette: {
+          contrastThreshold: 2.5,
           primary: {
             ...createBrandPaletteColor(branding.primaryColor, "light"),
           },
@@ -989,7 +989,7 @@ export const createClientTheme = (ticker?: string) => {
               height: theme.layout?.navbarHeight,
             },
             "&.MuiAppBar-root": {
-              backgroundColor: betanxtTheme.vars.palette.common.white,
+              backgroundColor: betanxtTheme.vars.palette.background.paper,
               color: betanxtTheme.vars.palette.text.primary,
               borderBottom: `1px solid ${theme.vars.palette.divider}`,
               "& .MuiPaper-root": {

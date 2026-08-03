@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   configureDistributionFlag,
+  enableCsmTabulationApprovalFlag,
   enableTabulationTrackerColorsFlag,
   enableNoboFlag,
 } from "@/flags";
@@ -13,16 +14,22 @@ import {
  * flags directly.
  */
 export async function GET() {
-  const [enableNobo, configureDistribution, enableTabulationTrackerColors] =
-    await Promise.all([
-      enableNoboFlag(),
-      configureDistributionFlag(),
-      enableTabulationTrackerColorsFlag(),
-    ]);
+  const [
+    enableNobo,
+    configureDistribution,
+    enableTabulationTrackerColors,
+    enableCsmTabulationApproval,
+  ] = await Promise.all([
+    enableNoboFlag(),
+    configureDistributionFlag(),
+    enableTabulationTrackerColorsFlag(),
+    enableCsmTabulationApprovalFlag(),
+  ]);
 
   return NextResponse.json({
     configureDistribution,
     enableTabulationTrackerColors,
     enableNobo,
+    enableCsmTabulationApproval,
   });
 }

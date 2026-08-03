@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   public: {
@@ -193,8 +187,7 @@ export type Database = {
           created_by_last_name: string | null;
           deadline: string | null;
           description: string | null;
-          display_category:
-            Database["public"]["Enums"]["document_display_category"] | null;
+          display_category: Database["public"]["Enums"]["document_display_category"] | null;
           file_path: string | null;
           file_size: number | null;
           file_type: string | null;
@@ -229,8 +222,7 @@ export type Database = {
           created_by_last_name?: string | null;
           deadline?: string | null;
           description?: string | null;
-          display_category?:
-            Database["public"]["Enums"]["document_display_category"] | null;
+          display_category?: Database["public"]["Enums"]["document_display_category"] | null;
           file_path?: string | null;
           file_size?: number | null;
           file_type?: string | null;
@@ -265,8 +257,7 @@ export type Database = {
           created_by_last_name?: string | null;
           deadline?: string | null;
           description?: string | null;
-          display_category?:
-            Database["public"]["Enums"]["document_display_category"] | null;
+          display_category?: Database["public"]["Enums"]["document_display_category"] | null;
           file_path?: string | null;
           file_size?: number | null;
           file_type?: string | null;
@@ -296,8 +287,7 @@ export type Database = {
           created_at: string | null;
           document: string | null;
           document_id: string | null;
-          event_type:
-            Database["public"]["Enums"]["document_history_event_type"] | null;
+          event_type: Database["public"]["Enums"]["document_history_event_type"] | null;
           id: string | null;
           metadata: Json | null;
           user: string | null;
@@ -308,8 +298,7 @@ export type Database = {
           created_at?: string | null;
           document?: string | null;
           document_id?: string | null;
-          event_type?:
-            Database["public"]["Enums"]["document_history_event_type"] | null;
+          event_type?: Database["public"]["Enums"]["document_history_event_type"] | null;
           id?: string | null;
           metadata?: Json | null;
           user?: string | null;
@@ -320,8 +309,7 @@ export type Database = {
           created_at?: string | null;
           document?: string | null;
           document_id?: string | null;
-          event_type?:
-            Database["public"]["Enums"]["document_history_event_type"] | null;
+          event_type?: Database["public"]["Enums"]["document_history_event_type"] | null;
           id?: string | null;
           metadata?: Json | null;
           user?: string | null;
@@ -499,11 +487,12 @@ export type Database = {
           pre_filing_date: string | null;
           quorum_requirement: number | null;
           record_date: string | null;
+          set_key: string | null;
           solicitor: string | null;
           solicitor_email: string | null;
           status: string | null;
           tabulation_distribution: Json | null;
-          set_key: string | null;
+          tabulation_review: Json | null;
           ticker: string | null;
           title: string | null;
           total_shares_outstanding: string | null;
@@ -538,11 +527,12 @@ export type Database = {
           pre_filing_date?: string | null;
           quorum_requirement?: number | null;
           record_date?: string | null;
+          set_key?: string | null;
           solicitor?: string | null;
           solicitor_email?: string | null;
           status?: string | null;
           tabulation_distribution?: Json | null;
-          set_key?: string | null;
+          tabulation_review?: Json | null;
           ticker?: string | null;
           title?: string | null;
           total_shares_outstanding?: string | null;
@@ -577,11 +567,12 @@ export type Database = {
           pre_filing_date?: string | null;
           quorum_requirement?: number | null;
           record_date?: string | null;
+          set_key?: string | null;
           solicitor?: string | null;
           solicitor_email?: string | null;
           status?: string | null;
           tabulation_distribution?: Json | null;
-          set_key?: string | null;
+          tabulation_review?: Json | null;
           ticker?: string | null;
           title?: string | null;
           total_shares_outstanding?: string | null;
@@ -614,8 +605,7 @@ export type Database = {
           id?: string | null;
           meeting_id?: string | null;
           message?: string | null;
-          priority?:
-            Database["public"]["Enums"]["notification_priority"] | null;
+          priority?: Database["public"]["Enums"]["notification_priority"] | null;
           read?: boolean | null;
           read_at?: string | null;
           task_id?: string | null;
@@ -630,8 +620,7 @@ export type Database = {
           id?: string | null;
           meeting_id?: string | null;
           message?: string | null;
-          priority?:
-            Database["public"]["Enums"]["notification_priority"] | null;
+          priority?: Database["public"]["Enums"]["notification_priority"] | null;
           read?: boolean | null;
           read_at?: string | null;
           task_id?: string | null;
@@ -684,8 +673,7 @@ export type Database = {
           created_at: string | null;
           cusip: string | null;
           date_voted: string | null;
-          holder_category:
-            Database["public"]["Enums"]["position_holder_category"] | null;
+          holder_category: Database["public"]["Enums"]["position_holder_category"] | null;
           id: string | null;
           meeting_id: string | null;
           name: string | null;
@@ -695,8 +683,7 @@ export type Database = {
           source: Database["public"]["Enums"]["position_source"] | null;
           state: string | null;
           updated_at: string | null;
-          vote_status:
-            Database["public"]["Enums"]["position_vote_status"] | null;
+          vote_status: Database["public"]["Enums"]["position_vote_status"] | null;
         };
         Insert: {
           account_email?: string | null;
@@ -707,8 +694,7 @@ export type Database = {
           created_at?: string | null;
           cusip?: string | null;
           date_voted?: string | null;
-          holder_category?:
-            Database["public"]["Enums"]["position_holder_category"] | null;
+          holder_category?: Database["public"]["Enums"]["position_holder_category"] | null;
           id?: string | null;
           meeting_id?: string | null;
           name?: string | null;
@@ -718,8 +704,7 @@ export type Database = {
           source?: Database["public"]["Enums"]["position_source"] | null;
           state?: string | null;
           updated_at?: string | null;
-          vote_status?:
-            Database["public"]["Enums"]["position_vote_status"] | null;
+          vote_status?: Database["public"]["Enums"]["position_vote_status"] | null;
         };
         Update: {
           account_email?: string | null;
@@ -730,8 +715,7 @@ export type Database = {
           created_at?: string | null;
           cusip?: string | null;
           date_voted?: string | null;
-          holder_category?:
-            Database["public"]["Enums"]["position_holder_category"] | null;
+          holder_category?: Database["public"]["Enums"]["position_holder_category"] | null;
           id?: string | null;
           meeting_id?: string | null;
           name?: string | null;
@@ -741,8 +725,7 @@ export type Database = {
           source?: Database["public"]["Enums"]["position_source"] | null;
           state?: string | null;
           updated_at?: string | null;
-          vote_status?:
-            Database["public"]["Enums"]["position_vote_status"] | null;
+          vote_status?: Database["public"]["Enums"]["position_vote_status"] | null;
         };
         Relationships: [];
       };
@@ -781,8 +764,7 @@ export type Database = {
           director_class: string | null;
           director_name: string | null;
           director_term_years: number | null;
-          final_result:
-            Database["public"]["Enums"]["proposal_final_result"] | null;
+          final_result: Database["public"]["Enums"]["proposal_final_result"] | null;
           for_percentage: number | null;
           frequency_options: Json | null;
           id: string | null;
@@ -795,6 +777,7 @@ export type Database = {
           recommendation: string | null;
           term_expiration_year: number | null;
           total_shares_eligible: number | null;
+          broker_non_votes: number | null;
           total_votes_abstain: number | null;
           total_votes_against: number | null;
           total_votes_for: number | null;
@@ -809,8 +792,7 @@ export type Database = {
           director_class?: string | null;
           director_name?: string | null;
           director_term_years?: number | null;
-          final_result?:
-            Database["public"]["Enums"]["proposal_final_result"] | null;
+          final_result?: Database["public"]["Enums"]["proposal_final_result"] | null;
           for_percentage?: number | null;
           frequency_options?: Json | null;
           id?: string | null;
@@ -823,6 +805,7 @@ export type Database = {
           recommendation?: string | null;
           term_expiration_year?: number | null;
           total_shares_eligible?: number | null;
+          broker_non_votes?: number | null;
           total_votes_abstain?: number | null;
           total_votes_against?: number | null;
           total_votes_for?: number | null;
@@ -837,8 +820,7 @@ export type Database = {
           director_class?: string | null;
           director_name?: string | null;
           director_term_years?: number | null;
-          final_result?:
-            Database["public"]["Enums"]["proposal_final_result"] | null;
+          final_result?: Database["public"]["Enums"]["proposal_final_result"] | null;
           for_percentage?: number | null;
           frequency_options?: Json | null;
           id?: string | null;
@@ -851,6 +833,7 @@ export type Database = {
           recommendation?: string | null;
           term_expiration_year?: number | null;
           total_shares_eligible?: number | null;
+          broker_non_votes?: number | null;
           total_votes_abstain?: number | null;
           total_votes_against?: number | null;
           total_votes_for?: number | null;
@@ -1065,14 +1048,15 @@ export type Database = {
         | "DELETED";
       cast_vote_request_vote: "FOR" | "AGAINST" | "ABSTAIN" | "WITHHOLD";
       create_digital_shareholder_meeting_request_registrant_type:
-        "Shareholder" | "Guest" | "Proxy" | "Other";
-      create_notification_input_priority:
-        "low" | "medium" | "high" | "critical";
+        | "Shareholder"
+        | "Guest"
+        | "Proxy"
+        | "Other";
+      create_notification_input_priority: "low" | "medium" | "high" | "critical";
       create_notification_input_type: "info" | "warning" | "error" | "success";
       create_position_request_source: "WEB" | "PRINT" | "IVR";
       create_position_request_vote_status: "Voted" | "Unvoted";
-      digital_shareholder_meeting_registrant_type:
-        "Shareholder" | "Guest" | "Proxy" | "Other";
+      digital_shareholder_meeting_registrant_type: "Shareholder" | "Guest" | "Proxy" | "Other";
       document_display_category:
         | "general"
         | "dsm"
@@ -1108,21 +1092,18 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<
-  keyof Database,
-  "public"
->];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1132,10 +1113,8 @@ export type Tables<
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R;
       }
       ? R
@@ -1144,12 +1123,13 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1168,12 +1148,13 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1192,12 +1173,13 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1210,11 +1192,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1250,12 +1232,7 @@ export const Constants = {
       create_notification_input_type: ["info", "warning", "error", "success"],
       create_position_request_source: ["WEB", "PRINT", "IVR"],
       create_position_request_vote_status: ["Voted", "Unvoted"],
-      digital_shareholder_meeting_registrant_type: [
-        "Shareholder",
-        "Guest",
-        "Proxy",
-        "Other",
-      ],
+      digital_shareholder_meeting_registrant_type: ["Shareholder", "Guest", "Proxy", "Other"],
       document_display_category: [
         "general",
         "dsm",

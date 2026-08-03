@@ -3,6 +3,7 @@
  * Do not make direct changes to the file.
  */
 
+
 export interface paths {
   "/auth/login": {
     /** User login */
@@ -309,29 +310,9 @@ export interface components {
     /** @enum {string} */
     PhaseStatus: "IN_PROGRESS" | "COMPLETE";
     /** @enum {string} */
-    TaskStatus:
-      | "INCOMPLETE"
-      | "COMPLETE"
-      | "CANCELLED"
-      | "NEEDS_AUTHORIZATION"
-      | "AUTHORIZED"
-      | "PENDING_AUTHORIZATION"
-      | "WAITING_FOR_FORM_RETURN"
-      | "AUTHORIZATION_NEEDED"
-      | "SUBMITTED_AWAITING_RECORD_DATE"
-      | "REQUEST_FORM_TO_FOLLOW"
-      | "AWAITING_REVIEW";
+    TaskStatus: "INCOMPLETE" | "COMPLETE" | "CANCELLED" | "NEEDS_AUTHORIZATION" | "AUTHORIZED" | "PENDING_AUTHORIZATION" | "WAITING_FOR_FORM_RETURN" | "AUTHORIZATION_NEEDED" | "SUBMITTED_AWAITING_RECORD_DATE" | "REQUEST_FORM_TO_FOLLOW" | "AWAITING_REVIEW";
     /** @enum {string} */
-    DocumentStatus:
-      | "DRAFT"
-      | "AWAITING_DRAFT"
-      | "AWAITING_REVIEW"
-      | "APPROVED"
-      | "UPLOADED"
-      | "IN_PROGRESS"
-      | "SIGNED"
-      | "AUTHORIZED"
-      | "COMPLETED";
+    DocumentStatus: "DRAFT" | "AWAITING_DRAFT" | "AWAITING_REVIEW" | "APPROVED" | "UPLOADED" | "IN_PROGRESS" | "SIGNED" | "AUTHORIZED" | "COMPLETED";
     Account: {
       /** Format: uuid */
       id?: string;
@@ -430,15 +411,7 @@ export interface components {
        *   "agenda"
        * ]
        */
-      enabledFeatures?: (
-        | "documents"
-        | "mailing"
-        | "tabulation"
-        | "reports"
-        | "fileTransfer"
-        | "agenda"
-        | "nobo"
-      )[];
+      enabledFeatures?: ("documents" | "mailing" | "tabulation" | "reports" | "fileTransfer" | "agenda" | "nobo")[];
       /** Format: date-time */
       createdAt?: string;
       /** Format: date-time */
@@ -577,8 +550,54 @@ export interface components {
       updatedAt?: string;
       /** @description Prototype config for automated daily tabulation report delivery */
       tabulationDistribution?: components["schemas"]["TabulationDistribution"];
+      /** @description Prototype CSM review/approval state for tabulation report release */
+      tabulationReview?: components["schemas"]["TabulationReview"];
       /** @description The client this meeting belongs to (relationship) */
       client?: components["schemas"]["Clients"];
+    };
+    TabulationReview: {
+      /**
+       * @description Internal QC state of the current tabulation report checkpoint
+       * @default PENDING_REVIEW
+       * @enum {string}
+       */
+      status?: "PENDING_REVIEW" | "VERIFIED";
+      /**
+       * @description Which checkpoint this review covers — the first report of the 15-day window or the final report that is signed off and filed
+       * @enum {string|null}
+       */
+      checkpoint?: "FIRST_REPORT" | "FINAL_REPORT" | null;
+      /** @description CSM verification checklist for the report */
+      checklist?: {
+        /**
+         * @description Broker non-vote totals confirmed correct
+         * @default false
+         */
+        brokerNonVotes?: boolean;
+        /**
+         * @description Routine / non-routine proposal classification confirmed
+         * @default false
+         */
+        proposalClassification?: boolean;
+        /**
+         * @description Votes confirmed to land in the correct beneficial/registered and routine/non-routine categories
+         * @default false
+         */
+        voteCategories?: boolean;
+      } | null;
+      /** @description CSM-adjusted routine/non-routine classification keyed by proposal id */
+      proposalClassifications?: ({
+        [key: string]: "ROUTINE" | "NON_ROUTINE";
+      }) | null;
+      /** @description Name of the CSM who verified the report */
+      reviewedBy?: string | null;
+      /**
+       * Format: date-time
+       * @description When the report was verified
+       */
+      reviewedAt?: string | null;
+      /** @description Optional note from the CSM recorded with the verification */
+      note?: string | null;
     };
     TabulationDistribution: {
       /**
@@ -620,7 +639,7 @@ export interface components {
       /** @example 1 */
       orderIndex?: number;
       status?: components["schemas"]["PhaseStatus"];
-      keyDates?: {
+      keyDates?: ({
         /**
          * Format: date
          * @example 2025-03-01
@@ -641,7 +660,7 @@ export interface components {
          * @example 2025-03-20
          */
         completionDate?: string | null;
-      } | null;
+      }) | null;
       /** Format: date-time */
       createdAt?: string;
       /** Format: date-time */
@@ -760,14 +779,7 @@ export interface components {
        * @description Category for filtering document display (general, dsm, proxy-materials, meeting-materials, post-meeting, internal)
        * @enum {string|null}
        */
-      displayCategory?:
-        | "general"
-        | "dsm"
-        | "proxy-materials"
-        | "meeting-materials"
-        | "post-meeting"
-        | "internal"
-        | null;
+      displayCategory?: "general" | "dsm" | "proxy-materials" | "meeting-materials" | "post-meeting" | "internal" | null;
       meeting?: components["schemas"]["Meeting"];
       comments?: components["schemas"]["Comment"][];
       signatures?: components["schemas"]["Signature"][];
@@ -892,6 +904,11 @@ export interface components {
        */
       totalVotesAbstain?: number | null;
       /**
+       * @description Broker non-votes recorded against this proposal
+       * @example 22480600
+       */
+      brokerNonVotes?: number | null;
+      /**
        * @description Total number of shares eligible to vote
        * @example 200000000
        */
@@ -1004,17 +1021,7 @@ export interface components {
       /** Format: uuid */
       documentId?: string;
       /** @enum {string} */
-      eventType?:
-        | "CREATED"
-        | "UPLOADED"
-        | "VIEWED"
-        | "DOWNLOADED"
-        | "SIGNED"
-        | "APPROVED"
-        | "REJECTED"
-        | "COMMENTED"
-        | "UPDATED"
-        | "DELETED";
+      eventType?: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
       /** Format: uuid */
       userId?: string;
       userName?: string;
@@ -1096,15 +1103,7 @@ export interface components {
        *   "agenda"
        * ]
        */
-      enabledFeatures?: (
-        | "documents"
-        | "mailing"
-        | "tabulation"
-        | "reports"
-        | "fileTransfer"
-        | "agenda"
-        | "nobo"
-      )[];
+      enabledFeatures?: ("documents" | "mailing" | "tabulation" | "reports" | "fileTransfer" | "agenda" | "nobo")[];
     };
     UpdateClientRequest: {
       /** @description Full legal name of the company */
@@ -1141,15 +1140,7 @@ export interface components {
       /** @description Secondary brand color as a hex string (e.g. */
       secondaryColor?: string | null;
       /** @description Feature modules enabled for this client. "nobo" is present when Engage functionality is active. */
-      enabledFeatures?: (
-        | "documents"
-        | "mailing"
-        | "tabulation"
-        | "reports"
-        | "fileTransfer"
-        | "agenda"
-        | "nobo"
-      )[];
+      enabledFeatures?: ("documents" | "mailing" | "tabulation" | "reports" | "fileTransfer" | "agenda" | "nobo")[];
     };
     CreateUserRequest: {
       username: string;
@@ -1191,6 +1182,7 @@ export interface components {
       title: string;
       cusip: string;
       ticker: string;
+      /** @description Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026). */
       setKey?: string | null;
       /** Format: date */
       recordDate: string;
@@ -1229,6 +1221,7 @@ export interface components {
     UpdateMeetingRequest: {
       title?: string;
       cusip?: string;
+      /** @description Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026). */
       setKey?: string | null;
       /** Format: date */
       brokerSearchDate?: string | null;
@@ -1270,6 +1263,8 @@ export interface components {
       mailingStatus?: string | null;
       /** @description Prototype config for automated daily tabulation report delivery */
       tabulationDistribution?: components["schemas"]["TabulationDistribution"];
+      /** @description Prototype CSM review/approval state for tabulation report release */
+      tabulationReview?: components["schemas"]["TabulationReview"];
     };
     CreatePhaseRequest: {
       name: string;
@@ -1413,6 +1408,14 @@ export interface components {
       termExpirationYear?: number;
       frequencyOptions?: Record<string, never>;
       recommendation?: string;
+      /** @description CSM-adjusted total votes in favor */
+      totalVotesFor?: number | null;
+      /** @description CSM-adjusted total votes against */
+      totalVotesAgainst?: number | null;
+      /** @description CSM-adjusted total abstained votes */
+      totalVotesAbstain?: number | null;
+      /** @description CSM-adjusted broker non-votes for this proposal */
+      brokerNonVotes?: number | null;
     };
     CastVoteRequest: {
       /** Format: uuid */
@@ -1647,19 +1650,19 @@ export interface components {
       /** @description Top brokers by total shares, keyed by proposal (e.g. proposal1, proposal2) */
       brokerVoting?: {
         [key: string]: {
-          broker?: string;
-          sharesFor?: number;
-          sharesAgainst?: number;
-          sharesAbstain?: number;
-        }[];
+            broker?: string;
+            sharesFor?: number;
+            sharesAgainst?: number;
+            sharesAbstain?: number;
+          }[];
       };
       /** @description Performance metrics across 18 share ranges */
       shareRangePerformance?: {
-        rangeLabel?: string;
-        positionCount?: number;
-        totalShares?: number;
-        percentVoted?: number;
-      }[];
+          rangeLabel?: string;
+          positionCount?: number;
+          totalShares?: number;
+          percentVoted?: number;
+        }[];
       /** @description Non-DTC shareholder vote status breakdown */
       nonDtcVoteStatus?: {
         unvotedShareholders?: number;
@@ -1760,6 +1763,7 @@ export type $defs = Record<string, never>;
 export type external = Record<string, never>;
 
 export interface operations {
+
   /** User login */
   loginUser: {
     requestBody: {
@@ -3476,18 +3480,7 @@ export interface operations {
       content: {
         "application/json": {
           /** @enum {string} */
-          eventType:
-            | "CREATED"
-            | "UPLOADED"
-            | "VIEWED"
-            | "DOWNLOADED"
-            | "NOT_UPLOADED"
-            | "SIGNED"
-            | "APPROVED"
-            | "REJECTED"
-            | "COMMENTED"
-            | "UPDATED"
-            | "DELETED";
+          eventType: "CREATED" | "UPLOADED" | "VIEWED" | "DOWNLOADED" | "NOT_UPLOADED" | "SIGNED" | "APPROVED" | "REJECTED" | "COMMENTED" | "UPDATED" | "DELETED";
           metadata?: {
             [key: string]: unknown;
           };

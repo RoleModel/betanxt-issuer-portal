@@ -1,6 +1,8 @@
 "use client";
 
-import { DashboardOutlined, EditOutlined } from "@mui/icons-material";
+import type { MouseEvent } from "react";
+
+import { DashboardOutlined, EditOutlined, FactCheckOutlined } from "@mui/icons-material";
 import { Chip, IconButton, Stack, Typography } from "@mui/material";
 import Link from "next/link";
 
@@ -31,11 +33,7 @@ export const EventPrimaryCell = ({ event }: { readonly event: EventRow }) => (
 );
 
 /** Risk chip. Red for at-risk, green otherwise. */
-export const EventStatusCell = ({
-  value,
-}: {
-  readonly value: string | undefined;
-}) => (
+export const EventStatusCell = ({ value }: { readonly value: string | undefined }) => (
   <Chip
     color={value === AT_RISK_LABEL ? "error" : "success"}
     label={value}
@@ -44,9 +42,45 @@ export const EventStatusCell = ({
   />
 );
 
-/** Row actions: open the dashboard, or edit the event. */
-export const EventActionsCell = ({ event }: { readonly event: EventRow }) => (
+/** Internal CSM tabulation review status chip. */
+export const EventReportStatusCell = ({
+  onClick,
+  value,
+}: {
+  readonly onClick: (event: MouseEvent<HTMLElement>) => void;
+  readonly value: string | undefined;
+}) => (
+  <Chip
+    color={value === "Verified" ? "success" : "warning"}
+    label={value ?? "Needs review"}
+    onClick={onClick}
+    size="small"
+    sx={{ cursor: "pointer" }}
+    variant="outlined"
+  />
+);
+
+/** Row actions: review tabulation, open the dashboard, or edit the event. */
+export const EventActionsCell = ({
+  event,
+  showReviewAction,
+}: {
+  readonly event: EventRow;
+  readonly showReviewAction: boolean;
+}) => (
   <Stack direction="row" spacing={0.25}>
+    {showReviewAction ? (
+      <CustomTooltip title="Review tabulation report">
+        <IconButton
+          aria-label={`Review tabulation report for ${event.event} ${event.eventType}`}
+          component={Link}
+          href={`/tabulation-review?meeting=${event.meetingId}`}
+          size="small"
+        >
+          <FactCheckOutlined fontSize="small" />
+        </IconButton>
+      </CustomTooltip>
+    ) : null}
     <CustomTooltip title="Open dashboard">
       <IconButton
         aria-label={`Open dashboard for ${event.event} ${event.eventType}`}

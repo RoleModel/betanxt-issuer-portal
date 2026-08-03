@@ -104,14 +104,7 @@ function transformClientSummary(raw: unknown): Meeting["client"] {
             | "agenda"
             | "nobo"
           )[])
-        : [
-            "documents",
-            "mailing",
-            "tabulation",
-            "reports",
-            "fileTransfer",
-            "agenda",
-          ],
+        : ["documents", "mailing", "tabulation", "reports", "fileTransfer", "agenda"],
     createdAt: typeof c.createdAt === "string" ? c.createdAt : undefined,
     updatedAt: typeof c.updatedAt === "string" ? c.updatedAt : undefined,
   };
@@ -135,7 +128,10 @@ function transformMeeting(databaseMeeting: MeetingRowWithRelations): Meeting {
     meetingType: nullToUndefined(databaseMeeting.meeting_type),
     meetingYear: nullToUndefined(databaseMeeting.meeting_year),
     status: nullToUndefined(databaseMeeting.status) as
-      "ACTIVE" | "COMPLETE" | "ADJOURNED" | undefined,
+      | "ACTIVE"
+      | "COMPLETE"
+      | "ADJOURNED"
+      | undefined,
     currentPhase: nullToUndefined(databaseMeeting.current_phase),
     overallCompletion: nullToUndefined(databaseMeeting.overall_completion),
     distributionType: nullToUndefined(databaseMeeting.distribution_type),
@@ -143,25 +139,20 @@ function transformMeeting(databaseMeeting: MeetingRowWithRelations): Meeting {
     transferAgentConfirmed: databaseMeeting.transfer_agent_confirmed,
     employeeStockPlans: nullToUndefined(databaseMeeting.employee_stock_plans),
     planAdministrator: nullToUndefined(databaseMeeting.plan_administrator),
-    planAdministratorContact: nullToUndefined(
-      databaseMeeting.plan_administrator_contact
-    ),
+    planAdministratorContact: nullToUndefined(databaseMeeting.plan_administrator_contact),
     planAdministratorContactEmail: nullToUndefined(
-      databaseMeeting.plan_administrator_contact_email
+      databaseMeeting.plan_administrator_contact_email,
     ),
     solicitor: nullToUndefined(databaseMeeting.solicitor),
     solicitorEmail: nullToUndefined(databaseMeeting.solicitor_email),
     inspector: nullToUndefined(databaseMeeting.inspector),
     ivrDialInNumber: nullToUndefined(databaseMeeting.ivr_dial_in_number),
-    totalSharesOutstanding: nullToUndefined(
-      databaseMeeting.total_shares_outstanding
-    ),
+    totalSharesOutstanding: nullToUndefined(databaseMeeting.total_shares_outstanding),
     quorumRequirement: nullToUndefined(databaseMeeting.quorum_requirement),
     brokerNonVote: nullToUndefined(databaseMeeting.broker_non_vote),
     mailingStatus: nullToUndefined(databaseMeeting.mailing_status),
-    tabulationDistribution: parseTabulationDistribution(
-      databaseMeeting.tabulation_distribution
-    ),
+    tabulationDistribution: parseTabulationDistribution(databaseMeeting.tabulation_distribution),
+    tabulationReview: parseTabulationReview(databaseMeeting.tabulation_review),
     clientId: nullToUndefined(databaseMeeting.client_id),
     createdAt: nullToUndefined(databaseMeeting.created_at),
     updatedAt: nullToUndefined(databaseMeeting.updated_at),
@@ -170,7 +161,7 @@ function transformMeeting(databaseMeeting: MeetingRowWithRelations): Meeting {
 }
 
 function parseTabulationDistribution(
-  raw: Database["public"]["Tables"]["meeting"]["Row"]["tabulation_distribution"]
+  raw: Database["public"]["Tables"]["meeting"]["Row"]["tabulation_distribution"],
 ): components["schemas"]["TabulationDistribution"] | undefined {
   if (raw === null || raw === undefined) {
     return undefined;
@@ -181,12 +172,59 @@ function parseTabulationDistribution(
   const d = raw as Record<string, unknown>;
   return {
     enabled: typeof d.enabled === "boolean" ? d.enabled : false,
-    startOffsetDays:
-      typeof d.startOffsetDays === "number" ? d.startOffsetDays : 15,
+    startOffsetDays: typeof d.startOffsetDays === "number" ? d.startOffsetDays : 15,
     recipients: Array.isArray(d.recipients) ? (d.recipients as string[]) : [],
     lastSentAt: typeof d.lastSentAt === "string" ? d.lastSentAt : null,
-    nextScheduledAt:
-      typeof d.nextScheduledAt === "string" ? d.nextScheduledAt : null,
+    nextScheduledAt: typeof d.nextScheduledAt === "string" ? d.nextScheduledAt : null,
+  };
+}
+
+function parseTabulationReview(
+  raw: Database["public"]["Tables"]["meeting"]["Row"]["tabulation_review"],
+): components["schemas"]["TabulationReview"] | undefined {
+  if (raw === null || raw === undefined) {
+    return undefined;
+  }
+  if (typeof raw !== "object" || Array.isArray(raw)) {
+    return undefined;
+  }
+  const r = raw as Record<string, unknown>;
+
+  const checklistRaw = r.checklist;
+  const checklist =
+    typeof checklistRaw === "object" && checklistRaw !== null && !Array.isArray(checklistRaw)
+      ? {
+          brokerNonVotes: (checklistRaw as Record<string, unknown>).brokerNonVotes === true,
+          proposalClassification:
+            (checklistRaw as Record<string, unknown>).proposalClassification === true,
+          voteCategories: (checklistRaw as Record<string, unknown>).voteCategories === true,
+        }
+      : null;
+
+  const classificationsRaw = r.proposalClassifications;
+  let proposalClassifications: Record<string, "ROUTINE" | "NON_ROUTINE"> | null = null;
+  if (
+    typeof classificationsRaw === "object" &&
+    classificationsRaw !== null &&
+    !Array.isArray(classificationsRaw)
+  ) {
+    proposalClassifications = {};
+    for (const [proposalId, value] of Object.entries(classificationsRaw)) {
+      if (value === "ROUTINE" || value === "NON_ROUTINE") {
+        proposalClassifications[proposalId] = value;
+      }
+    }
+  }
+
+  return {
+    status: r.status === "VERIFIED" ? "VERIFIED" : "PENDING_REVIEW",
+    checkpoint:
+      r.checkpoint === "FIRST_REPORT" || r.checkpoint === "FINAL_REPORT" ? r.checkpoint : null,
+    checklist,
+    proposalClassifications,
+    reviewedBy: typeof r.reviewedBy === "string" ? r.reviewedBy : null,
+    reviewedAt: typeof r.reviewedAt === "string" ? r.reviewedAt : null,
+    note: typeof r.note === "string" ? r.note : null,
   };
 }
 
@@ -199,7 +237,7 @@ export async function listMeetings(
     meetingYear?: number;
     cusip?: string;
     ticker?: string;
-  }
+  },
 ): Promise<
   ApiResponse<{
     meetings?: Meeting[];
@@ -236,8 +274,7 @@ export async function listMeetings(
     }
 
     // PostgREST returns empty results when range length is exactly 250.
-    const safeLimit =
-      limit === undefined ? undefined : Math.min(Math.max(limit, 1), 249);
+    const safeLimit = limit === undefined ? undefined : Math.min(Math.max(limit, 1), 249);
 
     // Apply pagination
     if (page && safeLimit) {
@@ -262,9 +299,7 @@ export async function listMeetings(
       ...new Set(
         rows
           .map((row) => row.client_id)
-          .filter(
-            (clientId): clientId is string => typeof clientId === "string"
-          )
+          .filter((clientId): clientId is string => typeof clientId === "string"),
       ),
     ];
     const clientMap = new Map<string, ClientRow>();
@@ -301,24 +336,21 @@ export async function listMeetings(
   } catch (error) {
     return {
       error: {
-        message: Error.isError(error)
-          ? error.message
-          : "Failed to fetch meetings",
+        message: Error.isError(error) ? error.message : "Failed to fetch meetings",
       },
     };
   }
 }
 
 export async function createMeeting(
-  meetingData: CreateMeetingRequest
+  meetingData: CreateMeetingRequest,
 ): Promise<ApiResponse<Meeting>> {
   try {
     // Basic validation for required fields
     if (!meetingData.id || !meetingData.clientId || !meetingData.meetingType) {
       return {
         error: {
-          message:
-            "Missing required fields: id, clientId, and meetingType are required",
+          message: "Missing required fields: id, clientId, and meetingType are required",
           statusCode: 400,
         },
       };
@@ -345,6 +377,9 @@ export async function createMeeting(
       current_phase: "Phase 1",
       overall_completion: 0,
     };
+    if (meetingData.setKey !== undefined) {
+      databaseInsert.set_key = meetingData.setKey;
+    }
     if (meetingData.solicitor !== undefined) {
       databaseInsert.solicitor = meetingData.solicitor;
     }
@@ -361,11 +396,7 @@ export async function createMeeting(
       databaseInsert.ivr_dial_in_number = meetingData.ivrDialInNumber;
     }
 
-    const { data, error } = await supabase
-      .from("meeting")
-      .insert(databaseInsert)
-      .select()
-      .single();
+    const { data, error } = await supabase.from("meeting").insert(databaseInsert).select().single();
 
     if (error) {
       return {
@@ -382,23 +413,15 @@ export async function createMeeting(
   } catch (error) {
     return {
       error: {
-        message: Error.isError(error)
-          ? error.message
-          : "Failed to create meeting",
+        message: Error.isError(error) ? error.message : "Failed to create meeting",
       },
     };
   }
 }
 
-export async function getMeetingById(
-  id: string
-): Promise<ApiResponse<Meeting>> {
+export async function getMeetingById(id: string): Promise<ApiResponse<Meeting>> {
   try {
-    const { data, error } = await supabase
-      .from("meeting")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data, error } = await supabase.from("meeting").select("*").eq("id", id).single();
 
     if (error) {
       // Check if it's a not found error
@@ -424,9 +447,7 @@ export async function getMeetingById(
   } catch (error) {
     return {
       error: {
-        message: Error.isError(error)
-          ? error.message
-          : "Failed to fetch meeting",
+        message: Error.isError(error) ? error.message : "Failed to fetch meeting",
       },
     };
   }
@@ -435,7 +456,7 @@ export async function getMeetingById(
 // Legacy functions for backwards compatibility - should be updated to use proper OpenAPI endpoints
 export async function getMeetingByIdAndTicker(
   id: string,
-  _ticker: string
+  _ticker: string,
 ): Promise<ApiResponse<Meeting>> {
   // Use the standard getMeetingById and filter by ticker in the app layer
   return await getMeetingById(id);
@@ -444,7 +465,7 @@ export async function getMeetingByIdAndTicker(
 export async function updateMeetingByIdAndTicker(
   id: string,
   _ticker: string,
-  meetingData: UpdateMeetingRequest
+  meetingData: UpdateMeetingRequest,
 ): Promise<ApiResponse<Meeting>> {
   // Use the standard updateMeeting - ticker validation should be handled in API layer
   return await updateMeeting(id, meetingData);
@@ -452,16 +473,14 @@ export async function updateMeetingByIdAndTicker(
 
 export async function deleteMeetingByIdAndTicker(
   id: string,
-  _ticker: string
+  _ticker: string,
 ): Promise<ApiResponse<void>> {
   // Use the standard deleteMeeting - ticker validation should be handled in API layer
   return await deleteMeeting(id);
 }
 
 // Helper function for backward compatibility - delegates to phases API
-export async function getMeetingPhases(
-  meetingId: string
-): Promise<ApiResponse<Phase[]>> {
+export async function getMeetingPhases(meetingId: string): Promise<ApiResponse<Phase[]>> {
   // Import here to avoid circular dependency
   const { listPhases } = await import("./phases");
   return await listPhases(meetingId);
@@ -469,7 +488,7 @@ export async function getMeetingPhases(
 
 export async function updateMeeting(
   id: string,
-  meetingData: UpdateMeetingRequest
+  meetingData: UpdateMeetingRequest,
 ): Promise<ApiResponse<Meeting>> {
   try {
     // Transform camelCase to snake_case for database
@@ -523,12 +542,10 @@ export async function updateMeeting(
       databaseUpdate.plan_administrator = meetingData.planAdministrator;
     }
     if (meetingData.planAdministratorContact !== undefined) {
-      databaseUpdate.plan_administrator_contact =
-        meetingData.planAdministratorContact;
+      databaseUpdate.plan_administrator_contact = meetingData.planAdministratorContact;
     }
     if (meetingData.planAdministratorContactEmail !== undefined) {
-      databaseUpdate.plan_administrator_contact_email =
-        meetingData.planAdministratorContactEmail;
+      databaseUpdate.plan_administrator_contact_email = meetingData.planAdministratorContactEmail;
     }
     if (meetingData.solicitor !== undefined) {
       databaseUpdate.solicitor = meetingData.solicitor;
@@ -540,8 +557,7 @@ export async function updateMeeting(
       databaseUpdate.ivr_dial_in_number = meetingData.ivrDialInNumber;
     }
     if (meetingData.totalSharesOutstanding !== undefined) {
-      databaseUpdate.total_shares_outstanding =
-        meetingData.totalSharesOutstanding;
+      databaseUpdate.total_shares_outstanding = meetingData.totalSharesOutstanding;
     }
     if (meetingData.quorumRequirement !== undefined) {
       databaseUpdate.quorum_requirement = meetingData.quorumRequirement;
@@ -553,10 +569,14 @@ export async function updateMeeting(
       databaseUpdate.mailing_status = meetingData.mailingStatus;
     }
     if (meetingData.tabulationDistribution !== undefined) {
-      databaseUpdate.tabulation_distribution =
-        meetingData.tabulationDistribution
-          ? JSON.parse(JSON.stringify(meetingData.tabulationDistribution))
-          : null;
+      databaseUpdate.tabulation_distribution = meetingData.tabulationDistribution
+        ? JSON.parse(JSON.stringify(meetingData.tabulationDistribution))
+        : null;
+    }
+    if (meetingData.tabulationReview !== undefined) {
+      databaseUpdate.tabulation_review = meetingData.tabulationReview
+        ? JSON.parse(JSON.stringify(meetingData.tabulationReview))
+        : null;
     }
 
     const { data, error } = await supabase
@@ -580,19 +600,14 @@ export async function updateMeeting(
       meetingData.totalSharesOutstanding !== undefined &&
       meetingData.totalSharesOutstanding !== null
     ) {
-      await syncTabulationReportTotalShares(
-        id,
-        Number(meetingData.totalSharesOutstanding)
-      );
+      await syncTabulationReportTotalShares(id, Number(meetingData.totalSharesOutstanding));
     }
 
     return { data: updated };
   } catch (error) {
     return {
       error: {
-        message: Error.isError(error)
-          ? error.message
-          : "Failed to update meeting",
+        message: Error.isError(error) ? error.message : "Failed to update meeting",
       },
     };
   }
@@ -614,9 +629,7 @@ export async function deleteMeeting(id: string): Promise<ApiResponse<void>> {
   } catch (error) {
     return {
       error: {
-        message: Error.isError(error)
-          ? error.message
-          : "Failed to delete meeting",
+        message: Error.isError(error) ? error.message : "Failed to delete meeting",
       },
     };
   }

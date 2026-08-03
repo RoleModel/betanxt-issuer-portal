@@ -21,7 +21,7 @@ import type { EventRow } from "@/utils/eventData";
 
 import { useClient } from "@/contexts/ClientContext";
 import { useClients } from "@/hooks/useClients";
-import { useEvents } from "@/hooks/useEvents";
+import { useEvents } from "@/hooks/use-events";
 import { canUserSwitchClients, isIssuerUser } from "@/utils/isIssuerUser";
 
 /** Brand labels for multi-client user types when no event is selected */

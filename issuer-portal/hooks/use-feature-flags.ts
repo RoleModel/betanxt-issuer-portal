@@ -14,6 +14,11 @@ interface FeatureFlags {
   configureDistribution: boolean;
   /** Gates updated client-brand colors in the Tabulation Tracker. */
   enableTabulationTrackerColors: boolean;
+  /**
+   * Vercel `enable-csm-tabulation-approval` flag — gates the prototype CSM
+   * review/release workflow for tabulation reports.
+   */
+  enableCsmTabulationApproval: boolean;
 }
 
 interface UseFeatureFlagsResult {
@@ -25,20 +30,16 @@ const defaultFlags: FeatureFlags = {
   configureDistribution: false,
   enableNobo: false,
   enableTabulationTrackerColors: false,
+  enableCsmTabulationApproval: false,
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-const fetchFeatureFlags = async (
-  ticker: string | null
-): Promise<FeatureFlags> => {
+const fetchFeatureFlags = async (ticker: string | null): Promise<FeatureFlags> => {
   // eslint-disable-next-line compat/compat -- This client hook runs only in browsers supported by Next.js.
   const response = await fetch("/api/feature-flags", {
-    headers:
-      ticker !== null && ticker.length > 0
-        ? { "x-client-ticker": ticker }
-        : undefined,
+    headers: ticker !== null && ticker.length > 0 ? { "x-client-ticker": ticker } : undefined,
   });
   if (!response.ok) {
     return defaultFlags;
@@ -53,6 +54,7 @@ const fetchFeatureFlags = async (
     configureDistribution: data.configureDistribution === true,
     enableNobo: data.enableNobo === true,
     enableTabulationTrackerColors: data.enableTabulationTrackerColors === true,
+    enableCsmTabulationApproval: data.enableCsmTabulationApproval === true,
   };
 };
 
@@ -66,9 +68,7 @@ const fetchFeatureFlags = async (
  * routes). Defaults every flag to off until the response arrives so gated
  * UI (e.g. the NOBO chip in the event manager) never flashes on.
  */
-export const useFeatureFlags = (
-  tickerOverride?: string
-): UseFeatureFlagsResult => {
+export const useFeatureFlags = (tickerOverride?: string): UseFeatureFlagsResult => {
   const { currentClient } = useClient();
   const ticker = tickerOverride ?? currentClient?.ticker ?? null;
 
@@ -78,7 +78,7 @@ export const useFeatureFlags = (
     {
       dedupingInterval: 60_000,
       revalidateOnFocus: false,
-    }
+    },
   );
 
   return { flags: data ?? defaultFlags, isLoading };

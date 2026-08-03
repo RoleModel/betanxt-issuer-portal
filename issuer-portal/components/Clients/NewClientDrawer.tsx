@@ -327,6 +327,7 @@ export const NewClientDrawer = ({
           title: eventForm.meetingType,
           cusip: eventForm.cusip.trim(),
           ticker,
+          setKey: `${ticker}J${year}`,
           recordDate: eventForm.recordDate,
           mailingDate: eventForm.mailingDate,
           meetingDate: eventForm.meetingDate,

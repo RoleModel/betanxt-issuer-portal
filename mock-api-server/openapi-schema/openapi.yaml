@@ -2704,15 +2704,7 @@ components:
               - agenda
               - nobo
           description: Feature modules enabled for this client. "nobo" is present when Engage functionality is active.
-          example:
-            [
-              "documents",
-              "mailing",
-              "tabulation",
-              "reports",
-              "fileTransfer",
-              "agenda",
-            ]
+          example: ["documents", "mailing", "tabulation", "reports", "fileTransfer", "agenda"]
         createdAt:
           type: string
           format: date-time
@@ -2896,9 +2888,64 @@ components:
           $ref: "#/components/schemas/TabulationDistribution"
           nullable: true
           description: Prototype config for automated daily tabulation report delivery
+        tabulationReview:
+          $ref: "#/components/schemas/TabulationReview"
+          nullable: true
+          description: Prototype CSM review/approval state for tabulation report release
         client:
           $ref: "#/components/schemas/Clients"
           description: The client this meeting belongs to (relationship)
+
+    TabulationReview:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [PENDING_REVIEW, VERIFIED]
+          default: PENDING_REVIEW
+          description: Internal QC state of the current tabulation report checkpoint
+        checkpoint:
+          type: string
+          nullable: true
+          enum: [FIRST_REPORT, FINAL_REPORT]
+          description: Which checkpoint this review covers — the first report of the 15-day window or the final report that is signed off and filed
+        checklist:
+          type: object
+          nullable: true
+          description: CSM verification checklist for the report
+          properties:
+            brokerNonVotes:
+              type: boolean
+              default: false
+              description: Broker non-vote totals confirmed correct
+            proposalClassification:
+              type: boolean
+              default: false
+              description: Routine / non-routine proposal classification confirmed
+            voteCategories:
+              type: boolean
+              default: false
+              description: Votes confirmed to land in the correct beneficial/registered and routine/non-routine categories
+        proposalClassifications:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: string
+            enum: [ROUTINE, NON_ROUTINE]
+          description: CSM-adjusted routine/non-routine classification keyed by proposal id
+        reviewedBy:
+          type: string
+          nullable: true
+          description: Name of the CSM who verified the report
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the report was verified
+        note:
+          type: string
+          nullable: true
+          description: Optional note from the CSM recorded with the verification
 
     TabulationDistribution:
       type: object
@@ -3312,6 +3359,11 @@ components:
           nullable: true
           description: "Total number of abstained votes"
           example: 5000000.21
+        brokerNonVotes:
+          type: number
+          nullable: true
+          description: "Broker non-votes recorded against this proposal"
+          example: 22480600.0
         totalSharesEligible:
           type: number
           nullable: true
@@ -3585,19 +3637,9 @@ components:
           type: array
           items:
             type: string
-            enum:
-              [
-                documents,
-                mailing,
-                tabulation,
-                reports,
-                fileTransfer,
-                agenda,
-                nobo,
-              ]
+            enum: [documents, mailing, tabulation, reports, fileTransfer, agenda, nobo]
           description: Feature modules enabled for this client
-          default:
-            [documents, mailing, tabulation, reports, fileTransfer, agenda]
+          default: [documents, mailing, tabulation, reports, fileTransfer, agenda]
 
     UpdateClientRequest:
       type: object
@@ -3917,6 +3959,10 @@ components:
           $ref: "#/components/schemas/TabulationDistribution"
           nullable: true
           description: Prototype config for automated daily tabulation report delivery
+        tabulationReview:
+          $ref: "#/components/schemas/TabulationReview"
+          nullable: true
+          description: Prototype CSM review/approval state for tabulation report release
 
     CreatePhaseRequest:
       type: object
@@ -4073,8 +4119,7 @@ components:
 
     CreatePositionRequest:
       type: object
-      required:
-        [meetingId, cusip, accountType, setKey, name, voteStatus, shares]
+      required: [meetingId, cusip, accountType, setKey, name, voteStatus, shares]
       properties:
         meetingId:
           type: string
@@ -4194,6 +4239,22 @@ components:
           type: object
         recommendation:
           type: string
+        totalVotesFor:
+          type: number
+          nullable: true
+          description: CSM-adjusted total votes in favor
+        totalVotesAgainst:
+          type: number
+          nullable: true
+          description: CSM-adjusted total votes against
+        totalVotesAbstain:
+          type: number
+          nullable: true
+          description: CSM-adjusted total abstained votes
+        brokerNonVotes:
+          type: number
+          nullable: true
+          description: CSM-adjusted broker non-votes for this proposal
 
     CastVoteRequest:
       type: object

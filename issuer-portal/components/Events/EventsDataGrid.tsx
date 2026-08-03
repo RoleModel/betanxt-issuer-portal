@@ -25,7 +25,14 @@ interface EventsDataGridProps {
   readonly emptyMessage: string;
   readonly events: EventRow[];
   readonly loading: boolean;
+  readonly onEditReportStatus?: (row: EventRow, anchor: HTMLElement) => void;
+  readonly showReviewColumn?: boolean;
 }
+
+const ignoreReportStatusEdit = (row: EventRow, anchor: HTMLElement): void => {
+  void row;
+  void anchor;
+};
 
 export const EventsDataGrid = ({
   assignedTickers,
@@ -33,11 +40,13 @@ export const EventsDataGrid = ({
   emptyMessage,
   events,
   loading,
+  onEditReportStatus = ignoreReportStatusEdit,
+  showReviewColumn = false,
 }: EventsDataGridProps) => {
   const isGridReady = useSyncExternalStore(
     subscribeToClientRender,
     getClientRenderSnapshot,
-    getServerRenderSnapshot
+    getServerRenderSnapshot,
   );
   const { atRiskMeetingIds } = useEventRisk();
   const {
@@ -56,13 +65,14 @@ export const EventsDataGrid = ({
   const columns = createEventsDataGridColumns({
     assignedTickers,
     atRiskMeetingIds,
+    onEditReportStatus,
+    showReviewColumn,
   });
 
   // Without an active search the index shows upcoming events only; searching
   // widens it to every event so past ones remain findable.
   const hasQuickSearch =
-    filterModel.quickFilterValues?.some((value) => value.trim().length > 0) ??
-    false;
+    filterModel.quickFilterValues?.some((value) => value.trim().length > 0) ?? false;
   const hasColumnSearch = filterModel.items.some((item) => {
     if (typeof item.value === "string") {
       return item.value.trim().length > 0;
