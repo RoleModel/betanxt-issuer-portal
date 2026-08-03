@@ -31,6 +31,7 @@ import {
   singleSelectFilterOperators,
   textFilterOperators,
 } from "@/utils/tabulation-grid-filter-operators";
+import GlossaryText from "@/components/ui/GlossaryText";
 import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 // The built-in v8 grid toolbar accepts `additionalExportMenuItems`, but the
@@ -99,7 +100,7 @@ const PositionDetailField = ({
 }) => (
   <Grid size={{ xs: 12, sm: 6, md: 4 }}>
     <Typography color="text.secondary" variant="body3">
-      {label}
+      <GlossaryText>{label}</GlossaryText>
     </Typography>
     <Typography variant="body3">{value}</Typography>
   </Grid>

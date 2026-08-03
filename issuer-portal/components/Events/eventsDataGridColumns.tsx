@@ -11,6 +11,8 @@ import { getGridStringOperators } from "@mui/x-data-grid-pro";
 
 import type { EventRow } from "@/utils/eventData";
 
+import GlossaryText from "@/components/ui/GlossaryText";
+
 import {
   EventActionsCell,
   EventPrimaryCell,
@@ -52,6 +54,9 @@ const dateColumn = (
   field,
   filterable: false,
   headerName,
+  // headerName stays as the plain string the grid needs for its column menu and
+  // exports; renderHeader is where the glossary markup goes.
+  renderHeader: () => <GlossaryText>{headerName}</GlossaryText>,
   minWidth: 140,
   type: "date",
   valueFormatter: (value: Date | null) =>
@@ -100,6 +105,7 @@ export const createEventsDataGridColumns = ({
     flex: 1,
     headerName: "CUSIP",
     minWidth: 220,
+    renderHeader: () => <GlossaryText>CUSIP</GlossaryText>,
     renderCell: (parameters: GridRenderCellParams<EventRow, string>) => (
       <Typography noWrap variant="body3">
         {parameters.row.cusip}

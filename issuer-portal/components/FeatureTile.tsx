@@ -12,6 +12,8 @@ import { useTheme } from "@mui/material/styles";
 import Link from "next/link";
 import React from "react";
 
+import GlossaryText from "@/components/ui/GlossaryText";
+
 interface FeatureTileProps {
   readonly title: string;
   readonly subtitle?: string;
@@ -223,7 +225,7 @@ export const FeatureTile = ({
               }),
           ]}
         >
-          {title}
+          <GlossaryText>{title}</GlossaryText>
         </Typography>
         {subtitle != null && (
           <Typography
@@ -233,7 +235,7 @@ export const FeatureTile = ({
               fontWeight: 600,
             })}
           >
-            {subtitle}
+            <GlossaryText>{subtitle}</GlossaryText>
           </Typography>
         )}
         <Box

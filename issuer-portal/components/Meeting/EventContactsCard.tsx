@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import React, { useState } from "react";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import StatusChip from "@/components/ui/StatusChip";
 import buildApiClient from "@/domain-models/apiClient";
@@ -207,7 +208,9 @@ const EventContactsCard: React.FC<EventContactsCardProps> = ({
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Confirm Transfer Agent</DialogTitle>
+        <DialogTitle>
+          <GlossaryText>Confirm Transfer Agent</GlossaryText>
+        </DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
