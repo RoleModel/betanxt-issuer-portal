@@ -56,7 +56,7 @@ Voting charts use one shared semantic palette so the tabulation grid, tabulation
 | Web, Print, IVR                 | Derived source colors    |
 | For, Against, Abstain, Withhold | Dedicated outcome colors |
 
-The implementation lives in [`issuer-portal/utils/vote-chart-colors.ts`](issuer-portal/utils/vote-chart-colors.ts). Use its semantic CSS variables and their paired `contrastColor` values for text over chart fills. Do not derive chart colors independently in individual components.
+The palette implementation lives in [`issuer-portal/utils/vote-chart-colors.ts`](issuer-portal/utils/vote-chart-colors.ts), and [`ConfiguredPieChart`](issuer-portal/components/Reporting/ConfiguredPieChart.tsx) owns the shared MUI pie wiring. Cards supply their title, legend, data, and ring configuration; they should not create independent pie-chart wrappers. Use the semantic CSS variables and their paired `contrastColor` values for text over chart fills. Do not derive chart colors independently in individual components.
 
 ## Testing
 

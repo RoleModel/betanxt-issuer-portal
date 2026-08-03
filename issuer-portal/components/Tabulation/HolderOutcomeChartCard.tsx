@@ -10,7 +10,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { PieChart as MuiPieChart, pieClasses } from "@mui/x-charts/PieChart";
 import PieChart2IconWithAccent from "@rolemodel/betanxt-design-system/components/icons/brand/PieChart2Icon";
 
 import type {
@@ -18,7 +17,7 @@ import type {
   VoteMatrixRow,
 } from "@/hooks/useTabulationInsights";
 
-import { createContrastPieArcLabel } from "@/components/ui/ContrastPieArcLabel";
+import ConfiguredPieChart from "@/components/Reporting/ConfiguredPieChart";
 import { LegendToggle } from "@/components/ui/LegendToggle";
 
 import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
@@ -30,7 +29,6 @@ import {
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
 import EmptyState from "../EmptyState";
-import PieCenterLabel from "../Reporting/PieChartCenterLabel";
 import {
   holderStyles,
   holderTypes,
@@ -54,9 +52,6 @@ const arcLabelContrastColors = new Map<string, string>([
     holder.contrastColor,
   ]),
 ]);
-
-/** Stable across renders: the colour mapping never changes. */
-const ContrastPieArcLabel = createContrastPieArcLabel(arcLabelContrastColors);
 
 /**
  * `proposalLabel` arrives as `Proposal 1.01: Arthur B. Winkleblack`. The select
@@ -316,11 +311,24 @@ const HolderOutcomeChartCard = ({
                 height: "100%",
               }}
             >
-              <MuiPieChart
+              <ConfiguredPieChart
+                arcLabelContrastByColor={arcLabelContrastColors}
+                centerLabel={{
+                  centerTooltip: showNeutralRings
+                    ? "No outcomes selected - use the legend below"
+                    : `${formatNumber(visibleTotalShares)} visible shares voted`,
+                  centerValue: centerMetric.display,
+                  fill: centerLabelColor,
+                  label:
+                    displayMode === "numbers"
+                      ? "Shares voted"
+                      : "of voted shares",
+                  sliceData: [],
+                  total: visibleTotalShares,
+                }}
                 height={300}
-                hideLegend
                 margin={{ bottom: 8, left: 8, right: 8, top: 8 }}
-                series={[
+                rings={[
                   {
                     arcLabel: (item) =>
                       showNeutralRings ? "" : (item.label ?? ""),
@@ -354,30 +362,7 @@ const HolderOutcomeChartCard = ({
                       formatDonutValue(String(item.id), item.value),
                   },
                 ]}
-                slots={{ pieArcLabel: ContrastPieArcLabel }}
-                sx={{
-                  [`& .${pieClasses.arcLabel}`]: {
-                    fontSize: 12,
-                    fontWeight: 700,
-                  },
-                }}
-              >
-                <PieCenterLabel
-                  data={{
-                    centerTooltip: showNeutralRings
-                      ? "No outcomes selected - use the legend below"
-                      : `${formatNumber(visibleTotalShares)} visible shares voted`,
-                    centerValue: centerMetric.display,
-                    fill: centerLabelColor,
-                    label:
-                      displayMode === "numbers"
-                        ? "Shares voted"
-                        : "of voted shares",
-                    sliceData: [],
-                    total: visibleTotalShares,
-                  }}
-                />
-              </MuiPieChart>
+              />
               <Box
                 aria-label="Voting outcome legend"
                 sx={{

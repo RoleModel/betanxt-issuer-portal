@@ -13,7 +13,6 @@ import {
   Skeleton,
   Stack,
 } from "@mui/material";
-import { PieChart } from "@mui/x-charts/PieChart";
 import { useState } from "react";
 
 import type { ProposalVoting } from "../../types/phases";
@@ -35,7 +34,7 @@ import {
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
 import { voteChartColors } from "../../utils/vote-chart-colors";
-import PieCenterLabel from "../Reporting/PieChartCenterLabel";
+import ConfiguredPieChart from "../Reporting/ConfiguredPieChart";
 
 interface SharesVotedChartProps {
   /** Meeting whose proposals are fetched via {@link useVotingTabulation}. Ignored when `proposalsOverride` is set. */
@@ -242,8 +241,19 @@ const SharesVotedChart = ({
               color: "text.secondary",
             }}
           >
-            <PieChart
-              series={[
+            <ConfiguredPieChart
+              arcLabelSlot={TabulationPieArcLabel}
+              centerLabel={{
+                centerTooltip: totalMetric.alternate,
+                centerValue: totalMetric.display,
+                label: "Shares Voted",
+                sliceData: pieChartData,
+                total: totalSharesVoted,
+              }}
+              height={tabulationChartHeight}
+              hideLegend={false}
+              margin={tabulationDonutChartMargin}
+              rings={[
                 {
                   cx: "50%",
                   cy: tabulationDonutCenterY,
@@ -288,27 +298,13 @@ const SharesVotedChart = ({
                   },
                 },
               ]}
-              height={tabulationChartHeight}
-              margin={tabulationDonutChartMargin}
-              hideLegend={false}
               slotProps={{
                 legend: {
                   direction: "horizontal",
                   position: { vertical: "bottom", horizontal: "center" },
                 },
               }}
-              slots={{ pieArcLabel: TabulationPieArcLabel }}
-            >
-              <PieCenterLabel
-                data={{
-                  total: totalSharesVoted,
-                  centerTooltip: totalMetric.alternate,
-                  centerValue: totalMetric.display,
-                  label: "Shares Voted",
-                  sliceData: pieChartData,
-                }}
-              />
-            </PieChart>
+            />
           </Box>
         )}
       </CardContent>

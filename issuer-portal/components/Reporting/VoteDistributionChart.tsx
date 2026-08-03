@@ -2,12 +2,9 @@
 
 import { HowToVoteOutlined } from "@mui/icons-material";
 import { Box, Card, CardContent, CardHeader } from "@mui/material";
-import { PieChart as MuiPieChart, pieClasses } from "@mui/x-charts/PieChart";
 import { useState } from "react";
 
 import EmptyState from "@/components/EmptyState";
-import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
-import { createContrastPieArcLabel } from "@/components/ui/ContrastPieArcLabel";
 import SkeletonChart from "@/components/ui/SkeletonChart";
 import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
 import {
@@ -37,6 +34,7 @@ import {
   voteStatuses,
 } from "./vote-distribution-chart-data";
 import { VoteDistributionLegend } from "./VoteDistributionLegend";
+import ConfiguredPieChart from "./ConfiguredPieChart";
 
 interface VoteDistributionChartProps {
   readonly data: VoteDistributionData[];
@@ -48,9 +46,6 @@ interface VoteDistributionChartProps {
 const accountRingOuterRadius = 92;
 const statusRingInnerRadius = 92;
 const statusRingOuterRadius = 126;
-
-/** Stable across renders: the colour mapping never changes. */
-const ContrastPieArcLabel = createContrastPieArcLabel(arcLabelContrastByColor);
 
 const toggle = <T,>(previous: ReadonlySet<T>, value: T): ReadonlySet<T> => {
   const next = new Set(previous);
@@ -258,11 +253,22 @@ const VoteDistributionChart = ({
             minHeight: 250,
           }}
         >
-          <MuiPieChart
+          <ConfiguredPieChart
+            arcLabelContrastByColor={arcLabelContrastByColor}
+            centerLabel={{
+              centerTooltip: showNeutralRings
+                ? "Nothing selected - use the legend below"
+                : totalMetric.alternate,
+              centerValue: totalMetric.display,
+              fill: "var(--mui-palette-primary-contrastText)",
+              label: "Total Votes",
+              showStroke: false,
+              sliceData: [],
+              total: visibleVotedTotal,
+            }}
             height={tabulationChartHeight}
-            hideLegend
             margin={tabulationDonutChartMargin}
-            series={[
+            rings={[
               {
                 cy: tabulationDonutCenterY,
                 data: showNeutralRings
@@ -292,28 +298,7 @@ const VoteDistributionChart = ({
                   formatDonutValue(String(item.id), item.value),
               },
             ]}
-            slots={{ pieArcLabel: ContrastPieArcLabel }}
-            sx={{
-              [`& .${pieClasses.arcLabel}`]: {
-                fontSize: 11,
-                fontWeight: 700,
-              },
-            }}
-          >
-            <PieCenterLabel
-              data={{
-                centerTooltip: showNeutralRings
-                  ? "Nothing selected - use the legend below"
-                  : totalMetric.alternate,
-                centerValue: totalMetric.display,
-                label: "Total Votes",
-                sliceData: [],
-                total: visibleVotedTotal,
-                fill: "var(--mui-palette-primary-contrastText)",
-                showStroke: false,
-              }}
-            />
-          </MuiPieChart>
+          />
           <VoteDistributionLegend
             hiddenAccountTypes={hiddenAccountTypes}
             hiddenStatuses={hiddenStatuses}
