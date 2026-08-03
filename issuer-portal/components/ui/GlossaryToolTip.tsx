@@ -58,7 +58,21 @@ export const GlossaryTooltip = ({
   // than spread — spreading would drop a function override silently.
   const { sx: linkSx, ...restLinkProps } = linkProps ?? {};
 
+  /**
+   * Opens the glossary and nothing else.
+   *
+   * @remarks
+   * The marker is meant to sit inside copy that is often itself clickable — a
+   * FeatureTile wrapped in a link, a table row, a card that opens a document.
+   * Without both of these, clicking a term would open the glossary *and* fire
+   * the surface underneath it: `stopPropagation` keeps ancestor React handlers
+   * out of it, and `preventDefault` cancels the navigation when the ancestor is
+   * a real anchor, which is how a tile with an `href` would otherwise download
+   * its PDF behind the drawer.
+   */
   const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    event.preventDefault();
+    event.stopPropagation();
     onClick?.(event);
     openGlossary(term);
   };
