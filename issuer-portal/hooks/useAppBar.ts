@@ -7,6 +7,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type React from "react";
 import type { User } from "next-auth";
 
+import { useDevMode } from "@/components/DevOverlay/useDevMode";
 import { useClient } from "@/contexts/ClientContext";
 import MeetingContext from "@/contexts/MeetingContext";
 import { useNotificationsSafe } from "@/contexts/NotificationContext";
@@ -97,6 +98,10 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
   const { clients } = useClients();
   const { data: session, status: sessionStatus } = useSession();
   const { mode, setMode } = useColorScheme();
+  const {
+    enabled: developmentOverlayEnabled,
+    toggle: toggleDevelopmentOverlay,
+  } = useDevMode();
   const meetingContext = useMeetingSafe();
   const meetings = useMemo(
     () => meetingContext.meetings,
@@ -617,9 +622,28 @@ export function useAppBar(parameters: UseAppBarParameters): UseAppBarResult {
           setMode(mode === "light" ? "dark" : "light");
         },
       },
+      // Matches where the overlay itself is mounted — the entry cannot appear
+      // in a build that has no overlay behind it.
+      ...(process.env.NODE_ENV === "development"
+        ? [
+            {
+              label: developmentOverlayEnabled
+                ? "Turn Off Dev Overlay"
+                : "Turn On Dev Overlay",
+              onClick: toggleDevelopmentOverlay,
+            },
+          ]
+        : []),
       { label: "Logout", onClick: () => void handleLogout() },
     ],
-    [router, mode, setMode, handleLogout]
+    [
+      router,
+      mode,
+      setMode,
+      developmentOverlayEnabled,
+      toggleDevelopmentOverlay,
+      handleLogout,
+    ]
   );
 
   return {

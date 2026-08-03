@@ -11,6 +11,7 @@ import { Roboto, Roboto_Condensed } from "next/font/google";
 import localFont from "next/font/local";
 import React from "react";
 
+import DevOverlay from "@/components/DevOverlay/DevOverlay";
 import RootLayoutClient from "@/components/Layout/RootLayoutClient";
 import SWRProvider from "@/components/Layout/SWRProvider";
 import GlobalStyle from "@/components/mui-styling/GlobalStyles";
@@ -80,6 +81,9 @@ const RootLayout = ({ children }: { readonly children: React.ReactNode }) => {
                       <GlobalStyle />
                       <MuiXLicense />
                       <RootLayoutClient>{children}</RootLayoutClient>
+                      {/* Inside ClientProvider: the overlay reads the active
+                          ticker to open its theme panel on the right client. */}
+                      {process.env.NODE_ENV === "development" && <DevOverlay />}
                     </ThemeRegistry>
                   </ChatbotProvider>
                 </NotificationProvider>
