@@ -183,14 +183,6 @@ export const buildVoteDistributionData = (
 export const minimumStatusShare = 0.035;
 
 /**
- * Where each ring's arc labels sit, measured from the centre. The inner ring
- * is a filled circle, so without this its labels land on top of the centre
- * total; pushing them outward keeps both readable.
- */
-export const accountArcLabelRadius = 68;
-export const statusArcLabelRadius = 110;
-
-/**
  * Id of the invisible slice that holds the space left by hidden series.
  * Without it the remaining slices stretch to fill the circle, so a filtered
  * view reads as 100% no matter how little is actually selected.
@@ -202,22 +194,3 @@ export const hiddenRemainderColor = "var(--mui-palette-divider)";
 
 /** Greyed ring shown when the legend has hidden everything. */
 export const neutralRingColor = "var(--mui-palette-divider)";
-
-/**
- * Every fill the donut can paint, mapped to the foreground its arc labels
- * should use. Built from the same definitions the rings are, so a colour
- * change cannot leave a label unreadable behind it.
- */
-export const arcLabelContrastByColor: ReadonlyMap<string, string> = new Map([
-  ...accountTypes.map((accountType): [string, string] => [
-    accountType.color,
-    accountType.contrastColor,
-  ]),
-  ...accountTypes.flatMap((accountType) =>
-    voteStatuses.map((status): [string, string] => {
-      const style = status.styleByAccountType[accountType.id];
-      return [style.color, style.contrastColor];
-    })
-  ),
-  [neutralRingColor, "var(--mui-palette-text-primary)"],
-]);

@@ -20,7 +20,6 @@ import type { ProposalVoting } from "../../types/phases";
 import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
 import { useVotingTabulation } from "../../hooks/use-voting-tabulation";
 import {
-  shouldShowTabulationPieArcLabels,
   tabulationCardContentStyles,
   tabulationCardHeaderStyles,
   tabulationCardStyles,
@@ -29,8 +28,6 @@ import {
   tabulationDonutChartMargin,
   tabulationDonutInnerRadius,
   tabulationDonutOuterRadius,
-  tabulationMinArcLabelAngle,
-  TabulationPieArcLabel,
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
 import { voteChartColors } from "../../utils/vote-chart-colors";
@@ -113,8 +110,13 @@ const SharesVotedChart = ({
           },
           {
             id: 2,
-            label: "Abstain",
-            shares: selectedProposal.votingResults.abstain.shares,
+            // Abstain and Withhold are the same answer to a reader — neither is
+            // a vote for or against — and as two thin arcs they read as noise.
+            // The tabulation table still reports them separately.
+            label: "Abstain / Withhold",
+            shares:
+              selectedProposal.votingResults.abstain.shares +
+              (selectedProposal.votingResults.withhold?.shares ?? 0),
             color: voteChartColors.outcomes.abstain.color,
           },
         ];
@@ -152,9 +154,6 @@ const SharesVotedChart = ({
     displayMode
   );
   const hasRecordedVotes = totalSharesVoted > 0;
-  const showArcLabels = shouldShowTabulationPieArcLabels(
-    rawBreakdownData.filter((item) => item.shares > 0).length
-  );
   const pieChartData = hasRecordedVotes
     ? votingBreakdownData
     : [...votingBreakdownData, emptyPieSlice];
@@ -242,7 +241,6 @@ const SharesVotedChart = ({
             }}
           >
             <ConfiguredPieChart
-              arcLabelSlot={TabulationPieArcLabel}
               centerLabel={{
                 centerTooltip: totalMetric.alternate,
                 centerValue: totalMetric.display,
@@ -261,29 +259,10 @@ const SharesVotedChart = ({
                   innerRadius: tabulationDonutInnerRadius,
                   outerRadius: tabulationDonutOuterRadius,
                   highlightScope: { fade: "global", highlight: "item" },
-                  // Use originalShares for the printed chart labels
-                  arcLabel: showArcLabels
-                    ? (item) => {
-                        const slice = votingBreakdownData.find(
-                          (currentSlice) => currentSlice.id === item.id
-                        );
-                        if (slice === undefined) return "";
-
-                        const metric = formatTabulationMetric(
-                          slice.originalShares,
-                          totalSharesVoted,
-                          displayMode
-                        );
-                        return `${slice.label}: ${metric.display}`;
-                      }
-                    : undefined,
-                  arcLabelMinAngle: showArcLabels
-                    ? tabulationMinArcLabelAngle
-                    : undefined,
                   // Use originalShares for the hover tooltips
                   valueFormatter: (_value, context) => {
                     const item = pieChartData[context.dataIndex];
-                    if (item?.label === undefined) {
+                    if (item.label === undefined) {
                       return "";
                     }
 

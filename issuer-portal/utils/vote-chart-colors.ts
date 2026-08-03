@@ -92,6 +92,20 @@ export const generateChartPalette = (
 ];
 
 /**
+ * Fill for an arc whose legend entry is toggled off.
+ *
+ * @remarks
+ * Deselecting keeps a slice's geometry and greys it, rather than removing it:
+ * the ring then reads as the same whole no matter what is selected, and a
+ * filtered view cannot make one remaining slice look like 100%. Mixed against
+ * `background.paper` so the grey lands mid-way between the surface and the
+ * text in both color schemes — a fixed grey or the `divider` token reads as
+ * an empty gap in one scheme and as a solid slice in the other.
+ */
+export const deselectedChartColor =
+  "color-mix(in srgb, var(--mui-palette-text-primary) 22%, var(--mui-palette-background-paper))";
+
+/**
  * Semantic CSS-variable references for vote-related charts.
  *
  * Each role exposes its background color and the foreground that was computed

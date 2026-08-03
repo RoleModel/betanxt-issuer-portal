@@ -50,6 +50,53 @@ export const voteOutcomes: readonly VoteOutcome[] = [
   },
 ];
 
+/** One pie slice, which may stand for more than one underlying outcome. */
+export interface PieVoteOutcome {
+  readonly color: string;
+  readonly contrastColor: string;
+  /** Identity of the slice, and the key its legend toggle is keyed on. */
+  readonly key: VoteOutcomeKey;
+  /** Every outcome the slice totals. */
+  readonly keys: readonly VoteOutcomeKey[];
+  readonly label: string;
+}
+
+/**
+ * Outcomes as the donuts show them: Abstain and Withhold share one slice.
+ *
+ * @remarks
+ * The two are the same answer in practice — neither is a vote for or against —
+ * and split across two thin arcs they read as noise rather than as a quantity.
+ * The bar charts and the tabulation table still report them separately, where
+ * there is room for the distinction to mean something.
+ */
+export const pieVoteOutcomes: readonly PieVoteOutcome[] = [
+  {
+    ...voteChartColors.outcomes.for,
+    key: "for",
+    keys: ["for"],
+    label: "For",
+  },
+  {
+    ...voteChartColors.outcomes.against,
+    key: "against",
+    keys: ["against"],
+    label: "Against",
+  },
+  {
+    ...voteChartColors.outcomes.abstain,
+    key: "abstain",
+    keys: ["abstain", "withhold"],
+    label: "Abstain / Withhold",
+  },
+];
+
+/** Totals every outcome one pie slice covers. */
+export const sumPieOutcome = (
+  row: VoteMatrixRow,
+  outcome: PieVoteOutcome
+): number => outcome.keys.reduce((total, key) => total + row[key], 0);
+
 export const voteSources: readonly VoteSource[] = [
   {
     ...voteChartColors.sources.web,

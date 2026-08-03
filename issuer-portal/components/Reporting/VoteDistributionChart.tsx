@@ -12,9 +12,9 @@ import {
   tabulationChartHeight,
   tabulationDonutCenterY,
   tabulationDonutChartMargin,
-  tabulationMinArcLabelAngle,
 } from "@/utils/tabulation-card-layout";
 import { formatTabulationMetric } from "@/utils/tabulation-display";
+import { deselectedChartColor } from "@/utils/vote-chart-colors";
 
 import type {
   AccountTypeId,
@@ -24,13 +24,8 @@ import type {
 
 import {
   accountTypes,
-  arcLabelContrastByColor,
   buildSliceId,
-  hiddenRemainderColor,
-  hiddenRemainderId,
   minimumStatusShare,
-  neutralRingColor,
-  statusArcLabelRadius,
   voteStatuses,
 } from "./vote-distribution-chart-data";
 import { VoteDistributionLegend } from "./VoteDistributionLegend";
@@ -84,27 +79,22 @@ const VoteDistributionChart = ({
     0
   );
 
-  const visibleAccountTypes = accountTypes.filter(
-    (accountType) => !hiddenAccountTypes.has(accountType.id)
-  );
-  const visibleStatuses = voteStatuses.filter(
-    (status) => !hiddenStatuses.has(status.id)
-  );
-
-  // Indexed by visibleAccountTypes; both rings walk that same list.
-  const accountTotals = visibleAccountTypes.map((accountType) =>
-    visibleStatuses.reduce(
+  // Both rings walk every account type and every status, whatever the legend
+  // says, so the donut is the same shape however it is filtered. Deselecting
+  // greys an arc rather than dropping it: the ring keeps reading as the whole,
+  // and a single remaining slice can never look like 100%.
+  const accountRecordedTotals = accountTypes.map((accountType) =>
+    voteStatuses.reduce(
       (sum, status) => sum + sliceValue(accountType.id, status.id),
       0
     )
   );
-  const visibleTotal = accountTotals.reduce((sum, total) => sum + total, 0);
 
   // The centre reads "Total Votes", so it counts only voted slices — summing
   // everything reported shares outstanding as votes.
-  const visibleVotedTotal = visibleAccountTypes.reduce(
+  const visibleVotedTotal = accountTypes.reduce(
     (sum, accountType) =>
-      hiddenStatuses.has("voted")
+      hiddenStatuses.has("voted") || hiddenAccountTypes.has(accountType.id)
         ? sum
         : sum + sliceValue(accountType.id, "voted"),
     0
@@ -114,21 +104,16 @@ const VoteDistributionChart = ({
     recordedTotal,
     displayMode
   );
+  const nothingSelected = recordedTotal > 0 && visibleVotedTotal === 0;
 
-  const showNeutralRings = recordedTotal > 0 && visibleTotal === 0;
-  const neutralRingData = accountTypes.map((accountType) => ({
-    color: neutralRingColor,
-    id: accountType.id,
-    label: accountType.label,
-    value: 1,
-  }));
-
-  const accountRingData = visibleAccountTypes.flatMap((accountType, index) => {
-    const value = accountTotals[index] ?? 0;
+  const accountRingData = accountTypes.flatMap((accountType, index) => {
+    const value = accountRecordedTotals[index] ?? 0;
     return value > 0
       ? [
           {
-            color: accountType.color,
+            color: hiddenAccountTypes.has(accountType.id)
+              ? deselectedChartColor
+              : accountType.color,
             id: accountType.id,
             label: accountType.label,
             value,
@@ -140,10 +125,9 @@ const VoteDistributionChart = ({
   // Outer values are ordered by account type and each group sums to its inner
   // slice, so the two rings share their boundaries.
   const actualStatusValues = new Map<string, number>();
-  const statusArcLabels = new Map<string, string>();
-  const statusRingData = visibleAccountTypes.flatMap((accountType, index) => {
-    const accountTotal = accountTotals[index] ?? 0;
-    const statusValues = visibleStatuses.flatMap((status) => {
+  const statusRingData = accountTypes.flatMap((accountType, index) => {
+    const accountTotal = accountRecordedTotals[index] ?? 0;
+    const statusValues = voteStatuses.flatMap((status) => {
       const value = sliceValue(accountType.id, status.id);
       return value > 0 ? [{ status, value }] : [];
     });
@@ -160,10 +144,13 @@ const VoteDistributionChart = ({
 
     return statusValues.map(({ status, value }) => {
       const id = buildSliceId(accountType.id, status.id);
+      const isDeselected =
+        hiddenAccountTypes.has(accountType.id) || hiddenStatuses.has(status.id);
       actualStatusValues.set(id, value);
-      statusArcLabels.set(id, status.label);
       return {
-        color: status.styleByAccountType[accountType.id].color,
+        color: isDeselected
+          ? deselectedChartColor
+          : status.styleByAccountType[accountType.id].color,
         id,
         label: `${accountType.label} · ${status.label}`,
         value:
@@ -173,30 +160,7 @@ const VoteDistributionChart = ({
     });
   });
 
-  // Both rings are scaled against the recorded total rather than the visible
-  // one, so hidden series leave a gap instead of letting what remains stretch
-  // to fill the circle - a single visible slice was reading as 100%.
-  const hiddenRemainder = Math.max(recordedTotal - visibleTotal, 0);
-  const withRemainder = <T extends { value: number }>(
-    slices: readonly T[]
-  ): (T | { color: string; id: string; label: string; value: number })[] =>
-    hiddenRemainder > 0
-      ? [
-          ...slices,
-          {
-            color: hiddenRemainderColor,
-            id: hiddenRemainderId,
-            label: "",
-            value: hiddenRemainder,
-          },
-        ]
-      : [...slices];
-
   const formatDonutValue = (id: string, value: number): string => {
-    if (id === hiddenRemainderId) {
-      return "";
-    }
-
     const actualValue = actualStatusValues.get(id) ?? value;
     const metric = formatTabulationMetric(
       actualValue,
@@ -254,9 +218,8 @@ const VoteDistributionChart = ({
           }}
         >
           <ConfiguredPieChart
-            arcLabelContrastByColor={arcLabelContrastByColor}
             centerLabel={{
-              centerTooltip: showNeutralRings
+              centerTooltip: nothingSelected
                 ? "Nothing selected - use the legend below"
                 : totalMetric.alternate,
               centerValue: totalMetric.display,
@@ -271,9 +234,7 @@ const VoteDistributionChart = ({
             rings={[
               {
                 cy: tabulationDonutCenterY,
-                data: showNeutralRings
-                  ? neutralRingData
-                  : withRemainder(accountRingData),
+                data: accountRingData,
                 highlightScope: { fade: "global", highlight: "item" },
                 innerRadius: 0,
                 outerRadius: accountRingOuterRadius,
@@ -281,16 +242,8 @@ const VoteDistributionChart = ({
                   formatDonutValue(String(item.id), item.value),
               },
               {
-                arcLabel: (item) =>
-                  showNeutralRings
-                    ? ""
-                    : (statusArcLabels.get(String(item.id)) ?? ""),
-                arcLabelMinAngle: tabulationMinArcLabelAngle,
-                arcLabelRadius: statusArcLabelRadius,
                 cy: tabulationDonutCenterY,
-                data: showNeutralRings
-                  ? neutralRingData
-                  : withRemainder(statusRingData),
+                data: statusRingData,
                 highlightScope: { fade: "global", highlight: "item" },
                 innerRadius: statusRingInnerRadius,
                 outerRadius: statusRingOuterRadius,

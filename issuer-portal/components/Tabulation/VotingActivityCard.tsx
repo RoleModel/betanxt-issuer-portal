@@ -9,7 +9,6 @@ import {
   useVotingTabulation,
 } from "../../hooks/use-voting-tabulation";
 import {
-  shouldShowTabulationPieArcLabels,
   tabulationCardContentStyles,
   tabulationCardHeaderStyles,
   tabulationCardStyles,
@@ -18,8 +17,6 @@ import {
   tabulationDonutChartMargin,
   tabulationDonutInnerRadius,
   tabulationDonutOuterRadius,
-  tabulationMinArcLabelAngle,
-  TabulationPieArcLabel,
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
 import { voteChartColors } from "../../utils/vote-chart-colors";
@@ -145,9 +142,6 @@ const VotingActivityCard = ({
 
   const total = votingMethodsData.reduce((sum, item) => sum + item.value, 0);
   const totalMetric = formatTabulationMetric(total, total, displayMode);
-  const showArcLabels =
-    hasRegisteredVotingActivity &&
-    shouldShowTabulationPieArcLabels(votingMethodsData.length);
 
   const pieChartData = [
     ...votingMethodsWithLegendItems,
@@ -186,24 +180,6 @@ const VotingActivityCard = ({
                   innerRadius: tabulationDonutInnerRadius,
                   outerRadius: tabulationDonutOuterRadius,
                   highlightScope: { fade: "global", highlight: "item" },
-                  arcLabel: showArcLabels
-                    ? (item) => {
-                        const votingMethod = pieChartData.find(
-                          (currentMethod) => currentMethod.id === item.id
-                        );
-                        if (votingMethod === undefined) return "";
-
-                        const metric = formatTabulationMetric(
-                          votingMethod.value,
-                          total,
-                          displayMode
-                        );
-                        return `${votingMethod.label}: ${metric.display}`;
-                      }
-                    : undefined,
-                  arcLabelMinAngle: showArcLabels
-                    ? tabulationMinArcLabelAngle
-                    : undefined,
                   valueFormatter: (value, context) => {
                     const item = pieChartData[context.dataIndex];
                     if (item?.label === undefined) {
@@ -229,7 +205,6 @@ const VotingActivityCard = ({
                   position: { vertical: "bottom", horizontal: "center" },
                 },
               }}
-              slots={{ pieArcLabel: TabulationPieArcLabel }}
             >
               <PieCenterLabel
                 data={{
