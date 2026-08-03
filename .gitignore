@@ -1,5 +1,10 @@
 node_modules
 .turbo/
+
+# Playwright creates these locally for every test run; reports are never source.
+**/playwright-report/
+**/test-results/
+
 # Next.js build output
 .next/
 */.next/
@@ -11,17 +16,9 @@ issuer-portal/.env.development.local
 **/*.DS_Store
 .vercel
 supabase/migrations/Model/*
-issuer-portal/playwright-report/index.html
-issuer-portal/test-results/.last-run.json
-mock-api-server/playwright-report/index.html
 supabase/seed.sql
 supabase/migrations/*
-mock-api-server/playwright-report/index.html
 supabase/migrations/.openapi-generator/FILES
-test-results/*
-issuer-portal/playwright-report/
-issuer-portal/test-results/*
-issuer-portal/playwright-report/index.html
 .env*.local
 data/
 !mock-api-server/data/
@@ -39,7 +36,6 @@ mock-api-server/.DS_Store
 .playwright-cli/
 mock-api-server/.DS_Store
 docs/Proxy Card Design Client.pdf
-mock-api-server/playwright-report/*
 issuer-portal/playwright-upload-test.pdf
 
 # Sentry Config File
