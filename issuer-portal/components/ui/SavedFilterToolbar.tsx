@@ -50,6 +50,8 @@ export interface SavedFilterToolbarProps {
 }
 
 declare module "@mui/x-data-grid-pro" {
+  // Module augmentation requires an interface that mirrors the toolbar props.
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface ToolbarPropsOverrides extends SavedFilterToolbarProps {}
 }
 
@@ -64,6 +66,8 @@ const StyledTextField = styled(TextField)<{
 }));
 
 const StyledToolbarButton = styled(
+  // ToolbarButton's public type is wider than what `styled()` accepts here.
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   ToolbarButton as React.ComponentType<ToolbarButtonProps>
 )<{
   ownerState: OwnerState;
@@ -118,12 +122,12 @@ const ActiveFilterChips = ({ onRemoveFilter }: ActiveFilterChipsProps) => {
     >
       {activeFilters.map((filter) => {
         const column = columns[filter.field];
-        const field = column?.headerName ?? filter.field;
+        const field = column.headerName ?? filter.field;
         const operator =
-          column?.filterOperators?.find(
+          column.filterOperators?.find(
             (candidate) => candidate.value === filter.operator
           )?.label ?? filter.operator;
-        const value = formatFilterValue(filter, column?.type);
+        const value = formatFilterValue(filter, column.type);
         const label = [field, operator, value].filter(Boolean).join(" ");
         const key =
           filter.id ??
@@ -167,8 +171,9 @@ export const SavedFilterToolbar = ({
   onDelete,
   onRemoveFilter,
 }: SavedFilterToolbarProps) => {
-  const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
-  const exportMenuTriggerRef = React.useRef<HTMLButtonElement>(null);
+  const [exportAnchorEl, setExportAnchorEl] =
+    React.useState<HTMLElement | null>(null);
+  const exportMenuOpen = exportAnchorEl !== null;
   const apiRef = useGridApiContext();
   const pageCount = useGridSelector(apiRef, gridPageCountSelector);
   const paginationModel = useGridSelector(apiRef, gridPaginationModelSelector);
@@ -240,18 +245,19 @@ export const SavedFilterToolbar = ({
               style={{ display: "flex", marginLeft: "auto", overflow: "clip" }}
             >
               <QuickFilterTrigger
-                render={(triggerProps, state) => (
+                render={(triggerProps, triggerState) => (
                   <Tooltip title="Search" enterDelay={0}>
                     <StyledToolbarButton
                       aria-controls={triggerProps["aria-controls"]}
-                      aria-disabled={state.expanded}
+                      aria-disabled={triggerState.expanded}
                       aria-expanded={triggerProps["aria-expanded"]}
                       className={triggerProps.className}
                       color="default"
                       disabled={triggerProps.disabled}
                       id={triggerProps.id}
+                      // eslint-disable-next-line -- forwards the trigger's own click handler
                       onClick={triggerProps.onClick}
-                      ownerState={{ expanded: state.expanded }}
+                      ownerState={{ expanded: triggerState.expanded }}
                       ref={triggerProps.ref}
                       tabIndex={triggerProps.tabIndex}
                       title={triggerProps.title}
@@ -272,12 +278,12 @@ export const SavedFilterToolbar = ({
                 <QuickFilterControl
                   aria-label="Search events"
                   placeholder="Search"
-                  render={({ ref, ...controlProps }, state) => (
+                  render={({ ref, ...controlProps }, controlState) => (
                     // A plain input, as in the MUI recipe: TextField's prop surface
                     // does not accept what the control passes down.
                     <StyledTextField
                       {...controlProps}
-                      ownerState={{ expanded: state.expanded }}
+                      ownerState={{ expanded: controlState.expanded }}
                       inputRef={ref}
                       aria-label="Search"
                       placeholder="Search…"
@@ -289,7 +295,7 @@ export const SavedFilterToolbar = ({
                               <SearchIcon fontSize="small" />
                             </InputAdornment>
                           ),
-                          endAdornment: state.value ? (
+                          endAdornment: controlState.value ? (
                             <InputAdornment position="end">
                               <QuickFilterClear
                                 edge="end"
@@ -320,13 +326,12 @@ export const SavedFilterToolbar = ({
         </Tooltip>
         <Tooltip title="Export">
           <ToolbarButton
-            ref={exportMenuTriggerRef}
             id="export-menu-trigger"
             aria-controls="export-menu"
             aria-haspopup="true"
             aria-expanded={exportMenuOpen ? "true" : undefined}
-            onClick={() => {
-              setExportMenuOpen(true);
+            onClick={(event) => {
+              setExportAnchorEl(event.currentTarget);
             }}
           >
             <FileDownloadIcon fontSize="small" />
@@ -334,10 +339,10 @@ export const SavedFilterToolbar = ({
         </Tooltip>
         <Menu
           id="export-menu"
-          anchorEl={exportMenuTriggerRef.current}
+          anchorEl={exportAnchorEl}
           open={exportMenuOpen}
           onClose={() => {
-            setExportMenuOpen(false);
+            setExportAnchorEl(null);
           }}
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           transformOrigin={{ vertical: "top", horizontal: "right" }}
@@ -350,7 +355,7 @@ export const SavedFilterToolbar = ({
           <ExportPrint
             render={<MenuItem />}
             onClick={() => {
-              setExportMenuOpen(false);
+              setExportAnchorEl(null);
             }}
           >
             Print
@@ -358,7 +363,7 @@ export const SavedFilterToolbar = ({
           <ExportCsv
             render={<MenuItem />}
             onClick={() => {
-              setExportMenuOpen(false);
+              setExportAnchorEl(null);
             }}
           >
             Download as CSV

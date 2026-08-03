@@ -304,4 +304,40 @@ export const devOverlayCss = `
 }
 .ipdev-tickers { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; }
 .ipdev-empty { margin: 16px 12px; color: #9b8dc0; }
+
+.ipdev-glossary-usage { margin: 0 12px; }
+.ipdev-glossary-note {
+  margin: 8px 12px 0;
+  color: #9b8dc0;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+.ipdev-glossary-note code {
+  background: rgba(124, 77, 255, 0.28);
+  border-radius: 3px;
+  padding: 0 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.ipdev-glossary-entry {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 2px 12px;
+  padding: 6px 8px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+.ipdev-glossary-entry:hover { background: rgba(124, 77, 255, 0.22); }
+.ipdev-glossary-term { display: block; font-weight: 600; }
+.ipdev-glossary-def {
+  display: block;
+  margin-top: 2px;
+  color: #b7abd6;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
 `;

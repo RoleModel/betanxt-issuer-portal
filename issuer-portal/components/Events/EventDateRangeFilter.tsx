@@ -5,7 +5,7 @@ import type {
   GridFilterOperator,
 } from "@mui/x-data-grid-pro";
 
-import { Stack } from "@mui/material";
+import { Box } from "@mui/material";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -70,34 +70,37 @@ const startOfDay = (date: Date): number =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
 /**
- * Makes the pickers match the Column select they sit beside.
+ * Makes the pickers match the outlined inputs they sit beside in the panel.
  *
  * @remarks
- * Two problems, both caused by the filter panel rather than by the pickers.
- * Hiding the operator select frees its share of the row and the value input
- * stretches into it, which left the pair spread across the whole panel — hence
- * the fixed width. And the panel flattens the outline on inputs it did not
- * render itself, so the notched border is asserted here instead of inherited;
- * without it the fields read as plain text on the panel background while the
- * selects beside them are clearly bordered controls.
+ * Applied through `slotProps.textField.sx`, not the `DatePicker` `sx` — the
+ * latter styles the picker root, so the outline rules never reached the field,
+ * which is why nothing appeared to apply. The accessible field DOM uses
+ * `MuiPickersOutlinedInput-*` classes, not `MuiOutlinedInput-*`. The filter
+ * panel flattens the outline on inputs it did not render itself, so the resting
+ * border is re-asserted here rather than inherited; without it the fields read
+ * as plain text on the panel background while the selects beside them are
+ * clearly bordered. The fixed width keeps the pair from stretching across the
+ * row once the operator select is hidden.
  */
-const pickerStyles = {
+const fieldStyles = {
   width: 168,
-  "& .MuiOutlinedInput-root": {
-    backgroundColor: "background.paper",
+  "& .MuiPickersOutlinedInput-root": {
+    backgroundColor: "var(--mui-palette-inputOutlinedEnabledFill)",
   },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "divider",
-    borderStyle: "solid",
+  "& .MuiPickersOutlinedInput-notchedOutline": {
+    borderColor: "var(--mui-palette-inputOutlinedEnabledBorder)",
     borderWidth: 1,
   },
-  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "text.primary",
-  },
-  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "primary.main",
-    borderWidth: 2,
-  },
+  "& .MuiPickersOutlinedInput-root:hover .MuiPickersOutlinedInput-notchedOutline":
+    {
+      borderColor: "text.primary",
+    },
+  "& .MuiPickersOutlinedInput-root.Mui-focused .MuiPickersOutlinedInput-notchedOutline":
+    {
+      borderColor: "primary.main",
+      borderWidth: 2,
+    },
 } as const;
 
 /**
@@ -126,7 +129,13 @@ const EventDateRangeInput = ({
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       {/* The marker lets the panel hide the operator select on this row only —
           "Between" is the only operator, so the dropdown is dead weight. */}
-      <Stack data-event-date-range direction="row" spacing={1}>
+      <Box
+        data-event-date-range
+        display="flex"
+        flexDirection="row"
+        gap={1}
+        overflow="visible"
+      >
         <DatePicker
           label="Start date"
           maxDate={fromIsoDate(end) ?? undefined}
@@ -138,10 +147,10 @@ const EventDateRangeInput = ({
             textField: {
               inputRef: focusElementRef,
               size: "small",
+              sx: fieldStyles,
               variant: "outlined",
             },
           }}
-          sx={pickerStyles}
           value={fromIsoDate(start)}
         />
         <DatePicker
@@ -152,12 +161,11 @@ const EventDateRangeInput = ({
           }}
           slotProps={{
             field: { clearable: true },
-            textField: { size: "small", variant: "outlined" },
+            textField: { size: "small", sx: fieldStyles, variant: "outlined" },
           }}
-          sx={pickerStyles}
           value={fromIsoDate(end)}
         />
-      </Stack>
+      </Box>
     </LocalizationProvider>
   );
 };

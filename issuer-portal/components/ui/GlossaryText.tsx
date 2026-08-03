@@ -10,6 +10,10 @@ import { termsDefinitions } from "@/lib/termsDefinitions";
 /**
  * Wraps every glossary term inside a piece of copy, leaving the rest as text.
  *
+ * ⭐ KEY SHARED UTILITY — see {@link ../ui/GLOSSARY.md | GLOSSARY.md} for how to
+ * use it, extend the vocabulary, when NOT to use it (interactive controls), and
+ * the reusable pattern for annotating matches in text.
+ *
  * @remarks
  * Most glossary terms appear inside a longer label — "Quorum requirement: 50%",
  * "Broker Search Date", "Shares Listed In Proxy Statement" — so marking them up
@@ -87,12 +91,28 @@ const shorthandAliases: readonly TermAlias[] = [
   { alias: "Vote Instruction Form", id: "votinginstructionform" },
 ];
 
+/**
+ * Like `Object.entries`, but keeps each key's literal type instead of widening
+ * it to `string`.
+ *
+ * @remarks
+ * TypeScript widens `Object.entries` keys for soundness — an object can carry
+ * extra keys at runtime. `termsDefinitions` is a closed `const`, so its keys
+ * really are `GlossaryTermId`; the single unavoidable assertion is isolated
+ * here rather than repeated at every call site.
+ */
+const typedEntries = <Key extends string, Value>(
+  object: Record<Key, Value>
+): [Key, Value][] =>
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Object.entries widens keys to string; the source object's keys are exactly Key.
+  Object.entries(object) as [Key, Value][];
+
 /** Longest alias first, so "Proxy Statement" wins over a bare "Proxy". */
-const termAliases: readonly TermAlias[] = Object.entries(termsDefinitions)
+const termAliases: readonly TermAlias[] = typedEntries(termsDefinitions)
   .flatMap(([id, entry]) =>
     aliasesFor(entry.term).map((alias): TermAlias => ({
       alias,
-      id: id as GlossaryTermId,
+      id,
     }))
   )
   .concat(shorthandAliases)
@@ -154,18 +174,15 @@ export const GlossaryText = ({
   const linked = new Set<GlossaryTermId>();
   let lastIndex = 0;
 
-  // Fresh lastIndex per render: the pattern is module-level and /g is stateful.
-  glossaryPattern.lastIndex = 0;
-
+  // `matchAll` clones the regex internally, so the module-level `/g` pattern's
+  // own `lastIndex` is never read or written here — no per-render reset needed.
   for (const match of children.matchAll(glossaryPattern)) {
-    const alias = match[1];
+    const [, alias, plural] = match;
     // The plural "s" is underlined with the term but is not part of its name.
-    const matched =
-      alias === undefined ? undefined : `${alias}${match[2] ?? ""}`;
-    const id =
-      alias === undefined ? undefined : idForAlias.get(alias.toLowerCase());
+    const matched = `${alias}${plural}`;
+    const id = idForAlias.get(alias.toLowerCase());
 
-    if (matched === undefined || id === undefined || linked.has(id)) {
+    if (id === undefined || linked.has(id)) {
       continue;
     }
 

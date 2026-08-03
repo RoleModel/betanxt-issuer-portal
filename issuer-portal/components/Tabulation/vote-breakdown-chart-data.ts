@@ -88,7 +88,7 @@ export const pieVoteOutcomes: readonly PieVoteOutcome[] = [
     ...voteChartColors.outcomes.abstain,
     key: "abstain",
     keys: ["abstain", "withhold"],
-    label: "Withhold / Abstain",
+    label: "Withhold/Abstain",
   },
 ];
 

@@ -12,7 +12,10 @@ import {
 } from "@mui/material";
 import PieChart2IconWithAccent from "@rolemodel/betanxt-design-system/components/icons/brand/PieChart2Icon";
 
-import type { VoteMatrixProposal, VoteMatrixRow } from "@/hooks/useTabulationInsights";
+import type {
+  VoteMatrixProposal,
+  VoteMatrixRow,
+} from "@/hooks/useTabulationInsights";
 
 import ConfiguredPieChart from "@/components/Reporting/ConfiguredPieChart";
 import { GlossaryTooltip } from "@/components/ui/GlossaryToolTip";
@@ -45,7 +48,9 @@ import {
  */
 const toProposalShortLabel = (proposalLabel: string): string => {
   const separatorIndex = proposalLabel.indexOf(":");
-  return separatorIndex === -1 ? proposalLabel : proposalLabel.slice(0, separatorIndex).trim();
+  return separatorIndex === -1
+    ? proposalLabel
+    : proposalLabel.slice(0, separatorIndex).trim();
 };
 
 export interface HolderOutcomeChartCardProps {
@@ -85,7 +90,9 @@ const HolderOutcomeChartCard = ({
   totalShares,
 }: HolderOutcomeChartCardProps) => {
   const { displayMode } = useTabulationDisplay();
-  const visibleOutcomes = pieVoteOutcomes.filter((outcome) => !hiddenOutcomeKeys.has(outcome.key));
+  const visibleOutcomes = pieVoteOutcomes.filter(
+    (outcome) => !hiddenOutcomeKeys.has(outcome.key)
+  );
   // Both rings walk every holder type whatever the legend says, so the donut
   // holds its shape however it is filtered; a deselected holder is greyed in
   // place rather than dropped. Only the centre metric narrows to the selection.
@@ -100,12 +107,13 @@ const HolderOutcomeChartCard = ({
               (rowSum, row) =>
                 rowSum +
                 visibleOutcomes.reduce(
-                  (outcomeTotal, outcome) => outcomeTotal + sumPieOutcome(row, outcome),
-                  0,
+                  (outcomeTotal, outcome) =>
+                    outcomeTotal + sumPieOutcome(row, outcome),
+                  0
                 ),
-              0,
+              0
             ),
-    0,
+    0
   );
   const allHolderTotals = holderTypes.map((holderType) =>
     rows
@@ -114,11 +122,12 @@ const HolderOutcomeChartCard = ({
         (sum, row) =>
           sum +
           pieVoteOutcomes.reduce(
-            (outcomeTotal, outcome) => outcomeTotal + sumPieOutcome(row, outcome),
-            0,
+            (outcomeTotal, outcome) =>
+              outcomeTotal + sumPieOutcome(row, outcome),
+            0
           ),
-        0,
-      ),
+        0
+      )
   );
   // Totals across every outcome, ignoring the legend. This separates "this
   // proposal genuinely has no votes" from "the user has toggled the outcomes
@@ -129,9 +138,9 @@ const HolderOutcomeChartCard = ({
       sum +
       pieVoteOutcomes.reduce(
         (outcomeTotal, outcome) => outcomeTotal + sumPieOutcome(row, outcome),
-        0,
+        0
       ),
-    0,
+    0
   );
   const nothingSelected = recordedTotalShares > 0 && visibleTotalShares === 0;
   const actualOutcomeValues = new Map<string, number>();
@@ -155,7 +164,10 @@ const HolderOutcomeChartCard = ({
   // unless that holder is deselected, where the grey takes the page foreground.
   const centerHolderType = [...holderTypes]
     .reverse()
-    .find((holderType) => (allHolderTotals[holderTypes.indexOf(holderType)] ?? 0) > 0);
+    .find(
+      (holderType) =>
+        (allHolderTotals[holderTypes.indexOf(holderType)] ?? 0) > 0
+    );
   const centerLabelColor =
     centerHolderType === undefined || hiddenHolderTypes.has(centerHolderType)
       ? "var(--mui-palette-text-primary)"
@@ -166,7 +178,10 @@ const HolderOutcomeChartCard = ({
     const holderTotal = allHolderTotals[holderIndex] ?? 0;
     const holderRows = rows.filter((row) => row.holderType === holderType);
     const outcomeValues = pieVoteOutcomes.flatMap((outcome) => {
-      const value = holderRows.reduce((sum, row) => sum + sumPieOutcome(row, outcome), 0);
+      const value = holderRows.reduce(
+        (sum, row) => sum + sumPieOutcome(row, outcome),
+        0
+      );
       return value > 0 ? [{ outcome, value }] : [];
     });
 
@@ -175,28 +190,40 @@ const HolderOutcomeChartCard = ({
     }
 
     const weightedTotal = outcomeValues.reduce(
-      (sum, item) => sum + Math.max(item.value / holderTotal, minimumOutcomeShare),
-      0,
+      (sum, item) =>
+        sum + Math.max(item.value / holderTotal, minimumOutcomeShare),
+      0
     );
 
     return outcomeValues.map(({ outcome, value }) => {
       const id = `${holderType}-${outcome.key}`;
-      const isDeselected = hiddenOutcomeKeys.has(outcome.key) || hiddenHolderTypes.has(holderType);
+      const isDeselected =
+        hiddenOutcomeKeys.has(outcome.key) || hiddenHolderTypes.has(holderType);
       actualOutcomeValues.set(id, value);
       return {
         color: isDeselected ? deselectedChartColor : outcome.color,
         id,
         label: `${holderType} · ${outcome.label}`,
-        value: (Math.max(value / holderTotal, minimumOutcomeShare) / weightedTotal) * holderTotal,
+        value:
+          (Math.max(value / holderTotal, minimumOutcomeShare) / weightedTotal) *
+          holderTotal,
       };
     });
   });
   const formatDonutValue = (id: string, value: number): string => {
     const actualValue = actualOutcomeValues.get(id) ?? value;
-    const metric = formatTabulationMetric(actualValue, totalShares, displayMode);
+    const metric = formatTabulationMetric(
+      actualValue,
+      totalShares,
+      displayMode
+    );
     return `${metric.display} (${metric.alternate})`;
   };
-  const centerMetric = formatTabulationMetric(visibleTotalShares, totalShares, displayMode);
+  const centerMetric = formatTabulationMetric(
+    visibleTotalShares,
+    totalShares,
+    displayMode
+  );
 
   return (
     <Card data-testid="holder-outcome-chart-card" sx={tabulationCardStyles}>
@@ -228,8 +255,11 @@ const HolderOutcomeChartCard = ({
         sx={tabulationCardHeaderStyles}
         title={
           <>
-            <GlossaryTooltip term="beneficialowner">Beneficial</GlossaryTooltip> vs.{" "}
-            <GlossaryTooltip term="registeredshareholder">Registered</GlossaryTooltip>{" "}
+            <GlossaryTooltip term="beneficialowner">Beneficial</GlossaryTooltip>{" "}
+            vs.{" "}
+            <GlossaryTooltip term="registeredshareholder">
+              Registered
+            </GlossaryTooltip>{" "}
           </>
         }
       />
@@ -274,7 +304,10 @@ const HolderOutcomeChartCard = ({
                     : `${formatNumber(visibleTotalShares)} visible shares voted`,
                   centerValue: centerMetric.display,
                   fill: centerLabelColor,
-                  label: displayMode === "numbers" ? "Shares voted" : "of voted shares",
+                  label:
+                    displayMode === "numbers"
+                      ? "Shares voted"
+                      : "of voted shares",
                   sliceData: [],
                   total: visibleTotalShares,
                 }}
@@ -289,7 +322,8 @@ const HolderOutcomeChartCard = ({
                     innerRadius: 0,
                     outerRadius: 100,
                     paddingAngle: 0,
-                    valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
+                    valueFormatter: (item) =>
+                      formatDonutValue(String(item.id), item.value),
                   },
                   {
                     cornerRadius: 2,
@@ -299,7 +333,8 @@ const HolderOutcomeChartCard = ({
                     innerRadius: 100,
                     outerRadius: 128,
                     paddingAngle: 0,
-                    valueFormatter: (item) => formatDonutValue(String(item.id), item.value),
+                    valueFormatter: (item) =>
+                      formatDonutValue(String(item.id), item.value),
                   },
                 ]}
               />
