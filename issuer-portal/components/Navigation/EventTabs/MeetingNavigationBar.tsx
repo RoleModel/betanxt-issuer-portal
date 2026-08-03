@@ -74,7 +74,9 @@ export const MeetingNavigationBar = ({
               const ticker = currentMeeting?.ticker ?? currentClientTicker;
               // Detect if we're on a past-meeting route from the current pathname
               const isPastMeetingRoute = pathname.includes("/past-meeting/");
-              const meetingType = isPastMeetingRoute ? "past-meeting" : "meeting";
+              const meetingType = isPastMeetingRoute
+                ? "past-meeting"
+                : "meeting";
               const tabHref =
                 currentMeeting && ticker != null
                   ? `/${ticker}/${meetingType}/${currentMeeting.id}${tab.route}`
@@ -110,7 +112,10 @@ export const MeetingNavigationBar = ({
               );
             })}
           </Tabs>
-          <Typography variant="overline" sx={{ color: "text.secondary", flexShrink: 0 }}>
+          <Typography
+            variant="overline"
+            sx={{ color: "text.secondary", flexShrink: 0 }}
+          >
             Display as:
           </Typography>
           <ToggleButtonGroup
@@ -120,13 +125,19 @@ export const MeetingNavigationBar = ({
             value={displayMode}
             onChange={(event, nextDisplayMode: string | null) => {
               void event;
-              if (nextDisplayMode === "numbers" || nextDisplayMode === "percentages") {
+              if (
+                nextDisplayMode === "numbers" ||
+                nextDisplayMode === "percentages"
+              ) {
                 setDisplayMode(nextDisplayMode);
               }
             }}
             sx={{ flexShrink: 0 }}
           >
-            <DisplayToggleButton value="percentages" aria-label="View as Percentages">
+            <DisplayToggleButton
+              value="percentages"
+              aria-label="View as Percentages"
+            >
               Percentage
             </DisplayToggleButton>
             <DisplayToggleButton value="numbers" aria-label="View as Numbers">
