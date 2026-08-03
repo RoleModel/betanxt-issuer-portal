@@ -90,21 +90,46 @@ const VoteDistributionChart = ({
     )
   );
 
+  const selectedAccountTypes = accountTypes.filter(
+    (accountType) => !hiddenAccountTypes.has(accountType.id)
+  );
+
   // The centre reads "Total Votes", so it counts only voted slices — summing
   // everything reported shares outstanding as votes.
-  const visibleVotedTotal = accountTypes.reduce(
+  const visibleVotedTotal = hiddenStatuses.has("voted")
+    ? 0
+    : selectedAccountTypes.reduce(
+        (sum, accountType) => sum + sliceValue(accountType.id, "voted"),
+        0
+      );
+  // Denominator narrows with the selection, so the percentage answers "of the
+  // accounts I am looking at" rather than silently staying a share of the whole.
+  const selectedRecordedTotal = selectedAccountTypes.reduce(
     (sum, accountType) =>
-      hiddenStatuses.has("voted") || hiddenAccountTypes.has(accountType.id)
-        ? sum
-        : sum + sliceValue(accountType.id, "voted"),
+      sum +
+      voteStatuses.reduce(
+        (statusSum, status) => statusSum + sliceValue(accountType.id, status.id),
+        0
+      ),
     0
   );
   const totalMetric = formatTabulationMetric(
     visibleVotedTotal,
-    recordedTotal,
+    selectedRecordedTotal,
     displayMode
   );
-  const nothingSelected = recordedTotal > 0 && visibleVotedTotal === 0;
+
+  // Two different zeroes, which were previously conflated: nothing is selected,
+  // versus a real selection that simply has no votes against it. Reporting the
+  // second as the first told the reader to use a legend they had just used.
+  const nothingSelected =
+    selectedAccountTypes.length === 0 ||
+    hiddenStatuses.size === voteStatuses.length;
+  const selectionHasNoVotes =
+    !nothingSelected &&
+    !hiddenStatuses.has("voted") &&
+    selectedRecordedTotal > 0 &&
+    visibleVotedTotal === 0;
 
   const accountRingData = accountTypes.flatMap((accountType, index) => {
     const value = accountRecordedTotals[index] ?? 0;
@@ -221,7 +246,13 @@ const VoteDistributionChart = ({
             centerLabel={{
               centerTooltip: nothingSelected
                 ? "Nothing selected - use the legend below"
-                : totalMetric.alternate,
+                : hiddenStatuses.has("voted")
+                  ? "Voted is hidden - use the legend below"
+                  : selectionHasNoVotes
+                    ? `No votes recorded for ${selectedAccountTypes
+                        .map((accountType) => accountType.label)
+                        .join(" and ")}`
+                    : totalMetric.alternate,
               centerValue: totalMetric.display,
               fill: "var(--mui-palette-primary-contrastText)",
               label: "Total Votes",
