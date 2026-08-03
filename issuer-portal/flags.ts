@@ -20,7 +20,7 @@ interface FlagEntities {
 const identify = dedupe(
   ({ headers }: { headers: ReadonlyHeaders }): FlagEntities => {
     const ticker = headers.get("x-client-ticker");
-    if (!ticker) {
+    if (ticker === null) {
       return {};
     }
     const normalized = ticker.toUpperCase();
@@ -38,15 +38,15 @@ const identify = dedupe(
  * functionality (currently WEN, FOC, PAYC, ELVN).
  */
 export const enableNoboFlag = flag<boolean, FlagEntities>({
-  key: "enable-nobo",
-  description: "Enable NOBO features",
-  defaultValue: false,
-  options: [
-    { value: false, label: "Off" },
-    { value: true, label: "On" },
-  ],
-  identify,
   adapter: vercelAdapter(),
+  defaultValue: false,
+  description: "Enable NOBO features",
+  identify,
+  key: "enable-nobo",
+  options: [
+    { label: "Off", value: false },
+    { label: "On", value: true },
+  ],
 });
 
 /**
@@ -60,20 +60,27 @@ export const enableNoboFlag = flag<boolean, FlagEntities>({
  * automated tabulation distribution.
  */
 export const configureDistributionFlag = flag({
-  key: "configure-distribution",
-  defaultValue: false,
   adapter: vercelAdapter(),
+  defaultValue: false,
   identify,
+  key: "configure-distribution",
+});
+
+export const eventStatusFlag = flag({
+  adapter: vercelAdapter(),
+  defaultValue: false,
+  identify,
+  key: "event-status",
 });
 
 export const enableTabulationTrackerColorsFlag = flag<boolean, FlagEntities>({
-  key: "enable-tabulation-tracker-colors",
-  description: "Enable updated client-brand colors in the Tabulation Tracker",
-  defaultValue: false,
-  options: [
-    { value: false, label: "Off" },
-    { value: true, label: "On" },
-  ],
-  identify,
   adapter: vercelAdapter(),
+  defaultValue: false,
+  description: "Enable updated client-brand colors in the Tabulation Tracker",
+  identify,
+  key: "enable-tabulation-tracker-colors",
+  options: [
+    { label: "Off", value: false },
+    { label: "On", value: true },
+  ],
 });
