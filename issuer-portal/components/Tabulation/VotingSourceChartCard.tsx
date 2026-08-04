@@ -15,13 +15,13 @@ import {
   tabulationCardStyles,
 } from "../../utils/tabulation-card-layout";
 import { formatTabulationMetric } from "../../utils/tabulation-display";
+import { deselectedChartColor } from "../../utils/vote-chart-colors";
 import { EmptyState } from "../EmptyState";
 import { HolderTotalsBarLabels } from "./HolderTotalsBarLabels";
 import { SourcePatternDefinitions } from "./SourcePatternDefinitions";
 import {
+  emptySourceBarShare,
   getSourcePatternId,
-  type HolderType,
-  holderTypes,
   sumRowOutcomes,
   type VoteSourceId,
   voteSources,
@@ -30,62 +30,16 @@ import {
 import { VotingSourceLegend } from "./VotingSourceLegend";
 
 export interface VotingSourceChartCardProps {
-  readonly hiddenHolderTypes: ReadonlySet<HolderType>;
   readonly hiddenSourceIds: ReadonlySet<VoteSourceId>;
   readonly loading: boolean;
-  readonly onHolderTypeToggle: (holderType: HolderType) => void;
   readonly onSourceToggle: (sourceId: VoteSourceId) => void;
   readonly rows: readonly VoteMatrixRow[];
   readonly totalShares: number;
 }
 
-/**
- * Resolves the foreground for each in-bar holder total.
- *
- * @param rows - Vote rows for the selected proposal.
- * @param visibleHolderTypes - Holder bands currently rendered by the chart.
- * @param hiddenSourceIds - Source series excluded by the legend.
- * @returns A holder-keyed map of the terminal visible source's contrast color.
- *
- * @remarks
- * The total label is right-aligned at the end of a stack. Its background is
- * therefore the final non-empty visible source segment, not necessarily the
- * final source in the fixed legend order. This map must be keyed by holder
- * type: zero-total bands are omitted from the label list and would otherwise
- * shift parallel array indexes.
- */
-const getInsideTotalLabelColors = (
-  rows: readonly VoteMatrixRow[],
-  visibleHolderTypes: readonly HolderType[],
-  hiddenSourceIds: ReadonlySet<VoteSourceId>
-): ReadonlyMap<HolderType, string> =>
-  new Map(
-    visibleHolderTypes.map((holderType) => {
-      const terminalSource = [...voteSources].reverse().find((source) => {
-        if (hiddenSourceIds.has(source.id)) {
-          return false;
-        }
-
-        return rows.some(
-          (row) =>
-            row.holderType === holderType &&
-            row.source === source.label &&
-            sumRowOutcomes(row) > 0
-        );
-      });
-
-      return [
-        holderType,
-        terminalSource?.contrastColor ?? "var(--mui-palette-text-primary)",
-      ] as const;
-    })
-  );
-
 const VotingSourceChartCard = ({
-  hiddenHolderTypes,
   hiddenSourceIds,
   loading,
-  onHolderTypeToggle,
   onSourceToggle,
   rows,
   totalShares,
@@ -93,83 +47,79 @@ const VotingSourceChartCard = ({
   const { displayMode } = useTabulationDisplay();
   const patternPrefix = `vote-source-${useId().replaceAll(":", "")}`;
 
-  // The y-axis bands and every series' `data` array are indexed the same way,
-  // so hiding a holder type means dropping it from both.
-  const visibleHolderTypes = holderTypes.filter(
-    (holderType) => !hiddenHolderTypes.has(holderType)
+  // Registered Holder voting only (see the card subheader below). The axis
+  // bands are the sources themselves, so - unlike the holder/source matrix
+  // this card used to render - there is no second grouping dimension left to
+  // stack: each band holds exactly one source's total.
+  const visibleSources = voteSources.filter(
+    (source) => !hiddenSourceIds.has(source.id)
+  );
+  const sourceTotals = new Map(
+    visibleSources.map((source) => [
+      source.id,
+      rows
+        .filter(
+          (row) =>
+            row.holderType === "Registered" && row.source === source.label
+        )
+        .reduce((sum, row) => sum + sumRowOutcomes(row), 0),
+    ])
   );
 
   // Hidden sources are skipped while the series are built rather than flagged:
   // `hidden` exists on MUI's internal DefaultizedBarSeriesType, not on the
   // BarSeriesType input, so setting it here would be silently ignored.
-  const sourceSeries = voteSources.flatMap((source) => {
-    if (hiddenSourceIds.has(source.id)) {
-      return [];
-    }
+  //
+  // Each source is its own series holding a value at only its own band index
+  // (and `null` everywhere else) so the bars can carry distinct pattern
+  // fills; `stack` keeps them from being laid out as separate axis groups.
+  const maxDisplayedValue = displayMode === "numbers" ? totalShares : 100;
 
-    const actualValues = visibleHolderTypes.map((holderType) =>
-      rows
-        .filter(
-          (row) => row.holderType === holderType && row.source === source.label
-        )
-        .reduce((sum, row) => sum + sumRowOutcomes(row), 0)
-    );
+  const sourceSeries = visibleSources.map((source, sourceIndex) => {
+    const actualValue = sourceTotals.get(source.id) ?? 0;
+    const isEmpty = actualValue === 0;
+    const displayedValue = isEmpty
+      ? maxDisplayedValue * emptySourceBarShare
+      : displayMode === "numbers"
+        ? actualValue
+        : (actualValue / totalShares) * 100;
 
-    return [
-      {
-        color: `url(#${getSourcePatternId(patternPrefix, source.id)})`,
-        data: actualValues.map((value) =>
-          displayMode === "numbers" ? value : (value / totalShares) * 100
-        ),
-        id: source.id,
-        label: source.label,
-        stack: "source",
-        valueFormatter: (
-          displayedValue: number | null,
-          context: { dataIndex: number }
-        ) => {
-          const actualValue =
-            displayMode === "numbers"
-              ? (displayedValue ?? 0)
-              : (actualValues[context.dataIndex] ?? 0);
-          const metric = formatTabulationMetric(
-            actualValue,
-            totalShares,
-            displayMode
-          );
-          return `${source.label}: ${metric.display} (${metric.alternate})`;
-        },
+    return {
+      color: isEmpty
+        ? deselectedChartColor
+        : `url(#${getSourcePatternId(patternPrefix, source.id)})`,
+      data: visibleSources.map((_, bandIndex) =>
+        bandIndex === sourceIndex ? displayedValue : null
+      ),
+      id: source.id,
+      label: source.label,
+      stack: "source",
+      valueFormatter: (displayedBandValue: number | null) => {
+        if (displayedBandValue === null) {
+          return null;
+        }
+        const metric = formatTabulationMetric(
+          actualValue,
+          totalShares,
+          displayMode
+        );
+        return `${source.label}: ${metric.display} (${metric.alternate})`;
       },
-    ];
+    };
   });
 
-  const visibleSourceLabels = voteSources.reduce<Set<VoteMatrixRow["source"]>>(
-    (labels, source) => {
-      if (!hiddenSourceIds.has(source.id)) {
-        labels.add(source.label);
-      }
-      return labels;
-    },
-    new Set()
+  const bands = visibleSources.map((source) => source.label);
+  const bandTotals = visibleSources.map(
+    (source) => sourceTotals.get(source.id) ?? 0
   );
-  const visibleHolderTotals = visibleHolderTypes.map((holderType) =>
-    rows
-      .filter(
-        (row) =>
-          row.holderType === holderType && visibleSourceLabels.has(row.source)
-      )
-      .reduce((sum, row) => sum + sumRowOutcomes(row), 0)
-  );
-  const insideTotalLabelColors = getInsideTotalLabelColors(
-    rows,
-    visibleHolderTypes,
-    hiddenSourceIds
+  const insideTotalLabelColors = new Map(
+    visibleSources.map((source) => [source.label, source.contrastColor])
   );
 
   return (
     <Card sx={tabulationCardStyles}>
       <CardHeader
-        subheader="Compare Registered vs. Beneficial by source"
+        subheader="Reflects Registered Holder voting only"
         sx={tabulationCardHeaderStyles}
         title="Voting Activity"
       />
@@ -215,23 +165,19 @@ const VotingSourceChartCard = ({
                         : `${value.toFixed(0)}%`,
                   },
                 ]}
-                yAxis={[
-                  { data: visibleHolderTypes, scaleType: "band", width: 100 },
-                ]}
+                yAxis={[{ data: bands, scaleType: "band", width: 100 }]}
               >
                 <SourcePatternDefinitions prefix={patternPrefix} />
                 <HolderTotalsBarLabels
+                  bandTotals={bandTotals}
+                  bands={bands}
                   displayMode={displayMode}
-                  holderTotals={visibleHolderTotals}
-                  holderTypes={visibleHolderTypes}
                   insideTextColors={insideTotalLabelColors}
                   totalShares={totalShares}
                 />
               </BarChart>
               <VotingSourceLegend
-                hiddenHolderTypes={hiddenHolderTypes}
                 hiddenSourceIds={hiddenSourceIds}
-                onHolderTypeToggle={onHolderTypeToggle}
                 onSourceToggle={onSourceToggle}
               />
             </Box>

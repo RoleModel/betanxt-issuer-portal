@@ -7,9 +7,6 @@ import { LegendToggle } from "@/components/ui/LegendToggle";
 import { SourcePatternDefinitions } from "./SourcePatternDefinitions";
 import {
   getSourcePatternId,
-  holderStyles,
-  type HolderType,
-  holderTypes,
   legendSwatchSize,
   type VoteSource,
   type VoteSourceId,
@@ -44,20 +41,13 @@ const SourceLegendSwatch = ({ source }: { readonly source: VoteSource }) => {
 };
 
 export interface VotingSourceLegendProps {
-  readonly hiddenHolderTypes: ReadonlySet<HolderType>;
   readonly hiddenSourceIds: ReadonlySet<VoteSourceId>;
-  readonly onHolderTypeToggle: (holderType: HolderType) => void;
   readonly onSourceToggle: (sourceId: VoteSourceId) => void;
 }
 
-/**
- * Legend for the voting-source chart. Holder types filter the axis bands,
- * sources filter the stacked series; both are toggled here.
- */
+/** Legend for the voting-source chart: one toggle per source, filtering the axis bands. */
 export const VotingSourceLegend = ({
-  hiddenHolderTypes,
   hiddenSourceIds,
-  onHolderTypeToggle,
   onSourceToggle,
 }: VotingSourceLegendProps) => (
   <Box
@@ -69,27 +59,6 @@ export const VotingSourceLegend = ({
       justifyContent: "center",
     }}
   >
-    {holderTypes.map((holderType) => (
-      <LegendToggle
-        hidden={hiddenHolderTypes.has(holderType)}
-        key={holderType}
-        label={holderType}
-        onToggle={() => {
-          onHolderTypeToggle(holderType);
-        }}
-        testId={`source-holder-legend-${holderType.toLowerCase()}`}
-      >
-        <Box
-          aria-hidden="true"
-          sx={{
-            backgroundColor: holderStyles[holderType].color,
-            borderRadius: "2px",
-            height: legendSwatchSize,
-            width: legendSwatchSize,
-          }}
-        />
-      </LegendToggle>
-    ))}
     {voteSources.map((source) => (
       <LegendToggle
         hidden={hiddenSourceIds.has(source.id)}

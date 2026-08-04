@@ -3191,6 +3191,11 @@ components:
           type: string
           nullable: true
           example: null
+        accountEmail:
+          type: string
+          nullable: true
+          description: Email on file for the holder, when known.
+          example: null
         controlNumber:
           type: string
           nullable: true
@@ -3210,7 +3215,7 @@ components:
         source:
           type: string
           nullable: true
-          enum: [WEB, PRINT, IVR]
+          enum: [WEB, PRINT, IVR, SOLICITOR]
         dateVoted:
           type: string
           nullable: true
@@ -4105,7 +4110,7 @@ components:
         source:
           type: string
           nullable: true
-          enum: [WEB, PRINT, IVR]
+          enum: [WEB, PRINT, IVR, SOLICITOR]
         dateVoted:
           type: string
           nullable: true
@@ -4133,7 +4138,7 @@ components:
         source:
           type: string
           nullable: true
-          enum: [WEB, PRINT, IVR]
+          enum: [WEB, PRINT, IVR, SOLICITOR]
         dateVoted:
           type: string
           nullable: true

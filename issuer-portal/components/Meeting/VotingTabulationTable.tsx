@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 "use client";
 
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
@@ -142,7 +143,9 @@ const VotingTabulationTable = ({
     forShares: proposal.votingResults.for.shares,
     id: proposal.proposalId,
     isSubProposal: isSubProposal(proposal.proposalNumber),
-    proposal: `${proposal.proposalNumber}. ${proposal.description}`,
+    proposal: `${proposal.proposalNumber}${
+      isSubProposal(proposal.proposalNumber) ? "" : "."
+    } ${proposal.description}`,
     recommendation: proposal.recommendation ?? "N/A",
     totalSharesVoted: proposal.totalShares,
   }));

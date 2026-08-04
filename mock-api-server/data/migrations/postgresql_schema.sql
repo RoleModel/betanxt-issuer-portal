@@ -41,6 +41,7 @@
 -- DROP TABLE IF EXISTS public.get_user_avatar_url_200_response;
 -- DROP TABLE IF EXISTS public.list_account_users_200_response;
 -- DROP TABLE IF EXISTS public.list_accounts_200_response;
+-- DROP TABLE IF EXISTS public.list_all_tasks_200_response;
 -- DROP TABLE IF EXISTS public.list_clients_200_response;
 -- DROP TABLE IF EXISTS public.list_meetings_200_response;
 -- DROP TABLE IF EXISTS public.list_user_accounts_200_response;
@@ -62,7 +63,7 @@
 -- DROP TABLE IF EXISTS public.tabulation_distribute_result;
 -- DROP TABLE IF EXISTS public.tabulation_distribution;
 -- DROP TABLE IF EXISTS public.tabulation_report;
--- DROP TABLE IF EXISTS public.tabulation_report_broker_voting_inner;
+-- DROP TABLE IF EXISTS public.tabulation_report_broker_voting_value_inner;
 -- DROP TABLE IF EXISTS public.tabulation_report_dtc_vote_status;
 -- DROP TABLE IF EXISTS public.tabulation_report_non_dtc_vote_status;
 -- DROP TABLE IF EXISTS public.tabulation_report_positions_voted;
@@ -99,6 +100,7 @@
 -- DROP TYPE IF EXISTS notification_priority;
 -- DROP TYPE IF EXISTS position_vote_status;
 -- DROP TYPE IF EXISTS position_source;
+-- DROP TYPE IF EXISTS position_sent_by;
 -- DROP TYPE IF EXISTS position_holder_category;
 -- DROP TYPE IF EXISTS proposal_final_result;
 -- DROP TYPE IF EXISTS update_position_request_vote_status;
@@ -116,18 +118,19 @@ CREATE TYPE create_digital_shareholder_meeting_request_registrant_type AS ENUM('
 CREATE TYPE create_notification_input_type AS ENUM('info', 'warning', 'error', 'success');
 CREATE TYPE create_notification_input_priority AS ENUM('low', 'medium', 'high', 'critical');
 CREATE TYPE create_position_request_vote_status AS ENUM('Voted', 'Unvoted');
-CREATE TYPE create_position_request_source AS ENUM('WEB', 'PRINT', 'IVR');
+CREATE TYPE create_position_request_source AS ENUM('WEB', 'PRINT', 'IVR', 'SOLICITOR');
 CREATE TYPE digital_shareholder_meeting_registrant_type AS ENUM('Shareholder', 'Guest', 'Proxy', 'Other');
 CREATE TYPE document_display_category AS ENUM('general', 'dsm', 'proxy-materials', 'meeting-materials', 'post-meeting', 'internal');
 CREATE TYPE document_history_event_type AS ENUM('CREATED', 'UPLOADED', 'VIEWED', 'DOWNLOADED', 'SIGNED', 'APPROVED', 'REJECTED', 'COMMENTED', 'UPDATED', 'DELETED');
 CREATE TYPE notification_type AS ENUM('info', 'warning', 'error', 'success');
 CREATE TYPE notification_priority AS ENUM('low', 'medium', 'high', 'critical');
 CREATE TYPE position_vote_status AS ENUM('Voted', 'Unvoted');
-CREATE TYPE position_source AS ENUM('WEB', 'PRINT', 'IVR');
+CREATE TYPE position_source AS ENUM('WEB', 'PRINT', 'IVR', 'SOLICITOR');
+CREATE TYPE position_sent_by AS ENUM('MAIL', 'EMAIL');
 CREATE TYPE position_holder_category AS ENUM('REGISTERED', 'PLAN', 'BENEFICIAL', 'NOBO');
 CREATE TYPE proposal_final_result AS ENUM('PASSED', 'FAILED', 'PENDING');
 CREATE TYPE update_position_request_vote_status AS ENUM('Voted', 'Unvoted');
-CREATE TYPE update_position_request_source AS ENUM('WEB', 'PRINT', 'IVR');
+CREATE TYPE update_position_request_source AS ENUM('WEB', 'PRINT', 'IVR', 'SOLICITOR');
 
 --
 -- TABLES
@@ -343,6 +346,7 @@ CREATE TABLE IF NOT EXISTS public.create_meeting_request (
     title VARCHAR(200) NOT NULL,
     cusip TEXT NOT NULL,
     ticker TEXT NOT NULL,
+    set_key TEXT DEFAULT NULL,
     record_date DATE NOT NULL,
     mailing_date DATE NOT NULL,
     meeting_date DATE NOT NULL,
@@ -364,6 +368,7 @@ CREATE TABLE IF NOT EXISTS public.create_meeting_request (
     mailing_status TEXT DEFAULT NULL
 );
 COMMENT ON TABLE create_meeting_request IS 'Original model name - CreateMeetingRequest.';
+COMMENT ON COLUMN create_meeting_request.set_key IS 'Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026).. Original param name - setKey.';
 COMMENT ON COLUMN create_meeting_request.record_date IS 'Original param name - recordDate.';
 COMMENT ON COLUMN create_meeting_request.mailing_date IS 'Original param name - mailingDate.';
 COMMENT ON COLUMN create_meeting_request.meeting_date IS 'Original param name - meetingDate.';
@@ -754,6 +759,15 @@ CREATE TABLE IF NOT EXISTS public.list_accounts_200_response (
 COMMENT ON TABLE list_accounts_200_response IS 'Original model name - listAccounts_200_response.';
 
 --
+-- Table 'list_all_tasks_200_response' generated from model 'listAllTasksUnderscore200Underscoreresponse'
+--
+CREATE TABLE IF NOT EXISTS public.list_all_tasks_200_response (
+    tasks JSON DEFAULT NULL,
+    pagination TEXT DEFAULT NULL
+);
+COMMENT ON TABLE list_all_tasks_200_response IS 'Original model name - listAllTasks_200_response.';
+
+--
 -- Table 'list_clients_200_response' generated from model 'listClientsUnderscore200Underscoreresponse'
 --
 CREATE TABLE IF NOT EXISTS public.list_clients_200_response (
@@ -854,6 +868,7 @@ CREATE TABLE IF NOT EXISTS public.meeting (
     title TEXT DEFAULT NULL,
     cusip TEXT DEFAULT NULL,
     ticker TEXT DEFAULT NULL,
+    set_key TEXT DEFAULT NULL,
     pre_filing_date DATE DEFAULT NULL,
     filing_date DATE DEFAULT NULL,
     broker_search_date DATE DEFAULT NULL,
@@ -888,6 +903,7 @@ CREATE TABLE IF NOT EXISTS public.meeting (
     client TEXT DEFAULT NULL
 );
 COMMENT ON TABLE meeting IS 'Original model name - Meeting.';
+COMMENT ON COLUMN meeting.set_key IS 'Broadridge set key identifying the mailing set for this event. Follows the ${TICKER}J${YEAR} convention, e.g. WENJ2026.. Original param name - setKey.';
 COMMENT ON COLUMN meeting.pre_filing_date IS 'Original param name - preFilingDate.';
 COMMENT ON COLUMN meeting.filing_date IS 'Original param name - filingDate.';
 COMMENT ON COLUMN meeting.broker_search_date IS 'Original param name - brokerSearchDate.';
@@ -1001,12 +1017,14 @@ CREATE TABLE IF NOT EXISTS public."position" (
     set_key TEXT DEFAULT NULL,
     "name" TEXT DEFAULT NULL,
     account_number TEXT DEFAULT NULL,
+    account_email TEXT DEFAULT NULL,
     control_number TEXT DEFAULT NULL,
     vote_status position_vote_status DEFAULT NULL,
     shares DECIMAL(20, 9) DEFAULT NULL,
     shares_voted DECIMAL(20, 9) DEFAULT NULL,
     "source" position_source DEFAULT NULL,
     date_voted TEXT DEFAULT NULL,
+    sent_by position_sent_by DEFAULT NULL,
     holder_category position_holder_category DEFAULT NULL,
     "state" VARCHAR(2) DEFAULT NULL,
     country VARCHAR(2) DEFAULT NULL,
@@ -1018,10 +1036,12 @@ COMMENT ON COLUMN "position".meeting_id IS 'Original param name - meetingId.';
 COMMENT ON COLUMN "position".account_type IS 'Original param name - accountType.';
 COMMENT ON COLUMN "position".set_key IS 'Original param name - setKey.';
 COMMENT ON COLUMN "position".account_number IS 'Original param name - accountNumber.';
+COMMENT ON COLUMN "position".account_email IS 'Email on file for the holder, when known.. Original param name - accountEmail.';
 COMMENT ON COLUMN "position".control_number IS 'Original param name - controlNumber.';
 COMMENT ON COLUMN "position".vote_status IS 'Original param name - voteStatus.';
 COMMENT ON COLUMN "position".shares_voted IS 'Original param name - sharesVoted.';
 COMMENT ON COLUMN "position".date_voted IS 'Original param name - dateVoted.';
+COMMENT ON COLUMN "position".sent_by IS 'Delivery method used to send voting materials to the holder. Derived from whether the account has an email on file (EMAIL) or not (MAIL).. Original param name - sentBy.';
 COMMENT ON COLUMN "position".holder_category IS 'Holder population classification. REGISTERED maps from legacy accountType \&quot;DTC/CDS\&quot;; BENEFICIAL from \&quot;Non-DTC\&quot;.. Original param name - holderCategory.';
 COMMENT ON COLUMN "position"."state" IS 'US state code of the holder&#39;s address; null when unknown.';
 COMMENT ON COLUMN "position".country IS 'ISO 3166-1 alpha-2 country code.';
@@ -1209,7 +1229,7 @@ COMMENT ON TABLE tabulation_report IS 'Original model name - TabulationReport.';
 COMMENT ON COLUMN tabulation_report."id" IS 'Primary key';
 COMMENT ON COLUMN tabulation_report.meeting_id IS 'Foreign key to meeting table. Original param name - meetingId.';
 COMMENT ON COLUMN tabulation_report.set_keys IS 'Unique set keys from position records. Original param name - setKeys.';
-COMMENT ON COLUMN tabulation_report.broker_voting IS 'Top 6 brokers by total shares. Original param name - brokerVoting.';
+COMMENT ON COLUMN tabulation_report.broker_voting IS 'Top brokers by total shares, keyed by proposal (e.g. proposal1, proposal2). Original param name - brokerVoting.';
 COMMENT ON COLUMN tabulation_report.share_range_performance IS 'Performance metrics across 18 share ranges. Original param name - shareRangePerformance.';
 COMMENT ON COLUMN tabulation_report.non_dtc_vote_status IS 'Original param name - nonDtcVoteStatus.';
 COMMENT ON COLUMN tabulation_report.dtc_vote_status IS 'Original param name - dtcVoteStatus.';
@@ -1220,18 +1240,18 @@ COMMENT ON COLUMN tabulation_report.created_at IS 'Original param name - created
 COMMENT ON COLUMN tabulation_report.updated_at IS 'Original param name - updatedAt.';
 
 --
--- Table 'tabulation_report_broker_voting_inner' generated from model 'TabulationReportUnderscorebrokerVotingUnderscoreinner'
+-- Table 'tabulation_report_broker_voting_value_inner' generated from model 'TabulationReportUnderscorebrokerVotingUnderscorevalueUnderscoreinner'
 --
-CREATE TABLE IF NOT EXISTS public.tabulation_report_broker_voting_inner (
+CREATE TABLE IF NOT EXISTS public.tabulation_report_broker_voting_value_inner (
     broker TEXT DEFAULT NULL,
     shares_for DECIMAL(20, 9) DEFAULT NULL,
     shares_against DECIMAL(20, 9) DEFAULT NULL,
     shares_abstain DECIMAL(20, 9) DEFAULT NULL
 );
-COMMENT ON TABLE tabulation_report_broker_voting_inner IS 'Original model name - TabulationReport_brokerVoting_inner.';
-COMMENT ON COLUMN tabulation_report_broker_voting_inner.shares_for IS 'Original param name - sharesFor.';
-COMMENT ON COLUMN tabulation_report_broker_voting_inner.shares_against IS 'Original param name - sharesAgainst.';
-COMMENT ON COLUMN tabulation_report_broker_voting_inner.shares_abstain IS 'Original param name - sharesAbstain.';
+COMMENT ON TABLE tabulation_report_broker_voting_value_inner IS 'Original model name - TabulationReport_brokerVoting_value_inner.';
+COMMENT ON COLUMN tabulation_report_broker_voting_value_inner.shares_for IS 'Original param name - sharesFor.';
+COMMENT ON COLUMN tabulation_report_broker_voting_value_inner.shares_against IS 'Original param name - sharesAgainst.';
+COMMENT ON COLUMN tabulation_report_broker_voting_value_inner.shares_abstain IS 'Original param name - sharesAbstain.';
 
 --
 -- Table 'tabulation_report_dtc_vote_status' generated from model 'TabulationReportUnderscoredtcVoteStatus'
@@ -1421,6 +1441,7 @@ COMMENT ON TABLE update_document_request IS 'Original model name - UpdateDocumen
 CREATE TABLE IF NOT EXISTS public.update_meeting_request (
     title VARCHAR(200) DEFAULT NULL,
     cusip TEXT DEFAULT NULL,
+    set_key TEXT DEFAULT NULL,
     broker_search_date DATE DEFAULT NULL,
     record_date DATE DEFAULT NULL,
     mailing_date DATE DEFAULT NULL,
@@ -1447,6 +1468,7 @@ CREATE TABLE IF NOT EXISTS public.update_meeting_request (
     tabulation_distribution TEXT DEFAULT NULL
 );
 COMMENT ON TABLE update_meeting_request IS 'Original model name - UpdateMeetingRequest.';
+COMMENT ON COLUMN update_meeting_request.set_key IS 'Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026).. Original param name - setKey.';
 COMMENT ON COLUMN update_meeting_request.broker_search_date IS 'Original param name - brokerSearchDate.';
 COMMENT ON COLUMN update_meeting_request.record_date IS 'Original param name - recordDate.';
 COMMENT ON COLUMN update_meeting_request.mailing_date IS 'Original param name - mailingDate.';

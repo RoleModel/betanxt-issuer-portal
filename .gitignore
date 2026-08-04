@@ -43,3 +43,4 @@ issuer-portal/playwright-upload-test.pdf
 
 # Dev-overlay source snapshot (regenerated on postinstall/predev/prebuild)
 issuer-portal/app/api/dev/source/source-manifest.generated.ts
+.env*

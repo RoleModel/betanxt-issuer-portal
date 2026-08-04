@@ -278,6 +278,9 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
     const phoneVotes = positions.filter(
       (position) => position.votingSource === "IVR"
     ).length;
+    const solicitorVotes = positions.filter(
+      (position) => position.votingSource === "SOLICITOR"
+    ).length;
 
     votingSummary = {
       totalSharesVoted: sharesVoted,
@@ -288,6 +291,7 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
       lastUpdated: new Date().toISOString(),
       votingMethods: {
         web: webVotes,
+        solicitor: solicitorVotes,
         paper: paperVotes,
         phone: phoneVotes,
       },

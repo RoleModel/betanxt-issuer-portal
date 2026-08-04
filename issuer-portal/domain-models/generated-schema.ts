@@ -793,6 +793,11 @@ export interface components {
       name?: string;
       /** @example null */
       accountNumber?: string | null;
+      /**
+       * @description Email on file for the holder, when known.
+       * @example null
+       */
+      accountEmail?: string | null;
       /** @example null */
       controlNumber?: string | null;
       /**
@@ -811,7 +816,7 @@ export interface components {
        */
       sharesVoted?: number;
       /** @enum {string|null} */
-      source?: "WEB" | "PRINT" | "IVR" | null;
+      source?: "WEB" | "PRINT" | "IVR" | "SOLICITOR" | null;
       dateVoted?: string | null;
       /**
        * @description Delivery method used to send voting materials to the holder. Derived from whether the account has an email on file (EMAIL) or not (MAIL).
@@ -1191,6 +1196,7 @@ export interface components {
       title: string;
       cusip: string;
       ticker: string;
+      /** @description Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026). */
       setKey?: string | null;
       /** Format: date */
       recordDate: string;
@@ -1229,6 +1235,7 @@ export interface components {
     UpdateMeetingRequest: {
       title?: string;
       cusip?: string;
+      /** @description Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026). */
       setKey?: string | null;
       /** Format: date */
       brokerSearchDate?: string | null;
@@ -1373,7 +1380,7 @@ export interface components {
        */
       sharesVoted?: number;
       /** @enum {string|null} */
-      source?: "WEB" | "PRINT" | "IVR" | null;
+      source?: "WEB" | "PRINT" | "IVR" | "SOLICITOR" | null;
       dateVoted?: string | null;
     };
     UpdatePositionRequest: {
@@ -1387,7 +1394,7 @@ export interface components {
       /** Format: double */
       sharesVoted?: number;
       /** @enum {string|null} */
-      source?: "WEB" | "PRINT" | "IVR" | null;
+      source?: "WEB" | "PRINT" | "IVR" | "SOLICITOR" | null;
       dateVoted?: string | null;
     };
     CreateProposalRequest: {

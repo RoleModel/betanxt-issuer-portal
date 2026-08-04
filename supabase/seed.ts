@@ -3382,7 +3382,7 @@ const main = async () => {
   // Generate positions with all fields matching CSV structure
   sqlStatements.push("-- Insert positions");
   const accountTypes = ["CEDE & CO / CTC & CO", "Registered Account"];
-  const sources = ["WEB", "PRINT", "IVR"];
+  const sources = ["WEB", "PRINT", "IVR", "SOLICITOR"];
   const positionIds: string[] = [];
   const positionToMeetingMap: Record<string, string> = {};
   const positionVoteMeta: Record<
@@ -3510,6 +3510,11 @@ const main = async () => {
               source: "IVR",
               shares: summary.ivrShares,
               shareholders: summary.ivrShareholders,
+            },
+            {
+              source: "SOLICITOR",
+              shares: summary.solicitorShares,
+              shareholders: summary.solicitorShareholders,
             },
             {
               source: "WEB",

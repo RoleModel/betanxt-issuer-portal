@@ -86,10 +86,8 @@ const VoteMatrixChartCard = ({
       }}
     >
       <VotingSourceChartCard
-        hiddenHolderTypes={hiddenHolderTypes}
         hiddenSourceIds={hiddenSourceIds}
         loading={loading}
-        onHolderTypeToggle={toggleHolderType}
         onSourceToggle={toggleSource}
         rows={rows}
         totalShares={totalShares}

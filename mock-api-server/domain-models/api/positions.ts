@@ -48,6 +48,7 @@ function transformPosition(dbPosition: PositionRow): Position {
     setKey: nullToUndefined(dbPosition.set_key),
     name: nullToUndefined(dbPosition.name),
     accountNumber: nullToUndefined(dbPosition.account_number),
+    accountEmail: dbPosition.account_email,
     controlNumber: nullToUndefined(dbPosition.control_number),
     voteStatus: nullToUndefined(dbPosition.vote_status),
     shares: nullToUndefined(dbPosition.shares),

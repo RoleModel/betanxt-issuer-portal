@@ -7,31 +7,31 @@ import {
   formatTabulationMetric,
   type TabulationDisplayMode,
 } from "../../utils/tabulation-display";
-import { barLabelInset, type HolderType } from "./vote-breakdown-chart-data";
+import { barLabelInset } from "./vote-breakdown-chart-data";
 
 export interface HolderTotalsBarLabelsProps {
   readonly displayMode: TabulationDisplayMode;
-  /** Parallel to `holderTypes` - both must describe the same visible bands. */
-  readonly holderTotals: readonly number[];
-  readonly holderTypes: readonly HolderType[];
-  /** Foregrounds for labels that fit inside each holder's terminal source bar. */
-  readonly insideTextColors: ReadonlyMap<HolderType, string>;
+  /** Parallel to `bands` - both must describe the same visible axis bands. */
+  readonly bandTotals: readonly number[];
+  readonly bands: readonly string[];
+  /** Foregrounds for labels that fit inside each band's bar. */
+  readonly insideTextColors: ReadonlyMap<string, string>;
   readonly totalShares: number;
 }
 
 /**
- * Total per holder-type band, drawn over the bars as a chart child so it can
- * read the axis scales.
+ * Total per axis band, drawn over the bars as a chart child so it can read
+ * the axis scales.
  *
- * Each label sits inside its bar's right edge using the terminal source
- * segment's paired contrast color. It flips to `text.primary` just outside
- * when the bar is too short to hold it, avoiding both the former outline and
- * an unreadable foreground on the card background.
+ * Each label sits inside its bar's right edge using the band's paired
+ * contrast color. It flips to `text.primary` just outside when the bar is
+ * too short to hold it, avoiding both the former outline and an unreadable
+ * foreground on the card background.
  */
 export const HolderTotalsBarLabels = ({
   displayMode,
-  holderTotals,
-  holderTypes: visibleHolderTypes,
+  bandTotals,
+  bands,
   insideTextColors,
   totalShares,
 }: HolderTotalsBarLabelsProps) => {
@@ -42,9 +42,9 @@ export const HolderTotalsBarLabels = ({
     () => new Map()
   );
 
-  const labels = visibleHolderTypes.flatMap((holderType, index) => {
-    const total = holderTotals[index] ?? 0;
-    const y = yScale(holderType);
+  const labels = bands.flatMap((band, index) => {
+    const total = bandTotals[index] ?? 0;
+    const y = yScale(band);
 
     if (total === 0 || y === undefined) {
       return [];
@@ -52,9 +52,9 @@ export const HolderTotalsBarLabels = ({
 
     return [
       {
+        band,
         displayedTotal:
           displayMode === "numbers" ? total : (total / totalShares) * 100,
-        holderType,
         text: formatTabulationMetric(total, totalShares, displayMode).display,
         y,
       },
@@ -65,7 +65,7 @@ export const HolderTotalsBarLabels = ({
   // the text and the (fixed) font, not on the scales, so resizing does not need
   // a fresh measurement - the fit calculation below reads the scales directly.
   const labelSignature = labels
-    .map((label) => `${label.holderType}:${label.text}`)
+    .map((label) => `${label.band}:${label.text}`)
     .join("|");
 
   // Measured rather than estimated from character count: an estimate misjudges
@@ -93,8 +93,8 @@ export const HolderTotalsBarLabels = ({
   }, [labelSignature]);
 
   return (
-    <g aria-label="Holder type totals">
-      {labels.map(({ displayedTotal, holderType, text, y }) => {
+    <g aria-label="Bar totals">
+      {labels.map(({ band, displayedTotal, text, y }) => {
         const barStart = xScale(0);
         const barEnd = xScale(displayedTotal);
 
@@ -105,9 +105,9 @@ export const HolderTotalsBarLabels = ({
           return null;
         }
 
-        const measuredWidth = labelWidths.get(holderType);
+        const measuredWidth = labelWidths.get(band);
         const insideTextColor =
-          insideTextColors.get(holderType) ?? "var(--mui-palette-text-primary)";
+          insideTextColors.get(band) ?? "var(--mui-palette-text-primary)";
         // Before the first measurement, assume it fits: that keeps the label in
         // its usual place for one frame instead of flicking it outside.
         const fitsInsideBar =
@@ -117,7 +117,7 @@ export const HolderTotalsBarLabels = ({
         return (
           <text
             data-inside-fill={insideTextColor}
-            data-testid={`vote-matrix-total-${holderType.toLowerCase()}`}
+            data-testid={`vote-matrix-total-${band.toLowerCase()}`}
             fill={
               fitsInsideBar
                 ? insideTextColor
@@ -125,9 +125,9 @@ export const HolderTotalsBarLabels = ({
             }
             fontSize="24"
             fontWeight="bold"
-            key={holderType}
+            key={band}
             ref={(node) => {
-              labelNodes.current.set(holderType, node);
+              labelNodes.current.set(band, node);
             }}
             textAnchor={fitsInsideBar ? "end" : "start"}
             x={fitsInsideBar ? barEnd - barLabelInset : barEnd + barLabelInset}

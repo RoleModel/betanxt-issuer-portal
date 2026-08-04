@@ -387,6 +387,7 @@ const DownloadReportsTable = ({
                       >
                         <IconButton
                           aria-label={`Download ${fullReportName(report)} as PDF`}
+                          color="primary"
                           title={`Download ${fullReportName(report)} as PDF`}
                           disabled={downloadingId !== null}
                           onClick={() => void handleDownload(report, "pdf")}
@@ -395,6 +396,7 @@ const DownloadReportsTable = ({
                         </IconButton>
                         {report.isBrokerBreakout !== true && (
                           <IconButton
+                            color="primary"
                             aria-label={`Download ${fullReportName(report)} as XLS`}
                             title={`Download ${fullReportName(report)} as XLS`}
                             disabled={downloadingId !== null}

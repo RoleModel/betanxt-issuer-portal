@@ -195,6 +195,20 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     }
   }
 
+  // Grant table/sequence access to the Supabase API roles. This local stack
+  // does not otherwise set default privileges for tables created by these
+  // migrations, so without this block every anon/authenticated/service_role
+  // request 42501s with "permission denied" against every core table.
+  coreSchema += `-- Grant API role access (RLS is currently disabled; see CLAUDE.md)
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+`;
+
   // Write the clean schema
   writeFileSync(migrationPath, coreSchema);
 }

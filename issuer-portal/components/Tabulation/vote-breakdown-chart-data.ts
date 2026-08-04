@@ -1,12 +1,11 @@
-import { voteChartColors } from "@/utils/vote-chart-colors";
-
 import type { VoteMatrixRow } from "@/hooks/useTabulationInsights";
+import { voteChartColors } from "@/utils/vote-chart-colors";
 
 export type VoteOutcomeKey = keyof Pick<
   VoteMatrixRow,
   "against" | "abstain" | "for" | "withhold"
 >;
-export type VoteSourceId = "ivr" | "print" | "web";
+export type VoteSourceId = "ivr" | "print" | "web" | "solicitor";
 export type HolderType = "Beneficial" | "Registered";
 
 export interface VoteOutcome {
@@ -114,6 +113,11 @@ export const voteSources: readonly VoteSource[] = [
     id: "ivr",
     label: "IVR",
   },
+  {
+    ...voteChartColors.sources.solicitor,
+    id: "solicitor",
+    label: "Solicitor",
+  },
 ];
 
 export const holderTypes = ["Registered", "Beneficial"] as const;
@@ -167,3 +171,13 @@ export const barLabelInset = 8;
 
 /** Plot height for the voting-source bar chart. */
 export const votingSourceChartHeight = 340;
+
+/**
+ * Minimum proportional bar width for a source with zero recorded shares.
+ *
+ * @remarks
+ * Matches the pie charts' "keep the shape, grey it" treatment via
+ * `deselectedChartColor`: a source that genuinely has no votes still gets a
+ * sliver of bar rather than vanishing from the axis band entirely.
+ */
+export const emptySourceBarShare = 0.03;

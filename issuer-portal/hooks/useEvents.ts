@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/consistent-return */
+/* eslint-disable consistent-return */
+/* eslint-disable compat/compat */
+/* eslint-disable no-plusplus */
+/* eslint-disable sonarjs/no-inconsistent-returns */
+/* eslint-disable unicorn/no-declarations-before-early-exit */
+/* eslint-disable func-style */
 "use client";
 
 import { useSession } from "next-auth/react";
@@ -137,19 +144,19 @@ export function useEvents(): UseEventsResult {
       return;
     }
 
-    const sessionTickers = session?.user?.clientTickers;
+    const sessionTickers = session?.user.clientTickers;
     if (sessionTickers && sessionTickers.length > 0) {
       return sessionTickers;
     }
 
-    const issuerTicker = session?.user?.client_ticker;
+    const issuerTicker = session?.user.client_ticker;
     if (issuerTicker) {
       return [issuerTicker];
     }
   }, [
     isUnrestrictedRole,
-    session?.user?.clientTickers,
-    session?.user?.client_ticker,
+    session?.user.clientTickers,
+    session?.user.client_ticker,
   ]);
 
   const eventsFetcher = async (): Promise<EventRow[]> => {

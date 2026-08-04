@@ -1,3 +1,7 @@
+/* eslint-disable sonarjs/max-union-size */
+/* eslint-disable unicorn/no-unreadable-new-expression */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+/* eslint-disable compat/compat */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -49,6 +53,7 @@ const voteMatrixSources = [
   { key: "WEB", label: "Web" },
   { key: "PRINT", label: "Print" },
   { key: "IVR", label: "IVR" },
+  { key: "SOLICITOR", label: "Solicitor" },
 ] as const;
 
 type VoteMatrixSource = (typeof voteMatrixSources)[number]["label"];
@@ -381,6 +386,8 @@ const buildVotingSummary = (parameters: {
     lastUpdated: new Date().toISOString(),
     votingMethods: {
       web: positions.filter((position) => position.source === "WEB").length,
+      solicitor: positions.filter((position) => position.source === "SOLICITOR")
+        .length,
       paper: positions.filter((position) => position.source === "PRINT").length,
       phone: positions.filter((position) => position.source === "IVR").length,
     },

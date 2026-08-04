@@ -6,6 +6,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
+    "setup": "bash scripts/setup.sh",
     "build": "pnpm --filter issuer-portal run build",
     "build:all": "turbo run build",
     "dev": "turbo run dev",
@@ -26,6 +27,7 @@
   "dependencies": {
     "@snaplet/copycat": "^6.0.0",
     "@supabase/supabase-js": "^2.111.0",
+    "@types/luxon": "^3.7.3",
     "@vercel/analytics": "^1.6.1",
     "luxon": "^3.7.2",
     "next": "^16.2.12",

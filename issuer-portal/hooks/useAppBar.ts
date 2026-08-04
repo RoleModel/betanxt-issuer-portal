@@ -2,7 +2,11 @@
 "use client";
 
 import type { User } from "next-auth";
-import type { ImgHTMLAttributes, MouseEvent as ReactMouseEvent, SyntheticEvent } from "react";
+import type {
+  ImgHTMLAttributes,
+  MouseEvent as ReactMouseEvent,
+  SyntheticEvent,
+} from "react";
 
 import { useColorScheme } from "@mui/material/styles";
 import { useSession } from "next-auth/react";
@@ -45,7 +49,7 @@ const useMeetingSafe = () => {
           status?: string;
         }[],
       },
-    [context],
+    [context]
   );
 };
 
@@ -56,7 +60,11 @@ const userTypeBrandTicker = new Map<string, string>([
 ]);
 
 // User types that see the multi-client (Events-first) navigation.
-const multiClientUserTypes: ReadonlySet<string> = new Set(["PARENT_CLIENT", "SOLICITOR", "CSM"]);
+const multiClientUserTypes: ReadonlySet<string> = new Set([
+  "PARENT_CLIENT",
+  "SOLICITOR",
+  "CSM",
+]);
 
 // Shared tab value so the string is defined once across the tab list and the
 // route-to-tab resolution.
@@ -81,7 +89,7 @@ const isMeetingApiRecord = (value: unknown): value is MeetingApiRecord =>
 // stays a thin wrapper (and keeps its try block simple).
 const fetchRouteMeetingStatus = async (
   meetingId: string,
-  meetingList: readonly { id?: string; status?: string }[],
+  meetingList: readonly { id?: string; status?: string }[]
 ): Promise<{ date: string | null; status: string | null }> => {
   const isInActiveList = meetingList.some((entry) => entry.id === meetingId);
   if (!isInActiveList && meetingList.length > 0) {
@@ -205,39 +213,53 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
   const { clients } = useClients();
   const { data: session, status: sessionStatus } = useSession();
   const { mode, setMode } = useColorScheme();
-  const { enabled: developmentOverlayEnabled, toggle: toggleDevelopmentOverlay } = useDevMode();
+  const {
+    enabled: developmentOverlayEnabled,
+    toggle: toggleDevelopmentOverlay,
+  } = useDevMode();
   const meetingContext = useMeetingSafe();
-  const meetings = useMemo(() => meetingContext.meetings, [meetingContext.meetings]);
+  const meetings = useMemo(
+    () => meetingContext.meetings,
+    [meetingContext.meetings]
+  );
 
   // Notification context (may not be available outside a NotificationProvider)
   const unreadCount = useNotificationsSafe()?.unreadCount ?? 0;
 
   // --- User type derivation ---
   const userType = session?.user.type;
-  const isMultiClientUser = userType !== undefined && multiClientUserTypes.has(userType);
+  const isMultiClientUser =
+    userType !== undefined && multiClientUserTypes.has(userType);
   const isCSM = userType === "CSM";
   // Only the internal Dev User sees the overlay toggle, regardless of env flag.
   const sessionUsername = session?.user.username;
   const isDevelopmentUser =
-    (sessionUsername !== undefined && developmentUserUsernames.has(sessionUsername)) ||
+    (sessionUsername !== undefined &&
+      developmentUserUsernames.has(sessionUsername)) ||
     session?.user.email === developmentUserEmail;
 
   // --- Notification state ---
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notificationAnchor, setNotificationAnchor] = useState<HTMLButtonElement | null>(null);
+  const [notificationAnchor, setNotificationAnchor] =
+    useState<HTMLButtonElement | null>(null);
 
-  const handleNotificationClick = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    setNotificationAnchor(event.currentTarget);
-    setNotificationsOpen((previous) => !previous);
-  }, []);
+  const handleNotificationClick = useCallback(
+    (event: ReactMouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      setNotificationAnchor(event.currentTarget);
+      setNotificationsOpen((previous) => !previous);
+    },
+    []
+  );
 
   const handleNotificationClose = useCallback(() => {
     setNotificationsOpen(false);
   }, []);
 
   // --- Meeting status ---
-  const [routeMeetingStatus, setRouteMeetingStatus] = useState<string | null>(null);
+  const [routeMeetingStatus, setRouteMeetingStatus] = useState<string | null>(
+    null
+  );
   const [routeMeetingDate, setRouteMeetingDate] = useState<string | null>(null);
 
   const currentMeetingId = useMemo(() => {
@@ -261,7 +283,10 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
     } else {
       const run = async (): Promise<void> => {
         try {
-          const result = await fetchRouteMeetingStatus(currentMeetingId, meetings);
+          const result = await fetchRouteMeetingStatus(
+            currentMeetingId,
+            meetings
+          );
           applyStatus(result.status, result.date);
         } catch {
           applyStatus(null, null);
@@ -300,12 +325,21 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
       return null;
     }
     const meeting = meetings.find((entry) => entry.id === currentMeetingId);
-    return meeting?.meetingDate ?? meetingContext.currentMeeting?.meetingDate ?? routeMeetingDate;
-  }, [currentMeetingId, meetings, meetingContext.currentMeeting?.meetingDate, routeMeetingDate]);
+    return (
+      meeting?.meetingDate ??
+      meetingContext.currentMeeting?.meetingDate ??
+      routeMeetingDate
+    );
+  }, [
+    currentMeetingId,
+    meetings,
+    meetingContext.currentMeeting?.meetingDate,
+    routeMeetingDate,
+  ]);
 
   const meetingDateLabel = useMemo(
     () => (meetingDateRaw === null ? null : formatMeetingDate(meetingDateRaw)),
-    [meetingDateRaw],
+    [meetingDateRaw]
   );
 
   // --- Navigation ---
@@ -319,7 +353,9 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
   // A "real client context" means the URL has a ticker that is NOT the brand's own ticker.
   // e.g. /ETWO/meeting/... → true; /DFIN/secure-file-transfer → false; /events → false
   const brandTicker =
-    isMultiClientUser && userType ? (userTypeBrandTicker.get(userType) ?? null) : null;
+    isMultiClientUser && userType
+      ? (userTypeBrandTicker.get(userType) ?? null)
+      : null;
   const isInClientContext = Boolean(urlTicker) && urlTicker !== brandTicker;
 
   // Resolve the meeting dashboard path for the active/viewed client.
@@ -331,7 +367,9 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
     }
 
     if (currentMeetingId) {
-      const routePrefix = pastMeetingRegex.test(pathname) ? "past-meeting" : "meeting";
+      const routePrefix = pastMeetingRegex.test(pathname)
+        ? "past-meeting"
+        : "meeting";
       return `/${urlTicker}/${routePrefix}/${currentMeetingId}/dashboard`;
     }
 
@@ -340,10 +378,16 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
       // A fresh copy is sorted in place; `toSorted` needs a newer TS lib target.
       // eslint-disable-next-line unicorn/no-array-sort
       .sort((first, second) => {
-        if (first.meetingStatus === "ACTIVE" && second.meetingStatus !== "ACTIVE") {
+        if (
+          first.meetingStatus === "ACTIVE" &&
+          second.meetingStatus !== "ACTIVE"
+        ) {
           return -1;
         }
-        if (first.meetingStatus !== "ACTIVE" && second.meetingStatus === "ACTIVE") {
+        if (
+          first.meetingStatus !== "ACTIVE" &&
+          second.meetingStatus === "ACTIVE"
+        ) {
           return 1;
         }
         return second.eventDate.localeCompare(first.eventDate);
@@ -352,34 +396,49 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
     if (clientEvent === undefined) {
       return null;
     }
-    const routePrefix = clientEvent.meetingStatus === "ACTIVE" ? "meeting" : "past-meeting";
+    const routePrefix =
+      clientEvent.meetingStatus === "ACTIVE" ? "meeting" : "past-meeting";
     return `/${urlTicker}/${routePrefix}/${clientEvent.meetingId}/dashboard`;
   }, [isInClientContext, urlTicker, currentMeetingId, pathname, events]);
 
   const dashboardPath = useMemo(() => {
     if (isMultiClientUser) {
-      return isInClientContext && clientMeetingPath !== null ? clientMeetingPath : "/events";
+      return isInClientContext && clientMeetingPath !== null
+        ? clientMeetingPath
+        : "/events";
     }
     const clientTicker = currentClient?.ticker;
     if (clientTicker !== undefined && clientTicker !== "") {
       const activeMeeting = meetings.find(
-        (meeting: { status?: string }) => meeting.status !== "COMPLETE",
+        (meeting: { status?: string }) => meeting.status !== "COMPLETE"
       );
       if (activeMeeting?.id !== undefined && activeMeeting.id !== "") {
         return `/${clientTicker}/meeting/${activeMeeting.id}/dashboard`;
       }
     }
     return "/";
-  }, [currentClient, meetings, isMultiClientUser, isInClientContext, clientMeetingPath]);
+  }, [
+    currentClient,
+    meetings,
+    isMultiClientUser,
+    isInClientContext,
+    clientMeetingPath,
+  ]);
 
   const tabs = useMemo(() => {
-    const navTicker = urlTicker ?? currentClient?.ticker ?? availableClients[0]?.ticker ?? "WEN";
+    const navTicker =
+      urlTicker ??
+      currentClient?.ticker ??
+      availableClients[0]?.ticker ??
+      "WEN";
     const tickerPrefix = `/${navTicker}`;
 
     const brandFileTransferTicker =
       userType === undefined ? undefined : userTypeBrandTicker.get(userType);
     const fileTransferTicker =
-      isMultiClientUser && !isInClientContext ? (brandFileTransferTicker ?? navTicker) : navTicker;
+      isMultiClientUser && !isInClientContext
+        ? (brandFileTransferTicker ?? navTicker)
+        : navTicker;
     const fileTransferHref = `/${fileTransferTicker}/secure-file-transfer`;
 
     const eventsTab = { href: "/events", label: "Events", value: "events" };
@@ -409,7 +468,13 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
     if (isMultiClientUser) {
       if (isInClientContext) {
         // CSMs should only see File Transfer inside a client context (not globally)
-        return [eventsTab, dashboardTab, pastMeetingsTab, reportingTab, fileTransferTab];
+        return [
+          eventsTab,
+          dashboardTab,
+          pastMeetingsTab,
+          reportingTab,
+          fileTransferTab,
+        ];
       }
       // CSMs: no File Transfer at the global level — they must navigate via a client context
       if (isCSM) {
@@ -488,7 +553,7 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
         router.push(selectedTab.href);
       }
     },
-    [tabs, router],
+    [tabs, router]
   );
 
   const handleWrapperClick = useCallback(
@@ -504,14 +569,14 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
         router.push(href);
       }
     },
-    [router],
+    [router]
   );
 
   // --- Logo resolution ---
   const getClientLogo = useCallback(
     (clientName?: string, ticker?: string) =>
       computeClientLogoSrc(clientName, ticker, "/images/logo.svg", "-full"),
-    [],
+    []
   );
 
   const storedClient = useMemo(() => {
@@ -544,7 +609,13 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
       return userType ? (userTypeBrandTicker.get(userType) ?? null) : null;
     }
     return urlTicker ?? currentClient?.ticker ?? storedClient?.ticker ?? null;
-  }, [urlTicker, currentClient?.ticker, storedClient?.ticker, isMultiClientUser, userType]);
+  }, [
+    urlTicker,
+    currentClient?.ticker,
+    storedClient?.ticker,
+    isMultiClientUser,
+    userType,
+  ]);
 
   const logoSource = useMemo(() => {
     if (parameters.logoSrc) {
@@ -581,7 +652,10 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
 
     // Single-client ISSUER users: try the ticker-based file (WEN, PAYC, WWD, ELVN have these).
     return logoTicker
-      ? getClientLogo(currentClient?.company_name ?? currentClient?.short_name, logoTicker)
+      ? getClientLogo(
+          currentClient?.company_name ?? currentClient?.short_name,
+          logoTicker
+        )
       : "/images/logo.svg";
   }, [
     parameters.logoSrc,
@@ -614,7 +688,7 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
               width: "auto",
             },
           },
-    [logoSource, logoTicker, urlClientCompanyName],
+    [logoSource, logoTicker, urlClientCompanyName]
   );
 
   // --- Avatar ---
@@ -656,7 +730,8 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
   const menuItems = useMemo(() => {
     // Matches where the overlay itself is mounted — the entry cannot appear
     // in a build that has no overlay behind it, and only the Dev User sees it.
-    const canToggleDevelopmentOverlay: boolean = isDevOverlayEnabled() && isDevelopmentUser;
+    const canToggleDevelopmentOverlay: boolean =
+      isDevOverlayEnabled() && isDevelopmentUser;
     const isOverlayIsOn: boolean = developmentOverlayEnabled;
     return [
       {
@@ -674,7 +749,9 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
       ...(canToggleDevelopmentOverlay
         ? [
             {
-              label: isOverlayIsOn ? "Turn Off Dev Overlay" : "Turn On Dev Overlay",
+              label: isOverlayIsOn
+                ? "Turn Off Dev Overlay"
+                : "Turn On Dev Overlay",
               onClick: toggleDevelopmentOverlay,
             },
           ]

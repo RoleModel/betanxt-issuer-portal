@@ -246,6 +246,7 @@ interface VoteChartPalette {
   web: VoteChartColorPalette;
   print: VoteChartColorPalette;
   ivr: VoteChartColorPalette;
+  solicitor: VoteChartColorPalette;
   for: VoteChartColorPalette;
   against: VoteChartColorPalette;
   abstain: VoteChartColorPalette;
@@ -278,7 +279,7 @@ declare module "@mui/material/styles" {
     voteChart: VoteChartPalette;
   }
   interface PaletteOptions {
-    keydate?: PaletteOptions["primary"];
+    keydate: PaletteOptions["primary"];
     tertiary?: PaletteOptions["primary"];
     appSwitcher?: {
       background?: string;
@@ -471,10 +472,11 @@ const createVoteChartPalette = (
     web: colorAt(2),
     print: colorAt(3),
     ivr: colorAt(4),
-    for: colorAt(5),
-    against: colorAt(6),
-    abstain: colorAt(7),
-    withhold: colorAt(8),
+    solicitor: colorAt(5),
+    for: colorAt(6),
+    against: colorAt(7),
+    abstain: colorAt(8),
+    withhold: colorAt(9),
   };
 };
 

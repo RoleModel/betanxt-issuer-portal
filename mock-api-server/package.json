@@ -54,6 +54,7 @@
     "react-dom": "^19.2.8",
     "react-email": "^6.9.1",
     "resend": "^6.18.1",
+    "supabase": "^2.111.0",
     "turbo-ignore": "^2.10.8",
     "znv": "^0.5.0",
     "zod": "^3.25.76"

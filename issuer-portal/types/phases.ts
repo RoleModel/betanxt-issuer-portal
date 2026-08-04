@@ -65,6 +65,7 @@ export interface VotingSummary {
   lastUpdated: string;
   votingMethods: {
     web: number;
+    solicitor: number;
     paper: number;
     phone: number;
   };

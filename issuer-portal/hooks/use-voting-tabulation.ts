@@ -368,6 +368,9 @@ const fetchVotingData = async (
   const webVotes = positions.filter((p) => p.votingSource === "WEB").length;
   const paperVotes = positions.filter((p) => p.votingSource === "PRINT").length;
   const phoneVotes = positions.filter((p) => p.votingSource === "IVR").length;
+  const solicitorVotes = positions.filter(
+    (p) => p.votingSource === "SOLICITOR"
+  ).length;
 
   // Registered-only voting methods (FR-001/FR-002 — Voting Activity chart)
   const registeredPositions = positions.filter(
@@ -438,6 +441,7 @@ const fetchVotingData = async (
     lastUpdated: new Date().toISOString(),
     votingMethods: {
       web: webVotes,
+      solicitor: solicitorVotes,
       paper: paperVotes,
       phone: phoneVotes,
     },

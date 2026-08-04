@@ -116,6 +116,10 @@ const AgendaTable = (_props: AgendaTableProps) => {
                           return [];
                         }
 
+                        const isSubProposalNumber = proposal.proposalNumber
+                          .toString()
+                          .includes(".");
+
                         return [
                           <TableRow
                             key={proposal.proposalNumber}
@@ -132,15 +136,12 @@ const AgendaTable = (_props: AgendaTableProps) => {
                                   alignItems="center"
                                   gap={0.5}
                                   sx={{
-                                    pl: proposal.proposalNumber
-                                      .toString()
-                                      .includes(".")
-                                      ? 3
-                                      : 0,
+                                    pl: isSubProposalNumber ? 3 : 0,
                                   }}
                                 >
                                   <Typography fontWeight={600}>
-                                    {proposal.proposalNumber}.
+                                    {proposal.proposalNumber}
+                                    {isSubProposalNumber ? "" : "."}
                                   </Typography>
                                   <Typography color="text.primary">
                                     {proposal.directorName ||

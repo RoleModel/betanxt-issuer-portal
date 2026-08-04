@@ -22,6 +22,7 @@ const sourceChannelHueOffsets = {
   ivr: 280,
   print: 190,
   web: 100,
+  solicitor: 30,
 } as const;
 
 /**
@@ -65,6 +66,7 @@ export const generateChartPalette = (
   string,
   string,
   string,
+  string,
 ] => [
   primaryColor,
   secondaryColor,
@@ -80,6 +82,11 @@ export const generateChartPalette = (
   ),
   createSourceChannelColor(
     sourceChannelHueOffsets.ivr,
+    primaryColor,
+    colorScheme
+  ),
+  createSourceChannelColor(
+    sourceChannelHueOffsets.solicitor,
     primaryColor,
     colorScheme
   ),
@@ -101,7 +108,7 @@ export const generateChartPalette = (
  * an empty gap in one scheme and as a solid slice in the other.
  */
 export const deselectedChartColor =
-  "color-mix(in srgb, var(--mui-palette-text-primary) 22%, var(--mui-palette-background-paper))";
+  "color-mix(in srgb, var(--mui-palette-text-primary) 5%, transparent 88%)";
 
 /**
  * Semantic CSS-variable references for vote-related charts.
@@ -134,6 +141,10 @@ export const voteChartColors = {
     ivr: {
       color: "var(--mui-palette-voteChart-ivr-main)",
       contrastColor: "var(--mui-palette-voteChart-ivr-contrastText)",
+    },
+    solicitor: {
+      color: "var(--mui-palette-voteChart-solicitor-main)",
+      contrastColor: "var(--mui-palette-voteChart-solicitor-contrastText)",
     },
   },
   outcomes: {

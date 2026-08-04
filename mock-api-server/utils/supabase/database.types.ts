@@ -499,11 +499,11 @@ export type Database = {
           pre_filing_date: string | null;
           quorum_requirement: number | null;
           record_date: string | null;
+          set_key: string | null;
           solicitor: string | null;
           solicitor_email: string | null;
           status: string | null;
-          tabulation_distribution: Json | null;
-          set_key: string | null;
+          tabulation_distribution: string | null;
           ticker: string | null;
           title: string | null;
           total_shares_outstanding: string | null;
@@ -538,11 +538,11 @@ export type Database = {
           pre_filing_date?: string | null;
           quorum_requirement?: number | null;
           record_date?: string | null;
+          set_key?: string | null;
           solicitor?: string | null;
           solicitor_email?: string | null;
           status?: string | null;
-          tabulation_distribution?: Json | null;
-          set_key?: string | null;
+          tabulation_distribution?: string | null;
           ticker?: string | null;
           title?: string | null;
           total_shares_outstanding?: string | null;
@@ -577,11 +577,11 @@ export type Database = {
           pre_filing_date?: string | null;
           quorum_requirement?: number | null;
           record_date?: string | null;
+          set_key?: string | null;
           solicitor?: string | null;
           solicitor_email?: string | null;
           status?: string | null;
-          tabulation_distribution?: Json | null;
-          set_key?: string | null;
+          tabulation_distribution?: string | null;
           ticker?: string | null;
           title?: string | null;
           total_shares_outstanding?: string | null;
@@ -689,6 +689,7 @@ export type Database = {
           id: string | null;
           meeting_id: string | null;
           name: string | null;
+          sent_by: Database["public"]["Enums"]["position_sent_by"] | null;
           set_key: string | null;
           shares: number | null;
           shares_voted: number | null;
@@ -712,6 +713,7 @@ export type Database = {
           id?: string | null;
           meeting_id?: string | null;
           name?: string | null;
+          sent_by?: Database["public"]["Enums"]["position_sent_by"] | null;
           set_key?: string | null;
           shares?: number | null;
           shares_voted?: number | null;
@@ -735,6 +737,7 @@ export type Database = {
           id?: string | null;
           meeting_id?: string | null;
           name?: string | null;
+          sent_by?: Database["public"]["Enums"]["position_sent_by"] | null;
           set_key?: string | null;
           shares?: number | null;
           shares_voted?: number | null;
@@ -1069,7 +1072,7 @@ export type Database = {
       create_notification_input_priority:
         "low" | "medium" | "high" | "critical";
       create_notification_input_type: "info" | "warning" | "error" | "success";
-      create_position_request_source: "WEB" | "PRINT" | "IVR";
+      create_position_request_source: "WEB" | "PRINT" | "IVR" | "SOLICITOR";
       create_position_request_vote_status: "Voted" | "Unvoted";
       digital_shareholder_meeting_registrant_type:
         "Shareholder" | "Guest" | "Proxy" | "Other";
@@ -1094,10 +1097,11 @@ export type Database = {
       notification_priority: "low" | "medium" | "high" | "critical";
       notification_type: "info" | "warning" | "error" | "success";
       position_holder_category: "REGISTERED" | "PLAN" | "BENEFICIAL" | "NOBO";
-      position_source: "WEB" | "PRINT" | "IVR";
+      position_sent_by: "MAIL" | "EMAIL";
+      position_source: "WEB" | "PRINT" | "IVR" | "SOLICITOR";
       position_vote_status: "Voted" | "Unvoted";
       proposal_final_result: "PASSED" | "FAILED" | "PENDING";
-      update_position_request_source: "WEB" | "PRINT" | "IVR";
+      update_position_request_source: "WEB" | "PRINT" | "IVR" | "SOLICITOR";
       update_position_request_vote_status: "Voted" | "Unvoted";
     };
     CompositeTypes: {
@@ -1248,7 +1252,7 @@ export const Constants = {
       ],
       create_notification_input_priority: ["low", "medium", "high", "critical"],
       create_notification_input_type: ["info", "warning", "error", "success"],
-      create_position_request_source: ["WEB", "PRINT", "IVR"],
+      create_position_request_source: ["WEB", "PRINT", "IVR", "SOLICITOR"],
       create_position_request_vote_status: ["Voted", "Unvoted"],
       digital_shareholder_meeting_registrant_type: [
         "Shareholder",
@@ -1279,10 +1283,11 @@ export const Constants = {
       notification_priority: ["low", "medium", "high", "critical"],
       notification_type: ["info", "warning", "error", "success"],
       position_holder_category: ["REGISTERED", "PLAN", "BENEFICIAL", "NOBO"],
-      position_source: ["WEB", "PRINT", "IVR"],
+      position_sent_by: ["MAIL", "EMAIL"],
+      position_source: ["WEB", "PRINT", "IVR", "SOLICITOR"],
       position_vote_status: ["Voted", "Unvoted"],
       proposal_final_result: ["PASSED", "FAILED", "PENDING"],
-      update_position_request_source: ["WEB", "PRINT", "IVR"],
+      update_position_request_source: ["WEB", "PRINT", "IVR", "SOLICITOR"],
       update_position_request_vote_status: ["Voted", "Unvoted"],
     },
   },
