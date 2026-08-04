@@ -12,11 +12,11 @@ interface LegendItem {
 }
 
 interface CustomLegendProps {
-  items: LegendItem[];
-  direction?: "horizontal" | "vertical";
-  markerSize?: number;
-  gap?: number;
-  textVariant?: "body1" | "body3" | "caption";
+  readonly items: LegendItem[];
+  readonly direction?: "horizontal" | "vertical";
+  readonly markerSize?: number;
+  readonly gap?: number;
+  readonly textVariant?: "body1" | "body3" | "caption";
 }
 
 /**

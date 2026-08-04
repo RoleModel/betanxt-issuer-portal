@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 /**
  * Idempotent setup script to ensure the 'documents' bucket exists.
  * Usage: npx tsx scripts/ensure-documents-bucket.ts
@@ -16,26 +15,24 @@ async function main() {
   });
 
   // List buckets
-  const { data: buckets, error: listErr } = await admin.storage.listBuckets();
-  if (listErr) {
-    console.error("Failed to list buckets:", listErr.message);
+  const { data: buckets, error: listError } = await admin.storage.listBuckets();
+  if (listError) {
+    console.error("Failed to list buckets:", listError.message);
     process.exit(1);
   }
 
-  const exists = (buckets || []).some((b) => b.name === "documents");
-  if (exists) {
+  const isExists = (buckets || []).some((b) => b.name === "documents");
+  if (isExists) {
     console.warn("[ensure-documents-bucket] documents bucket already exists.");
     return;
   }
 
-  const { data: created, error: createErr } = await admin.storage.createBucket(
-    "documents",
-    {
+  const { data: created, error: createError } =
+    await admin.storage.createBucket("documents", {
       public: true,
-    }
-  );
-  if (createErr) {
-    console.error("Failed to create documents bucket:", createErr.message);
+    });
+  if (createError) {
+    console.error("Failed to create documents bucket:", createError.message);
     process.exit(1);
   }
 
@@ -45,7 +42,7 @@ async function main() {
   );
 }
 
-main().catch((e) => {
-  console.error("Unexpected error:", e);
+main().catch((error) => {
+  console.error("Unexpected error:", error);
   process.exit(1);
 });

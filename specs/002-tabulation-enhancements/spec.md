@@ -41,7 +41,7 @@ An issuer or CSM user reviewing a shareholder meeting opens the Tabulation view 
 
 ### Acceptance Scenarios
 
-1. **Given** a meeting with voting activity, **When** a user views the Voting Activity chart, **Then** the chart labeling explicitly states the data reflects Registered Holder voting only.
+1. **Given** a meeting with voting activity, **When** a user views the Voting Activity chart, **Then** the chart labeling explicitly states the data reflects Registered Holder votes.
 2. **Given** a meeting with multiple proposals, **When** a user opens the Shares Voted chart, **Then** Proposal 1 is shown by default and a proposal selector lists all proposals for the meeting.
 3. **Given** the Shares Voted chart is displaying Proposal 1, **When** the user selects Proposal 2 from the selector, **Then** the chart updates to show FOR/AGAINST/ABSTAIN data for Proposal 2 with clear proposal-specific labeling.
 4. **Given** the Tabulation view, **When** a user reviews the page, **Then** no "Total Votes" section is present.
@@ -68,7 +68,7 @@ An issuer or CSM user reviewing a shareholder meeting opens the Tabulation view 
 
 #### Tabulation — Voting Activity Chart
 
-- **FR-001**: The Voting Activity chart MUST display labeling that explicitly indicates the data reflects Registered Holder voting only.
+- **FR-001**: The Voting Activity chart MUST display labeling that explicitly indicates the data reflects Registered Holder votes.
 - **FR-002**: The Voting Activity chart MUST NOT imply full-population (Beneficial Web vs. Print) coverage anywhere in its title, legend, or tooltips.
 
 #### Tabulation — Shares Voted Chart

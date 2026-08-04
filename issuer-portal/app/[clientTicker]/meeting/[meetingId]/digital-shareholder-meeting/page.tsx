@@ -1,7 +1,6 @@
 "use client";
 
-import { Refresh } from "@mui/icons-material";
-import { FileUploadOutlined } from "@mui/icons-material";
+import { FileUploadOutlined, Refresh } from "@mui/icons-material";
 import {
   Alert,
   Button,
@@ -10,7 +9,12 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import React, { Suspense, useCallback, useState } from "react";
+import React, {
+  Suspense,
+  useCallback,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import * as XLSX from "xlsx";
 
 import EmptyState from "@/components/EmptyState";
@@ -36,7 +40,7 @@ interface ParsedParticipant {
 
 // Function to parse CSV or Excel files
 const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     // Validate file
     if (!file) {
       reject(new Error("No file provided"));
@@ -231,9 +235,82 @@ const parseFile = async (file: File): Promise<ParsedParticipant[]> => {
   });
 };
 
-export default function DigitalShareholderMeetingPage() {
+// Stable no-op subscribe for useSyncExternalStore-based mount detection.
+const emptySubscribe = (): (() => void) => () => {};
+
+interface DSMUploadDialogProps {
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onUpload: (
+    files: File[],
+    associations?: Record<string, string>
+  ) => Promise<unknown>;
+  readonly meetingId: string;
+}
+
+const DSMUploadDialog = ({
+  open,
+  onClose,
+  onUpload,
+  meetingId,
+}: DSMUploadDialogProps): React.ReactElement => (
+  <FileUploadDialog
+    open={open}
+    onClose={onClose}
+    onUpload={onUpload}
+    meetingId={meetingId}
+    documentType="digital-shareholder-meeting"
+  />
+);
+
+interface DSMPreviewDialogProps {
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onConfirm: () => void;
+  readonly data: ParsedParticipant[] | null;
+}
+
+const DSMPreviewDialog = ({
+  open,
+  onClose,
+  onConfirm,
+  data,
+}: DSMPreviewDialogProps): React.ReactElement => (
+  <PreviewDialog
+    open={open}
+    onClose={onClose}
+    onConfirm={onConfirm}
+    data={data}
+    title="Confirm Upload"
+    columns={[
+      {
+        key: "firstName",
+        label: "Name",
+        render: (_, row) =>
+          createTextRenderer()(`${row.firstName} ${row.lastName}`),
+      },
+      {
+        key: "emailAddress",
+        label: "Email",
+        render: createTextRenderer(),
+      },
+      {
+        key: "title",
+        label: "Title",
+        render: createTextRenderer(),
+      },
+      {
+        key: "department",
+        label: "Department",
+        render: createTextRenderer(),
+      },
+    ]}
+  />
+);
+
+const DigitalShareholderMeetingPage = () => {
   const meetingContext = useMeeting();
-  const currentMeeting = meetingContext.currentMeeting;
+  const { currentMeeting } = meetingContext;
 
   // Only call the hook when we have a meeting ID
   const digitalMeetingData = useDigitalShareholderMeeting(
@@ -244,10 +321,10 @@ export default function DigitalShareholderMeetingPage() {
     isLoading: boolean;
     uploadAttendees: (attendees: unknown[]) => Promise<unknown>;
   };
-  const attendees = digitalMeetingData.attendees;
-  const error = digitalMeetingData.error;
-  const isLoading = digitalMeetingData.isLoading;
-  const uploadAttendees = digitalMeetingData.uploadAttendees;
+  const { attendees } = digitalMeetingData;
+  const { error } = digitalMeetingData;
+  const { isLoading } = digitalMeetingData;
+  const { uploadAttendees } = digitalMeetingData;
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -255,12 +332,14 @@ export default function DigitalShareholderMeetingPage() {
     null
   );
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  // Track when component has mounted
-  React.useEffect(() => {
-    setHasMounted(true);
-  }, []);
+  // Render-safe mount detection: server and first client render share `false`,
+  // then the client snapshot flips to `true` in the same commit as hydration,
+  // avoiding a post-paint flash.
+  const hasMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
   const handleUploadClick = () => {
     setUploadDialogOpen(true);
@@ -358,7 +437,9 @@ export default function DigitalShareholderMeetingPage() {
             <Button
               variant="contained"
               startIcon={<Refresh />}
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                window.location.reload();
+              }}
             >
               Refresh Page
             </Button>
@@ -412,7 +493,7 @@ export default function DigitalShareholderMeetingPage() {
         </Container>
 
         {/* File Upload Dialog - Available even when no data */}
-        <FileUploadDialog
+        <DSMUploadDialog
           open={uploadDialogOpen}
           onClose={() => {
             setUploadDialogOpen(false);
@@ -421,39 +502,14 @@ export default function DigitalShareholderMeetingPage() {
           }}
           onUpload={handleFileUpload}
           meetingId={currentMeeting?.id ?? ""}
-          documentType="digital-shareholder-meeting"
         />
 
         {/* Preview Dialog - Available even when no data */}
-        <PreviewDialog
+        <DSMPreviewDialog
           open={previewDialogOpen}
           onClose={handleCancelPreview}
           onConfirm={handleConfirmUpload}
           data={previewData}
-          title="Confirm Upload"
-          columns={[
-            {
-              key: "firstName",
-              label: "Name",
-              render: (_, row) =>
-                createTextRenderer()(`${row.firstName} ${row.lastName}`),
-            },
-            {
-              key: "emailAddress",
-              label: "Email",
-              render: createTextRenderer(),
-            },
-            {
-              key: "title",
-              label: "Title",
-              render: createTextRenderer(),
-            },
-            {
-              key: "department",
-              label: "Department",
-              render: createTextRenderer(),
-            },
-          ]}
         />
       </>
     );
@@ -471,7 +527,7 @@ export default function DigitalShareholderMeetingPage() {
       </Suspense>
 
       {/* Upload Dialog */}
-      <FileUploadDialog
+      <DSMUploadDialog
         open={uploadDialogOpen}
         onClose={() => {
           setUploadDialogOpen(false);
@@ -480,68 +536,51 @@ export default function DigitalShareholderMeetingPage() {
         }}
         onUpload={handleFileUpload}
         meetingId={currentMeeting?.id ?? ""}
-        documentType="digital-shareholder-meeting"
       />
 
       {/* Error and Success Alerts */}
-      {uploadError && (
+      {uploadError ? (
         <Alert
           severity="error"
           sx={{ mt: 2 }}
-          onClose={() => setUploadError(null)}
+          onClose={() => {
+            setUploadError(null);
+          }}
         >
           {uploadError}
         </Alert>
-      )}
+      ) : null}
 
-      {uploadSuccess && (
+      {uploadSuccess ? (
         <Snackbar
           open={uploadSuccess}
           autoHideDuration={6000}
-          onClose={() => setUploadSuccess(false)}
+          onClose={() => {
+            setUploadSuccess(false);
+          }}
           anchorOrigin={{ vertical: "top", horizontal: "right" }}
         >
           <Alert
             severity="success"
             sx={{ mt: 2 }}
-            onClose={() => setUploadSuccess(false)}
+            onClose={() => {
+              setUploadSuccess(false);
+            }}
           >
             Participants uploaded successfully!
           </Alert>
         </Snackbar>
-      )}
+      ) : null}
 
       {/* Preview Dialog */}
-      <PreviewDialog
+      <DSMPreviewDialog
         open={previewDialogOpen}
         onClose={handleCancelPreview}
         onConfirm={handleConfirmUpload}
         data={previewData}
-        title="Confirm Upload"
-        columns={[
-          {
-            key: "firstName",
-            label: "Name",
-            render: (_, row) =>
-              createTextRenderer()(`${row.firstName} ${row.lastName}`),
-          },
-          {
-            key: "emailAddress",
-            label: "Email",
-            render: createTextRenderer(),
-          },
-          {
-            key: "title",
-            label: "Title",
-            render: createTextRenderer(),
-          },
-          {
-            key: "department",
-            label: "Department",
-            render: createTextRenderer(),
-          },
-        ]}
       />
     </Container>
   );
-}
+};
+
+export default DigitalShareholderMeetingPage;

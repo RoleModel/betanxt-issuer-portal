@@ -18,10 +18,12 @@ export async function authenticate(
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
-        case "CredentialsSignin":
+        case "CredentialsSignin": {
           return { error: "Invalid credentials" };
-        default:
+        }
+        default: {
           return { error: "Something went wrong" };
+        }
       }
     }
     throw error;

@@ -18,6 +18,7 @@ import FeatureTile from "@/components/FeatureTile";
 import AdditionalMailingSummaryCard from "@/components/Meeting/AdditionalMailingSummaryCard";
 import MailingDataCard from "@/components/Meeting/MailingDataCard";
 import MailingTimelineCard from "@/components/Meeting/MailingTimelineCard";
+import { toMailingStatus } from "@/components/Meeting/mailingTimeline";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useMailing } from "@/hooks/useMailing";
 
@@ -28,7 +29,7 @@ const formatNumber = (num: number | null | undefined): string => {
   return num.toLocaleString("en-US");
 };
 
-export default function MailingPage() {
+const MailingPage = () => {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
   const meetingId = currentMeeting?.id;
   const { getMailingByMeetingId, loading: mailingLoading } = useMailing();
@@ -117,20 +118,17 @@ export default function MailingPage() {
               </CardContent>
             </Card>
             <MailingDataCard meetingId={meetingId} />
-            <AdditionalMailingSummaryCard ticker={currentMeeting?.ticker} />
+            <AdditionalMailingSummaryCard meetingId={meetingId} />
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, md: 12, lg: 3 }}>
           <Stack direction="column" spacing={2}>
             <MailingTimelineCard
-              currentStatus={
-                currentMeeting?.mailingStatus as
-                  | React.ComponentProps<
-                      typeof MailingTimelineCard
-                    >["currentStatus"]
-                  | undefined
-              }
-              statusDate={currentMeeting?.updatedAt}
+              currentStatus={toMailingStatus(currentMeeting?.mailingStatus)}
+              preFilingDate={currentMeeting?.preFilingDate}
+              brokerSearchDate={currentMeeting?.brokerSearchDate}
+              recordDate={currentMeeting?.recordDate}
+              mailingDate={currentMeeting?.mailingDate}
               meetingId={meetingId}
             />
             <Card>
@@ -157,7 +155,7 @@ export default function MailingPage() {
                       <FeatureTile
                         titleVariant="h4"
                         bodyVariant="body3"
-                        title={"12"}
+                        title="12"
                         subtitle="Bounceback"
                         gutterBottom={false}
                         height="90px"
@@ -179,7 +177,7 @@ export default function MailingPage() {
                       <FeatureTile
                         titleVariant="h4"
                         bodyVariant="body3"
-                        title={"10"}
+                        title="10"
                         subtitle="Adhoc"
                         gutterBottom={false}
                         height="90px"
@@ -203,4 +201,6 @@ export default function MailingPage() {
       </Grid>
     </Container>
   );
-}
+};
+
+export default MailingPage;

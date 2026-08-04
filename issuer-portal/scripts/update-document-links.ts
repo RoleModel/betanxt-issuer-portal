@@ -38,31 +38,31 @@ async function updateDocumentLinks() {
     const allFiles: { name: string; metadata: unknown }[] = [];
 
     // Get all meeting directories
-    const meetingDirs =
+    const meetingDirectories =
       listData?.filter((item) => !item.name.includes(".")) || [];
 
-    for (const meetingDir of meetingDirs) {
+    for (const meetingDir of meetingDirectories) {
       const { data: typeData } = await supabase.storage
         .from("documents")
         .list(meetingDir.name, { limit: 1000 });
 
-      const typeDirs =
+      const typeDirectories =
         typeData?.filter((item) => !item.name.includes(".")) || [];
 
-      for (const typeDir of typeDirs) {
+      for (const typeDir of typeDirectories) {
         const { data: files } = await supabase.storage
           .from("documents")
           .list(`${meetingDir.name}/${typeDir.name}`, { limit: 1000 });
 
         if (files) {
-          files.forEach((file) => {
+          for (const file of files) {
             if (file.name.includes(".")) {
               allFiles.push({
                 name: `${meetingDir.name}/${typeDir.name}/${file.name}`,
                 metadata: file.metadata,
               });
             }
-          });
+          }
         }
       }
     }
@@ -81,10 +81,12 @@ async function updateDocumentLinks() {
   // Process each file and update corresponding document records
   for (const file of storageFiles || []) {
     const pathParts = file.name.split("/");
-    if (pathParts.length < 3) continue;
+    if (pathParts.length < 3) {
+      continue;
+    }
 
     const meetingId = pathParts[0];
-    const docTypeFolder = pathParts[1];
+    const documentTypeFolder = pathParts[1];
     const filename = pathParts[2];
 
     // Get public URL for this file
@@ -112,9 +114,9 @@ async function updateDocumentLinks() {
       "guest-list": "Guest List",
     };
 
-    const docType = typeMapping[docTypeFolder];
-    if (!docType) {
-      console.log(`⚠️  Unknown document type folder: ${docTypeFolder}`);
+    const documentType = typeMapping[documentTypeFolder];
+    if (!documentType) {
+      console.log(`⚠️  Unknown document type folder: ${documentTypeFolder}`);
       continue;
     }
 
@@ -128,7 +130,7 @@ async function updateDocumentLinks() {
         updated_at: new Date().toISOString(),
       })
       .eq("meeting_id", meetingId)
-      .eq("type", docType)
+      .eq("type", documentType)
       .select();
 
     if (updateError) {
@@ -139,13 +141,13 @@ async function updateDocumentLinks() {
       if (hasNoData) {
         const { error: insertError } = await supabase.from("document").insert({
           meeting_id: meetingId,
-          title: docType,
-          type: docType,
+          title: documentType,
+          type: documentType,
           file_path: urlData.publicUrl,
           file_type: filename.split(".").pop() || "pdf",
           file_size: file.metadata?.size ?? 0,
           status: "UPLOADED",
-          display_category: getDisplayCategory(docType),
+          display_category: getDisplayCategory(documentType),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
@@ -153,7 +155,7 @@ async function updateDocumentLinks() {
         if (insertError) {
           console.error(`❌ Failed to create document: ${insertError.message}`);
         } else {
-          console.log(`✅ Created: ${meetingId} - ${docType}`);
+          console.log(`✅ Created: ${meetingId} - ${documentType}`);
         }
       } else {
         console.error(
@@ -161,9 +163,11 @@ async function updateDocumentLinks() {
         );
       }
     } else if (updateData && updateData.length > 0) {
-      console.log(`✅ Updated: ${meetingId} - ${docType}`);
+      console.log(`✅ Updated: ${meetingId} - ${documentType}`);
     } else {
-      console.log(`⚠️  No document found to update: ${meetingId} - ${docType}`);
+      console.log(
+        `⚠️  No document found to update: ${meetingId} - ${documentType}`
+      );
     }
   }
 
@@ -177,8 +181,8 @@ async function updateDocumentLinks() {
   console.log(`   Total documents linked: ${finalCount?.length ?? 0}`);
 }
 
-function getDisplayCategory(docType: string): string {
-  const lowerType = docType.toLowerCase();
+function getDisplayCategory(documentType: string): string {
+  const lowerType = documentType.toLowerCase();
 
   if (
     lowerType.includes("proxy") ||
@@ -187,7 +191,8 @@ function getDisplayCategory(docType: string): string {
     lowerType.includes("voting")
   ) {
     return "proxy-materials";
-  } else if (
+  }
+  if (
     lowerType.includes("agenda") ||
     lowerType.includes("script") ||
     lowerType.includes("procedure") ||
@@ -196,19 +201,22 @@ function getDisplayCategory(docType: string): string {
     lowerType.includes("q&a")
   ) {
     return "meeting-materials";
-  } else if (
+  }
+  if (
     lowerType.includes("presentation") ||
     lowerType.includes("slide") ||
     lowerType.includes("shareholder")
   ) {
     return "dsm";
-  } else if (
+  }
+  if (
     lowerType.includes("minutes") ||
     lowerType.includes("attendance") ||
     lowerType.includes("recording")
   ) {
     return "post-meeting";
-  } else if (
+  }
+  if (
     lowerType.includes("data") ||
     lowerType.includes("registry") ||
     lowerType.includes("account")

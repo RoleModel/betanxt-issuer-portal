@@ -1,6 +1,9 @@
+/* eslint-disable react-doctor/js-tosorted-immutable */
+
+/* eslint-disable react-doctor/rerender-state-only-in-handlers */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
@@ -8,20 +11,19 @@ import FeatureTile from "@/components/FeatureTile";
 import { useClient } from "@/contexts/ClientContext";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
-import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import {
   formatQuorumRequirementPercentLabel,
   quorumRequiredShares,
 } from "@/utils/quorum";
 
 interface TabulationReportCardProps {
-  variant?: "default" | "primary" | "secondary" | "tertiary" | "base";
+  readonly variant?: "default" | "primary" | "secondary" | "tertiary" | "base";
 }
 
-export default function TabulationReportCard({
+const TabulationReportCard = ({
   variant = "tertiary",
-}: TabulationReportCardProps) {
+}: TabulationReportCardProps) => {
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
   const { proposals: votingProposals } = useVotingTabulation(
@@ -33,21 +35,25 @@ export default function TabulationReportCard({
 
   // Fetch raw proposal data to get all fields
   useEffect(() => {
+    let ignore = false;
+
     const fetchProposals = async () => {
-      if (!currentMeeting?.id) return;
+      if (currentMeeting?.id == null) return;
 
       const apiClient = await buildApiClient();
       const { data } = await apiClient.GET("/meetings/{meetingId}/proposals", {
         params: { path: { meetingId: currentMeeting.id } },
       });
 
-      if (data) {
-        const proposals = Array.isArray(data) ? data : [];
-        setRawProposals(proposals);
-      }
+      const proposals = Array.isArray(data) ? data : [];
+      if (!ignore) setRawProposals(proposals);
     };
 
     void fetchProposals();
+
+    return () => {
+      ignore = true;
+    };
   }, [currentMeeting?.id]);
 
   const handleDownload = async () => {
@@ -94,17 +100,14 @@ export default function TabulationReportCard({
             (rp.totalVotesAbstain ?? 0) >
           0
       ) ?? sortedRawProposals[0];
-    const votesRepresented = firstProposal
-      ? (firstProposal.totalVotesFor ?? 0) +
-        (firstProposal.totalVotesAgainst ?? 0) +
-        (firstProposal.totalVotesAbstain ?? 0)
-      : 0;
+    const votesRepresented =
+      (firstProposal.totalVotesFor ?? 0) +
+      (firstProposal.totalVotesAgainst ?? 0) +
+      (firstProposal.totalVotesAbstain ?? 0);
 
     // Prefer proposal.totalSharesEligible — it reflects the actual eligible share count
     // used when votes were recorded, which may differ from meeting.totalSharesOutstanding
-    const proposalSharesEligible = Number(
-      firstProposal?.totalSharesEligible ?? 0
-    );
+    const proposalSharesEligible = firstProposal.totalSharesEligible ?? 0;
     const totalOutstanding =
       proposalSharesEligible > 0
         ? proposalSharesEligible
@@ -120,9 +123,10 @@ export default function TabulationReportCard({
       quorumRequiredShares(totalOutstanding, currentMeeting.quorumRequirement);
 
     // Determine if meeting has concluded
-    const isMeetingConcluded = currentMeeting.meetingDate
-      ? new Date(currentMeeting.meetingDate) < new Date()
-      : false;
+    const isMeetingConcluded =
+      currentMeeting.meetingDate != null
+        ? new Date(currentMeeting.meetingDate) < new Date()
+        : false;
 
     const reportTitle = isMeetingConcluded
       ? "Final Tabulation Results"
@@ -166,18 +170,23 @@ export default function TabulationReportCard({
       }),
     };
 
+    // Loaded on demand: a static import pulls @react-pdf into the tabulation
+    // page's chunk, where parsing it contributes to long animation frames even
+    // though no PDF is produced until this handler runs.
+    const { exportTabulationPdf } = await import("@/utils/exportTabulationPdf");
     await exportTabulationPdf({
       tabulationData,
-      clientTicker: currentMeeting.ticker || undefined,
+      clientTicker: currentMeeting.ticker,
     });
   };
 
   const isDataReady = !!(currentMeeting && votingProposals.length > 0);
 
   // Determine if meeting has concluded (meeting date has passed)
-  const isMeetingConcluded = currentMeeting?.meetingDate
-    ? new Date(currentMeeting.meetingDate) < new Date()
-    : false;
+  const isMeetingConcluded =
+    currentMeeting?.meetingDate != null
+      ? new Date(currentMeeting.meetingDate) < new Date()
+      : false;
 
   const reportTitle = isMeetingConcluded
     ? "Final Tabulation Results"
@@ -188,14 +197,17 @@ export default function TabulationReportCard({
       height="100%"
       title={reportTitle}
       variant={variant}
+      titleVariant="h3"
       flex={true}
       description="Results for each proposal, showing vote counts, percentages, and quorum status."
-      actionText={isDataReady ? "Download" : "Loading..."}
-      onClick={isDataReady ? handleDownload : undefined}
+      actionText={isDataReady ? "Download Report" : "Loading..."}
+      onClick={handleDownload}
       sx={{
         opacity: isDataReady ? 1 : 0.6,
         cursor: isDataReady ? "pointer" : "default",
       }}
     />
   );
-}
+};
+
+export default TabulationReportCard;

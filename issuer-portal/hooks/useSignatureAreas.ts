@@ -60,8 +60,8 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
         setError(null);
 
         // Check if document exists first
-        const exists = await checkDocumentExists(documentId);
-        if (!exists) {
+        const isExists = await checkDocumentExists(documentId);
+        if (!isExists) {
           throw new Error("Document not found");
         }
 
@@ -82,11 +82,10 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
         };
 
         return newArea;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to create signature area";
+      } catch (error_) {
+        const errorMessage = Error.isError(error_)
+          ? error_.message
+          : "Failed to create signature area";
         setError(errorMessage);
         return null;
       } finally {
@@ -119,11 +118,10 @@ export const useSignatureAreas = (): UseSignatureAreasResult => {
         };
 
         return updatedArea;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to update signature area";
+      } catch (error_) {
+        const errorMessage = Error.isError(error_)
+          ? error_.message
+          : "Failed to update signature area";
         setError(errorMessage);
         return null;
       } finally {

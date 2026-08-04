@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 import type { components } from "@/types/api";
 import type { Database } from "@/utils/supabase/database.types";
@@ -91,11 +91,11 @@ export async function listProposals(
       data: proposals,
       error: undefined,
     };
-  } catch (err) {
+  } catch (error) {
     return {
       data: undefined,
       error: {
-        message: err instanceof Error ? err.message : "Unknown error",
+        message: Error.isError(error) ? error.message : "Unknown error",
         statusCode: 500,
       },
     };
@@ -143,11 +143,11 @@ export async function createProposal(
       data: transformProposalRow(data),
       error: undefined,
     };
-  } catch (err) {
+  } catch (error) {
     return {
       data: undefined,
       error: {
-        message: err instanceof Error ? err.message : "Unknown error",
+        message: Error.isError(error) ? error.message : "Unknown error",
         statusCode: 500,
       },
     };
@@ -179,11 +179,11 @@ export async function getProposalById(
       data: transformProposalRow(data),
       error: undefined,
     };
-  } catch (err) {
+  } catch (error) {
     return {
       data: undefined,
       error: {
-        message: err instanceof Error ? err.message : "Unknown error",
+        message: Error.isError(error) ? error.message : "Unknown error",
         statusCode: 500,
       },
     };
@@ -197,24 +197,33 @@ export async function updateProposal(
   try {
     const request = body;
     const updateData: Partial<ProposalUpdate> = {};
-    if (request.proposalTitle !== undefined)
+    if (request.proposalTitle !== undefined) {
       updateData.proposal_title = request.proposalTitle;
-    if (request.proposalType !== undefined)
+    }
+    if (request.proposalType !== undefined) {
       updateData.proposal_type = request.proposalType;
-    if (request.proposalSubtype !== undefined)
+    }
+    if (request.proposalSubtype !== undefined) {
       updateData.proposal_subtype = request.proposalSubtype;
-    if (request.directorName !== undefined)
+    }
+    if (request.directorName !== undefined) {
       updateData.director_name = request.directorName;
-    if (request.directorTermYears !== undefined)
+    }
+    if (request.directorTermYears !== undefined) {
       updateData.director_term_years = request.directorTermYears;
-    if (request.directorClass !== undefined)
+    }
+    if (request.directorClass !== undefined) {
       updateData.director_class = request.directorClass;
-    if (request.termExpirationYear !== undefined)
+    }
+    if (request.termExpirationYear !== undefined) {
       updateData.term_expiration_year = request.termExpirationYear;
-    if (request.frequencyOptions !== undefined)
+    }
+    if (request.frequencyOptions !== undefined) {
       updateData.frequency_options = request.frequencyOptions;
-    if (request.recommendation !== undefined)
+    }
+    if (request.recommendation !== undefined) {
       updateData.recommendation = request.recommendation;
+    }
 
     const { data, error } = await supabase
       .from("proposal")
@@ -238,11 +247,11 @@ export async function updateProposal(
       data: transformProposalRow(data),
       error: undefined,
     };
-  } catch (err) {
+  } catch (error) {
     return {
       data: undefined,
       error: {
-        message: err instanceof Error ? err.message : "Unknown error",
+        message: Error.isError(error) ? error.message : "Unknown error",
         statusCode: 500,
       },
     };

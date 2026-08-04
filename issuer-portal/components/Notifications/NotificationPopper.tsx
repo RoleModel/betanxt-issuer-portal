@@ -15,7 +15,7 @@ import {
   styled,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import React, { useLayoutEffect, useMemo, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 import type { components } from "@/types/api";
 
@@ -38,10 +38,10 @@ interface NotificationData {
 }
 
 interface NotificationPopperProps {
-  anchorEl: HTMLElement | null;
-  open: boolean;
-  onClose: () => void;
-  onNotificationClick?: (notification: NotificationData) => void;
+  readonly anchorEl: HTMLElement | null;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onNotificationClick?: (notification: NotificationData) => void;
 }
 
 const StyledTabs = styled(Tabs)({
@@ -126,12 +126,12 @@ const convertDbNotificationToNotificationData = (
   };
 };
 
-export function NotificationPopper({
+export const NotificationPopper = ({
   anchorEl,
   open,
   onClose,
   onNotificationClick,
-}: NotificationPopperProps) {
+}: NotificationPopperProps) => {
   const router = useRouter();
   const {
     notifications: dbNotifications,
@@ -141,6 +141,12 @@ export function NotificationPopper({
   } = useNotifications();
   const [tabValue, setTabValue] = useState("0");
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  // Render a stable fallback position on the server and first client paint,
+  // then read the real window width after mount to avoid a hydration mismatch.
+  const [mounted, setMounted] = useState<boolean>(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Convert DB notifications to UI format
   const notifications = useMemo(
@@ -215,7 +221,7 @@ export function NotificationPopper({
       anchorPosition={
         pos ?? {
           top: 64,
-          left: typeof window !== "undefined" ? window.innerWidth : 0,
+          left: mounted ? window.innerWidth : 0,
         }
       }
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
@@ -324,7 +330,9 @@ export function NotificationPopper({
                           isSystemNotification={
                             notification.isSystemNotification
                           }
-                          onClick={() => handleNotificationClick(notification)}
+                          onClick={async () => {
+                            await handleNotificationClick(notification);
+                          }}
                         />
                       ))}
                     </Stack>
@@ -355,7 +363,9 @@ export function NotificationPopper({
                           isSystemNotification={
                             notification.isSystemNotification
                           }
-                          onClick={() => handleNotificationClick(notification)}
+                          onClick={async () => {
+                            await handleNotificationClick(notification);
+                          }}
                         />
                       ))}
                     </Stack>
@@ -368,7 +378,7 @@ export function NotificationPopper({
       </Paper>
     </Popover>
   );
-}
+};
 
 // Export types for external use
 export type { NotificationPopperProps, NotificationData };

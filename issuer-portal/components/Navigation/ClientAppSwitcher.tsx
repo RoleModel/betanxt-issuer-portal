@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 "use client";
 
 import { ArrowDropDownOutlined } from "@mui/icons-material";
@@ -38,7 +39,7 @@ const USER_TYPE_BRAND_LABELS: Record<string, string> = {
  * - For CSM: additionally shows a searchable Autocomplete for all clients
  *   and a "Covering for…" Chip when viewing a non-assigned client.
  */
-function EventSwitchButton({ userType }: { userType: string }) {
+const EventSwitchButton = ({ userType }: { readonly userType: string }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [csmInputValue, setCsmInputValue] = useState("");
   const pathname = usePathname();
@@ -278,151 +279,209 @@ function EventSwitchButton({ userType }: { userType: string }) {
         </Button>
         {coveringChip}
       </Box>
-      <Menu
+      <EventSwitchMenu
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "left",
-        }}
-        slotProps={{
-          list: {
-            sx: {
-              maxHeight: 300,
-              overflowY: "auto",
-            },
-          },
-          paper: {
-            sx: {
-              backgroundColor: (theme) =>
-                theme.vars?.palette?.appSwitcher?.background ||
-                theme.palette.primary.main,
-              color: (theme) => theme.palette.common.white,
-              minWidth: isCsm ? 280 : 200,
-              overflow: isCsm ? "visible" : undefined,
-            },
-          },
-        }}
-        disableAutoFocusItem={isCsm}
-      >
-        {isCsm
-          ? [
-              ...(clientOptions.length > 0 ? [] : []),
-              <MenuItem
-                key="csm-search"
-                disableRipple
-                onClick={(event) => event.stopPropagation()}
-                onKeyDown={(event) => event.stopPropagation()}
-                sx={{
-                  cursor: "default",
-                  display: "block",
-                  px: 1.5,
-                  py: 1,
-                  "&:hover": {
-                    backgroundColor: "transparent",
-                  },
-                }}
-              >
-                <Autocomplete<Client>
-                  options={allClients.filter(
-                    (c) => !assignedTickers?.has(c.ticker.toUpperCase())
-                  )}
-                  getOptionLabel={(option) =>
-                    option.company_name ?? option.short_name ?? option.ticker
-                  }
-                  inputValue={csmInputValue}
-                  onInputChange={(_, value) => setCsmInputValue(value)}
-                  value={null}
-                  onChange={(_, client) => handleCsmClientSelect(client)}
-                  isOptionEqualToValue={(option, value) =>
-                    option.id === value.id
-                  }
-                  size="small"
-                  slotProps={{
-                    popper: {
-                      disablePortal: true,
-                      placement: "bottom-start",
-                    },
-                    paper: {
-                      sx: {
-                        background: (theme) =>
-                          theme.vars?.palette?.secondary?.main,
-                        color: (theme) =>
-                          theme.vars?.palette?.secondary?.contrastText,
-                        "& .MuiAutocomplete-noOptions": {
-                          color: (theme) =>
-                            theme.vars?.palette?.appSwitcher?.contrastText,
-                          fontSize: (theme) => theme.typography.body3.fontSize,
-                        },
-                      },
-                    },
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      size="small"
-                      placeholder="Switch to another client..."
-                      onClick={(event) => event.stopPropagation()}
-                      onKeyDown={(event) => event.stopPropagation()}
-                      sx={(theme) => ({
-                        "& .MuiInputBase-root": {
-                          color: "inherit",
-                          backgroundColor:
-                            theme.vars.palette.appSwitcher?.background,
-                          "& fieldset": {
-                            borderColor: theme.vars.palette.grey[700],
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "rgba(255,255,255,0.5)",
-                          },
-                          "&.Mui-focused fieldset": {
-                            borderColor: "rgba(255,255,255,0.8)",
-                          },
-                        },
-                        "& .MuiInputBase-input::placeholder": {
-                          color: "rgba(255,255,255,0.6)",
-                          opacity: 1,
-                        },
-                        "& .MuiAutocomplete-endAdornment .MuiSvgIcon-root": {
-                          color: "rgba(255,255,255,0.7)",
-                        },
-                      })}
-                    />
-                  )}
-                />
-              </MenuItem>,
-            ]
-          : null}
-        {clientOptions.map((row) => (
-          <MenuItem
-            key={row.clientTicker}
-            onClick={() => handleEventSelect(row)}
-            selected={row.clientTicker === currentClientOption?.clientTicker}
-            sx={{
-              "&:hover": {
-                backgroundColor: (theme) =>
-                  theme.vars.palette.appSwitcher?.hover,
-              },
-              "&.Mui-selected": {
-                backgroundColor: (theme) =>
-                  theme.vars.palette.appSwitcher?.hover,
-              },
-            }}
-          >
-            {row.event}
-          </MenuItem>
-        ))}
-      </Menu>
+        isCsm={isCsm}
+        clientOptions={clientOptions}
+        currentClientOption={currentClientOption}
+        allClients={allClients}
+        assignedTickers={assignedTickers}
+        csmInputValue={csmInputValue}
+        onCsmInputChange={setCsmInputValue}
+        onCsmClientSelect={handleCsmClientSelect}
+        onEventSelect={handleEventSelect}
+      />
     </>
   );
+};
+
+interface EventSwitchMenuProps {
+  readonly anchorEl: null | HTMLElement;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly isCsm: boolean;
+  readonly clientOptions: readonly EventRow[];
+  readonly currentClientOption: EventRow | null;
+  readonly allClients: readonly Client[];
+  readonly assignedTickers: Set<string> | null;
+  readonly csmInputValue: string;
+  readonly onCsmInputChange: (value: string) => void;
+  readonly onCsmClientSelect: (client: Client | null) => void;
+  readonly onEventSelect: (row: EventRow) => void;
 }
 
-function IssuerClientLabel() {
+const EventSwitchMenu = ({
+  anchorEl,
+  open,
+  onClose,
+  isCsm,
+  clientOptions,
+  currentClientOption,
+  allClients,
+  assignedTickers,
+  csmInputValue,
+  onCsmInputChange,
+  onCsmClientSelect,
+  onEventSelect,
+}: EventSwitchMenuProps) => {
+  return (
+    <Menu
+      anchorEl={anchorEl}
+      open={open}
+      onClose={onClose}
+      anchorOrigin={{
+        vertical: "bottom",
+        horizontal: "left",
+      }}
+      transformOrigin={{
+        vertical: "top",
+        horizontal: "left",
+      }}
+      slotProps={{
+        list: {
+          sx: {
+            maxHeight: 300,
+            overflowY: "auto",
+          },
+        },
+        paper: {
+          sx: {
+            backgroundColor: (theme) =>
+              theme.vars?.palette?.appSwitcher?.background ||
+              theme.palette.primary.main,
+            color: (theme) => theme.palette.common.white,
+            minWidth: isCsm ? 280 : 200,
+            overflow: isCsm ? "visible" : undefined,
+          },
+        },
+      }}
+      disableAutoFocusItem={isCsm}
+    >
+      {isCsm
+        ? [
+            ...(clientOptions.length > 0 ? [] : []),
+            <MenuItem
+              key="csm-search"
+              disableRipple
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
+              onKeyDown={(event) => {
+                event.stopPropagation();
+              }}
+              sx={{
+                cursor: "default",
+                display: "block",
+                px: 1.5,
+                py: 1,
+                "&:hover": {
+                  backgroundColor: "transparent",
+                },
+              }}
+            >
+              <Autocomplete<Client>
+                options={allClients.filter(
+                  (c) =>
+                    !(assignedTickers?.has(c.ticker.toUpperCase()) ?? false)
+                )}
+                getOptionLabel={(option) =>
+                  option.company_name ?? option.short_name ?? option.ticker
+                }
+                inputValue={csmInputValue}
+                onInputChange={(_, value) => {
+                  onCsmInputChange(value);
+                }}
+                value={null}
+                onChange={(_, client) => {
+                  onCsmClientSelect(client);
+                }}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                size="small"
+                slotProps={{
+                  popper: {
+                    placement: "bottom-start",
+                    sx: (theme) => ({ zIndex: theme.zIndex.modal + 1 }),
+                  },
+                  paper: {
+                    sx: {
+                      backgroundColor: (theme) =>
+                        theme.vars.palette.appSwitcher.background,
+                      color: (theme) =>
+                        theme.vars.palette.appSwitcher.contrastText,
+                      "& .MuiAutocomplete-noOptions": {
+                        color: (theme) =>
+                          theme.vars.palette.appSwitcher.contrastText,
+                        fontSize: (theme) => theme.typography.body3.fontSize,
+                      },
+                    },
+                  },
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    placeholder="Switch to another client..."
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
+                    onKeyDown={(event) => {
+                      event.stopPropagation();
+                    }}
+                    sx={(theme) => ({
+                      "& .MuiInputBase-root": {
+                        color: "inherit",
+                        backgroundColor:
+                          theme.vars.palette.appSwitcher.background,
+                        "& fieldset": {
+                          borderColor: theme.vars.palette.grey[700],
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "rgba(255,255,255,0.5)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "rgba(255,255,255,0.8)",
+                        },
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "rgba(255,255,255,0.6)",
+                        opacity: 1,
+                      },
+                      "& .MuiAutocomplete-endAdornment .MuiSvgIcon-root": {
+                        color: "rgba(255,255,255,0.7)",
+                      },
+                    })}
+                  />
+                )}
+              />
+            </MenuItem>,
+          ]
+        : null}
+      {clientOptions.map((row) => (
+        <MenuItem
+          key={row.clientTicker}
+          onClick={() => {
+            onEventSelect(row);
+          }}
+          selected={row.clientTicker === currentClientOption?.clientTicker}
+          sx={{
+            "&:hover": {
+              backgroundColor: (theme) => theme.vars.palette.appSwitcher.hover,
+            },
+            "&.Mui-selected": {
+              backgroundColor: (theme) => theme.vars.palette.appSwitcher.hover,
+            },
+          }}
+        >
+          {row.event}
+        </MenuItem>
+      ))}
+    </Menu>
+  );
+};
+
+const IssuerClientLabel = () => {
   const { currentClient, availableClients } = useClient();
   const { data: session } = useSession();
 
@@ -452,9 +511,9 @@ function IssuerClientLabel() {
       {displayName}
     </Typography>
   );
-}
+};
 
-function SwitchButton() {
+const SwitchButton = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { availableClients, currentClient, switchClient } = useClient();
   const { data: session } = useSession();
@@ -558,7 +617,9 @@ function SwitchButton() {
         {availableClients.map((client) => (
           <MenuItem
             key={client.id}
-            onClick={() => handleClientSelect(client)}
+            onClick={() => {
+              handleClientSelect(client);
+            }}
             selected={client.id === currentClient?.id}
             sx={{
               "&:hover": {
@@ -580,9 +641,9 @@ function SwitchButton() {
       </Menu>
     </>
   );
-}
+};
 
-export function ClientAppSwitcher() {
+export const ClientAppSwitcher = () => {
   return (
     <Box
       sx={(theme) => ({
@@ -597,4 +658,4 @@ export function ClientAppSwitcher() {
       <SwitchButton />
     </Box>
   );
-}
+};

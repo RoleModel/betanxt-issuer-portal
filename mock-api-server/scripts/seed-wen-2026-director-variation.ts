@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 /**
  * Adds realistic variation to WEN 2026 director election votes.
  * Institutional holders oppose specific directors based on governance concerns.
@@ -62,13 +61,15 @@ async function run() {
     );
 
     for (const proposal of proposalsRes.rows) {
-      const propNum = Number(proposal.proposal_number).toFixed(2);
-      const opposers = DIRECTOR_OPPOSITION[propNum] ?? [];
+      const propertyNumber = Number(proposal.proposal_number).toFixed(2);
+      const opposers = DIRECTOR_OPPOSITION[propertyNumber] ?? [];
 
-      if (opposers.length === 0) continue;
+      if (opposers.length === 0) {
+        continue;
+      }
 
       console.log(
-        `\n  Proposal ${propNum} — ${opposers.join(", ")} voting AGAINST:`
+        `\n  Proposal ${propertyNumber} — ${opposers.join(", ")} voting AGAINST:`
       );
 
       for (const posName of opposers) {
@@ -104,7 +105,7 @@ async function run() {
       const totalAgainst = Number(t.total_against);
       const totalAbstain = Number(t.total_abstain);
       const totalVotes = totalFor + totalAgainst + totalAbstain;
-      const totalShares = 190466246;
+      const totalShares = 190_466_246;
 
       await client.query(
         `UPDATE proposal SET
@@ -135,9 +136,9 @@ async function run() {
 
     await client.query("COMMIT");
     console.log("\n🎉 Done — director vote variation applied.");
-  } catch (err) {
+  } catch (error) {
     await client.query("ROLLBACK");
-    console.error("❌ Error, rolled back:", err);
+    console.error("❌ Error, rolled back:", error);
     process.exit(1);
   } finally {
     await client.end();

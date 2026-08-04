@@ -1,12 +1,11 @@
-#!/usr/bin/env tsx
 /**
  * Upload seed.sql to Supabase storage as backup.sql
  * This file is used by the reset-demo-data API endpoint
  */
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
-import { readFileSync } from "fs";
-import { join } from "path";
 
 // Load environment variables from .env.local
 config({ path: join(process.cwd(), ".env.local") });
@@ -14,7 +13,7 @@ config({ path: join(process.cwd(), ".env.local") });
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
   "https://vfgjzlcakdrpsbzuqklz.supabase.co";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const { SUPABASE_SERVICE_ROLE_KEY } = process.env;
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
   console.error(

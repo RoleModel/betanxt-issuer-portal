@@ -1,10 +1,10 @@
-import { Locator, Page, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 // Simple debug logger (use DEBUG_E2E or PWDEBUG env vars to enable) to avoid lint no-console warnings
-const debug = (...args: unknown[]) => {
+const debug = (...arguments_: unknown[]) => {
   if (process.env.DEBUG_E2E) {
-    // eslint-disable-next-line no-console
-    console.log("[e2e]", ...args);
+    console.log("[e2e]", ...arguments_);
   }
 };
 
@@ -16,16 +16,16 @@ const DOCUMENTS_URL =
 async function navigateToPhase(page: Page) {
   await page.goto(DASHBOARD_URL);
   await page.waitForSelector('[data-testid="meeting-dashboard"]', {
-    timeout: 15000,
+    timeout: 15_000,
   });
-  await page.waitForSelector('[data-testid*="task-card"]', { timeout: 20000 });
+  await page.waitForSelector('[data-testid*="task-card"]', { timeout: 20_000 });
   await page.waitForTimeout(1000);
 }
 
 async function openTaskDrawer(taskCard: Locator) {
   await taskCard.click();
   const drawer = taskCard.page().locator('[data-testid="task-drawer"]');
-  await expect(drawer).toBeVisible({ timeout: 10000 });
+  await expect(drawer).toBeVisible({ timeout: 10_000 });
   return drawer;
 }
 
@@ -36,7 +36,7 @@ async function closeTaskDrawer(page: Page) {
   if (await closeButton.isVisible()) {
     await closeButton.click();
     await expect(page.locator('[data-testid="task-drawer"]')).not.toBeVisible({
-      timeout: 10000,
+      timeout: 10_000,
     });
   }
 }
@@ -44,8 +44,8 @@ async function closeTaskDrawer(page: Page) {
 async function findTaskWithSignForm(page: Page) {
   const cards = page.locator('[data-testid*="task-card"]');
   const count = await cards.count();
-  for (let i = 0; i < count; i++) {
-    const card = cards.nth(i);
+  for (let index = 0; index < count; index++) {
+    const card = cards.nth(index);
     const rawText = (await card.textContent()) || "";
     // Quick filter: skip cards already marked Complete
     if (
@@ -64,8 +64,8 @@ async function findTaskWithSignForm(page: Page) {
         return { drawer, title: title.trim() };
       }
       await closeTaskDrawer(page);
-    } catch (e) {
-      debug(`Failed opening card index ${i}: ${(e as Error).message}`);
+    } catch (error) {
+      debug(`Failed opening card index ${index}: ${(error as Error).message}`);
       await closeTaskDrawer(page).catch(() => {});
     }
   }
@@ -74,11 +74,11 @@ async function findTaskWithSignForm(page: Page) {
 
 async function completeSignatureFlow(page: Page, drawer: Locator) {
   const signFormLink = drawer.locator("text=Sign Form");
-  await expect(signFormLink).toBeVisible({ timeout: 10000 });
+  await expect(signFormLink).toBeVisible({ timeout: 10_000 });
   await signFormLink.click();
 
   const viewer = page.locator('[data-testid="document-viewer"]');
-  await expect(viewer).toBeVisible({ timeout: 10000 });
+  await expect(viewer).toBeVisible({ timeout: 10_000 });
 
   const signatureArea = viewer
     .locator('[data-testid*="signature-area"]')
@@ -95,18 +95,18 @@ async function completeSignatureFlow(page: Page, drawer: Locator) {
           .click({ position: { x: 50, y: 50 } })
           .catch(() => {});
       }
-      const insertBtn = signatureModal.locator('button:has-text("Insert")');
-      if (await insertBtn.isVisible()) {
-        await insertBtn.click();
+      const insertButton = signatureModal.locator('button:has-text("Insert")');
+      if (await insertButton.isVisible()) {
+        await insertButton.click();
       }
     }
   }
 
   const submitButton = viewer.locator('button:has-text("Submit")');
-  await expect(submitButton).toBeVisible({ timeout: 10000 });
+  await expect(submitButton).toBeVisible({ timeout: 10_000 });
   await submitButton.click();
 
-  await expect(viewer).not.toBeVisible({ timeout: 15000 });
+  await expect(viewer).not.toBeVisible({ timeout: 15_000 });
 }
 
 test.describe.serial("Signature Task Flow", () => {
@@ -127,7 +127,7 @@ test.describe.serial("Signature Task Flow", () => {
     // Navigate to documents page
     await page.goto(DOCUMENTS_URL);
     await page.waitForSelector('[data-testid="documents-table"]', {
-      timeout: 15000,
+      timeout: 15_000,
     });
 
     const documentsTable = page.locator('[data-testid="documents-table"]');
@@ -138,7 +138,7 @@ test.describe.serial("Signature Task Flow", () => {
       .locator("tr")
       .filter({ hasText: /(draft|complete|pending|signed)/i })
       .first();
-    await expect(newDocumentRow).toBeVisible({ timeout: 10000 });
+    await expect(newDocumentRow).toBeVisible({ timeout: 10_000 });
   });
 
   test("should update task status to COMPLETE after submission", async ({
@@ -154,7 +154,7 @@ test.describe.serial("Signature Task Flow", () => {
     // Refresh task list
     await page.reload();
     await page.waitForSelector('[data-testid*="task-card"]', {
-      timeout: 15000,
+      timeout: 15_000,
     });
 
     // Find the same task title again
@@ -163,7 +163,7 @@ test.describe.serial("Signature Task Flow", () => {
       .filter({ hasText: title })
       .first();
 
-    await expect(updatedCard).toBeVisible({ timeout: 10000 });
+    await expect(updatedCard).toBeVisible({ timeout: 10_000 });
     await expect(updatedCard).toContainText(/Complete/i);
   });
 
@@ -174,11 +174,11 @@ test.describe.serial("Signature Task Flow", () => {
 
     // Open viewer (completeSignatureFlow opens & submits; here we only open)
     const signFormLink = drawer.locator("text=Sign Form");
-    await expect(signFormLink).toBeVisible({ timeout: 10000 });
+    await expect(signFormLink).toBeVisible({ timeout: 10_000 });
     await signFormLink.click();
 
     const viewer = page.locator('[data-testid="document-viewer"]');
-    await expect(viewer).toBeVisible({ timeout: 10000 });
+    await expect(viewer).toBeVisible({ timeout: 10_000 });
 
     // Open comments
     const commentsButton = page.locator('button[aria-label="comments"]');
@@ -199,7 +199,7 @@ test.describe.serial("Signature Task Flow", () => {
 
     await expect(page.locator("text=Test comment from Playwright")).toBeVisible(
       {
-        timeout: 10000,
+        timeout: 10_000,
       }
     );
   });

@@ -15,15 +15,19 @@ import {
 import React from "react";
 
 import { useMeeting } from "@/contexts/MeetingContext";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
-import { formatNumber } from "@/utils/numberUtils";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
+import { formatNumber } from "@/utils/number-utilities";
 import { getVotingOptions } from "@/utils/votingOptions";
 
 interface DetailedTabulationTableProps {
-  meetingId: string;
+  readonly meetingId: string;
 }
 
-function StyledTableContainer({ children }: { children: React.ReactNode }) {
+const StyledTableContainer = ({
+  children,
+}: {
+  readonly children: React.ReactNode;
+}) => {
   return (
     <TableContainer
       sx={[
@@ -51,7 +55,7 @@ function StyledTableContainer({ children }: { children: React.ReactNode }) {
       {children}
     </TableContainer>
   );
-}
+};
 
 const ProposalHeaderCell = styled(TableCell)(({ theme }) => ({
   backgroundColor: theme.vars.palette.action.hover,
@@ -64,7 +68,7 @@ const VoteTypeCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 500,
 }));
 
-function TotalsRow({ children }: { children: React.ReactNode }) {
+const TotalsRow = ({ children }: { readonly children: React.ReactNode }) => {
   return (
     <TableRow
       sx={[
@@ -81,16 +85,18 @@ function TotalsRow({ children }: { children: React.ReactNode }) {
       {children}
     </TableRow>
   );
-}
+};
 
 const TotalsHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
   paddingLeft: theme.spacing(2),
 }));
 
-export default function DetailedTabulationTable({
+const formatPercentage = (value: number) => `${value.toFixed(2)}%`;
+
+const DetailedTabulationTable = ({
   meetingId,
-}: DetailedTabulationTableProps) {
+}: DetailedTabulationTableProps) => {
   const { currentMeeting } = useMeeting();
   const { proposals, votingSummary, loading } = useVotingTabulation(meetingId);
 
@@ -109,8 +115,6 @@ export default function DetailedTabulationTable({
       </Box>
     );
   }
-
-  const formatPercentage = (value: number) => `${value.toFixed(2)}%`;
 
   // Calculate totals for percentage calculations
   const totalOutstanding = votingSummary?.totalSharesOutstanding ?? 0;
@@ -260,4 +264,6 @@ export default function DetailedTabulationTable({
       </Table>
     </StyledTableContainer>
   );
-}
+};
+
+export default DetailedTabulationTable;

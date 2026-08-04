@@ -11,7 +11,9 @@ async function fetchPositions(meetingId: string): Promise<Position[]> {
   const { data } = await api.GET("/positions", {
     params: { query: { meetingId: `eq.${meetingId}` } },
   });
-  if (!data) return [];
+  if (!data) {
+    return [];
+  }
   return data;
 }
 

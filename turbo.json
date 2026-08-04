@@ -29,6 +29,7 @@
         "POSTGRES_HOST",
         "POSTGRES_PASSWORD",
         "NEXT_PUBLIC_MUI_X_LICENSE",
+        "FLAGS",
         "FLAGS_SECRET",
         "POSTGRES_DATABASE",
         "SEED_SQL_URL",
@@ -43,8 +44,14 @@
         "EMAIL_SMTP_USER",
         "EMAIL_SMTP_PASS",
         "RESEND_API_KEY",
-        "PORTAL_BASE_URL"
-      ]
+        "PORTAL_BASE_URL",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "SENTRY_DSN",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "SENTRY_RELEASE"
+      ],
+      "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
     },
     "build:test": {
       "dependsOn": ["^build"],

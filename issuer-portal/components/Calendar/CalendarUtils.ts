@@ -2,10 +2,8 @@
  * Calendar utilities for date calculations and task organization
  * Handles date parsing, range calculations, and calendar grid generation
  */
-import type { CalendarDate, CalendarMonth, CalendarWeek } from "@/types/common";
 
 // Re-export calendar types for convenience
-export type { CalendarDate, CalendarWeek, CalendarMonth };
 
 /**
  * Shift weekend dates to next Monday
@@ -30,12 +28,14 @@ export const shiftWeekendToMonday = (date: Date): Date => {
  * Parse date string to Date object
  * Supports formats: "Friday, Aug 16", "Aug 20", "Sep 1", etc.
  */
-export const parseTaskDate = (dateStr: string): Date | null => {
-  if (!dateStr) return null;
+export const parseTaskDate = (dateString: string): Date | null => {
+  if (!dateString) {
+    return null;
+  }
 
   try {
     // Parse the date string
-    const parsed = new Date(dateStr + ", 2025");
+    const parsed = new Date(`${dateString}, 2025`);
     if (!isNaN(parsed.getTime())) {
       return parsed;
     }
@@ -61,20 +61,20 @@ export const isToday = (date: Date): boolean => {
 /**
  * Format date to display string
  */
-export const formatDate = (date: Date): string => {
-  return date.toLocaleDateString("en-US", {
+export const formatDate = (date: Date): string =>
+  date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
-};
 
 /**
  * Get week number of the year
  */
 export const getWeekNumber = (date: Date): number => {
   const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+  const pastDaysOfYear =
+    (date.getTime() - firstDayOfYear.getTime()) / 86_400_000;
   return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
 };
 
@@ -85,3 +85,9 @@ export const daysBetween = (date1: Date, date2: Date): number => {
   const oneDay = 24 * 60 * 60 * 1000;
   return Math.round(Math.abs(date1.getTime() - date2.getTime()) / oneDay);
 };
+
+export {
+  type CalendarDate,
+  type CalendarWeek,
+  type CalendarMonth,
+} from "@/types/common";

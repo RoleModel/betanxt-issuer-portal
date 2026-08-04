@@ -8,15 +8,15 @@ import { useMeeting } from "@/contexts/MeetingContext";
 
 // Dynamically load layout & tracker to reduce initial JS bundle
 const Phase1Layout = dynamic(
-  () => import("@/components/Meeting/Phase1Layout"),
+  async () => await import("@/components/Meeting/Phase1Layout"),
   {}
 );
 const TabulationTracker = dynamic(
-  () => import("@/components/Meeting/TabulationTracker"),
+  async () => await import("@/components/Meeting/TabulationTracker"),
   {}
 );
 
-export default function PhasePage() {
+const PhasePage = () => {
   const params = useParams();
   const meetingId = params.meetingId as string;
   const phase = params.phase as string;
@@ -50,4 +50,6 @@ export default function PhasePage() {
       </Box>
     </Container>
   );
-}
+};
+
+export default PhasePage;

@@ -1,6 +1,5 @@
 "use client";
 
-import { Document, Page, Text, View, pdf } from "@react-pdf/renderer";
 import React from "react";
 import * as XLSX from "xlsx";
 
@@ -330,110 +329,11 @@ export function buildMockReportTable(
 }
 
 interface MockReportDocumentProps {
-  options: MockReportOptions;
-  table: MockReportTable;
-  clientLogoUrl?: string;
-  betanxtLogoUrl?: string;
+  readonly options: MockReportOptions;
+  readonly table: MockReportTable;
+  readonly clientLogoUrl?: string;
+  readonly betanxtLogoUrl?: string;
 }
-
-/**
- * Generic single-page @react-pdf document for any mock report: themed header,
- * meeting meta row, and an evenly-spaced column table with alternating row
- * shading, matching the shared report theme.
- */
-const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
-  options,
-  table,
-  clientLogoUrl,
-  betanxtLogoUrl,
-}) => {
-  const { reportName, companyName, clientTicker, meetingType, meetingDate } =
-    options;
-  const columnWidth = { width: `${100 / table.columns.length}%` };
-  // Right-align columns whose every value is numeric (counts, shares, etc.).
-  const numericColumns = table.columns.map(
-    (_, columnIndex) =>
-      table.rows.length > 0 &&
-      table.rows.every((row) => typeof row[columnIndex] === "number")
-  );
-
-  return (
-    <Document>
-      <Page size="LETTER" style={reportStyles.page}>
-        <ReportPdfHeader
-          reportTitle={reportName}
-          subtitle={meetingType}
-          clientTicker={clientTicker}
-          clientLogoUrl={clientLogoUrl}
-          betanxtLogoUrl={betanxtLogoUrl}
-        />
-
-        <ReportMetaGrid
-          items={[
-            { label: "Company Name:", value: companyName },
-            ...(meetingDate
-              ? [
-                  {
-                    label: "Meeting Date:",
-                    value: formatReportDate(meetingDate),
-                  },
-                ]
-              : []),
-            ...(meetingType
-              ? [{ label: "Meeting Type:", value: meetingType }]
-              : []),
-          ]}
-        />
-
-        <View style={reportStyles.tableContainer}>
-          <View style={reportStyles.tableHeaderRow}>
-            {table.columns.map((column, columnIndex) => (
-              <Text
-                key={column}
-                style={[
-                  reportStyles.headerCell,
-                  columnWidth,
-                  ...(numericColumns[columnIndex]
-                    ? [reportStyles.cellRight]
-                    : []),
-                ]}
-              >
-                {column}
-              </Text>
-            ))}
-          </View>
-          {table.rows.map((row, rowIndex) => (
-            <View key={rowIndex} style={reportStyles.tableRow}>
-              {row.map((value, cellIndex) => (
-                <Text
-                  key={cellIndex}
-                  style={[
-                    reportStyles.cell,
-                    columnWidth,
-                    ...(numericColumns[cellIndex]
-                      ? [reportStyles.cellRight]
-                      : []),
-                  ]}
-                >
-                  {typeof value === "number"
-                    ? value.toLocaleString("en-US")
-                    : value}
-                </Text>
-              ))}
-            </View>
-          ))}
-        </View>
-
-        <Text style={reportStyles.footnote}>
-          System-generated report. Figures shown are representative for this
-          meeting.
-        </Text>
-
-        <ReportPageNumber />
-      </Page>
-    </Document>
-  );
-};
 
 /**
  * Generates a mock report as a PDF in the browser and triggers a download
@@ -444,6 +344,109 @@ const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
 export async function exportMockReportPdf(
   options: MockReportOptions
 ): Promise<void> {
+  // Load the heavy PDF renderer on demand so it stays out of the initial bundle.
+  const { Document, Page, Text, View, pdf } =
+    await import("@react-pdf/renderer");
+
+  /**
+   * Generic single-page @react-pdf document for any mock report: themed header,
+   * meeting meta row, and an evenly-spaced column table with alternating row
+   * shading, matching the shared report theme.
+   */
+  const MockReportPDFDocument: React.FC<MockReportDocumentProps> = ({
+    options: documentOptions,
+    table: documentTable,
+    clientLogoUrl,
+    betanxtLogoUrl,
+  }) => {
+    const { reportName, companyName, clientTicker, meetingType, meetingDate } =
+      documentOptions;
+    const columnWidth = { width: `${100 / documentTable.columns.length}%` };
+    // Right-align columns whose every value is numeric (counts, shares, etc.).
+    const numericColumns = documentTable.columns.map(
+      (_, columnIndex) =>
+        documentTable.rows.length > 0 &&
+        documentTable.rows.every((row) => typeof row[columnIndex] === "number")
+    );
+
+    return (
+      <Document>
+        <Page size="LETTER" style={reportStyles.page}>
+          <ReportPdfHeader
+            reportTitle={reportName}
+            subtitle={meetingType}
+            clientTicker={clientTicker}
+            clientLogoUrl={clientLogoUrl}
+            betanxtLogoUrl={betanxtLogoUrl}
+          />
+
+          <ReportMetaGrid
+            items={[
+              { label: "Company Name:", value: companyName },
+              ...(meetingDate
+                ? [
+                    {
+                      label: "Meeting Date:",
+                      value: formatReportDate(meetingDate),
+                    },
+                  ]
+                : []),
+              ...(meetingType
+                ? [{ label: "Meeting Type:", value: meetingType }]
+                : []),
+            ]}
+          />
+
+          <View style={reportStyles.tableContainer}>
+            <View style={reportStyles.tableHeaderRow}>
+              {documentTable.columns.map((column, columnIndex) => (
+                <Text
+                  key={column}
+                  style={[
+                    reportStyles.headerCell,
+                    columnWidth,
+                    ...(numericColumns[columnIndex]
+                      ? [reportStyles.cellRight]
+                      : []),
+                  ]}
+                >
+                  {column}
+                </Text>
+              ))}
+            </View>
+            {documentTable.rows.map((row, rowIndex) => (
+              <View key={rowIndex} style={reportStyles.tableRow}>
+                {row.map((value, cellIndex) => (
+                  <Text
+                    key={cellIndex}
+                    style={[
+                      reportStyles.cell,
+                      columnWidth,
+                      ...(numericColumns[cellIndex]
+                        ? [reportStyles.cellRight]
+                        : []),
+                    ]}
+                  >
+                    {typeof value === "number"
+                      ? value.toLocaleString("en-US")
+                      : value}
+                  </Text>
+                ))}
+              </View>
+            ))}
+          </View>
+
+          <Text style={reportStyles.footnote}>
+            System-generated report. Figures shown are representative for this
+            meeting.
+          </Text>
+
+          <ReportPageNumber />
+        </Page>
+      </Document>
+    );
+  };
+
   const table = buildMockReportTable(
     options.reportName,
     options.meetingId,

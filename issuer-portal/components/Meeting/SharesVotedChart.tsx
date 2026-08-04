@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 "use client";
 
 import {
@@ -9,155 +10,214 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Typography,
+  Skeleton,
+  Stack,
 } from "@mui/material";
-import { PieChart } from "@mui/x-charts/PieChart";
-import React, { useMemo, useState } from "react";
+import { useState } from "react";
 
-import type { ProposalVoting } from "@/types/phases";
+import type { ProposalVoting } from "../../types/phases";
 
-import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
+import { useVotingTabulation } from "../../hooks/use-voting-tabulation";
+import {
+  tabulationCardContentStyles,
+  tabulationCardHeaderStyles,
+  tabulationCardStyles,
+  tabulationChartHeight,
+  tabulationDonutCenterY,
+  tabulationDonutChartMargin,
+  tabulationDonutInnerRadius,
+  tabulationDonutOuterRadius,
+} from "../../utils/tabulation-card-layout";
+import { formatTabulationMetric } from "../../utils/tabulation-display";
+import { voteChartColors } from "../../utils/vote-chart-colors";
+import ConfiguredPieChart from "../Reporting/ConfiguredPieChart";
 
 interface SharesVotedChartProps {
   /** Meeting whose proposals are fetched via {@link useVotingTabulation}. Ignored when `proposalsOverride` is set. */
-  meetingId?: string;
+  readonly meetingId?: string;
   /** Forces the loading state from the parent (e.g. while the page-level fetch resolves). */
-  loading?: boolean;
+  readonly loading?: boolean;
   /** Pre-fetched proposals to render instead of fetching by `meetingId`. */
-  proposalsOverride?: ProposalVoting[];
+  readonly proposalsOverride?: readonly ProposalVoting[];
 }
 
-const TITLE_TRUNCATION_LENGTH = 20;
+/** Minimum percentage size for an arc slice to prevent microscopic lines */
+const MIN_ARC_PERCENT = 4; // e.g., 4% minimum visual width
 
-/**
- * Truncates a proposal title for display in the selector menu, appending an
- * ellipsis when it exceeds {@link TITLE_TRUNCATION_LENGTH} characters.
- *
- * @param title - Full proposal title
- * @returns The original title, or a trimmed prefix ending in `…`
- */
-function truncateTitle(title: string): string {
-  if (title.length <= TITLE_TRUNCATION_LENGTH) return title;
-  return `${title.slice(0, TITLE_TRUNCATION_LENGTH).trimEnd()}…`;
+interface VotingBreakdownSlice {
+  readonly color: string;
+  readonly id: number;
+  readonly label: string | undefined;
+  readonly originalShares: number;
+  readonly value: number;
 }
 
-/**
- * Resolves the display title for a proposal, falling back to its description
- * when no explicit title was provided.
- *
- * @param proposal - Proposal voting record
- * @returns Human-readable proposal title
- */
-function getProposalTitle(proposal: ProposalVoting): string {
-  return proposal.proposalTitle || proposal.description;
-}
+const unavailablePieSliceColor = "var(--mui-palette-divider)";
+
+const emptyPieSlice: VotingBreakdownSlice = {
+  color: unavailablePieSliceColor,
+  id: 3,
+  label: undefined,
+  originalShares: 0,
+  value: 1,
+};
 
 /**
  * Donut chart of FOR / AGAINST / ABSTAIN shares for a single proposal.
- *
- * Proposals are listed in a selector ordered by proposal number; the
- * lowest-numbered proposal is shown by default and the selector is disabled
- * for single-proposal meetings. Zero-vote slices are omitted, and an empty
- * state is rendered when the selected proposal has no recorded votes
- * (002-tabulation-enhancements contract C2).
- *
- * @example
- * <SharesVotedChart meetingId="wen-annual-meeting-2025" />
  */
-export default function SharesVotedChart({
+const SharesVotedChart = ({
   meetingId,
   loading = false,
   proposalsOverride,
-}: SharesVotedChartProps) {
+}: SharesVotedChartProps) => {
+  const { displayMode } = useTabulationDisplay();
   const { proposals: fetchedProposals, loading: votingLoading } =
     useVotingTabulation(meetingId);
+
   const proposals = proposalsOverride ?? fetchedProposals;
 
-  const sortedProposals = useMemo(
-    () => [...proposals].sort((a, b) => a.proposalNumber - b.proposalNumber),
-    [proposals]
+  const sortedProposals = Array.from(proposals).sort(
+    (firstProposal, secondProposal) =>
+      firstProposal.proposalNumber - secondProposal.proposalNumber
   );
 
   const [selectedProposalId, setSelectedProposalId] = useState<string>("");
 
-  const selectedProposal = useMemo(() => {
-    const matched = sortedProposals.find(
+  const selectedProposal =
+    sortedProposals.find(
       (proposal) => proposal.proposalId === selectedProposalId
-    );
-    return matched ?? sortedProposals[0] ?? null;
-  }, [selectedProposalId, sortedProposals]);
+    ) ??
+    sortedProposals.at(0) ??
+    null;
 
-  const votingBreakdownData = useMemo(() => {
-    if (!selectedProposal) return [];
+  // Keep every category in the data so its legend item remains visible.
+  const rawBreakdownData =
+    selectedProposal === null
+      ? []
+      : [
+          {
+            id: 0,
+            label: "For",
+            shares: selectedProposal.votingResults.for.shares,
+            color: voteChartColors.outcomes.for.color,
+          },
+          {
+            id: 1,
+            label: "Against",
+            shares: selectedProposal.votingResults.against.shares,
+            color: voteChartColors.outcomes.against.color,
+          },
+          {
+            id: 2,
+            // Abstain and Withhold are the same answer to a reader — neither is
+            // a vote for or against — and as two thin arcs they read as noise.
+            // The tabulation table still reports them separately.
+            label: "Abstain / Withhold",
+            shares:
+              selectedProposal.votingResults.abstain.shares +
+              (selectedProposal.votingResults.withhold?.shares ?? 0),
+            color: voteChartColors.outcomes.abstain.color,
+          },
+        ];
 
-    return [
-      {
-        id: 0,
-        label: "For",
-        value: selectedProposal.votingResults.for.shares,
-        color: "var(--mui-palette-chartSeries-0-main)",
-      },
-      {
-        id: 1,
-        label: "Against",
-        value: selectedProposal.votingResults.against.shares,
-        color: "var(--mui-palette-chartSeries-1-main)",
-      },
-      {
-        id: 2,
-        label: "Abstain",
-        value: selectedProposal.votingResults.abstain.shares,
-        color: "var(--mui-palette-chartSeries-2-main)",
-      },
-    ].filter((item) => item.value > 0);
-  }, [selectedProposal]);
-
-  const totalSharesVoted = votingBreakdownData.reduce(
-    (sum, item) => sum + item.value,
+  // Calculate actual total shares voted
+  const totalSharesVoted = rawBreakdownData.reduce(
+    (sum, item) => sum + item.shares,
     0
   );
 
+  // Normalize populated arcs and leave missing categories as zero-value slices.
+  const forcedMinimumShares = totalSharesVoted * (MIN_ARC_PERCENT / 100);
+
+  const votingBreakdownData: VotingBreakdownSlice[] = rawBreakdownData.map(
+    (item) => {
+      const hasShares = item.shares > 0;
+      // If a populated slice is smaller than our allowed threshold, give it a floor value for visual rendering.
+      const visualValue = hasShares
+        ? Math.max(item.shares, forcedMinimumShares)
+        : 0;
+
+      return {
+        id: item.id,
+        label: item.label,
+        color: hasShares ? item.color : unavailablePieSliceColor,
+        value: visualValue, // MUI X Charts calculates the angle from this property
+        originalShares: item.shares, // Kept intact to drive accurate labels/tooltips
+      };
+    }
+  );
+
+  const totalMetric = formatTabulationMetric(
+    totalSharesVoted,
+    totalSharesVoted,
+    displayMode
+  );
+  const hasRecordedVotes = totalSharesVoted > 0;
+  const pieChartData = hasRecordedVotes
+    ? votingBreakdownData
+    : [...votingBreakdownData, emptyPieSlice];
+
   if (loading || votingLoading) {
     return (
-      <Card>
+      <Card sx={tabulationCardStyles}>
         <CardHeader title="Shares Voted" />
         <CardContent>
-          <Typography>Loading...</Typography>
+          <Stack spacing={2}>
+            <Skeleton variant="rectangular" width="50%" height={30} />
+            <Skeleton
+              variant="text"
+              width={tabulationChartHeight}
+              height={20}
+            />
+            <Skeleton
+              variant="text"
+              width={tabulationChartHeight}
+              height={20}
+            />
+          </Stack>
         </CardContent>
       </Card>
     );
   }
 
-  const headerSubtitle = selectedProposal
-    ? `Viewing: Proposal ${selectedProposal.proposalNumber}`
-    : undefined;
+  const headerSubtitle =
+    selectedProposal !== null
+      ? `Viewing: Proposal ${selectedProposal.proposalNumber}`
+      : undefined;
 
   return (
-    <Card sx={{ flex: 1, height: "100%" }}>
-      <CardHeader title="Shares Voted" subheader={headerSubtitle} />
-      <CardContent>
-        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-          <InputLabel id="shares-voted-proposal-select-label">
-            Proposal
-          </InputLabel>
-          <Select
-            labelId="shares-voted-proposal-select-label"
-            id="shares-voted-proposal-select"
-            label="Proposal"
-            value={selectedProposal?.proposalId ?? ""}
-            onChange={(event) => setSelectedProposalId(event.target.value)}
-            disabled={sortedProposals.length <= 1}
-          >
-            {sortedProposals.map((proposal) => (
-              <MenuItem key={proposal.proposalId} value={proposal.proposalId}>
-                {`Proposal ${proposal.proposalNumber}: ${truncateTitle(getProposalTitle(proposal))}`}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {!selectedProposal ? (
+    <Card sx={tabulationCardStyles}>
+      <CardHeader
+        title="Shares Voted"
+        subheader={headerSubtitle}
+        action={
+          <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+            <InputLabel id="shares-voted-proposal-select-label">
+              Proposal
+            </InputLabel>
+            <Select
+              labelId="shares-voted-proposal-select-label"
+              id="shares-voted-proposal-select"
+              label="Proposal"
+              value={selectedProposal?.proposalId ?? ""}
+              onChange={(event) => {
+                setSelectedProposalId(event.target.value);
+              }}
+              disabled={sortedProposals.length <= 1}
+            >
+              {sortedProposals.map((proposal) => (
+                <MenuItem key={proposal.proposalId} value={proposal.proposalId}>
+                  {`Proposal ${proposal.proposalNumber}`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        }
+        sx={tabulationCardHeaderStyles}
+      />
+      <CardContent sx={tabulationCardContentStyles}>
+        {selectedProposal === null ? (
           <Box
             sx={{
               minHeight: 250,
@@ -169,61 +229,66 @@ export default function SharesVotedChart({
           >
             No proposals available for this meeting
           </Box>
-        ) : votingBreakdownData.length === 0 ? (
-          <Box
-            sx={{
-              minHeight: 250,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "text.secondary",
-              textAlign: "center",
-              px: 2,
-            }}
-          >
-            {`No votes have been recorded for Proposal ${selectedProposal.proposalNumber} yet`}
-          </Box>
         ) : (
           <Box
             sx={{
               minHeight: 250,
+              width: "100%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               color: "text.secondary",
             }}
           >
-            <PieChart
-              series={[
+            <ConfiguredPieChart
+              centerLabel={{
+                centerTooltip: totalMetric.alternate,
+                centerValue: totalMetric.display,
+                label: "Shares Voted",
+                sliceData: pieChartData,
+                total: totalSharesVoted,
+              }}
+              height={tabulationChartHeight}
+              hideLegend={false}
+              margin={tabulationDonutChartMargin}
+              rings={[
                 {
-                  data: votingBreakdownData,
-                  innerRadius: 75,
-                  outerRadius: 100,
+                  cx: "50%",
+                  cy: tabulationDonutCenterY,
+                  data: pieChartData,
+                  innerRadius: tabulationDonutInnerRadius,
+                  outerRadius: tabulationDonutOuterRadius,
                   highlightScope: { fade: "global", highlight: "item" },
+                  // Use originalShares for the hover tooltips
+                  valueFormatter: (_value, context) => {
+                    const item = pieChartData[context.dataIndex];
+                    if (item.label === undefined) {
+                      return "";
+                    }
+
+                    const metric = formatTabulationMetric(
+                      item.originalShares,
+                      totalSharesVoted,
+                      displayMode
+                    );
+                    // The tooltip already renders the series label, so return
+                    // only the value. Active display mode leads.
+                    return `${metric.display} (${metric.alternate})`;
+                  },
                 },
               ]}
-              width={250}
-              height={250}
-              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-              hideLegend={false}
               slotProps={{
                 legend: {
                   direction: "horizontal",
                   position: { vertical: "bottom", horizontal: "center" },
                 },
               }}
-            >
-              <PieCenterLabel
-                data={{
-                  total: totalSharesVoted,
-                  label: "Shares Voted",
-                  sliceData: votingBreakdownData,
-                }}
-              />
-            </PieChart>
+            />
           </Box>
         )}
       </CardContent>
     </Card>
   );
-}
+};
+
+export default SharesVotedChart;

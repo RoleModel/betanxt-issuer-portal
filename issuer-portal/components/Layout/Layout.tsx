@@ -11,38 +11,38 @@ import { useSession } from "next-auth/react";
 import React, { Suspense, useMemo, useState } from "react";
 
 import { ResetDemoDataDialog } from "@/components/Dialogs/ResetDemoDataDialog";
-import { InfoDialog } from "@/components/InfoDialog";
 import { BNAppBarClient } from "@/components/Navigation/AppBar";
 import { EventTabs } from "@/components/Navigation/EventTabs";
 import IssuerSpeedDial from "@/components/SpeedDial";
 import SupportContactsPopover from "@/components/SupportContactsPopover";
 import { useChatbotContext } from "@/contexts/ChatbotContext";
 import { useClient } from "@/contexts/ClientContext";
+import { useGlossary } from "@/contexts/GlossaryContext";
 
 import Loading from "../../app/loading";
 
 interface LayoutProps {
-  activeNavLinkTitle?: string;
-  appSwitcher?: boolean;
-  apps?: string;
-  navBar?: boolean;
-  eventTabs?: boolean;
+  readonly activeNavLinkTitle?: string;
+  readonly appSwitcher?: boolean;
+  readonly apps?: string;
+  readonly navBar?: boolean;
+  readonly eventTabs?: boolean;
 }
 
-function Layout({
+const Layout = ({
   children,
   navBar = true,
   eventTabs = false,
-}: PropsWithChildren<LayoutProps>) {
+}: PropsWithChildren<LayoutProps>) => {
   const [open, setOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-  const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
   const [resetDialogOpen, setResetDialogOpen] = React.useState(false);
   const [phaseCompleteSnackbar, setPhaseCompleteSnackbar] = useState({
     open: false,
     message: "",
   });
   const { openChatbot } = useChatbotContext();
+  const { openGlossary } = useGlossary();
 
   // Expose snackbar handler globally for phase completion
   React.useEffect(() => {
@@ -95,11 +95,7 @@ function Layout({
   };
 
   const handleGlossaryClick = () => {
-    setInfoDialogOpen(true);
-  };
-
-  const handleInfoDialogClose = () => {
-    setInfoDialogOpen(false);
+    openGlossary();
   };
 
   const handleContactsClick = () => {
@@ -175,7 +171,7 @@ function Layout({
   return (
     <Suspense fallback={<Loading />}>
       <Stack sx={{ minHeight: "100vh" }}>
-        {navBar && (
+        {navBar ? (
           <Box
             sx={{
               flexShrink: 0,
@@ -183,28 +179,26 @@ function Layout({
           >
             <BNAppBarClient appSwitcher={true} user={bnUser} />
           </Box>
-        )}
-        {eventTabs && (
+        ) : null}
+        {eventTabs ? (
           <Box sx={{ flexShrink: 0 }}>
             <EventTabs />
           </Box>
-        )}
+        ) : null}
 
         <Box component="main" flex="1 0 auto">
           {children}
         </Box>
-        {navBar && (
+        {navBar ? (
           <IssuerSpeedDial
             ariaLabel="Support Contacts"
             icon={<SupportAgentOutlined />}
             closeIcon={<CloseOutlined />}
-            tooltipTitle="Support Contacts"
-            placement="top"
             onAssistantClick={handleAssistantClick}
             onGlossaryClick={handleGlossaryClick}
             onContactsClick={handleContactsClick}
           />
-        )}
+        ) : null}
         <SupportContactsPopover
           open={open}
           anchorEl={anchorEl}
@@ -212,12 +206,6 @@ function Layout({
             setOpen(false);
             setAnchorEl(null);
           }}
-        />
-        <InfoDialog
-          open={infoDialogOpen}
-          onClose={handleInfoDialogClose}
-          term=""
-          definition=""
         />
         <ResetDemoDataDialog
           open={resetDialogOpen}
@@ -228,13 +216,15 @@ function Layout({
         <Snackbar
           open={phaseCompleteSnackbar.open}
           autoHideDuration={6000}
-          onClose={() => setPhaseCompleteSnackbar({ open: false, message: "" })}
+          onClose={() => {
+            setPhaseCompleteSnackbar({ open: false, message: "" });
+          }}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
           <Alert
-            onClose={() =>
-              setPhaseCompleteSnackbar({ open: false, message: "" })
-            }
+            onClose={() => {
+              setPhaseCompleteSnackbar({ open: false, message: "" });
+            }}
             severity="success"
             sx={{
               width: "100%",
@@ -273,6 +263,6 @@ function Layout({
       </Stack>
     </Suspense>
   );
-}
+};
 
 export default Layout;

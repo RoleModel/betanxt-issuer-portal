@@ -1,13 +1,13 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-09-22T18:38:17.317Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import type { Database, Json } from "@/utils/supabase/database.types";
 
 import { supabase } from "@/utils/supabase/client";
 
-interface RouteParams {
+interface RouteParameters {
   id: string;
 }
 
@@ -19,32 +19,64 @@ interface HistoryEvent {
   metadata?: Record<string, unknown>;
 }
 
+type DocumentHistoryEventType = NonNullable<
+  Database["public"]["Tables"]["document_history"]["Row"]["event_type"]
+>;
+
+const documentHistoryEventTypes = new Set<DocumentHistoryEventType>([
+  "APPROVED",
+  "COMMENTED",
+  "CREATED",
+  "DELETED",
+  "DOWNLOADED",
+  "REJECTED",
+  "SIGNED",
+  "UPDATED",
+  "UPLOADED",
+  "VIEWED",
+]);
+
+function toDocumentHistoryEventType(
+  value: string | undefined
+): DocumentHistoryEventType {
+  return value !== undefined &&
+    documentHistoryEventTypes.has(value as DocumentHistoryEventType)
+    ? (value as DocumentHistoryEventType)
+    : "CREATED";
+}
+
+function toMetadata(value: Json | null): Record<string, unknown> | undefined {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? value
+    : undefined;
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParameters> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = await params;
-    const documentId = resolvedParams.id;
+    const resolvedParameters = await params;
+    const documentId = resolvedParameters.id;
 
     // Get history for this document from database
-    const { data: history, error: dbError } = await supabase
+    const { data: history, error: databaseError } = await supabase
       .from("document_history")
       .select("*")
       .eq("document_id", documentId)
-      .order("timestamp", { ascending: false });
+      .order("created_at", { ascending: false });
 
-    if (dbError) {
-      throw new Error(`Database error: ${dbError.message}`);
+    if (databaseError) {
+      throw new Error(`Database error: ${databaseError.message}`);
     }
 
     // Transform database records to API format
     const historyEvents: HistoryEvent[] = (history || []).map((record) => ({
-      id: record.id,
-      event_type: record.event_type,
-      user: record.user,
-      timestamp: record.timestamp,
-      metadata: record.metadata || undefined,
+      id: record.id ?? "",
+      event_type: record.event_type ?? "CREATED",
+      user: record.user ?? "current-user",
+      timestamp: record.created_at ?? "",
+      metadata: toMetadata(record.metadata),
     }));
 
     return NextResponse.json(historyEvents);
@@ -52,7 +84,7 @@ export async function GET(
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: Error.isError(error) ? error.message : "Unknown error",
         operationId: "getDocumentHistory",
       },
       { status: 500 }
@@ -69,37 +101,41 @@ interface HistoryEventRequest {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParameters> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = await params;
-    const documentId = resolvedParams.id;
+    const resolvedParameters = await params;
+    const documentId = resolvedParameters.id;
     const body = (await request.json()) as HistoryEventRequest;
 
     // Insert new history event into database
-    const { data, error: dbError } = await supabase
+    const { data, error: databaseError } = await supabase
       .from("document_history")
       .insert({
         document_id: documentId,
-        event_type: (body.event_type || body.eventType) ?? "unknown",
+        event_type: toDocumentHistoryEventType(
+          body.event_type ?? body.eventType
+        ),
         user: body.user ?? "current-user",
-        timestamp: new Date().toISOString(),
-        metadata: body.metadata || {},
+        created_at: new Date().toISOString(),
+        metadata: JSON.parse(JSON.stringify(body.metadata ?? {})) as Json,
       })
       .select()
       .single();
 
-    if (dbError) {
-      throw new Error(`Database error: ${dbError.message}`);
+    if (databaseError || data === null) {
+      throw new Error(
+        `Database error: ${databaseError?.message ?? "No history event returned"}`
+      );
     }
 
     // Transform database record to API format
     const newEvent: HistoryEvent = {
-      id: data.id,
-      event_type: data.event_type,
-      user: data.user,
-      timestamp: data.timestamp,
-      metadata: data.metadata || undefined,
+      id: data.id ?? "",
+      event_type: data.event_type ?? "CREATED",
+      user: data.user ?? "current-user",
+      timestamp: data.created_at ?? "",
+      metadata: toMetadata(data.metadata),
     };
 
     return NextResponse.json(newEvent, { status: 201 });
@@ -107,7 +143,7 @@ export async function POST(
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: Error.isError(error) ? error.message : "Unknown error",
         operationId: "addDocumentHistory",
       },
       { status: 500 }

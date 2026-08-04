@@ -16,15 +16,14 @@ import { buildQuorumGaugeModel } from "@/utils/quorum";
 type TabulationReport = components["schemas"]["TabulationReport"];
 
 interface Phase1LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
+  readonly meeting?: Meeting;
 }
 
-function Phase1Layout({ meeting }: Phase1LayoutProps) {
+const Phase1Layout = ({ meeting }: Phase1LayoutProps) => {
   const { data: tabulationReport, isLoading } = useSWR<TabulationReport | null>(
-    meeting?.id ? `/tabulation-report/${meeting.id}` : null,
+    meeting?.id != null ? `/tabulation-report/${meeting.id}` : null,
     async () => {
-      if (!meeting?.id) return null;
+      if (meeting?.id == null) return null;
       const apiClient = await buildApiClient();
       const result = await apiClient.GET(
         "/meetings/{meetingId}/tabulation-report",
@@ -68,6 +67,6 @@ function Phase1Layout({ meeting }: Phase1LayoutProps) {
       </Grid>
     </Suspense>
   );
-}
+};
 
 export default Phase1Layout;

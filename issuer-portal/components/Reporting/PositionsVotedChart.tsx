@@ -27,21 +27,33 @@ interface PositionsVotedData {
 }
 
 interface PositionsVotedChartProps {
-  meetingId?: string;
-  setKeys?: string[];
-  data?: Record<string, PositionsVotedData>;
-  loading?: boolean;
+  readonly meetingId?: string;
+  readonly setKeys?: string[];
+  readonly data?: Record<string, PositionsVotedData>;
+  readonly loading?: boolean;
   /** Optional card subheader, e.g. the currently selected event. */
-  subheader?: string;
+  readonly subheader?: string;
 }
 
 interface DonutChartProps {
-  data: { id: string; label: string; value: number; color: string }[];
-  centerValue: number;
-  centerLabel: string;
+  readonly data: { id: string; label: string; value: number; color: string }[];
+  readonly centerValue: number;
+  readonly centerLabel: string;
 }
 
-function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
+const positionCountFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0,
+});
+
+const formatPositionCount = (value: number): string =>
+  positionCountFormatter.format(value);
+
+const formatPositionPercentage = (value: number, total: number): string => {
+  const percentage = total > 0 ? (value / total) * 100 : 0;
+  return `${percentage.toFixed(2)}%`;
+};
+
+const DonutChart = ({ data, centerValue, centerLabel }: DonutChartProps) => {
   return (
     <Box>
       <Box
@@ -54,6 +66,13 @@ function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
               innerRadius: 75,
               outerRadius: 100,
               highlightScope: { fade: "global", highlight: "item" },
+              // This chart renders outside TabulationDisplayProvider, so there
+              // is no display mode to follow; always lead with the count.
+              valueFormatter: (item) =>
+                `${formatPositionCount(item.value)} (${formatPositionPercentage(
+                  item.value,
+                  centerValue
+                )})`,
             },
           ]}
           width={300}
@@ -85,13 +104,13 @@ function DonutChart({ data, centerValue, centerLabel }: DonutChartProps) {
       </Box>
     </Box>
   );
-}
+};
 
-export default function PositionsVotedChart({
+const PositionsVotedChart = ({
   setKeys = [],
   data = {},
   subheader,
-}: PositionsVotedChartProps) {
+}: PositionsVotedChartProps) => {
   const [selectedSetKey, setSelectedSetKey] = useState("");
 
   // Derive the rendered key instead of syncing state via effects: fall back to
@@ -116,42 +135,35 @@ export default function PositionsVotedChart({
   const totalBeneficial =
     selectedData.beneficial.voted + selectedData.beneficial.notVoted;
 
-  const registeredVotedPercentage =
-    totalRegistered > 0
-      ? (selectedData.registered.voted / totalRegistered) * 100
-      : 0;
-  const beneficialVotedPercentage =
-    totalBeneficial > 0
-      ? (selectedData.beneficial.voted / totalBeneficial) * 100
-      : 0;
-
+  // Percentages live in the tooltip alongside the count, so the legend labels
+  // stay plain and are not repeated in the hover text.
   const registeredData = [
     {
       id: "voted",
-      label: `Voted (${registeredVotedPercentage.toFixed(2)}%)`,
+      label: "Voted",
       value: selectedData.registered.voted,
-      color: "var(--mui-palette-chartSeries-1-main)",
+      color: "var(--mui-palette-voteDistribution-dtc-voted)",
     },
     {
       id: "not-voted",
-      label: `Unvoted (${(100 - registeredVotedPercentage).toFixed(2)}%)`,
+      label: "Unvoted",
       value: selectedData.registered.notVoted,
-      color: "var(--mui-palette-chartSeries-4-main)",
+      color: "var(--mui-palette-voteDistribution-dtc-unvoted)",
     },
   ];
 
   const beneficialData = [
     {
       id: "voted",
-      label: `Voted (${beneficialVotedPercentage.toFixed(2)}%)`,
+      label: "Voted",
       value: selectedData.beneficial.voted,
-      color: "var(--mui-palette-chartSeries-1-main)",
+      color: "var(--mui-palette-voteDistribution-nonDtc-voted)",
     },
     {
       id: "not-voted",
-      label: `Unvoted (${(100 - beneficialVotedPercentage).toFixed(2)}%)`,
+      label: "Unvoted",
       value: selectedData.beneficial.notVoted,
-      color: "var(--mui-palette-chartSeries-4-main)",
+      color: "var(--mui-palette-voteDistribution-nonDtc-unvoted)",
     },
   ];
 
@@ -164,7 +176,9 @@ export default function PositionsVotedChart({
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <Select
               value={effectiveSetKey}
-              onChange={(e) => setSelectedSetKey(e.target.value)}
+              onChange={(e) => {
+                setSelectedSetKey(e.target.value);
+              }}
               displayEmpty
             >
               {setKeys.length === 0 ? (
@@ -185,8 +199,8 @@ export default function PositionsVotedChart({
       <CardContent sx={{ height: "100%" }}>
         <Stack
           direction={{ xs: "column", sm: "column", md: "row", lg: "row" }}
-          justifyContent={"center"}
-          alignItems={"center"}
+          justifyContent="center"
+          alignItems="center"
           spacing={{ xs: 2, md: 3 }}
         >
           <DonutChart
@@ -204,4 +218,6 @@ export default function PositionsVotedChart({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default PositionsVotedChart;

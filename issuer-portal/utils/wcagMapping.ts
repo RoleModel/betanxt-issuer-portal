@@ -11,13 +11,13 @@ export function extractWcagCriteria(tags: string[]): string {
 
   const criteria: string[] = [];
 
-  wcagTags.forEach((tag) => {
+  for (const tag of wcagTags) {
     // Remove 'wcag' prefix
     const value = tag.replace(/^wcag/, "");
 
     // Skip level tags (2a, 21a, 22aa, etc)
     if (/^2+[1-2]*a+$/i.test(value)) {
-      return;
+      continue;
     }
 
     // Convert number format to dotted format
@@ -27,7 +27,7 @@ export function extractWcagCriteria(tags: string[]): string {
       const formatted = digits.split("").join(".");
       criteria.push(formatted);
     }
-  });
+  }
 
   return criteria.length > 0 ? criteria.join(", ") : "No WCAG criteria mapped";
 }

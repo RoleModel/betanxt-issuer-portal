@@ -1,19 +1,11 @@
 "use client";
 
-import type { SelectChangeEvent } from "@mui/material";
-
-import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   CardHeader,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -22,8 +14,9 @@ import {
   TableRow,
 } from "@mui/material";
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import { useClient } from "@/contexts/ClientContext";
 import { useMeeting } from "@/contexts/MeetingContext";
@@ -36,7 +29,7 @@ import {
 } from "@/utils/mockMeetingReports";
 
 interface ReportItem {
-  /** Stable key used for React lists and the report-selection dropdown value. */
+  /** Stable key used for React lists and download state. */
   id: string;
   name: string;
   /** Parent section name for indented sub-reports (e.g. `Account Report - Voted`). */
@@ -53,26 +46,28 @@ interface ReportItem {
 }
 
 interface StorageFile {
-  name: string;
-  id: string;
-  updated_at: string;
-  created_at: string;
-  last_accessed_at: string;
-  metadata: Record<string, unknown>;
+  readonly name: string;
 }
+
+/** Narrows an untyped storage-list entry to the report field this card needs. */
+const isStorageFile = (value: unknown): value is StorageFile =>
+  typeof value === "object" &&
+  value !== null &&
+  "name" in value &&
+  typeof value.name === "string";
 
 /**
  * Broker Breakout entry pinned to the top of every meeting's report list
  * (002-tabulation-enhancements). Generated client-side from tabulation data,
  * so it is always downloadable and offered as PDF only.
  */
-const BROKER_BREAKOUT_REPORT: ReportItem = {
+const brokerBreakoutReport: ReportItem = {
   id: "broker-breakout",
   name: "Broker Breakout Report",
   isBrokerBreakout: true,
 };
 
-const MOCK_REPORTS: ReportItem[] = [
+const mockReports: ReportItem[] = [
   { id: "ballot-comments", name: "Ballot Comments", isMock: true },
   { id: "change-of-address", name: "Change of Address Report", isMock: true },
   { id: "meeting-attendance", name: "Meeting Attendance", isMock: true },
@@ -153,14 +148,14 @@ const MOCK_REPORTS: ReportItem[] = [
 
 /**
  * Resolves the unambiguous display name for a report, prefixing grouped
- * sub-reports with their section (e.g. `Account Report - Voted`) so dropdown
- * entries and download labels are distinguishable out of context.
+ * sub-reports with their section (e.g. `Account Report - Voted`) so download
+ * labels are distinguishable out of context.
  *
  * @param report - Report list entry
  * @returns The qualified report name
  */
 function fullReportName(report: ReportItem): string {
-  return report.groupLabel
+  return report.groupLabel !== undefined && report.groupLabel !== ""
     ? `${report.groupLabel} - ${report.name}`
     : report.name;
 }
@@ -169,22 +164,17 @@ function fullReportName(report: ReportItem): string {
  * "Download Meeting Reports" card listing every report available for a
  * meeting, each downloadable as PDF and (except Broker Breakout) XLS.
  *
- * A quick-access dropdown above the table downloads the selected report as
- * PDF, defaulting to Broker Breakout. All reports are downloadable: real
- * stored artifacts are fetched from Supabase storage, while mock legacy
- * reports and the Broker Breakout Report are generated on demand in the
- * browser. Downloads are serialized — all buttons disable while one is in
- * flight (002-tabulation-enhancements).
+ * All reports are downloadable: real stored artifacts are fetched from
+ * Supabase storage, while mock legacy reports and the Broker Breakout Report
+ * are generated on demand in the browser. Downloads are serialized — all
+ * buttons disable while one is in flight (002-tabulation-enhancements).
  */
-export default function DownloadReportsTable({
+const DownloadReportsTable = ({
   meetingId,
 }: {
-  meetingId: string;
-}) {
+  readonly meetingId: string;
+}) => {
   const [reports, setReports] = useState<ReportItem[]>([]);
-  const [selectedReportId, setSelectedReportId] = useState<string>(
-    BROKER_BREAKOUT_REPORT.id
-  );
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
@@ -192,6 +182,7 @@ export default function DownloadReportsTable({
   const supabase = getBrowserSupabase();
 
   useEffect(() => {
+    let ignore = false;
     async function fetchReports() {
       // Only fetch real reports for Wendy's 2025 annual meeting
       if (meetingId === "wen-annual-meeting-2025") {
@@ -199,51 +190,58 @@ export default function DownloadReportsTable({
           .from("documents")
           .list(`${meetingId}/reports`);
 
-        if (error) {
+        if (error !== null) {
           console.error("Error fetching reports:", error);
-          setReports([BROKER_BREAKOUT_REPORT, ...MOCK_REPORTS]);
+          if (!ignore) {
+            setReports([brokerBreakoutReport, ...mockReports]);
+          }
           return;
         }
 
-        if (data) {
-          const reportItems = (data as StorageFile[])
-            .filter((file: StorageFile) => file.name.endsWith(".xls"))
-            .map((file: StorageFile) => ({
-              id: `${meetingId}/reports/${file.name}`,
-              name: file.name.replace(".xls", ""),
-              path: `${meetingId}/reports/${file.name}`,
+        if (Array.isArray(data)) {
+          const reportItems: ReportItem[] = [];
+          for (const item of data) {
+            if (!isStorageFile(item) || !item.name.endsWith(".xls")) {
+              continue;
+            }
+
+            reportItems.push({
+              id: `${meetingId}/reports/${item.name}`,
+              name: item.name.replace(".xls", ""),
+              path: `${meetingId}/reports/${item.name}`,
               isMock: false,
-            }));
-          setReports([
-            BROKER_BREAKOUT_REPORT,
-            ...(reportItems.length > 0 ? reportItems : MOCK_REPORTS),
-          ]);
+            });
+          }
+          if (!ignore) {
+            setReports([
+              brokerBreakoutReport,
+              ...(reportItems.length > 0 ? reportItems : mockReports),
+            ]);
+          }
         }
       } else {
         // Use mock reports for all other meetings
-        setReports([BROKER_BREAKOUT_REPORT, ...MOCK_REPORTS]);
+        setReports([brokerBreakoutReport, ...mockReports]);
       }
     }
 
     void fetchReports();
+    return () => {
+      ignore = true;
+    };
   }, [meetingId, supabase]);
-
-  const downloadableReports = useMemo(
-    () => reports.filter((report) => !report.isHeader),
-    [reports]
-  );
 
   const downloadStorageReport = async (path: string, fileName: string) => {
     const { data, error } = await supabase.storage
       .from("documents")
       .download(path);
 
-    if (error) {
+    if (error !== null) {
       console.error("Error downloading report:", error);
       return;
     }
 
-    if (data) {
+    if (data instanceof Blob) {
       const url = URL.createObjectURL(data);
       const a = document.createElement("a");
       a.href = url;
@@ -256,108 +254,87 @@ export default function DownloadReportsTable({
   };
 
   /**
-   * Routes a download to the right producer: Broker Breakout → client-side
-   * PDF generation, mock reports → seeded PDF/XLS generation, stored reports
-   * → Supabase storage fetch. Ignored while another download is in flight.
+   * Produces one report using its matching storage or client-side exporter.
+   *
+   * @param report - Report selected by the user.
+   * @param format - Requested document format.
+   * @returns A promise that resolves after the selected download is produced.
    */
-  const handleDownload = async (report: ReportItem, format: "pdf" | "xls") => {
-    if (downloadingId) return;
+  const executeDownload = async (
+    report: ReportItem,
+    format: "pdf" | "xls"
+  ): Promise<void> => {
+    if (report.isBrokerBreakout === true) {
+      await exportBrokerBreakoutPdf({
+        companyName:
+          currentClient?.company_name ?? currentClient?.short_name ?? "Company",
+        clientTicker: currentClient?.ticker,
+        meetingType: currentMeeting?.meetingType,
+        meetingDate: currentMeeting?.meetingDate,
+        brokerVotingByProposal,
+      });
+      return;
+    }
 
-    setDownloadingId(report.id);
-    try {
-      if (report.isBrokerBreakout) {
-        await exportBrokerBreakoutPdf({
-          companyName:
-            currentClient?.company_name ??
-            currentClient?.short_name ??
-            "Company",
-          clientTicker: currentClient?.ticker,
-          meetingType: currentMeeting?.meetingType,
-          meetingDate: currentMeeting?.meetingDate,
-          brokerVotingByProposal,
-        });
-        return;
+    if (report.isMock === true) {
+      const mockOptions = {
+        reportName: fullReportName(report),
+        meetingId,
+        companyName:
+          currentClient?.company_name ?? currentClient?.short_name ?? "Company",
+        clientTicker: currentClient?.ticker,
+        meetingType: currentMeeting?.meetingType,
+        meetingDate: currentMeeting?.meetingDate,
+      };
+
+      if (format === "pdf") {
+        await exportMockReportPdf(mockOptions);
+      } else {
+        exportMockReportXls(mockOptions);
       }
+      return;
+    }
 
-      if (report.isMock) {
-        const mockOptions = {
-          reportName: fullReportName(report),
-          meetingId,
-          companyName:
-            currentClient?.company_name ??
-            currentClient?.short_name ??
-            "Company",
-          clientTicker: currentClient?.ticker,
-          meetingType: currentMeeting?.meetingType,
-          meetingDate: currentMeeting?.meetingDate,
-        };
-
-        if (format === "pdf") {
-          await exportMockReportPdf(mockOptions);
-        } else {
-          exportMockReportXls(mockOptions);
-        }
-        return;
-      }
-
-      if (report.path) {
-        const path =
-          format === "pdf" ? report.path.replace(".xls", ".pdf") : report.path;
-        await downloadStorageReport(path, `${report.name}.${format}`);
-      }
-    } catch (error) {
-      console.error("Error generating report download:", error);
-    } finally {
-      setDownloadingId(null);
+    if (report.path !== undefined && report.path !== "") {
+      const path =
+        format === "pdf" ? report.path.replace(".xls", ".pdf") : report.path;
+      await downloadStorageReport(path, `${report.name}.${format}`);
     }
   };
 
-  const handleSelectedReportChange = (event: SelectChangeEvent) => {
-    setSelectedReportId(event.target.value);
-  };
+  /**
+   * Serializes report downloads and always returns the table to its ready
+   * state after the selected exporter completes or fails.
+   *
+   * @param report - Report selected by the user.
+   * @param format - Requested document format.
+   * @returns A promise that resolves after the download attempt finishes.
+   */
+  const handleDownload = async (
+    report: ReportItem,
+    format: "pdf" | "xls"
+  ): Promise<void> => {
+    if (downloadingId !== null) return;
 
-  const handleSelectedReportDownload = async () => {
-    const selectedReport = downloadableReports.find(
-      (report) => report.id === selectedReportId
-    );
-    if (!selectedReport) return;
-    await handleDownload(selectedReport, "pdf");
+    setDownloadingId(report.id);
+    try {
+      await executeDownload(report, format);
+    } catch (error) {
+      console.error("Error generating report download:", error);
+    }
+
+    setDownloadingId(null);
   };
 
   return (
     <Card>
-      <CardHeader title="Download Meeting Reports" />
+      <CardHeader
+        title={<GlossaryText>Download Meeting Reports</GlossaryText>}
+        subheader={
+          currentClient?.company_name ?? currentClient?.short_name ?? "Company"
+        }
+      />
       <CardContent sx={{ p: 0 }}>
-        <Box
-          sx={{ display: "flex", alignItems: "center", gap: 2, px: 2, pb: 2 }}
-        >
-          <FormControl size="small" sx={{ flex: 1, minWidth: 240 }}>
-            <InputLabel id="report-select-label">Report</InputLabel>
-            <Select
-              labelId="report-select-label"
-              id="report-select"
-              label="Report"
-              value={selectedReportId}
-              onChange={handleSelectedReportChange}
-            >
-              {downloadableReports.map((report) => (
-                <MenuItem key={report.id} value={report.id}>
-                  {fullReportName(report)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            startIcon={<FileDownloadOutlinedIcon />}
-            disabled={
-              downloadingId !== null || downloadableReports.length === 0
-            }
-            onClick={() => void handleSelectedReportDownload()}
-          >
-            Download
-          </Button>
-        </Box>
         <TableContainer>
           <Table size="small" stickyHeader>
             <SROnlyTableCaption>
@@ -374,9 +351,9 @@ export default function DownloadReportsTable({
                 <TableRow key={report.id}>
                   <TableCell
                     sx={
-                      report.indent
+                      report.indent === true
                         ? { pl: 4 }
-                        : report.isHeader
+                        : report.isHeader === true
                           ? {
                               backgroundColor:
                                 "var(--mui-palette-tableHeaderRow-restingFill)",
@@ -384,9 +361,9 @@ export default function DownloadReportsTable({
                           : undefined
                     }
                   >
-                    {report.indent ? (
+                    {report.indent === true ? (
                       `- ${report.name}`
-                    ) : report.isHeader ? (
+                    ) : report.isHeader === true ? (
                       <strong>{report.name}</strong>
                     ) : (
                       report.name
@@ -395,7 +372,7 @@ export default function DownloadReportsTable({
                   <TableCell
                     align="right"
                     sx={
-                      report.isHeader
+                      report.isHeader === true
                         ? {
                             backgroundColor:
                               "var(--mui-palette-tableHeaderRow-restingFill)",
@@ -403,7 +380,7 @@ export default function DownloadReportsTable({
                         : undefined
                     }
                   >
-                    {!report.isHeader && (
+                    {report.isHeader !== true && (
                       <Box
                         component="span"
                         sx={{ display: "inline-flex", gap: 1 }}
@@ -416,7 +393,7 @@ export default function DownloadReportsTable({
                         >
                           <IconForFileType fileType="PDF" />
                         </IconButton>
-                        {!report.isBrokerBreakout && (
+                        {report.isBrokerBreakout !== true && (
                           <IconButton
                             aria-label={`Download ${fullReportName(report)} as XLS`}
                             title={`Download ${fullReportName(report)} as XLS`}
@@ -437,4 +414,6 @@ export default function DownloadReportsTable({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default DownloadReportsTable;

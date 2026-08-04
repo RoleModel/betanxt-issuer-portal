@@ -10,7 +10,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 
 import type { KeyDate, Task } from "@/types/api-exports";
 import type { ContextMenuPosition } from "@/types/common";
@@ -24,15 +24,25 @@ import { isToday, shiftWeekendToMonday } from "./CalendarUtils";
 import { TaskCard } from "./TaskCard";
 
 interface MonthViewProps {
-  searchQuery: string;
-  statusFilter: string;
-  phaseFilter: number | null;
-  onTaskClick: (taskId: string) => void;
-  tasks: Task[];
-  keyDates: KeyDate[];
-  loading: boolean;
-  onRefresh?: () => Promise<void>;
+  readonly searchQuery: string;
+  readonly statusFilter: string;
+  readonly phaseFilter: number | null;
+  readonly onTaskClick: (taskId: string) => void;
+  readonly tasks: Task[];
+  readonly keyDates: KeyDate[];
+  readonly loading: boolean;
+  readonly onRefresh?: () => Promise<void>;
 }
+
+const dayNames = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
 const getTaskPhase = (task: Task): number => {
   return task.phaseNumber || 1;
@@ -247,13 +257,13 @@ const filterTasks = (
 };
 
 const DayCell: React.FC<{
-  calendarDate: CalendarDate;
-  onTaskClick: (taskId: string) => void;
-  onTaskRightClick: (event: React.MouseEvent, taskId: string) => void;
-  searchQuery: string;
-  statusFilter: string;
-  phaseFilter: number | null;
-  allTasks: Task[];
+  readonly calendarDate: CalendarDate;
+  readonly onTaskClick: (taskId: string) => void;
+  readonly onTaskRightClick: (event: React.MouseEvent, taskId: string) => void;
+  readonly searchQuery: string;
+  readonly statusFilter: string;
+  readonly phaseFilter: number | null;
+  readonly allTasks: Task[];
 }> = ({
   calendarDate,
   onTaskClick,
@@ -284,6 +294,9 @@ const DayCell: React.FC<{
     kd.title.toLowerCase().includes("meeting date")
   );
   const hasKeyDate = keyDates.length > 0;
+  // Hoisted out of JSX: as an inline `&&` prop value, jsx-no-leaked-render
+  // autofixes it to a ternary yielding `null`, which is not a valid boolean prop.
+  const isTaskOnKeyDate = hasKeyDate && !hasMeetingDate;
 
   return (
     <Box
@@ -398,7 +411,7 @@ const DayCell: React.FC<{
                 phaseColor={taskPhaseColor} // Pass color directly
                 variant="compact"
                 showPhaseIndicator={true} // Always show phase indicator for tasks
-                isKeyDate={hasKeyDate && !hasMeetingDate} // Tasks on key date cells get key date styling
+                isKeyDate={isTaskOnKeyDate} // Tasks on key date cells get key date styling
                 isMeetingDate={hasMeetingDate} // Tasks on meeting date cells get meeting date styling
                 onClick={() => task.id && onTaskClick(task.id)}
                 onContextMenu={(e) => task.id && onTaskRightClick(e, task.id)}
@@ -430,7 +443,7 @@ const DayCell: React.FC<{
       </Box>
 
       {/* Current day indicator */}
-      {isCurrentDay && (
+      {isCurrentDay ? (
         <Box
           sx={{
             position: "absolute",
@@ -442,19 +455,19 @@ const DayCell: React.FC<{
             backgroundColor: (theme) => theme.vars?.palette?.secondary?.light,
           }}
         />
-      )}
+      ) : null}
     </Box>
   );
 };
 
 const MonthGrid: React.FC<{
-  month: CalendarMonth;
-  onTaskClick: (taskId: string) => void;
-  onTaskRightClick: (event: React.MouseEvent, taskId: string) => void;
-  searchQuery: string;
-  statusFilter: string;
-  phaseFilter: number | null;
-  allTasks: Task[];
+  readonly month: CalendarMonth;
+  readonly onTaskClick: (taskId: string) => void;
+  readonly onTaskRightClick: (event: React.MouseEvent, taskId: string) => void;
+  readonly searchQuery: string;
+  readonly statusFilter: string;
+  readonly phaseFilter: number | null;
+  readonly allTasks: Task[];
 }> = ({
   month,
   onTaskClick,
@@ -513,8 +526,12 @@ export const MonthView: React.FC<MonthViewProps> = ({
       setLoaded(true);
     } else if (!loading) {
       // Even if no data, still fade in the empty state
-      const timer = setTimeout(() => setLoaded(true), 100);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        setLoaded(true);
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+      };
     }
   }, [loading, tasks.length, keyDates.length]);
 
@@ -522,8 +539,7 @@ export const MonthView: React.FC<MonthViewProps> = ({
   const [contextMenuOpen, setContextMenuOpen] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] =
     useState<ContextMenuPosition | null>(null);
-  const [selectedTaskForContext, setSelectedTaskForContext] =
-    useState<Task | null>(null);
+  const selectedTaskForContext = useRef<Task | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
@@ -535,7 +551,7 @@ export const MonthView: React.FC<MonthViewProps> = ({
     const task = tasks.find((t) => t.id === taskId || t.taskId === taskId);
     if (!task) return;
 
-    setSelectedTaskForContext(task);
+    selectedTaskForContext.current = task;
     setContextMenuPosition({ x: event.clientX, y: event.clientY });
     setContextMenuOpen(true);
   };
@@ -543,20 +559,22 @@ export const MonthView: React.FC<MonthViewProps> = ({
   const handleContextMenuClose = () => {
     setContextMenuOpen(false);
     setContextMenuPosition(null);
-    setSelectedTaskForContext(null);
+    selectedTaskForContext.current = null;
   };
 
   const handleEditTask = () => {
-    if (selectedTaskForContext) {
-      setTaskToEdit(selectedTaskForContext);
+    if (selectedTaskForContext.current) {
+      setTaskToEdit(selectedTaskForContext.current);
       setEditModalOpen(true);
       setContextMenuOpen(false);
     }
   };
 
   const _handleViewTask = () => {
-    if (selectedTaskForContext) {
-      const taskId = selectedTaskForContext.taskId || selectedTaskForContext.id;
+    if (selectedTaskForContext.current) {
+      const taskId =
+        selectedTaskForContext.current.taskId ||
+        selectedTaskForContext.current.id;
       if (taskId) {
         onTaskClick(taskId);
       }
@@ -577,16 +595,6 @@ export const MonthView: React.FC<MonthViewProps> = ({
     setEditModalOpen(false);
     setTaskToEdit(null);
   };
-
-  const dayNames = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
 
   if (months.length === 0) {
     return (

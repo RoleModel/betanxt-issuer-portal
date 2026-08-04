@@ -623,6 +623,12 @@ export const termsDefinitions = {
     definition:
       "The date established by a public company for the purpose of identifying the shareholders who are entitled to vote at a shareholder meeting.",
   },
+  mailingdate: {
+    category: "Key Dates & Identifiers",
+    term: "Mailing Date",
+    definition:
+      "The date proxy materials are sent to the shareholders entitled to vote at a meeting, whether by mail or electronically. It follows the record date, since the holders to be mailed are the ones identified on that date, and it sets the clock on the response window before the meeting.",
+  },
 
   // Legal & Compliance
   classaction: {

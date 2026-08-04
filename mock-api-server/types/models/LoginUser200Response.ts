@@ -1,5 +1,3 @@
-import type { User } from "./User";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -19,6 +17,7 @@ import {
   UserToJSON,
   UserToJSONTyped,
 } from "./User";
+import type { User } from "./User";
 
 /**
  *

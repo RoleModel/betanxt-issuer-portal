@@ -4,25 +4,21 @@ import { Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 
 import QuorumGaugeCard from "@/components/Meeting/QuorumGaugeCard";
-import BeneficialVsRegisteredCard from "@/components/Tabulation/BeneficialVsRegisteredCard";
 import ProposalDetailsCard from "@/components/Tabulation/ProposalDetailsCard";
-import SharesVotedCard from "@/components/Tabulation/SharesVotedCard";
 import { TabulationDistributionDrawer } from "@/components/Tabulation/TabulationDistributionDrawer";
 import TabulationReportCard from "@/components/Tabulation/TabulationReportCard";
-import VotingActivityCard from "@/components/Tabulation/VotingActivityCard";
+import VoteMatrixChartCard from "@/components/Tabulation/VoteMatrixChartCard";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useTabulationInsights } from "@/hooks/useTabulationInsights";
 
 /**
- * Tabulation tab for a meeting. Feeds the insight cards from a single
- * {@link useTabulationInsights} fetch: the registered-only voting method
- * counts go to `VotingActivityCard` and the full proposal list goes to
- * `SharesVotedCard` for its per-proposal selector (both replacing the former
- * aggregate voting summary).
+ * Tabulation tab for a meeting. Feeds a single chart from
+ * {@link useTabulationInsights}, combining holder type, voting source, and
+ * proposal-level vote outcome while keeping the detailed table below it.
  */
 
-export default function TabulationPage() {
+const TabulationPageContent = () => {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
   const meetingId = currentMeeting?.id ?? "";
   const { flags } = useFeatureFlags();
@@ -32,15 +28,8 @@ export default function TabulationPage() {
     proposals,
     filteredPositions,
     quorumGauge,
-    filters,
-    setFilters,
-    accountTypes,
-    setKeys,
-    directors,
-    beneficialVsRegistered,
-    registeredVotingMethods,
+    voteMatrixProposals,
     loading: tabulationLoading,
-    meetingTitle,
     clientTicker,
   } = useTabulationInsights(currentMeeting?.id, currentMeeting);
 
@@ -50,9 +39,9 @@ export default function TabulationPage() {
 
   return (
     <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
-      <Grid container spacing={{ xs: 2, md: 3 }}>
-        <Grid size={12}>
-          {showConfiguration ? (
+      <Grid container alignItems="stretch" columns={12} spacing={2}>
+        {showConfiguration ? (
+          <Grid size={12}>
             <TabulationDistributionDrawer
               meetingId={meetingId}
               clientTicker={clientTicker}
@@ -61,73 +50,41 @@ export default function TabulationPage() {
               }
               meetingDate={currentMeeting?.meetingDate}
             />
-          ) : null}
-        </Grid>
-        <Grid size={12}>
-          <Grid
-            container
-            columns={{ sm: 5, md: 6, lg: 5 }}
-            spacing={{ xs: 2, md: 3 }}
-          >
-            <Grid size={{ sm: 5, md: 2, lg: 1 }}>
-              <QuorumGaugeCard
-                model={quorumGauge}
-                loading={tabulationLoading}
-              />
-            </Grid>
-            <Grid size={{ sm: 5, md: 2, lg: 1 }}>
-              <VotingActivityCard
-                meetingId={meetingId}
-                registeredVotingMethodsOverride={registeredVotingMethods}
-                loadingOverride={tabulationLoading}
-              />
-            </Grid>
-            <Grid size={{ sm: 5, md: 2, lg: 1 }}>
-              <BeneficialVsRegisteredCard
-                meetingId={meetingId}
-                chartOverride={beneficialVsRegistered}
-                loadingOverride={tabulationLoading}
-              />
-            </Grid>
-            <Grid size={{ sm: 5, md: 3, lg: 1 }}>
-              <SharesVotedCard
-                meetingId={meetingId}
-                proposalsOverride={proposals}
-                loading={tabulationLoading}
-              />
-            </Grid>
-            <Grid size={{ sm: 5, md: 3, lg: 1 }}>
-              <TabulationReportCard variant="primary" />
-            </Grid>
           </Grid>
+        ) : null}
+        <Grid
+          size={{ sm: 12, md: 6, lg: 3 }}
+          sx={{
+            display: "flex",
+            width: "100%",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          <QuorumGaugeCard model={quorumGauge} loading={tabulationLoading} />
+          <TabulationReportCard variant="secondary" />
         </Grid>
-
+        <Grid
+          size={{ sm: 12, md: 6, lg: 9 }}
+          sx={{ display: "flex", width: "100%" }}
+        >
+          <VoteMatrixChartCard
+            loading={tabulationLoading}
+            proposals={voteMatrixProposals}
+          />
+        </Grid>
         <Grid size={12}>
           <ProposalDetailsCard
+            clientTicker={clientTicker}
             loading={tabulationLoading}
+            meetingTitle={currentMeeting?.meetingType ?? "Meeting Positions"}
             proposals={proposals}
             positions={filteredPositions}
-            meetingTitle={
-              meetingTitle || currentMeeting?.title || "Meeting Positions"
-            }
-            clientTicker={clientTicker || currentMeeting?.ticker || ""}
-            filters={filters}
-            onFiltersChange={(nextFilters) => setFilters(nextFilters)}
-            accountTypes={accountTypes.map((accountType) => ({
-              label: accountType,
-              value: accountType,
-            }))}
-            setKeys={setKeys.map((setKey) => ({
-              label: setKey,
-              value: setKey,
-            }))}
-            directors={directors.map((director) => ({
-              label: director.label,
-              value: director.id,
-            }))}
           />
         </Grid>
       </Grid>
     </Container>
   );
-}
+};
+
+export default TabulationPageContent;

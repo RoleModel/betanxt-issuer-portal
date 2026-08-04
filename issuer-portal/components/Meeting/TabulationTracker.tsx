@@ -3,15 +3,19 @@
 import { CalendarTodayOutlined as CalendarIcon } from "@mui/icons-material";
 import { Box, Fade, Grid, Paper, useTheme } from "@mui/material";
 import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BNTypographyPair";
-import { calculateDaysUntil } from "@/utils/dateUtils";
+
+import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
+import { calculateDaysUntil } from "@/utils/dateUtils";
+import { formatTabulationMetric } from "@/utils/tabulation-display";
+
+import type { TabulationTrackerProps } from "./tabulation-tracker/useTabulationTrackerData";
 
 import { HistoricalShareCard } from "./tabulation-tracker/HistoricalShareCard";
 import {
   isSpecialMeeting,
   useTabulationTrackerData,
 } from "./tabulation-tracker/useTabulationTrackerData";
-import type { TabulationTrackerProps } from "./tabulation-tracker/useTabulationTrackerData";
 import { VoteProgressBar } from "./tabulation-tracker/VoteProgressBar";
 
 const TabulationTracker = (props: TabulationTrackerProps) => {
@@ -23,17 +27,24 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
     voteCutoffDate,
   } = useTabulationTrackerData(props);
   const { enableTabulationTrackerColors } = useFeatureFlags().flags;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare -- Normalize the flag for editor ESLint instances that resolve its generated type as `any`.
-  const shouldUseUpdatedColors = enableTabulationTrackerColors === true;
+  // Dashboard figures follow the same Percentage/Count toggle as the tabulation
+  // views, so switching the toggle reformats the tracker too.
+  const { displayMode } = useTabulationDisplay();
+
+  const shouldUseUpdatedColors = enableTabulationTrackerColors;
   const currentData = data?.meeting_id === currentMeetingId ? data : null;
   const currentVotePercentage = currentData
     ? Number.parseFloat(currentData.vote_percentage)
     : 0;
+  const votedPercentage = Math.min(
+    Math.max(Math.round(currentVotePercentage), 0),
+    100
+  );
 
   const progress = currentData
     ? {
-        voted: Math.round(currentVotePercentage),
-        unvoted: Math.max(100 - currentVotePercentage, 0),
+        voted: votedPercentage,
+        unvoted: 100 - votedPercentage,
       }
     : { voted: 0, unvoted: 0 };
   const meetingStatus = currentData?.status ?? currentMeeting?.status ?? "";
@@ -54,6 +65,10 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
     currentMeetingSeriesIndex > 0
       ? historicalData[currentMeetingSeriesIndex - 1]
       : null;
+  // Shares are a two-part split, so each side is a percentage of the pair.
+  const totalShares = currentData
+    ? Number(currentData.shares_voted) + Number(currentData.shares_unvoted)
+    : 0;
   const summaryMetrics = [
     {
       label: isCompleted ? "Meeting Date" : "Days to Meeting",
@@ -63,6 +78,7 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
               month: "short",
               day: "numeric",
               year: "numeric",
+              timeZone: "UTC",
             })
           : meetingDate
             ? calculateDaysUntil(meetingDate.toISOString())
@@ -81,7 +97,11 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
           {
             label: "Positions Voted",
             value: currentData
-              ? currentData.positions_voted.toLocaleString()
+              ? formatTabulationMetric(
+                  currentData.positions_voted,
+                  currentData.total_positions,
+                  displayMode
+                ).display
               : "--",
             secondarySx: { whiteSpace: "nowrap" } as Record<string, unknown>,
           },
@@ -94,6 +114,7 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
                   month: "long",
                   day: "numeric",
                   year: "numeric",
+                  timeZone: "UTC",
                 })} 11:59 PM ET`
               : "0",
             secondarySx: { whiteSpace: "nowrap" } as Record<string, unknown>,
@@ -128,6 +149,13 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
       px: 1,
     },
   };
+
+  // Percentages for the previous year use that year's own share total —
+  // voted + unvoted — rather than this year's, which would misstate it.
+  const previousYearTotalShares = previousComparablePoint
+    ? previousComparablePoint.votedShares +
+      previousComparablePoint.unvotedShares
+    : 0;
 
   return (
     <Grid container spacing={2} sx={{ mt: 1, alignItems: "stretch" }}>
@@ -215,21 +243,83 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
       </Grid>
       <HistoricalShareCard
         currentValue={
-          currentData ? Number(currentData.shares_voted).toLocaleString() : "--"
+          currentData
+            ? formatTabulationMetric(
+                Number(currentData.shares_voted),
+                totalShares,
+                displayMode
+              ).display
+            : "--"
+        }
+        alternateValue={
+          currentData
+            ? formatTabulationMetric(
+                Number(currentData.shares_voted),
+                totalShares,
+                displayMode
+              ).alternate
+            : "--"
         }
         label="Shares Voted"
-        previousValue={previousComparablePoint?.votedShares ?? null}
+        previousValue={
+          previousComparablePoint
+            ? formatTabulationMetric(
+                previousComparablePoint.votedShares,
+                previousYearTotalShares,
+                displayMode
+              ).display
+            : null
+        }
+        previousAlternateValue={
+          previousComparablePoint
+            ? formatTabulationMetric(
+                previousComparablePoint.votedShares,
+                previousYearTotalShares,
+                displayMode
+              ).alternate
+            : null
+        }
         showPreviousYear={shouldShowPreviousYearInfo}
         sx={sparklineCardSx}
       />
       <HistoricalShareCard
         currentValue={
           currentData
-            ? Number(currentData.shares_unvoted).toLocaleString()
+            ? formatTabulationMetric(
+                Number(currentData.shares_unvoted),
+                totalShares,
+                displayMode
+              ).display
+            : "--"
+        }
+        alternateValue={
+          currentData
+            ? formatTabulationMetric(
+                Number(currentData.shares_unvoted),
+                totalShares,
+                displayMode
+              ).alternate
             : "--"
         }
         label="Shares Not Voted"
-        previousValue={previousComparablePoint?.unvotedShares ?? null}
+        previousValue={
+          previousComparablePoint
+            ? formatTabulationMetric(
+                previousComparablePoint.unvotedShares,
+                previousYearTotalShares,
+                displayMode
+              ).display
+            : null
+        }
+        previousAlternateValue={
+          previousComparablePoint
+            ? formatTabulationMetric(
+                previousComparablePoint.unvotedShares,
+                previousYearTotalShares,
+                displayMode
+              ).alternate
+            : null
+        }
         showPreviousYear={shouldShowPreviousYearInfo}
         sx={sparklineCardSx}
       />

@@ -44,10 +44,10 @@ interface EventSummaryRow {
 }
 
 interface EventSummaryTableProps {
-  data: EventSummaryRow[];
-  loading?: boolean;
-  title?: string;
-  clientTicker?: string;
+  readonly data: EventSummaryRow[];
+  readonly loading?: boolean;
+  readonly title?: string;
+  readonly clientTicker?: string;
 }
 const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
   data,
@@ -112,8 +112,8 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedRows.map((row, index) => (
-                <TableRow key={`${row.meetingId ?? "row"}-${index}`}>
+              {paginatedRows.map((row) => (
+                <TableRow key={row.meetingId ?? row.event}>
                   <TableCell
                     size="small"
                     component="th"
@@ -148,6 +148,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                             month: "2-digit",
                             day: "2-digit",
                             year: "numeric",
+                            timeZone: "UTC",
                           }
                         )
                       : "--"}
@@ -158,6 +159,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                           month: "2-digit",
                           day: "2-digit",
                           year: "numeric",
+                          timeZone: "UTC",
                         })
                       : "--"}
                   </TableCell>
@@ -176,6 +178,7 @@ const EventSummaryTable: React.FC<EventSummaryTableProps> = ({
                           month: "2-digit",
                           day: "2-digit",
                           year: "numeric",
+                          timeZone: "UTC",
                         })
                       : "--"}
                   </TableCell>

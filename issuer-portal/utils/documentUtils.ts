@@ -75,13 +75,15 @@ export interface DocumentWithHistory extends Document {
 
 // Format file size in bytes to human readable string
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) {
+    return "0 Bytes";
+  }
 
   const k = 1024;
   const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const index = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  return `${Number.parseFloat((bytes / k ** index).toFixed(2))} ${sizes[index]}`;
 }
 
 // Get file extension from filename
@@ -108,7 +110,7 @@ export function isSupportedFileType(filename: string): boolean {
 
 // Generate a unique document ID
 export function generateDocumentId(): string {
-  return `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `doc_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
 // Validate document signature position
@@ -176,8 +178,7 @@ export async function uploadDocument(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error ? error.message : "Failed to upload document",
+      error: Error.isError(error) ? error.message : "Failed to upload document",
     };
   }
 }
@@ -204,8 +205,7 @@ export async function deleteDocument(
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "Failed to delete document",
+      error: Error.isError(error) ? error.message : "Failed to delete document",
     };
   }
 }
@@ -213,74 +213,103 @@ export async function deleteDocument(
 // Get document status color for UI
 export function getDocumentStatusColor(status: ExtendedDocumentStatus): string {
   switch (status) {
-    case "NOT_UPLOADED":
+    case "NOT_UPLOADED": {
       return "grey";
+    }
     case "DRAFT":
-    case "AWAITING_DRAFT":
+    case "AWAITING_DRAFT": {
       return "grey";
-    case "AWAITING_REVIEW":
+    }
+    case "AWAITING_REVIEW": {
       return "warning";
+    }
     case "APPROVED":
-    case "AUTHORIZED":
+    case "AUTHORIZED": {
       return "primary";
+    }
     case "UPLOADED":
-    case "IN_PROGRESS":
+    case "IN_PROGRESS": {
       return "info";
-    case "SIGNED":
+    }
+    case "SIGNED": {
       return "secondary";
-    case "COMPLETED":
+    }
+    case "COMPLETED": {
       return "success";
-    default:
+    }
+    default: {
       return "default";
+    }
   }
 }
 
 export function getDocumentStatusLabel(status: ExtendedDocumentStatus): string {
   switch (status) {
-    case "NOT_UPLOADED":
+    case "NOT_UPLOADED": {
       return "Not Uploaded";
-    case "DRAFT":
+    }
+    case "DRAFT": {
       return "Draft";
-    case "AWAITING_DRAFT":
+    }
+    case "AWAITING_DRAFT": {
       return "Awaiting Draft";
-    case "AWAITING_REVIEW":
+    }
+    case "AWAITING_REVIEW": {
       return "Awaiting Review";
-    case "APPROVED":
+    }
+    case "APPROVED": {
       return "Approved";
-    case "UPLOADED":
+    }
+    case "UPLOADED": {
       return "Uploaded";
-    case "IN_PROGRESS":
+    }
+    case "IN_PROGRESS": {
       return "In Progress";
-    case "SIGNED":
+    }
+    case "SIGNED": {
       return "Signed";
-    case "AUTHORIZED":
+    }
+    case "AUTHORIZED": {
       return "Authorized";
-    case "COMPLETED":
+    }
+    case "COMPLETED": {
       return "Completed";
-    default:
+    }
+    default: {
       return "Unknown";
+    }
   }
 }
 
-export function getDocumentActionLabel(doc: {
+export function getDocumentActionLabel(document_: {
   status?: ExtendedDocumentStatus;
   url?: string;
   filePath?: string;
 }): string {
-  const hasFile = !!(doc.url ?? doc.filePath);
-  if (doc.status === "NOT_UPLOADED") return "Upload";
-  if (!hasFile) return "Upload";
-  if (doc.status === "AWAITING_REVIEW") return "Review";
+  const hasFile = !!(document_.url ?? document_.filePath);
+  if (document_.status === "NOT_UPLOADED") {
+    return "Upload";
+  }
+  if (!hasFile) {
+    return "Upload";
+  }
+  if (document_.status === "AWAITING_REVIEW") {
+    return "Review";
+  }
   return "View";
 }
 
 // Build a public URL for a stored document path (Supabase storage)
 export function getStoragePublicUrl(filePath: string): string {
   // If already a full URL, return as-is
-  if (/^https?:\/\//i.test(filePath)) return filePath;
+  if (/^https?:\/\//i.test(filePath)) {
+    return filePath;
+  }
 
   // If it's a data URI (base64), return as-is
-  if (filePath.startsWith("data:")) return filePath;
+  if (filePath.startsWith("data:")) {
+    return filePath;
+  }
 
   // If this is a Next/Supabase storage relative path, prefix with base URL and return
   if (filePath.startsWith("/storage/v1/object/")) {
@@ -300,7 +329,7 @@ export function getStoragePublicUrl(filePath: string): string {
   // Strip leading slashes and /documents/ prefix if present
   let normalized = filePath.replace(/^\/+/, "");
   if (normalized.startsWith("documents/")) {
-    normalized = normalized.substring("documents/".length);
+    normalized = normalized.slice("documents/".length);
   }
 
   // Always ensure path is under the 'documents/' bucket
@@ -374,9 +403,7 @@ export async function fetchDSMDocuments(
       return {
         id: rowId,
         name: typeof row.title === "string" ? row.title : "Untitled",
-        type: String(
-          (row.type as string) ?? (row.file_type as string) ?? "pdf"
-        ),
+        type: (row.type as string) ?? (row.file_type as string) ?? "pdf",
         status: (typeof row.status === "string"
           ? row.status
           : "DRAFT") as DocumentStatus,
@@ -413,9 +440,7 @@ export async function fetchDSMDocuments(
                   : typeof r.name === "string"
                     ? r.name
                     : "Untitled",
-              type: String(
-                (r.type as string) ?? (r.fileType as string) ?? "pdf"
-              ),
+              type: (r.type as string) ?? (r.fileType as string) ?? "pdf",
               status: (typeof r.status === "string"
                 ? r.status
                 : "DRAFT") as DocumentStatus,
@@ -453,13 +478,19 @@ export async function fetchDSMDocuments(
       .eq("meeting_id", meetingId)
       .like("type", "%DSM%")
       .order("updated_at", { ascending: false });
-    if (error) return { data: null, error: error.message };
-    if (!data) return { data: [], error: null };
+    if (error) {
+      return { data: null, error: error.message };
+    }
+    if (!data) {
+      return { data: [], error: null };
+    }
     return { data: mapRows(data), error: null };
-  } catch (e) {
+  } catch (error) {
     return {
       data: null,
-      error: e instanceof Error ? e.message : "Failed to fetch DSM documents",
+      error: Error.isError(error)
+        ? error.message
+        : "Failed to fetch DSM documents",
     };
   }
 }
@@ -519,9 +550,7 @@ export async function fetchRegularDocuments(
       return {
         id: rowId,
         name: typeof row.title === "string" ? row.title : "Untitled",
-        type: String(
-          (row.type as string) ?? (row.file_type as string) ?? "pdf"
-        ),
+        type: (row.type as string) ?? (row.file_type as string) ?? "pdf",
         status: (typeof row.status === "string"
           ? row.status
           : "DRAFT") as DocumentStatus,
@@ -552,9 +581,7 @@ export async function fetchRegularDocuments(
                   : typeof r.name === "string"
                     ? r.name
                     : "Untitled",
-              type: String(
-                (r.type as string) ?? (r.fileType as string) ?? "pdf"
-              ),
+              type: (r.type as string) ?? (r.fileType as string) ?? "pdf",
               status: (typeof r.status === "string"
                 ? r.status
                 : "DRAFT") as DocumentStatus,
@@ -590,14 +617,19 @@ export async function fetchRegularDocuments(
       )
       .eq("meeting_id", meetingId)
       .order("updated_at", { ascending: false });
-    if (error) return { data: null, error: error.message };
-    if (!data) return { data: [], error: null };
+    if (error) {
+      return { data: null, error: error.message };
+    }
+    if (!data) {
+      return { data: [], error: null };
+    }
     return { data: mapRows(data), error: null };
-  } catch (e) {
+  } catch (error) {
     return {
       data: null,
-      error:
-        e instanceof Error ? e.message : "Failed to fetch regular documents",
+      error: Error.isError(error)
+        ? error.message
+        : "Failed to fetch regular documents",
     };
   }
 }
@@ -630,7 +662,7 @@ export async function updateDocumentStatus(
                 : typeof d.name === "string"
                   ? d.name
                   : "Untitled",
-            type: String((d.type as string) ?? (d.fileType as string) ?? "pdf"),
+            type: (d.type as string) ?? (d.fileType as string) ?? "pdf",
             status: (typeof d.status === "string"
               ? d.status
               : persistStatus) as DocumentStatus,
@@ -680,7 +712,7 @@ export async function updateDocumentStatus(
             : typeof d.name === "string"
               ? d.name
               : "Untitled",
-        type: String((d.type as string) ?? (d.file_type as string) ?? "pdf"),
+        type: (d.type as string) ?? (d.file_type as string) ?? "pdf",
         status: (typeof d.status === "string"
           ? d.status
           : persistStatus) as DocumentStatus,
@@ -697,10 +729,9 @@ export async function updateDocumentStatus(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to update document status",
+      error: Error.isError(error)
+        ? error.message
+        : "Failed to update document status",
     };
   }
 }

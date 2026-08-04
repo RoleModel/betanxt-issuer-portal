@@ -44,7 +44,11 @@ const brandThemeForUserType: Record<
   SOLICITOR: morrowSodaliThemeOptions,
 };
 
-const ThemeRegistry = ({ children }: { children: React.ReactNode }) => {
+const ThemeRegistry = ({
+  children,
+}: {
+  readonly children: React.ReactNode;
+}) => {
   const { currentClient } = useClient();
   const { data: session } = useSession();
   const pathname = usePathname();

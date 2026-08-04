@@ -17,9 +17,9 @@ import React, { useEffect, useState } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import SkeletonChart from "@/components/ui/SkeletonChart";
 import buildApiClient from "@/domain-models/apiClient";
-import { abbreviateNumber } from "@/utils/numberUtils";
+import { abbreviateNumber } from "@/utils/number-utilities";
 
-import { CustomLegend } from "./index";
+import CustomLegend from "./CustomLegend";
 
 interface Position {
   shares: number | string;
@@ -39,20 +39,40 @@ interface ShareRangeData {
 }
 
 interface VotingPerformanceChartProps {
-  meetingId?: string;
+  readonly meetingId?: string;
   /** Optional card subheader, e.g. the currently selected event. */
-  subheader?: string;
+  readonly subheader?: string;
 }
 
-export default function VotingPerformanceChart({
+const LEGEND_ITEMS = [
+  {
+    label: "Positions",
+    color: "var(--mui-palette-chartSeries-1-main)",
+    type: "bar" as const,
+  },
+  {
+    label: "Shares",
+    color: "var(--mui-palette-chartSeries-2-main)",
+    type: "bar" as const,
+  },
+  {
+    label: "Percent Voted",
+    color: "var(--mui-palette-chartSeries-6-main)",
+    type: "line" as const,
+  },
+];
+
+const VotingPerformanceChart = ({
   meetingId,
   subheader,
-}: VotingPerformanceChartProps) {
+}: VotingPerformanceChartProps) => {
   const [data, setData] = useState<ShareRangeData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!meetingId) return;
+
+    let ignore = false;
 
     const fetchData = async () => {
       try {
@@ -67,77 +87,83 @@ export default function VotingPerformanceChart({
           }
         );
 
-        if (error) {
-          console.error("Failed to fetch voting performance data:", error);
-        } else if (positionsData) {
-          // Define share ranges
-          const ranges = [
-            { min: 0, max: 999, label: "0-999" },
-            { min: 1000, max: 4999, label: "1K-5K" },
-            { min: 5000, max: 9999, label: "5K-10K" },
-            { min: 10000, max: 19999, label: "10K-20K" },
-            { min: 20000, max: 49999, label: "20K-50K" },
-            { min: 50000, max: 99999, label: "50K-100K" },
-            { min: 100000, max: 199999, label: "100K-200K" },
-            { min: 200000, max: 499999, label: "200K-500K" },
-            { min: 500000, max: 999999, label: "500K-1M" },
-            { min: 1000000, max: Number.MAX_SAFE_INTEGER, label: "1M+" },
-          ];
+        if (!ignore) {
+          if (error) {
+            console.error("Failed to fetch voting performance data:", error);
+          } else if (positionsData) {
+            // Define share ranges
+            const ranges = [
+              { min: 0, max: 999, label: "0-999" },
+              { min: 1000, max: 4999, label: "1K-5K" },
+              { min: 5000, max: 9999, label: "5K-10K" },
+              { min: 10000, max: 19999, label: "10K-20K" },
+              { min: 20000, max: 49999, label: "20K-50K" },
+              { min: 50000, max: 99999, label: "50K-100K" },
+              { min: 100000, max: 199999, label: "100K-200K" },
+              { min: 200000, max: 499999, label: "200K-500K" },
+              { min: 500000, max: 999999, label: "500K-1M" },
+              { min: 1000000, max: Number.MAX_SAFE_INTEGER, label: "1M+" },
+            ];
 
-          // Process actual position data to calculate performance by share range
-          // Handle both array and wrapped response formats
-          const positionRecords = Array.isArray(positionsData)
-            ? (positionsData as Position[])
-            : (positionsData as PositionsResponse)?.positions || [];
-          const performanceData = ranges.map((rangeInfo) => {
-            // Filter positions within this share range
-            const rangePositions = positionRecords.filter((pos: Position) => {
-              const shares = Number(pos.shares) || 0;
-              return shares >= rangeInfo.min && shares <= rangeInfo.max;
+            // Process actual position data to calculate performance by share range
+            // Handle both array and wrapped response formats
+            const positionRecords = Array.isArray(positionsData)
+              ? (positionsData as Position[])
+              : (positionsData as PositionsResponse)?.positions || [];
+            const performanceData = ranges.map((rangeInfo) => {
+              // Filter positions within this share range
+              const rangePositions = positionRecords.filter((pos: Position) => {
+                const shares = Number(pos.shares) || 0;
+                return shares >= rangeInfo.min && shares <= rangeInfo.max;
+              });
+
+              // Calculate statistics for this range
+              const totalPositions = rangePositions.length;
+              const totalShares = rangePositions.reduce(
+                (sum: number, pos: Record<string, unknown>) =>
+                  sum + (Number(pos.shares) || 0),
+                0
+              );
+              const votedPositions = rangePositions.filter(
+                (pos: Record<string, unknown>) => {
+                  return pos.voteStatus === "Voted";
+                }
+              );
+              const votedShares = votedPositions.reduce(
+                (sum: number, pos: Record<string, unknown>) => {
+                  return sum + (Number(pos.sharesVoted) || 0);
+                },
+                0
+              );
+              const percentVoted =
+                totalShares > 0
+                  ? Math.round((votedShares / totalShares) * 100)
+                  : 0;
+
+              return {
+                range: rangeInfo.label,
+                positions: totalPositions,
+                shares: totalShares,
+                percentVoted: percentVoted,
+              };
             });
+            // Show all ranges, even if they have 0 positions
 
-            // Calculate statistics for this range
-            const totalPositions = rangePositions.length;
-            const totalShares = rangePositions.reduce(
-              (sum: number, pos: Record<string, unknown>) =>
-                sum + (Number(pos.shares) || 0),
-              0
-            );
-            const votedPositions = rangePositions.filter(
-              (pos: Record<string, unknown>) => {
-                return pos.voteStatus === "Voted";
-              }
-            );
-            const votedShares = votedPositions.reduce(
-              (sum: number, pos: Record<string, unknown>) => {
-                return sum + (Number(pos.sharesVoted) || 0);
-              },
-              0
-            );
-            const percentVoted =
-              totalShares > 0
-                ? Math.round((votedShares / totalShares) * 100)
-                : 0;
-
-            return {
-              range: rangeInfo.label,
-              positions: totalPositions,
-              shares: totalShares,
-              percentVoted: percentVoted,
-            };
-          });
-          // Show all ranges, even if they have 0 positions
-
-          setData(performanceData);
+            setData(performanceData);
+          }
         }
       } catch (error) {
         console.error("Failed to load voting performance data:", error);
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 
     void fetchData();
+
+    return () => {
+      ignore = true;
+    };
   }, [meetingId]);
 
   if (loading) {
@@ -175,24 +201,6 @@ export default function VotingPerformanceChart({
 
   // Calculate max with safe fallback to prevent -Infinity
   const maxShares = shares.length > 0 ? Math.max(...shares) : 0;
-
-  const legendItems = [
-    {
-      label: "Positions",
-      color: "var(--mui-palette-chartSeries-1-main)",
-      type: "bar" as const,
-    },
-    {
-      label: "Shares",
-      color: "var(--mui-palette-chartSeries-2-main)",
-      type: "bar" as const,
-    },
-    {
-      label: "Percent Voted",
-      color: "var(--mui-palette-chartSeries-6-main)",
-      type: "line" as const,
-    },
-  ];
 
   return (
     <Card sx={{ height: "100%" }}>
@@ -277,10 +285,12 @@ export default function VotingPerformanceChart({
             <ChartsTooltip />
           </ChartsSurface>
           <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-            <CustomLegend items={legendItems} />
+            <CustomLegend items={LEGEND_ITEMS} />
           </Box>
         </ChartDataProvider>
       </CardContent>
     </Card>
   );
-}
+};
+
+export default VotingPerformanceChart;

@@ -23,6 +23,7 @@ type MeetingRow = Database["public"]["Tables"]["meeting"]["Row"] & {
   cutoff_date?: string | null;
 };
 type ClientRow = Database["public"]["Tables"]["clients"]["Row"];
+type MeetingUpdate = Database["public"]["Tables"]["meeting"]["Update"];
 type MeetingRowWithRelations = Omit<MeetingRow, "client"> & {
   client?: ClientRow | Meeting["client"] | string | null;
 };
@@ -40,7 +41,9 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 // (002-tabulation-enhancements); when neither key holds an array it defaults to
 // every feature except "nobo".
 function transformClientSummary(raw: unknown): Meeting["client"] {
-  if (typeof raw !== "object" || raw === null) return undefined;
+  if (typeof raw !== "object" || raw === null) {
+    return undefined;
+  }
   const c = raw as Record<string, unknown>;
   const isActive = c.isActive ?? c.is_active;
 
@@ -115,59 +118,66 @@ function transformClientSummary(raw: unknown): Meeting["client"] {
 }
 
 // Transform snake_case database fields to camelCase API fields
-function transformMeeting(dbMeeting: MeetingRowWithRelations): Meeting {
+function transformMeeting(databaseMeeting: MeetingRowWithRelations): Meeting {
   return {
-    id: nullToUndefined(dbMeeting.id),
-    title: nullToUndefined(dbMeeting.title),
-    cusip: nullToUndefined(dbMeeting.cusip),
-    ticker: nullToUndefined(dbMeeting.ticker),
-    preFilingDate: nullToUndefined(dbMeeting.pre_filing_date),
-    filingDate: nullToUndefined(dbMeeting.filing_date),
-    brokerSearchDate: nullToUndefined(dbMeeting.broker_search_date),
-    recordDate: nullToUndefined(dbMeeting.record_date),
-    mailingDate: nullToUndefined(dbMeeting.mailing_date),
-    meetingDate: nullToUndefined(dbMeeting.meeting_date),
-    cutoffDate: nullToUndefined(dbMeeting.cutoff_date),
-    meetingType: nullToUndefined(dbMeeting.meeting_type),
-    meetingYear: nullToUndefined(dbMeeting.meeting_year),
-    status: nullToUndefined(dbMeeting.status) as
+    id: nullToUndefined(databaseMeeting.id),
+    title: nullToUndefined(databaseMeeting.title),
+    cusip: nullToUndefined(databaseMeeting.cusip),
+    ticker: nullToUndefined(databaseMeeting.ticker),
+    setKey: nullToUndefined(databaseMeeting.set_key),
+    preFilingDate: nullToUndefined(databaseMeeting.pre_filing_date),
+    filingDate: nullToUndefined(databaseMeeting.filing_date),
+    brokerSearchDate: nullToUndefined(databaseMeeting.broker_search_date),
+    recordDate: nullToUndefined(databaseMeeting.record_date),
+    mailingDate: nullToUndefined(databaseMeeting.mailing_date),
+    meetingDate: nullToUndefined(databaseMeeting.meeting_date),
+    cutoffDate: nullToUndefined(databaseMeeting.cutoff_date),
+    meetingType: nullToUndefined(databaseMeeting.meeting_type),
+    meetingYear: nullToUndefined(databaseMeeting.meeting_year),
+    status: nullToUndefined(databaseMeeting.status) as
       "ACTIVE" | "COMPLETE" | "ADJOURNED" | undefined,
-    currentPhase: nullToUndefined(dbMeeting.current_phase),
-    overallCompletion: nullToUndefined(dbMeeting.overall_completion),
-    distributionType: nullToUndefined(dbMeeting.distribution_type),
-    transferAgent: nullToUndefined(dbMeeting.transfer_agent),
-    transferAgentConfirmed: dbMeeting.transfer_agent_confirmed,
-    employeeStockPlans: nullToUndefined(dbMeeting.employee_stock_plans),
-    planAdministrator: nullToUndefined(dbMeeting.plan_administrator),
+    currentPhase: nullToUndefined(databaseMeeting.current_phase),
+    overallCompletion: nullToUndefined(databaseMeeting.overall_completion),
+    distributionType: nullToUndefined(databaseMeeting.distribution_type),
+    transferAgent: nullToUndefined(databaseMeeting.transfer_agent),
+    transferAgentConfirmed: databaseMeeting.transfer_agent_confirmed,
+    employeeStockPlans: nullToUndefined(databaseMeeting.employee_stock_plans),
+    planAdministrator: nullToUndefined(databaseMeeting.plan_administrator),
     planAdministratorContact: nullToUndefined(
-      dbMeeting.plan_administrator_contact
+      databaseMeeting.plan_administrator_contact
     ),
     planAdministratorContactEmail: nullToUndefined(
-      dbMeeting.plan_administrator_contact_email
+      databaseMeeting.plan_administrator_contact_email
     ),
-    solicitor: nullToUndefined(dbMeeting.solicitor),
-    solicitorEmail: nullToUndefined(dbMeeting.solicitor_email),
-    inspector: nullToUndefined(dbMeeting.inspector),
-    ivrDialInNumber: nullToUndefined(dbMeeting.ivr_dial_in_number),
-    totalSharesOutstanding: nullToUndefined(dbMeeting.total_shares_outstanding),
-    quorumRequirement: nullToUndefined(dbMeeting.quorum_requirement),
-    brokerNonVote: nullToUndefined(dbMeeting.broker_non_vote),
-    mailingStatus: nullToUndefined(dbMeeting.mailing_status),
+    solicitor: nullToUndefined(databaseMeeting.solicitor),
+    solicitorEmail: nullToUndefined(databaseMeeting.solicitor_email),
+    inspector: nullToUndefined(databaseMeeting.inspector),
+    ivrDialInNumber: nullToUndefined(databaseMeeting.ivr_dial_in_number),
+    totalSharesOutstanding: nullToUndefined(
+      databaseMeeting.total_shares_outstanding
+    ),
+    quorumRequirement: nullToUndefined(databaseMeeting.quorum_requirement),
+    brokerNonVote: nullToUndefined(databaseMeeting.broker_non_vote),
+    mailingStatus: nullToUndefined(databaseMeeting.mailing_status),
     tabulationDistribution: parseTabulationDistribution(
-      dbMeeting.tabulation_distribution
+      databaseMeeting.tabulation_distribution
     ),
-    clientId: nullToUndefined(dbMeeting.client_id),
-    createdAt: nullToUndefined(dbMeeting.created_at),
-    updatedAt: nullToUndefined(dbMeeting.updated_at),
-    client: transformClientSummary(dbMeeting.client),
+    clientId: nullToUndefined(databaseMeeting.client_id),
+    createdAt: nullToUndefined(databaseMeeting.created_at),
+    updatedAt: nullToUndefined(databaseMeeting.updated_at),
+    client: transformClientSummary(databaseMeeting.client),
   };
 }
 
 function parseTabulationDistribution(
   raw: Database["public"]["Tables"]["meeting"]["Row"]["tabulation_distribution"]
 ): components["schemas"]["TabulationDistribution"] | undefined {
-  if (raw === null || raw === undefined) return undefined;
-  if (typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  if (raw === null || raw === undefined) {
+    return undefined;
+  }
+  if (typeof raw !== "object" || Array.isArray(raw)) {
+    return undefined;
+  }
   const d = raw as Record<string, unknown>;
   return {
     enabled: typeof d.enabled === "boolean" ? d.enabled : false,
@@ -227,7 +237,7 @@ export async function listMeetings(
 
     // PostgREST returns empty results when range length is exactly 250.
     const safeLimit =
-      limit !== undefined ? Math.min(Math.max(limit, 1), 249) : undefined;
+      limit === undefined ? undefined : Math.min(Math.max(limit, 1), 249);
 
     // Apply pagination
     if (page && safeLimit) {
@@ -262,9 +272,7 @@ export async function listMeetings(
     if (uniqueClientIds.length > 0) {
       const { data: clientsData } = await supabase
         .from("clients")
-        .select(
-          "id, ticker, company_name, short_name, industry, description, website, primary_contact, primary_contact_email, is_active, branding_id, enabled_features, created_at, updated_at"
-        )
+        .select("*")
         .in("id", uniqueClientIds);
 
       for (const c of clientsData ?? []) {
@@ -293,8 +301,9 @@ export async function listMeetings(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch meetings",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch meetings",
       },
     };
   }
@@ -315,11 +324,12 @@ export async function createMeeting(
       };
     }
 
-    const dbInsert: Record<string, unknown> = {
+    const databaseInsert: Record<string, unknown> = {
       id: meetingData.id,
       title: meetingData.title,
       cusip: meetingData.cusip,
       ticker: meetingData.ticker,
+      set_key: meetingData.setKey,
       meeting_date: meetingData.meetingDate,
       record_date: meetingData.recordDate,
       mailing_date: meetingData.mailingDate,
@@ -335,20 +345,25 @@ export async function createMeeting(
       current_phase: "Phase 1",
       overall_completion: 0,
     };
-    if (meetingData.solicitor !== undefined)
-      dbInsert.solicitor = meetingData.solicitor;
-    if (meetingData.solicitorEmail !== undefined)
-      dbInsert.solicitor_email = meetingData.solicitorEmail;
-    if (meetingData.transferAgent !== undefined)
-      dbInsert.transfer_agent = meetingData.transferAgent;
-    if (meetingData.employeeStockPlans !== undefined)
-      dbInsert.employee_stock_plans = meetingData.employeeStockPlans;
-    if (meetingData.ivrDialInNumber !== undefined)
-      dbInsert.ivr_dial_in_number = meetingData.ivrDialInNumber;
+    if (meetingData.solicitor !== undefined) {
+      databaseInsert.solicitor = meetingData.solicitor;
+    }
+    if (meetingData.solicitorEmail !== undefined) {
+      databaseInsert.solicitor_email = meetingData.solicitorEmail;
+    }
+    if (meetingData.transferAgent !== undefined) {
+      databaseInsert.transfer_agent = meetingData.transferAgent;
+    }
+    if (meetingData.employeeStockPlans !== undefined) {
+      databaseInsert.employee_stock_plans = meetingData.employeeStockPlans;
+    }
+    if (meetingData.ivrDialInNumber !== undefined) {
+      databaseInsert.ivr_dial_in_number = meetingData.ivrDialInNumber;
+    }
 
     const { data, error } = await supabase
       .from("meeting")
-      .insert(dbInsert)
+      .insert(databaseInsert)
       .select()
       .single();
 
@@ -367,8 +382,9 @@ export async function createMeeting(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to create meeting",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to create meeting",
       },
     };
   }
@@ -408,8 +424,9 @@ export async function getMeetingById(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to fetch meeting",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch meeting",
       },
     };
   }
@@ -420,8 +437,8 @@ export async function getMeetingByIdAndTicker(
   id: string,
   _ticker: string
 ): Promise<ApiResponse<Meeting>> {
-  // Use the standard getMeetingById and filter by ticker in the application layer
-  return getMeetingById(id);
+  // Use the standard getMeetingById and filter by ticker in the app layer
+  return await getMeetingById(id);
 }
 
 export async function updateMeetingByIdAndTicker(
@@ -430,7 +447,7 @@ export async function updateMeetingByIdAndTicker(
   meetingData: UpdateMeetingRequest
 ): Promise<ApiResponse<Meeting>> {
   // Use the standard updateMeeting - ticker validation should be handled in API layer
-  return updateMeeting(id, meetingData);
+  return await updateMeeting(id, meetingData);
 }
 
 export async function deleteMeetingByIdAndTicker(
@@ -438,7 +455,7 @@ export async function deleteMeetingByIdAndTicker(
   _ticker: string
 ): Promise<ApiResponse<void>> {
   // Use the standard deleteMeeting - ticker validation should be handled in API layer
-  return deleteMeeting(id);
+  return await deleteMeeting(id);
 }
 
 // Helper function for backward compatibility - delegates to phases API
@@ -447,7 +464,7 @@ export async function getMeetingPhases(
 ): Promise<ApiResponse<Phase[]>> {
   // Import here to avoid circular dependency
   const { listPhases } = await import("./phases");
-  return listPhases(meetingId);
+  return await listPhases(meetingId);
 }
 
 export async function updateMeeting(
@@ -456,62 +473,95 @@ export async function updateMeeting(
 ): Promise<ApiResponse<Meeting>> {
   try {
     // Transform camelCase to snake_case for database
-    const dbUpdate: Record<string, unknown> = {};
-    if (meetingData.title !== undefined) dbUpdate.title = meetingData.title;
-    if (meetingData.cusip !== undefined) dbUpdate.cusip = meetingData.cusip;
-    if (meetingData.brokerSearchDate !== undefined)
-      dbUpdate.broker_search_date = meetingData.brokerSearchDate;
-    if (meetingData.recordDate !== undefined)
-      dbUpdate.record_date = meetingData.recordDate;
-    if (meetingData.mailingDate !== undefined)
-      dbUpdate.mailing_date = meetingData.mailingDate;
-    if (meetingData.meetingDate !== undefined)
-      dbUpdate.meeting_date = meetingData.meetingDate;
-    if (meetingData.cutoffDate !== undefined)
-      dbUpdate.cutoff_date = meetingData.cutoffDate;
-    if (meetingData.meetingType !== undefined)
-      dbUpdate.meeting_type = meetingData.meetingType;
-    if (meetingData.status !== undefined) dbUpdate.status = meetingData.status;
-    if (meetingData.currentPhase !== undefined)
-      dbUpdate.current_phase = meetingData.currentPhase;
-    if (meetingData.overallCompletion !== undefined)
-      dbUpdate.overall_completion = meetingData.overallCompletion;
-    if (meetingData.distributionType !== undefined)
-      dbUpdate.distribution_type = meetingData.distributionType;
-    if (meetingData.transferAgent !== undefined)
-      dbUpdate.transfer_agent = meetingData.transferAgent;
-    if (meetingData.employeeStockPlans !== undefined)
-      dbUpdate.employee_stock_plans = meetingData.employeeStockPlans;
-    if (meetingData.planAdministrator !== undefined)
-      dbUpdate.plan_administrator = meetingData.planAdministrator;
-    if (meetingData.planAdministratorContact !== undefined)
-      dbUpdate.plan_administrator_contact =
+    const databaseUpdate: MeetingUpdate = {};
+    if (meetingData.title !== undefined) {
+      databaseUpdate.title = meetingData.title;
+    }
+    if (meetingData.cusip !== undefined) {
+      databaseUpdate.cusip = meetingData.cusip;
+    }
+    if (meetingData.setKey !== undefined) {
+      databaseUpdate.set_key = meetingData.setKey;
+    }
+    if (meetingData.brokerSearchDate !== undefined) {
+      databaseUpdate.broker_search_date = meetingData.brokerSearchDate;
+    }
+    if (meetingData.recordDate !== undefined) {
+      databaseUpdate.record_date = meetingData.recordDate;
+    }
+    if (meetingData.mailingDate !== undefined) {
+      databaseUpdate.mailing_date = meetingData.mailingDate;
+    }
+    if (meetingData.meetingDate !== undefined) {
+      databaseUpdate.meeting_date = meetingData.meetingDate;
+    }
+    if (meetingData.cutoffDate !== undefined) {
+      databaseUpdate.cutoff_date = meetingData.cutoffDate;
+    }
+    if (meetingData.meetingType !== undefined) {
+      databaseUpdate.meeting_type = meetingData.meetingType;
+    }
+    if (meetingData.status !== undefined) {
+      databaseUpdate.status = meetingData.status;
+    }
+    if (meetingData.currentPhase !== undefined) {
+      databaseUpdate.current_phase = meetingData.currentPhase;
+    }
+    if (meetingData.overallCompletion !== undefined) {
+      databaseUpdate.overall_completion = meetingData.overallCompletion;
+    }
+    if (meetingData.distributionType !== undefined) {
+      databaseUpdate.distribution_type = meetingData.distributionType;
+    }
+    if (meetingData.transferAgent !== undefined) {
+      databaseUpdate.transfer_agent = meetingData.transferAgent;
+    }
+    if (meetingData.employeeStockPlans !== undefined) {
+      databaseUpdate.employee_stock_plans = meetingData.employeeStockPlans;
+    }
+    if (meetingData.planAdministrator !== undefined) {
+      databaseUpdate.plan_administrator = meetingData.planAdministrator;
+    }
+    if (meetingData.planAdministratorContact !== undefined) {
+      databaseUpdate.plan_administrator_contact =
         meetingData.planAdministratorContact;
-    if (meetingData.planAdministratorContactEmail !== undefined)
-      dbUpdate.plan_administrator_contact_email =
+    }
+    if (meetingData.planAdministratorContactEmail !== undefined) {
+      databaseUpdate.plan_administrator_contact_email =
         meetingData.planAdministratorContactEmail;
-    if (meetingData.solicitor !== undefined)
-      dbUpdate.solicitor = meetingData.solicitor;
-    if (meetingData.solicitorEmail !== undefined)
-      dbUpdate.solicitor_email = meetingData.solicitorEmail;
-    if (meetingData.ivrDialInNumber !== undefined)
-      dbUpdate.ivr_dial_in_number = meetingData.ivrDialInNumber;
-    if (meetingData.totalSharesOutstanding !== undefined)
-      dbUpdate.total_shares_outstanding = meetingData.totalSharesOutstanding;
-    if (meetingData.quorumRequirement !== undefined)
-      dbUpdate.quorum_requirement = meetingData.quorumRequirement;
-    if (meetingData.brokerNonVote !== undefined)
-      dbUpdate.broker_non_vote = meetingData.brokerNonVote;
-    if (meetingData.mailingStatus !== undefined)
-      dbUpdate.mailing_status = meetingData.mailingStatus;
-    if (meetingData.tabulationDistribution !== undefined)
-      dbUpdate.tabulation_distribution = meetingData.tabulationDistribution
-        ? JSON.parse(JSON.stringify(meetingData.tabulationDistribution))
-        : null;
+    }
+    if (meetingData.solicitor !== undefined) {
+      databaseUpdate.solicitor = meetingData.solicitor;
+    }
+    if (meetingData.solicitorEmail !== undefined) {
+      databaseUpdate.solicitor_email = meetingData.solicitorEmail;
+    }
+    if (meetingData.ivrDialInNumber !== undefined) {
+      databaseUpdate.ivr_dial_in_number = meetingData.ivrDialInNumber;
+    }
+    if (meetingData.totalSharesOutstanding !== undefined) {
+      databaseUpdate.total_shares_outstanding =
+        meetingData.totalSharesOutstanding;
+    }
+    if (meetingData.quorumRequirement !== undefined) {
+      databaseUpdate.quorum_requirement = meetingData.quorumRequirement;
+    }
+    if (meetingData.brokerNonVote !== undefined) {
+      databaseUpdate.broker_non_vote = meetingData.brokerNonVote;
+    }
+    if (meetingData.mailingStatus !== undefined) {
+      databaseUpdate.mailing_status = meetingData.mailingStatus;
+    }
+    if (meetingData.tabulationDistribution !== undefined) {
+      databaseUpdate.tabulation_distribution =
+        meetingData.tabulationDistribution
+          ? JSON.parse(JSON.stringify(meetingData.tabulationDistribution))
+          : null;
+    }
 
     const { data, error } = await supabase
       .from("meeting")
-      .update(dbUpdate)
+      .update(databaseUpdate)
       .eq("id", id)
       .select()
       .single();
@@ -540,8 +590,9 @@ export async function updateMeeting(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to update meeting",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to update meeting",
       },
     };
   }
@@ -563,8 +614,9 @@ export async function deleteMeeting(id: string): Promise<ApiResponse<void>> {
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error ? error.message : "Failed to delete meeting",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to delete meeting",
       },
     };
   }

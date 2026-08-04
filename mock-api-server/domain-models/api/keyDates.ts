@@ -1,166 +1,156 @@
-import { apiClient } from "../apiClient";
+import { getMeetingById } from "./meetings";
+import { listPhasesByMeetingId } from "./phases";
 
-// Use generated types from OpenAPI schema
-
-// Helper type for openapi-fetch response
+// Helper type for backend responses
 interface ApiResponse<T> {
   data?: T;
   error?: {
     message: string;
     statusCode?: number;
   };
-  response: Response;
 }
 
+/** A single dated milestone shown on a meeting's key-dates surfaces. */
 export interface KeyDate {
+  /** Stable id derived from the source record and the date's role. */
   id: string;
+  /** Human-readable label, e.g. "Record Date". */
   title: string;
+  /** ISO date string; never null in practice since undated entries are dropped. */
   date: string | null;
+  /** 1-based phase this date belongs to, used to group the timeline. */
   phaseNumber: number;
 }
 
+/** Meeting-level dates and the phase each one belongs to. */
+const meetingKeyDateFields = [
+  {
+    field: "preFilingDate",
+    idSuffix: "prefiling",
+    phaseNumber: 1,
+    title: "Pre-Filing Date",
+  },
+  {
+    field: "filingDate",
+    idSuffix: "filing",
+    phaseNumber: 1,
+    title: "Filing Date",
+  },
+  {
+    field: "brokerSearchDate",
+    idSuffix: "brokersearch",
+    phaseNumber: 3,
+    title: "Broker Search Date",
+  },
+  {
+    field: "recordDate",
+    idSuffix: "record",
+    phaseNumber: 4,
+    title: "Record Date",
+  },
+  {
+    field: "mailingDate",
+    idSuffix: "mailing",
+    phaseNumber: 6,
+    title: "Mailing Date",
+  },
+  {
+    field: "meetingDate",
+    idSuffix: "meeting",
+    phaseNumber: 8,
+    title: "Meeting Date",
+  },
+] as const;
+
+/** Phase-level key dates, keyed by their property on `phase.keyDates`. */
+const phaseKeyDateFields = [
+  { field: "startDate", idSuffix: "start", title: "Start Date" },
+  { field: "endDate", idSuffix: "end", title: "End Date" },
+  { field: "dueDate", idSuffix: "due", title: "Due Date" },
+  { field: "completionDate", idSuffix: "completion", title: "Completion Date" },
+] as const;
+
+/**
+ * Narrows an unknown field to a usable date string, filtering out the nulls
+ * and empty strings that unpopulated date columns produce.
+ *
+ * @param value - Candidate date value from a meeting or phase record
+ * @returns True when the value is a non-empty string
+ */
+const hasDate = (value: unknown): value is string =>
+  typeof value === "string" && value.length > 0;
+
+/**
+ * Collects every key date for a meeting: the meeting's own milestone dates
+ * plus the start/end/due/completion dates recorded on each phase.
+ *
+ * Reads through the Supabase-backed domain models directly. An earlier version
+ * called back into this service over HTTP via a client pointed at PostgREST,
+ * which rejected the OpenAPI-style paths with PGRST125 and made every meeting
+ * look like it had no key dates.
+ *
+ * @param meetingId - The meeting whose key dates are wanted
+ * @returns Every populated key date, or a 404/500 error if the meeting or its phases cannot be read
+ */
 export async function listKeyDatesForMeeting(
   meetingId: string
-): Promise<ApiResponse<KeyDate[] | undefined>> {
-  // Fetch meeting for top-level dates
-  const meetingResult = await apiClient.GET("/meetings/{meetingId}", {
-    params: {
-      path: { meetingId },
-    },
-  });
+): Promise<ApiResponse<KeyDate[]>> {
+  const { data: meeting, error: meetingError } =
+    await getMeetingById(meetingId);
 
-  const {
-    data: meeting,
-    error: meetingError,
-    response: meetingResponse,
-  } = meetingResult;
-
-  if (meetingError) {
+  if (meetingError || meeting === undefined) {
     return {
-      data: undefined,
       error: {
-        message: meetingError.message ?? "Failed to fetch meeting",
-        statusCode: meetingResponse.status,
+        message: meetingError?.message ?? "Failed to fetch meeting",
+        statusCode: meetingError?.statusCode ?? 404,
       },
-      response: meetingResponse,
     };
   }
 
-  // Fetch phases for phase-level key dates
-  const phasesResult = await apiClient.GET("/meetings/{meetingId}/phases", {
-    params: {
-      path: { meetingId },
-    },
-  });
-
-  const {
-    data: phases,
-    error: phasesError,
-    response: phasesResponse,
-  } = phasesResult;
+  const { data: phases, error: phasesError } =
+    await listPhasesByMeetingId(meetingId);
 
   if (phasesError) {
     return {
-      data: undefined,
       error: {
-        message: phasesError.message ?? "Failed to fetch phases",
-        statusCode: phasesResponse.status,
+        message: phasesError.message,
+        statusCode: phasesError.statusCode ?? 500,
       },
-      response: phasesResponse,
     };
   }
 
   const result: KeyDate[] = [];
 
-  // Include meeting-level dates with correct phase assignments
-  if (meeting.preFilingDate) {
-    result.push({
-      id: `${meeting.id}-prefiling`,
-      title: "Pre-Filing Date",
-      date: meeting.preFilingDate,
-      phaseNumber: 1,
-    });
-  }
-  if (meeting.filingDate) {
-    result.push({
-      id: `${meeting.id}-filing`,
-      title: "Filing Date",
-      date: meeting.filingDate,
-      phaseNumber: 1,
-    });
-  }
-  if (meeting.brokerSearchDate) {
-    result.push({
-      id: `${meeting.id}-brokersearch`,
-      title: "Broker Search Date",
-      date: meeting.brokerSearchDate,
-      phaseNumber: 3,
-    });
-  }
-  if (meeting.recordDate) {
-    result.push({
-      id: `${meeting.id}-record`,
-      title: "Record Date",
-      date: meeting.recordDate,
-      phaseNumber: 4,
-    });
-  }
-  if (meeting.mailingDate) {
-    result.push({
-      id: `${meeting.id}-mailing`,
-      title: "Mailing Date",
-      date: meeting.mailingDate,
-      phaseNumber: 6,
-    });
-  }
-  if (meeting.meetingDate) {
-    result.push({
-      id: `${meeting.id}-meeting`,
-      title: "Meeting Date",
-      date: meeting.meetingDate,
-      phaseNumber: 8,
-    });
-  }
-
-  // Phase-level key dates
-  for (const phase of phases || []) {
-    const pn = phase.orderIndex ?? 0;
-    const kd = phase.keyDates || {};
-    if (kd.startDate) {
+  for (const { field, idSuffix, phaseNumber, title } of meetingKeyDateFields) {
+    const date = meeting[field];
+    if (hasDate(date)) {
       result.push({
-        id: `${phase.id}-start`,
-        title: "Start Date",
-        date: kd.startDate,
-        phaseNumber: pn,
-      });
-    }
-    if (kd.endDate) {
-      result.push({
-        id: `${phase.id}-end`,
-        title: "End Date",
-        date: kd.endDate,
-        phaseNumber: pn,
-      });
-    }
-    if (kd.dueDate) {
-      result.push({
-        id: `${phase.id}-due`,
-        title: "Due Date",
-        date: kd.dueDate,
-        phaseNumber: pn,
-      });
-    }
-    if (kd.completionDate) {
-      result.push({
-        id: `${phase.id}-completion`,
-        title: "Completion Date",
-        date: kd.completionDate,
-        phaseNumber: pn,
+        date,
+        id: `${meeting.id}-${idSuffix}`,
+        phaseNumber,
+        title,
       });
     }
   }
 
-  // Filter out null dates
-  const filtered = result.filter((d) => !!d.date);
-  return { data: filtered, error: undefined, response: meetingResponse };
+  const meetingPhases = phases ?? [];
+
+  for (const phase of meetingPhases) {
+    const phaseNumber = phase.orderIndex ?? 0;
+    const keyDates: Record<string, unknown> = phase.keyDates ?? {};
+
+    for (const { field, idSuffix, title } of phaseKeyDateFields) {
+      const date = keyDates[field];
+      if (hasDate(date)) {
+        result.push({
+          date,
+          id: `${phase.id}-${idSuffix}`,
+          phaseNumber,
+          title,
+        });
+      }
+    }
+  }
+
+  return { data: result };
 }

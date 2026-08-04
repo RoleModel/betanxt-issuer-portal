@@ -80,9 +80,7 @@ export const getClientLogo = (
  * Get all available client logos
  * @returns Array of logo paths
  */
-export const getAllClientLogos = (): string[] => {
-  return Object.values(LOGO_MAPPING);
-};
+export const getAllClientLogos = (): string[] => Object.values(LOGO_MAPPING);
 
 /**
  * Check if a logo exists for a given client
@@ -95,6 +93,4 @@ export const hasClientLogo = (
   clientName?: string,
   ticker?: string,
   accountCode?: string
-): boolean => {
-  return getClientLogo(clientName, ticker, accountCode) !== DEFAULT_LOGO;
-};
+): boolean => getClientLogo(clientName, ticker, accountCode) !== DEFAULT_LOGO;

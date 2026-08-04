@@ -9,6 +9,15 @@ import type { FileDropzoneProps } from "./types";
 
 import { DEFAULT_ACCEPTED_TYPES, DEFAULT_MAX_SIZE } from "./types";
 
+const formatFileTypes = (types: string[]): string => {
+  return types.map((type) => type.toUpperCase().replace(".", "")).join(", ");
+};
+
+const formatMaxSize = (size: number): string => {
+  const mb = size / (1024 * 1024);
+  return `${mb}MB`;
+};
+
 const BNFileDropzone: React.FC<FileDropzoneProps> = ({
   onFilesSelected,
   onFileRejections,
@@ -37,7 +46,7 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
     [onFileRejections]
   );
 
-  const acceptObject = acceptedFileTypes.reduce(
+  const acceptObject = acceptedFileTypes.reduce<Record<string, string[]>>(
     (acc, type) => {
       // Map file extensions to MIME types for proper drag & drop support
       switch (type) {
@@ -98,7 +107,7 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
       }
       return acc;
     },
-    {} as Record<string, string[]>
+    {}
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -110,15 +119,6 @@ const BNFileDropzone: React.FC<FileDropzoneProps> = ({
     disabled,
     multiple,
   });
-
-  const formatFileTypes = (types: string[]) => {
-    return types.map((type) => type.toUpperCase().replace(".", "")).join(", ");
-  };
-
-  const formatMaxSize = (size: number) => {
-    const mb = size / (1024 * 1024);
-    return `${mb}MB`;
-  };
 
   // Determine border and background colors based on state
   const getBorderColor = () => {

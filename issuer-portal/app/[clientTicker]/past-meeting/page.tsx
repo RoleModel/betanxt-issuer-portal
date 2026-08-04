@@ -35,7 +35,25 @@ interface MeetingData extends Meeting {
 type Order = "asc" | "desc";
 type OrderBy = keyof MeetingData;
 
-export default function MeetingsPage() {
+const formatDate = (dateString: string): string => {
+  if (!dateString) return "";
+  try {
+    const dateParts = dateString.split("-");
+    if (dateParts.length !== 3) return "Invalid Date";
+    const [year, month, day] = dateParts.map((part) => parseInt(part));
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch (error) {
+    console.warn("Error parsing date:", dateString, error);
+    return "Invalid Date";
+  }
+};
+
+const MeetingsPage = () => {
   const params = useParams();
   const clientTicker = params.clientTicker as string;
   const [meetings, setMeetings] = useState<MeetingData[]>([]);
@@ -94,24 +112,6 @@ export default function MeetingsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "";
-    try {
-      const dateParts = dateString.split("-");
-      if (dateParts.length !== 3) return "Invalid Date";
-      const [year, month, day] = dateParts.map((part) => parseInt(part));
-      const date = new Date(year, month - 1, day);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch (error) {
-      console.warn("Error parsing date:", dateString, error);
-      return "Invalid Date";
-    }
-  };
-
   const handleRequestSort = (property: OrderBy) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -120,13 +120,17 @@ export default function MeetingsPage() {
 
   const sortedMeetings = React.useMemo(() => {
     return [...meetings].sort((a, b) => {
-      let compareA: string | number = a[orderBy] as string;
-      let compareB: string | number = b[orderBy] as string;
+      // `orderBy` is any key of MeetingData, so the raw values are not
+      // necessarily comparable; the guards below pick the applicable strategy.
+      const compareA: unknown = a[orderBy];
+      const compareB: unknown = b[orderBy];
 
       // Handle date sorting
       if (orderBy === "meetingDate") {
-        compareA = new Date(compareA).getTime();
-        compareB = new Date(compareB).getTime();
+        const timeA = new Date(String(compareA)).getTime();
+        const timeB = new Date(String(compareB)).getTime();
+
+        return order === "asc" ? timeA - timeB : timeB - timeA;
       }
 
       // Handle numeric sorting
@@ -158,7 +162,9 @@ export default function MeetingsPage() {
                     <TableSortLabel
                       active={orderBy === "title"}
                       direction={orderBy === "title" ? order : "asc"}
-                      onClick={() => handleRequestSort("title")}
+                      onClick={() => {
+                        handleRequestSort("title");
+                      }}
                     >
                       Meeting
                     </TableSortLabel>
@@ -167,7 +173,9 @@ export default function MeetingsPage() {
                     <TableSortLabel
                       active={orderBy === "cusip"}
                       direction={orderBy === "cusip" ? order : "asc"}
-                      onClick={() => handleRequestSort("cusip")}
+                      onClick={() => {
+                        handleRequestSort("cusip");
+                      }}
                     >
                       CUSIP
                     </TableSortLabel>
@@ -176,7 +184,9 @@ export default function MeetingsPage() {
                     <TableSortLabel
                       active={orderBy === "meetingDate"}
                       direction={orderBy === "meetingDate" ? order : "asc"}
-                      onClick={() => handleRequestSort("meetingDate")}
+                      onClick={() => {
+                        handleRequestSort("meetingDate");
+                      }}
                     >
                       Date
                     </TableSortLabel>
@@ -259,4 +269,6 @@ export default function MeetingsPage() {
       </Card>
     </Box>
   );
-}
+};
+
+export default MeetingsPage;

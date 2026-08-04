@@ -22,37 +22,41 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 }
 
 // Transform snake_case database fields to camelCase API fields
-function transformMailing(dbMailing: MailingRow): Mailing {
+function transformMailing(databaseMailing: MailingRow): Mailing {
   return {
-    id: nullToUndefined(dbMailing.id),
-    meetingId: nullToUndefined(dbMailing.meeting_id),
-    ticker: nullToUndefined(dbMailing.ticker),
-    totalAccounts: nullToUndefined(dbMailing.total_accounts),
-    totalPositions: nullToUndefined(dbMailing.total_positions),
-    totalRetransmissions: nullToUndefined(dbMailing.total_retransmissions),
-    totalRollups: nullToUndefined(dbMailing.total_rollups),
-    fullsetMailPositions: nullToUndefined(dbMailing.fullset_mail_positions),
-    naaMailPositions: nullToUndefined(dbMailing.naa_mail_positions),
+    id: nullToUndefined(databaseMailing.id),
+    meetingId: nullToUndefined(databaseMailing.meeting_id),
+    ticker: nullToUndefined(databaseMailing.ticker),
+    totalAccounts: nullToUndefined(databaseMailing.total_accounts),
+    totalPositions: nullToUndefined(databaseMailing.total_positions),
+    totalRetransmissions: nullToUndefined(
+      databaseMailing.total_retransmissions
+    ),
+    totalRollups: nullToUndefined(databaseMailing.total_rollups),
+    fullsetMailPositions: nullToUndefined(
+      databaseMailing.fullset_mail_positions
+    ),
+    naaMailPositions: nullToUndefined(databaseMailing.naa_mail_positions),
     courtesyOtherMailPositions: nullToUndefined(
-      dbMailing.courtesy_other_mail_positions
+      databaseMailing.courtesy_other_mail_positions
     ),
     electronicSuppressedPositions: nullToUndefined(
-      dbMailing.electronic_suppressed_positions
+      databaseMailing.electronic_suppressed_positions
     ),
     householdSuppressedPositions: nullToUndefined(
-      dbMailing.household_suppressed_positions
+      databaseMailing.household_suppressed_positions
     ),
     managedSuppressedPositions: nullToUndefined(
-      dbMailing.managed_suppressed_positions
+      databaseMailing.managed_suppressed_positions
     ),
     consolidatedSuppressedPositions: nullToUndefined(
-      dbMailing.consolidated_suppressed_positions
+      databaseMailing.consolidated_suppressed_positions
     ),
     canceledSuppressedPositions: nullToUndefined(
-      dbMailing.canceled_suppressed_positions
+      databaseMailing.canceled_suppressed_positions
     ),
-    createdAt: nullToUndefined(dbMailing.created_at),
-    updatedAt: nullToUndefined(dbMailing.updated_at),
+    createdAt: nullToUndefined(databaseMailing.created_at),
+    updatedAt: nullToUndefined(databaseMailing.updated_at),
   };
 }
 
@@ -84,10 +88,9 @@ export async function getMailingByMeetingId(
   } catch (error) {
     return {
       error: {
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch mailing data",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch mailing data",
       },
     };
   }

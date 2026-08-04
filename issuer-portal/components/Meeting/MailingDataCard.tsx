@@ -14,6 +14,7 @@ import React, { useEffect, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import SkeletonTable from "@/components/ui/SkeletonTable";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 import { useMailing } from "@/hooks/useMailing";
@@ -27,9 +28,9 @@ export interface MailingMetric {
 }
 
 interface MailingDataCardProps {
-  meetingId?: string;
-  metrics?: MailingMetric[];
-  loading?: boolean;
+  readonly meetingId?: string;
+  readonly metrics?: MailingMetric[];
+  readonly loading?: boolean;
 }
 
 const formatNumber = (num: number | null | undefined): string => {
@@ -132,9 +133,9 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {groupRows.map((row, idx) => (
+            {groupRows.map((row) => (
               <TableRow
-                key={idx}
+                key={row.section}
                 sx={{
                   "&:not(:last-child)": {
                     borderBottom: "1px solid",
@@ -171,7 +172,7 @@ const MailingDataCard: React.FC<MailingDataCardProps> = ({
                         color="text.secondary"
                         display="block"
                       >
-                        {item.label}
+                        <GlossaryText>{item.label}</GlossaryText>
                       </Typography>
                       <Typography
                         variant="body3"

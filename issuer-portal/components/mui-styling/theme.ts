@@ -1,7 +1,7 @@
 /* eslint-disable import-x/order */
 "use client";
 
-/* eslint-disable sort-keys, @typescript-eslint/naming-convention -- MUI theme object order and CSS-variable palette keys are semantic. */
+/* eslint-disable @typescript-eslint/naming-convention -- MUI theme object order and CSS-variable palette keys are semantic. */
 
 import type {
   PaletteColor,
@@ -25,7 +25,6 @@ import {
   purple,
   teal,
 } from "@mui/material/colors";
-import { darken, getContrastRatio, lighten } from "@mui/material/styles";
 import { deepmerge } from "@mui/utils";
 import { components } from "@rolemodel/betanxt-design-system/themes/base/components";
 import { layout } from "@rolemodel/betanxt-design-system/themes/base/layout";
@@ -50,7 +49,13 @@ import betanxtTheme from "@rolemodel/betanxt-design-system/themes/betanxtTheme";
 import { createClientThemeOptions } from "@rolemodel/client-theming/theme";
 
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
-import { clientBranding } from "@/utils/clientBranding";
+import {
+  createBrandPaletteColor,
+  createDarkThemeColors,
+  getMostLegibleText,
+} from "@/utils/brand-theme-colors";
+import { clientBranding } from "@/utils/client-branding";
+import { generateChartPalette } from "@/utils/vote-chart-colors";
 
 const hasMainColor = (
   color: PaletteColorOptions
@@ -185,6 +190,7 @@ const jobStatusColorsDark = {
 const baseThemeOptions = {
   cssVariables: {
     colorSchemeSelector: "class",
+    nativeColor: true,
   },
   colorSchemes: {
     light: {
@@ -215,6 +221,37 @@ export interface LayoutVariables {
   eventTabsHeight: number;
 }
 
+interface VoteDistributionAccountPalette {
+  inner: string;
+  innerContrastText: string;
+  voted: string;
+  votedContrastText: string;
+  unvoted: string;
+  unvotedContrastText: string;
+}
+
+interface VoteDistributionPalette {
+  dtc: VoteDistributionAccountPalette;
+  nonDtc: VoteDistributionAccountPalette;
+}
+
+interface VoteChartColorPalette {
+  main: string;
+  contrastText: string;
+}
+
+interface VoteChartPalette {
+  registered: VoteChartColorPalette;
+  beneficial: VoteChartColorPalette;
+  web: VoteChartColorPalette;
+  print: VoteChartColorPalette;
+  ivr: VoteChartColorPalette;
+  for: VoteChartColorPalette;
+  against: VoteChartColorPalette;
+  abstain: VoteChartColorPalette;
+  withhold: VoteChartColorPalette;
+}
+
 declare module "@mui/material/styles" {
   interface Palette {
     keydate: Palette["primary"];
@@ -237,6 +274,8 @@ declare module "@mui/material/styles" {
     ];
     complete: string;
     aquaLight: string;
+    voteDistribution: VoteDistributionPalette;
+    voteChart: VoteChartPalette;
   }
   interface PaletteOptions {
     keydate?: PaletteOptions["primary"];
@@ -259,6 +298,8 @@ declare module "@mui/material/styles" {
     ];
     complete?: string;
     aquaLight?: string;
+    voteDistribution?: VoteDistributionPalette;
+    voteChart?: VoteChartPalette;
   }
 
   interface PaletteColor {
@@ -281,6 +322,10 @@ declare module "@mui/material/LinearProgress" {
     "chartSeries[5].main": true;
     "chartSeries[6].main": true;
     "chartSeries[7].main": true;
+    "voteChart.for": true;
+    "voteChart.against": true;
+    "voteChart.abstain": true;
+    "voteChart.withhold": true;
   }
 }
 
@@ -362,27 +407,82 @@ interface BrandingColors {
   ticker: string;
 }
 
-interface BrandingWithContrast extends BrandingColors {
-  primaryContrastText: string;
-  secondaryContrastText: string;
-  tertiaryContrastText: string;
-}
+const createVoteDistributionAccountPalette = (
+  color: VoteChartColorPalette
+): VoteDistributionAccountPalette => {
+  const inner = `color-mix(in oklch, ${color.main} 85%, black 15%)`;
+  const unvoted = `color-mix(in oklch, ${color.main} 45%, white 55%)`;
 
-const getContrastText = (color: string): string =>
-  getContrastRatio(color, "#fff") > 4.5 ? "#fff" : "#111";
+  return {
+    inner,
+    innerContrastText: color.contrastText,
+    voted: color.main,
+    votedContrastText: color.contrastText,
+    unvoted,
+    unvotedContrastText: "#111",
+  };
+};
 
-const addContrastText = (branding: BrandingColors): BrandingWithContrast => ({
-  ...branding,
-  primaryContrastText: getContrastText(branding.primaryColor),
-  secondaryContrastText: getContrastText(branding.secondaryColor),
-  tertiaryContrastText: getContrastText(branding.tertiaryColor),
-});
+/**
+ * Resolves chart roles and their foreground colors for one client theme.
+ *
+ * @param primaryColor - The client primary brand color used for Registered.
+ * @param secondaryColor - The client secondary brand color used for
+ * Beneficial and source-color derivations.
+ * @returns The semantic chart palette installed at `palette.voteChart`.
+ *
+ * @remarks
+ * The role order comes from `generateChartPalette`. Each role receives a
+ * paired `contrastText` token, which chart overlays must use instead of a
+ * global palette contrast token because the underlying arc can be any role.
+ */
+const createVoteChartPalette = (
+  primaryColor: string,
+  secondaryColor: string,
+  colorScheme: "dark" | "light"
+): VoteChartPalette => {
+  const colors = generateChartPalette(
+    primaryColor,
+    secondaryColor,
+    colorScheme
+  );
+  // Source channels are deliberately dark in light mode and light in dark
+  // mode, so every in-bar total can use one readable foreground per scheme.
+  const sourceContrastText = colorScheme === "dark" ? "#111" : "#fff";
+  const contrastTextByColor = [
+    getMostLegibleText(primaryColor),
+    getMostLegibleText(secondaryColor),
+    sourceContrastText,
+    sourceContrastText,
+    sourceContrastText,
+    "#111",
+    "#fff",
+    "#111",
+    "#fff",
+  ] as const;
+  const colorAt = (index: number): VoteChartColorPalette => ({
+    main: colors[index] ?? primaryColor,
+    contrastText: contrastTextByColor[index] ?? "#111",
+  });
+
+  return {
+    registered: colorAt(0),
+    beneficial: colorAt(1),
+    web: colorAt(2),
+    print: colorAt(3),
+    ivr: colorAt(4),
+    for: colorAt(5),
+    against: colorAt(6),
+    abstain: colorAt(7),
+    withhold: colorAt(8),
+  };
+};
 
 const [defaultClientBranding] = clientBranding;
 
-const getClientBranding = (ticker?: string): BrandingWithContrast => {
+const getClientBranding = (ticker?: string): BrandingColors => {
   if (ticker === undefined || ticker.length === 0) {
-    return addContrastText(defaultClientBranding);
+    return defaultClientBranding;
   }
 
   const branding = clientBranding.find(
@@ -390,23 +490,23 @@ const getClientBranding = (ticker?: string): BrandingWithContrast => {
   );
 
   if (branding !== undefined) {
-    return addContrastText(branding);
+    return branding;
   }
 
   const normalizedTicker = ticker.toUpperCase();
   const brand = getBrandConfigByTicker(normalizedTicker);
 
   if (brand === null) {
-    return addContrastText(defaultClientBranding);
+    return defaultClientBranding;
   }
 
   // Use the secondary brand color as the tertiary fallback.
-  return addContrastText({
+  return {
     primaryColor: brand.primaryColor,
     secondaryColor: brand.secondaryColor,
     tertiaryColor: brand.secondaryColor,
     ticker: brand.ticker ?? normalizedTicker,
-  });
+  };
 };
 
 const linearProgressPhaseColors = new Set<string>(phaseColorNames);
@@ -419,6 +519,12 @@ const linearProgressChartColors = new Set<string>([
   "chartSeries[5].main",
   "chartSeries[6].main",
   "chartSeries[7].main",
+]);
+const linearProgressVoteChartColors = new Set<string>([
+  "voteChart.for",
+  "voteChart.against",
+  "voteChart.abstain",
+  "voteChart.withhold",
 ]);
 
 const getLinearProgressColorStyles = ({
@@ -464,6 +570,23 @@ const getLinearProgressColorStyles = ({
     }
   }
 
+  if (linearProgressVoteChartColors.has(color)) {
+    const voteColor = /voteChart\.(?<role>for|against|abstain|withhold)/u.exec(
+      color
+    )?.groups?.role;
+
+    if (voteColor !== undefined) {
+      const chartColor = `var(--mui-palette-voteChart-${voteColor}-main)`;
+
+      return {
+        backgroundColor: `color-mix(in oklch, ${chartColor} 20%, transparent)`,
+        "& .MuiLinearProgress-bar": {
+          backgroundColor: chartColor,
+        },
+      };
+    }
+  }
+
   return {};
 };
 
@@ -474,6 +597,17 @@ const getLinearProgressColorStyles = ({
  */
 export const createClientTheme = (ticker?: string) => {
   const branding = getClientBranding(ticker);
+  const darkBranding = createDarkThemeColors(branding);
+  const lightVoteChart = createVoteChartPalette(
+    branding.primaryColor,
+    branding.secondaryColor,
+    "light"
+  );
+  const darkVoteChart = createVoteChartPalette(
+    darkBranding.primaryColor,
+    darkBranding.secondaryColor,
+    "dark"
+  );
   const portableClientThemeOptions = createClientThemeOptions({
     primaryColor: branding.primaryColor,
     secondaryColor: branding.secondaryColor,
@@ -485,19 +619,23 @@ export const createClientTheme = (ticker?: string) => {
       light: {
         palette: {
           primary: {
-            main: branding.primaryColor,
-            contrastText: branding.primaryContrastText,
+            ...createBrandPaletteColor(branding.primaryColor, "light"),
           },
           secondary: {
-            main: branding.secondaryColor,
-            contrastText: branding.secondaryContrastText,
+            ...createBrandPaletteColor(branding.secondaryColor, "light"),
           },
           tertiary: {
-            main: branding.tertiaryColor,
-            light: lighten(branding.tertiaryColor, 0.2),
-            dark: darken(branding.tertiaryColor, 0.2),
-            contrastText: branding.tertiaryContrastText,
+            ...createBrandPaletteColor(branding.tertiaryColor, "light"),
           },
+          voteDistribution: {
+            dtc: createVoteDistributionAccountPalette(
+              lightVoteChart.registered
+            ),
+            nonDtc: createVoteDistributionAccountPalette(
+              lightVoteChart.beneficial
+            ),
+          },
+          voteChart: lightVoteChart,
 
           appSwitcher: {
             background: "#171717",
@@ -582,6 +720,22 @@ export const createClientTheme = (ticker?: string) => {
       },
       dark: {
         palette: {
+          primary: {
+            ...createBrandPaletteColor(darkBranding.primaryColor, "dark"),
+          },
+          secondary: {
+            ...createBrandPaletteColor(darkBranding.secondaryColor, "dark"),
+          },
+          tertiary: {
+            ...createBrandPaletteColor(darkBranding.tertiaryColor, "dark"),
+          },
+          voteDistribution: {
+            dtc: createVoteDistributionAccountPalette(darkVoteChart.registered),
+            nonDtc: createVoteDistributionAccountPalette(
+              darkVoteChart.beneficial
+            ),
+          },
+          voteChart: darkVoteChart,
           aquaLight: "#CFE2E5",
           keydate: {
             main: nxtBlue[900],
@@ -704,6 +858,9 @@ export const createClientTheme = (ticker?: string) => {
             "&:has(.MuiTable-root)": {
               padding: 0,
             },
+            "&:has(.MuiDataGrid-root)": {
+              padding: 0,
+            },
             [theme.breakpoints.down("md")]: {
               padding: theme.spacing(1),
             },
@@ -711,6 +868,97 @@ export const createClientTheme = (ticker?: string) => {
               [theme.breakpoints.down("md")]: {
                 padding: theme.spacing(1),
               },
+            },
+          }),
+        },
+      },
+      MuiDataGrid: {
+        styleOverrides: {
+          root: ({ theme }: { theme: Theme }) => ({
+            "--DataGrid-t-color-border-base": theme.vars.palette.divider,
+            fontSize: theme.typography.dataCell.fontSize,
+            boxShadow: theme.shadows[5],
+            borderRadius: theme.vars.shape.borderRadius,
+            border: "none",
+            backgroundColor: theme.vars.palette.dataGridDefaultFill,
+            "& .MuiDataGrid-overlayWrapperInner": {
+              backgroundColor: theme.vars.palette.dataGridDefaultFill,
+            },
+            "& .MuiDataGrid-toolbar": {
+              backgroundColor: theme.vars.palette.dataGridHeaderRow.restingFill,
+              borderBottom: `solid 1px ${theme.vars.palette.grey[400]}`,
+            },
+            "& .MuiDataGrid-row": {
+              boxShadow: `0 -1px 0 0 ${theme.vars.palette.grey[200]}`,
+            },
+
+            // Header Row Styles
+            "& .MuiDataGrid-columnSeparator": {
+              color: theme.vars.palette.divider,
+            },
+            "& .MuiDataGrid-columnHeaders": {
+              background: theme.vars.palette.dataGridHeaderRow.restingFill,
+            },
+            "& .MuiDataGrid-row--borderBottom .MuiDataGrid-columnHeader": {
+              borderColor: theme.vars.palette.dataGridHeaderRow.border,
+            },
+            "& .MuiDataGrid-columnHeader": {
+              background: theme.vars.palette.dataGridHeaderRow.restingFill,
+              backdropFilter: "blur(4px)",
+            },
+            '& .MuiDataGrid-container--top [role="row"]': {
+              background: theme.vars.palette.dataGridHeaderRow.restingFill,
+            },
+
+            // DataGrid Footer and Pagination Styles
+            "& .MuiTablePagination-selectLabel": {
+              fontSize: "inherit",
+            },
+            "& .MuiTablePagination-displayedRows": {
+              fontSize: "inherit",
+            },
+            "& .MuiDataGrid-footerContainer": {
+              backgroundColor:
+                theme.vars.palette.dataGridPagination.backgroundFill,
+              borderColor: theme.vars.palette.dataGridCellRow.border,
+            },
+            "& .MuiTablePagination-toolbar": {
+              fontSize: "inherit",
+            },
+            "& .MuiDataGrid-filler": {
+              backgroundColor: theme.vars.palette.dataGridDefaultFill,
+            },
+            "& .MuiDataGrid-virtualScroller": {
+              backgroundColor: theme.vars.palette.dataGridDefaultFill,
+            },
+
+            // Row Hover Styling
+            "& .MuiDataGrid-row:hover": {
+              backgroundColor: theme.vars.palette.action.hover,
+            },
+
+            // Pinned Column Stying
+            "& .MuiDataGrid-filler--pinnedRight": {
+              backgroundColor: theme.vars.palette.dataGridDefaultFill,
+            },
+            "& .MuiDataGrid-cell--pinnedLeft": {
+              backgroundColor: theme.vars.palette.dataGridDefaultFill,
+              backdropFilter: "blur(6px)",
+            },
+            "& .MuiDataGrid-cell--pinnedRight": {
+              backgroundColor: theme.vars.palette.dataGridDefaultFill,
+              backdropFilter: "blur(6px)",
+            },
+            "& .MuiDataGrid-row:hover .MuiDataGrid-cell--pinnedRight": {
+              backgroundColor: "transparent",
+            },
+            "& .MuiDataGrid-row:hover .MuiDataGrid-cell--pinnedLeft": {
+              backgroundColor: "transparent",
+            },
+
+            // Cell Styling
+            "& .MuiDataGrid-cell--editing": {
+              backgroundColor: theme.vars.palette.dataGridDefaultFill,
             },
           }),
         },
@@ -744,8 +992,8 @@ export const createClientTheme = (ticker?: string) => {
               height: theme.layout?.navbarHeight,
             },
             "&.MuiAppBar-root": {
-              backgroundColor: theme.vars.palette.common.white,
-              color: theme.vars.palette.text.primary,
+              backgroundColor: betanxtTheme.vars.palette.common.white,
+              color: betanxtTheme.vars.palette.text.primary,
               borderBottom: `1px solid ${theme.vars.palette.divider}`,
               "& .MuiPaper-root": {
                 boxShadow: "none",
@@ -879,7 +1127,10 @@ export const createClientTheme = (ticker?: string) => {
     },
   });
 
-  return deepmerge(clientThemeOptions, portableClientThemeOptions);
+  // Apply the portal's dark-scheme overrides after the portable defaults. The
+  // package deliberately mirrors one brand color into both modes; this app
+  // supplies contrast-checked dark values for its denser data UI.
+  return deepmerge(portableClientThemeOptions, clientThemeOptions);
 };
 
 // Export theme options instead of created themes to avoid duplicate CSS variable generation

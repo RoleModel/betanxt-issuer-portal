@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
-const skipWebServer = !!process.env.PLAYWRIGHT_SKIP_WEBSERVER;
+const isSkipWebServer = !!process.env.PLAYWRIGHT_SKIP_WEBSERVER;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -65,7 +65,7 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: skipWebServer
+  webServer: isSkipWebServer
     ? undefined
     : {
         command: "npm run dev",

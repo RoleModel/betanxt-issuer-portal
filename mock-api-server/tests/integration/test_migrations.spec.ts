@@ -1,11 +1,10 @@
-import { expect, test } from "@playwright/test";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
+import { expect, test } from "@playwright/test";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
 
 test.describe("Database Migrations", () => {
   const migrationsPath = path.join(__dirname, "../../../supabase/migrations");
@@ -46,17 +45,17 @@ test.describe("Database Migrations", () => {
 
   test("should verify critical database objects exist", async () => {
     // Check for critical functions
-    const { data: _functions, error: funcError } = await supabase
+    const { data: _functions, error: functionError } = await supabase
       .rpc("get_user_account_id")
       .single();
 
     // Function might not exist or require auth, but should not have connection errors
     if (
-      funcError &&
-      funcError.code !== "PGRST116" &&
-      funcError.code !== "PGRST202"
+      functionError &&
+      functionError.code !== "PGRST116" &&
+      functionError.code !== "PGRST202"
     ) {
-      console.warn("Function check:", funcError.message);
+      console.warn("Function check:", functionError.message);
     }
 
     // Check for enums by trying to query tables that use them

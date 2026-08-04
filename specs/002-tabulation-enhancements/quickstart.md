@@ -15,7 +15,7 @@ Sign in as a CSM (`csm.user` / `CsmP@ss1`) or use bypass auth. Navigate to an En
 
 ## 1. Tabulation view (`/{ticker}/meeting/{meetingId}/tabulation`)
 
-1. **Voting Activity** — title reads "Voting Activity — Registered Holders" with the caption "Reflects Registered Holder voting only". (Scenario 1)
+1. **Voting Activity** — title reads "Voting Activity — Registered Holders" with the caption "Registered Holder votes". (Scenario 1)
 2. **Shares Voted** — Proposal 1 shown by default; selector lists all proposals; choosing Proposal 2 updates the FOR/AGAINST/ABSTAIN pie and header. (Scenarios 2–3)
 3. **Total Votes** — confirm no "Total Votes" column/section anywhere on the page. (Scenario 4)
 

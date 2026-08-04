@@ -4,7 +4,7 @@ import "@rolemodel/betanxt-design-system/themes/mui-type-customizations";
 import "@mui/material/styles";
 
 declare module "@mui/material/Typography" {
-  interface TypographyPropsVariantOverrides {
+  interface TypographyPropertiesVariantOverrides {
     appTitle: true;
     body3: true;
     condensed: true;

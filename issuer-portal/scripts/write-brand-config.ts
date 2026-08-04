@@ -3,26 +3,38 @@ import fs from "node:fs";
 import type { BrandConfig } from "../utils/brandConfig";
 
 function formatConfigKey(key: string): string {
-  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) return key;
-  if (key.includes("'")) return `"${key.replace(/"/g, '\\"')}"`;
-  return `'${key.replace(/'/g, "\\'")}'`;
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+    return key;
+  }
+  if (key.includes("'")) {
+    return `"${key.replaceAll('"', '\\"')}"`;
+  }
+  return `'${key.replaceAll("'", "\\'")}'`;
 }
 
-function serializeEntry(val: BrandConfig): string {
+function serializeEntry(value: BrandConfig): string {
   const lines: string[] = [
-    `    companyName: '${val.companyName.replace(/'/g, "\\'")}',`,
+    `    companyName: '${value.companyName.replaceAll("'", "\\'")}',`,
   ];
 
-  if (val.ticker) lines.push(`    ticker: "${val.ticker}",`);
-  lines.push(`    domain: '${val.domain}',`);
-  lines.push(`    logoPath: '${val.logoPath}',`);
-  lines.push(`    iconPath: '${val.iconPath}',`);
-  if (val.headerLogoPath)
-    lines.push(`    headerLogoPath: '${val.headerLogoPath}',`);
-  if (val.headerIconPath)
-    lines.push(`    headerIconPath: '${val.headerIconPath}',`);
-  lines.push(`    primaryColor: '${val.primaryColor}',`);
-  lines.push(`    secondaryColor: '${val.secondaryColor}',`);
+  if (value.ticker) {
+    lines.push(`    ticker: "${value.ticker}",`);
+  }
+  lines.push(
+    `    domain: '${value.domain}',`,
+    `    logoPath: '${value.logoPath}',`,
+    `    iconPath: '${value.iconPath}',`
+  );
+  if (value.headerLogoPath) {
+    lines.push(`    headerLogoPath: '${value.headerLogoPath}',`);
+  }
+  if (value.headerIconPath) {
+    lines.push(`    headerIconPath: '${value.headerIconPath}',`);
+  }
+  lines.push(
+    `    primaryColor: '${value.primaryColor}',`,
+    `    secondaryColor: '${value.secondaryColor}',`
+  );
 
   return lines.join("\n");
 }
@@ -33,8 +45,8 @@ export function writeBrandConfigFile(
 ): void {
   const entries = Object.entries(configs)
     .map(
-      ([key, val]) =>
-        `  ${formatConfigKey(key)}: {\n${serializeEntry(val)}\n  }`
+      ([key, value]) =>
+        `  ${formatConfigKey(key)}: {\n${serializeEntry(value)}\n  }`
     )
     .join(",\n");
 

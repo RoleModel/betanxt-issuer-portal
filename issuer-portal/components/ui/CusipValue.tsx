@@ -1,19 +1,17 @@
 "use client";
 
-import { Tooltip, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import React from "react";
 
 import { normalizeCusips } from "@/utils/cusipDisplay";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 interface CusipValueProps {
-  value?: string | string[] | null;
-  variant?: "body3" | "body2" | "caption";
+  readonly value?: string | string[] | null;
+  readonly variant?: "body3" | "body2" | "caption";
 }
 
-export default function CusipValue({
-  value,
-  variant = "body3",
-}: CusipValueProps) {
+const CusipValue = ({ value, variant = "body3" }: CusipValueProps) => {
   const cusips = normalizeCusips(value);
 
   if (cusips.length === 0) {
@@ -33,10 +31,12 @@ export default function CusipValue({
   }
 
   return (
-    <Tooltip title={cusips.slice(1).join(", ")}>
+    <CustomTooltip title={cusips.slice(1).join(", ")}>
       <Typography component="span" variant={variant}>
         {`${cusips[0]} +${cusips.length - 1}`}
       </Typography>
-    </Tooltip>
+    </CustomTooltip>
   );
-}
+};
+
+export default CusipValue;

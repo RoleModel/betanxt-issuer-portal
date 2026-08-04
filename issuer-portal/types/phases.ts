@@ -43,6 +43,8 @@ export interface ProposalVoting {
     for: { shares: number; percentage: number };
     against: { shares: number; percentage: number };
     abstain: { shares: number; percentage: number };
+    /** Absent for proposals whose source data carries no withhold bucket. */
+    withhold?: { shares: number; percentage: number };
   };
   voteCounts?: {
     for: number;

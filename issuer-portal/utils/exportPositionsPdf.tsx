@@ -1,13 +1,5 @@
 "use client";
 
-import {
-  Document,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  pdf,
-} from "@react-pdf/renderer";
 import React from "react";
 
 import {
@@ -44,21 +36,6 @@ interface ExportOptions {
   meetingTitle: string;
   clientTicker?: string;
 }
-
-const columnWidths = StyleSheet.create({
-  cusip: { width: "8%" },
-  accountType: { width: "8%" },
-  setKey: { width: "5%" },
-  name: { width: "20%" },
-  accountNumber: { width: "12%" },
-  voteStatus: { width: "8%" },
-  controlNumber: { width: "8%" },
-  shares: { width: "5%" },
-  sharesVoted: { width: "10%" },
-  source: { width: "6%" },
-  dateVoted: { width: "10%" },
-  sentBy: { width: "6%" },
-});
 
 // Format number with thousand separators
 const formatNumber = (num: number): string => {
@@ -110,161 +87,192 @@ const formatDate = (date: string | null): string => {
 };
 
 interface PositionsPDFDocumentProps {
-  positions: Position[];
-  meetingTitle: string;
-  clientTicker?: string;
-  clientLogoUrl?: string;
-  betanxtLogoUrl?: string;
+  readonly positions: Position[];
+  readonly meetingTitle: string;
+  readonly clientTicker?: string;
+  readonly clientLogoUrl?: string;
+  readonly betanxtLogoUrl?: string;
 }
-
-// Positions PDF Document Component
-const PositionsPDFDocument: React.FC<PositionsPDFDocumentProps> = ({
-  positions,
-  meetingTitle,
-  clientTicker,
-  clientLogoUrl,
-  betanxtLogoUrl,
-}) => {
-  return (
-    <Document>
-      <Page size="LETTER" style={reportStyles.page} orientation="landscape">
-        <ReportPdfHeader
-          reportTitle="Positions Report"
-          subtitle={meetingTitle}
-          clientTicker={clientTicker}
-          clientLogoUrl={clientLogoUrl}
-          betanxtLogoUrl={betanxtLogoUrl}
-        />
-
-        <View style={reportStyles.tableContainer}>
-          <View style={reportStyles.tableHeaderRow} fixed>
-            <Text style={[reportStyles.headerCell, columnWidths.cusip]}>
-              CUSIP
-            </Text>
-            <Text style={[reportStyles.headerCell, columnWidths.accountType]}>
-              Account Type
-            </Text>
-            <Text style={[reportStyles.headerCell, columnWidths.setKey]}>
-              Set Key
-            </Text>
-            <Text style={[reportStyles.headerCell, columnWidths.name]}>
-              Name
-            </Text>
-            <Text style={[reportStyles.headerCell, columnWidths.accountNumber]}>
-              Account #
-            </Text>
-            <Text style={[reportStyles.headerCell, columnWidths.controlNumber]}>
-              Control #
-            </Text>
-            <Text
-              style={[
-                reportStyles.headerCell,
-                columnWidths.shares,
-                reportStyles.cellRight,
-              ]}
-            >
-              Shares
-            </Text>
-            <Text
-              style={[
-                reportStyles.headerCell,
-                columnWidths.sharesVoted,
-                reportStyles.cellRight,
-              ]}
-            >
-              Shares Voted
-            </Text>
-            <Text style={[reportStyles.headerCell, columnWidths.voteStatus]}>
-              Vote Status
-            </Text>
-            <Text style={[reportStyles.headerCell, columnWidths.source]}>
-              Source
-            </Text>
-            <Text style={[reportStyles.headerCell, columnWidths.dateVoted]}>
-              Date Voted
-            </Text>
-            <Text
-              style={[
-                reportStyles.headerCell,
-                columnWidths.sentBy,
-                reportStyles.cellRight,
-              ]}
-            >
-              Sent By
-            </Text>
-          </View>
-
-          {positions.map((position, index) => (
-            <View key={index} style={reportStyles.tableRow} wrap={false}>
-              <Text style={[reportStyles.cell, columnWidths.cusip]}>
-                {position.cusip}
-              </Text>
-              <Text style={[reportStyles.cell, columnWidths.accountType]}>
-                {position.accountType}
-              </Text>
-              <Text style={[reportStyles.cell, columnWidths.setKey]}>
-                {position.setKey}
-              </Text>
-              <Text style={[reportStyles.cell, columnWidths.name]}>
-                {position.name}
-              </Text>
-              <Text style={[reportStyles.cell, columnWidths.accountNumber]}>
-                {position.accountNumber}
-              </Text>
-              <Text style={[reportStyles.cell, columnWidths.controlNumber]}>
-                {position.controlNumber}
-              </Text>
-              <Text
-                style={[
-                  reportStyles.cell,
-                  columnWidths.shares,
-                  reportStyles.cellRight,
-                ]}
-              >
-                {formatNumber(position.shares)}
-              </Text>
-              <Text
-                style={[
-                  reportStyles.cell,
-                  columnWidths.sharesVoted,
-                  reportStyles.cellRight,
-                ]}
-              >
-                {formatNumber(position.sharesVoted)}
-              </Text>
-              <Text style={[reportStyles.cell, columnWidths.voteStatus]}>
-                {position.voteStatus}
-              </Text>
-              <Text style={[reportStyles.cell, columnWidths.source]}>
-                {position.source}
-              </Text>
-              <Text style={[reportStyles.cell, columnWidths.dateVoted]}>
-                {formatDate(position.dateVoted)}
-              </Text>
-              <Text
-                style={[
-                  reportStyles.cell,
-                  columnWidths.sentBy,
-                  reportStyles.cellRight,
-                ]}
-              >
-                {position.sentBy === "EMAIL" ? "Email" : "Mail"}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        <ReportPageNumber />
-      </Page>
-    </Document>
-  );
-};
 
 // Main export function
 export async function exportPositionsToPdf(options: ExportOptions) {
   const { positions, meetingTitle, clientTicker } = options;
 
   try {
+    // Load the heavy PDF renderer on demand so it stays out of the initial bundle.
+    const { Document, Page, StyleSheet, Text, View, pdf } =
+      await import("@react-pdf/renderer");
+
+    const columnWidths = StyleSheet.create({
+      cusip: { width: "8%" },
+      accountType: { width: "8%" },
+      setKey: { width: "5%" },
+      name: { width: "20%" },
+      accountNumber: { width: "12%" },
+      voteStatus: { width: "8%" },
+      controlNumber: { width: "8%" },
+      shares: { width: "5%" },
+      sharesVoted: { width: "10%" },
+      source: { width: "6%" },
+      dateVoted: { width: "10%" },
+      sentBy: { width: "6%" },
+    });
+
+    // Positions PDF Document Component
+    const PositionsPDFDocument: React.FC<PositionsPDFDocumentProps> = ({
+      positions: documentPositions,
+      meetingTitle: documentMeetingTitle,
+      clientTicker: documentClientTicker,
+      clientLogoUrl,
+      betanxtLogoUrl,
+    }) => {
+      return (
+        <Document>
+          <Page size="LETTER" style={reportStyles.page} orientation="landscape">
+            <ReportPdfHeader
+              reportTitle="Positions Report"
+              subtitle={documentMeetingTitle}
+              clientTicker={documentClientTicker}
+              clientLogoUrl={clientLogoUrl}
+              betanxtLogoUrl={betanxtLogoUrl}
+            />
+
+            <View style={reportStyles.tableContainer}>
+              <View style={reportStyles.tableHeaderRow} fixed>
+                <Text style={[reportStyles.headerCell, columnWidths.cusip]}>
+                  CUSIP
+                </Text>
+                <Text
+                  style={[reportStyles.headerCell, columnWidths.accountType]}
+                >
+                  Account Type
+                </Text>
+                <Text style={[reportStyles.headerCell, columnWidths.setKey]}>
+                  Set Key
+                </Text>
+                <Text style={[reportStyles.headerCell, columnWidths.name]}>
+                  Name
+                </Text>
+                <Text
+                  style={[reportStyles.headerCell, columnWidths.accountNumber]}
+                >
+                  Account #
+                </Text>
+                <Text
+                  style={[reportStyles.headerCell, columnWidths.controlNumber]}
+                >
+                  Control #
+                </Text>
+                <Text
+                  style={[
+                    reportStyles.headerCell,
+                    columnWidths.shares,
+                    reportStyles.cellRight,
+                  ]}
+                >
+                  Shares
+                </Text>
+                <Text
+                  style={[
+                    reportStyles.headerCell,
+                    columnWidths.sharesVoted,
+                    reportStyles.cellRight,
+                  ]}
+                >
+                  Shares Voted
+                </Text>
+                <Text
+                  style={[reportStyles.headerCell, columnWidths.voteStatus]}
+                >
+                  Vote Status
+                </Text>
+                <Text style={[reportStyles.headerCell, columnWidths.source]}>
+                  Source
+                </Text>
+                <Text style={[reportStyles.headerCell, columnWidths.dateVoted]}>
+                  Date Voted
+                </Text>
+                <Text
+                  style={[
+                    reportStyles.headerCell,
+                    columnWidths.sentBy,
+                    reportStyles.cellRight,
+                  ]}
+                >
+                  Sent By
+                </Text>
+              </View>
+
+              {documentPositions.map((position) => (
+                <View
+                  key={`${position.cusip}-${position.accountNumber}-${position.setKey}-${position.controlNumber}`}
+                  style={reportStyles.tableRow}
+                  wrap={false}
+                >
+                  <Text style={[reportStyles.cell, columnWidths.cusip]}>
+                    {position.cusip}
+                  </Text>
+                  <Text style={[reportStyles.cell, columnWidths.accountType]}>
+                    {position.accountType}
+                  </Text>
+                  <Text style={[reportStyles.cell, columnWidths.setKey]}>
+                    {position.setKey}
+                  </Text>
+                  <Text style={[reportStyles.cell, columnWidths.name]}>
+                    {position.name}
+                  </Text>
+                  <Text style={[reportStyles.cell, columnWidths.accountNumber]}>
+                    {position.accountNumber}
+                  </Text>
+                  <Text style={[reportStyles.cell, columnWidths.controlNumber]}>
+                    {position.controlNumber}
+                  </Text>
+                  <Text
+                    style={[
+                      reportStyles.cell,
+                      columnWidths.shares,
+                      reportStyles.cellRight,
+                    ]}
+                  >
+                    {formatNumber(position.shares)}
+                  </Text>
+                  <Text
+                    style={[
+                      reportStyles.cell,
+                      columnWidths.sharesVoted,
+                      reportStyles.cellRight,
+                    ]}
+                  >
+                    {formatNumber(position.sharesVoted)}
+                  </Text>
+                  <Text style={[reportStyles.cell, columnWidths.voteStatus]}>
+                    {position.voteStatus}
+                  </Text>
+                  <Text style={[reportStyles.cell, columnWidths.source]}>
+                    {position.source}
+                  </Text>
+                  <Text style={[reportStyles.cell, columnWidths.dateVoted]}>
+                    {formatDate(position.dateVoted)}
+                  </Text>
+                  <Text
+                    style={[
+                      reportStyles.cell,
+                      columnWidths.sentBy,
+                      reportStyles.cellRight,
+                    ]}
+                  >
+                    {position.sentBy === "EMAIL" ? "Email" : "Mail"}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <ReportPageNumber />
+          </Page>
+        </Document>
+      );
+    };
+
     const { clientLogoUrl, betanxtLogoUrl } =
       await resolveReportLogos(clientTicker);
 

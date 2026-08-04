@@ -1,4 +1,5 @@
-import { Page, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 test.describe("Notification System", () => {
   // Helper to handle login
@@ -25,10 +26,10 @@ test.describe("Notification System", () => {
     }
 
     // Wait for dashboard to load
-    await page.waitForURL("**/dashboard", { timeout: 10000 });
+    await page.waitForURL("**/dashboard", { timeout: 10_000 });
 
     // Wait for app bar to be visible
-    await page.waitForSelector("header, .MuiAppBar-root", { timeout: 10000 });
+    await page.waitForSelector("header, .MuiAppBar-root", { timeout: 10_000 });
   }
 
   test.beforeEach(async ({ page }) => {
@@ -47,7 +48,7 @@ test.describe("Notification System", () => {
       .first();
 
     // Verify button is visible
-    await expect(notificationButton).toBeVisible({ timeout: 10000 });
+    await expect(notificationButton).toBeVisible({ timeout: 10_000 });
   });
 
   test("should open notification popover", async ({ page }) => {
@@ -188,7 +189,9 @@ test.describe("Notification System", () => {
       await page.goBack();
 
       // Open notifications again
-      await page.waitForSelector("header, .MuiAppBar-root", { timeout: 10000 });
+      await page.waitForSelector("header, .MuiAppBar-root", {
+        timeout: 10_000,
+      });
       await notificationButton.click();
       await page.waitForSelector(".MuiPopover-root", { state: "visible" });
 

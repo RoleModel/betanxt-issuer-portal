@@ -33,22 +33,28 @@ async function allowedTo(permission: Permission): Promise<boolean> {
 
   // Map permissions to roles
   switch (permission) {
-    case "viewMeeting":
+    case "viewMeeting": {
       return roles?.includes("ISSUER") || false;
-    case "manageMeetings":
+    }
+    case "manageMeetings": {
       return roles?.includes("ISSUER") || roles?.includes("USER") || false;
+    }
 
-    case "viewReports":
+    case "viewReports": {
       return roles?.includes("ISSUER") || false;
+    }
 
-    case "viewTabulation":
+    case "viewTabulation": {
       return roles?.includes("ISSUER") || roles?.includes("VIEWER") || false;
+    }
 
-    case "manageTabulation":
+    case "manageTabulation": {
       return roles?.includes("ISSUER") || roles?.includes("ISSUER") || false;
+    }
 
-    default:
+    default: {
       return false;
+    }
   }
 }
 

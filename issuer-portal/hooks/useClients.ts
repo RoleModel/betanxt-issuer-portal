@@ -81,10 +81,14 @@ const pickNumber = (
 ): number | undefined => {
   for (const key of keys) {
     const value = source[key];
-    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
     if (typeof value === "string") {
       const parsed = Number(value);
-      if (Number.isFinite(parsed)) return parsed;
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
     }
   }
   return undefined;
@@ -92,7 +96,9 @@ const pickNumber = (
 
 const normalizeClient = (raw: unknown): Client | null => {
   const record = asRecord(raw);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   const id = asString(record.id);
   const ticker = asString(record.ticker);
@@ -108,17 +114,31 @@ const normalizeClient = (raw: unknown): Client | null => {
 
   const accountsRaw = record.accounts;
   const accounts = Array.isArray(accountsRaw)
-    ? accountsRaw
-        .map((account) => asRecord(account))
-        .filter((account): account is Record<string, unknown> =>
-          Boolean(account)
-        )
-        .map((account) => ({
-          id: asString(account.id) ?? "",
-          name: asString(account.name) ?? undefined,
-          primary_contact: asString(account.primary_contact) ?? undefined,
-        }))
-        .filter((account) => account.id)
+    ? accountsRaw.flatMap(
+        (
+          accountRaw
+        ): {
+          id: string;
+          name: string | undefined;
+          primary_contact: string | undefined;
+        }[] => {
+          const account = asRecord(accountRaw);
+          if (!account) {
+            return [];
+          }
+          const accountId = asString(account.id) ?? "";
+          if (!accountId) {
+            return [];
+          }
+          return [
+            {
+              id: accountId,
+              name: asString(account.name) ?? undefined,
+              primary_contact: asString(account.primary_contact) ?? undefined,
+            },
+          ];
+        }
+      )
     : undefined;
 
   const phaseValue = pickNumber(record, ["phase"]) ?? 2;
@@ -162,21 +182,22 @@ const normalizeClient = (raw: unknown): Client | null => {
     // only a missing/null column falls back to the defaults (NOBO off).
     enabledFeatures: (() => {
       const raw = record.enabledFeatures ?? record.enabled_features;
-      if (Array.isArray(raw)) return raw as ClientFeatureKey[];
+      if (Array.isArray(raw)) {
+        return raw as ClientFeatureKey[];
+      }
       return DEFAULT_FEATURE_KEYS;
     })(),
   };
 };
 
-export const transformApiClients = (apiClients: unknown[]): Client[] => {
-  return apiClients.reduce<Client[]>((acc, rawClient) => {
+export const transformApiClients = (apiClients: unknown[]): Client[] =>
+  apiClients.reduce<Client[]>((accumulator, rawClient) => {
     const client = normalizeClient(rawClient);
     if (client) {
-      acc.push(client);
+      accumulator.push(client);
     }
-    return acc;
+    return accumulator;
   }, []);
-};
 
 const extractClientPayload = (payload: unknown): unknown[] => {
   if (Array.isArray(payload)) {
@@ -191,11 +212,15 @@ const extractClientPayload = (payload: unknown): unknown[] => {
   return asArray(record.clients);
 };
 
-const getApiErrorMessage = (err: unknown, fallback: string): string => {
-  if (!err) return fallback;
-  if (typeof err === "string") return err;
-  if (typeof err === "object" && "message" in err) {
-    const message = (err as { message?: unknown }).message;
+const getApiErrorMessage = (error: unknown, fallback: string): string => {
+  if (!error) {
+    return fallback;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  if (typeof error === "object" && "message" in error) {
+    const { message } = error as { message?: unknown };
     if (typeof message === "string" && message.trim().length > 0) {
       return message;
     }
@@ -205,7 +230,7 @@ const getApiErrorMessage = (err: unknown, fallback: string): string => {
 
 export const useClients = (): UseClientsResult => {
   const { data: session } = useSession();
-  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
+  const isBypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
 
   // Only PARENT_CLIENT / SOLICITOR are hard-restricted to their allow-list of tickers.
   // CSM / ADMIN can access (cover) any client — their assigned clientTickers only scope
@@ -213,7 +238,9 @@ export const useClients = (): UseClientsResult => {
   const userType = session?.user?.type;
   const isUnrestrictedRole = userType === "CSM" || userType === "ADMIN";
   const allowedTickers = useMemo(() => {
-    if (isUnrestrictedRole) return undefined;
+    if (isUnrestrictedRole) {
+      return;
+    }
 
     if (isIssuerUser(session?.user)) {
       const issuerTicker = session?.user?.client_ticker;
@@ -221,18 +248,20 @@ export const useClients = (): UseClientsResult => {
     }
 
     const sessionTickers = session?.user?.clientTickers;
-    if (sessionTickers && sessionTickers.length > 0) return sessionTickers;
+    if (sessionTickers && sessionTickers.length > 0) {
+      return sessionTickers;
+    }
 
     const issuerTicker = session?.user?.client_ticker;
-    if (issuerTicker) return [issuerTicker];
-
-    return undefined;
+    if (issuerTicker) {
+      return [issuerTicker];
+    }
   }, [isUnrestrictedRole, session?.user]);
 
   // Custom fetcher for clients
   const clientsFetcher = async () => {
     // Only fetch if we have a session (non-bypass mode) or bypass is enabled
-    if (!bypassAuth && !session) {
+    if (!isBypassAuth && !session) {
       return [];
     }
 
@@ -258,7 +287,9 @@ export const useClients = (): UseClientsResult => {
     mutate,
   } = useSWR(
     // Key includes session info to refetch when user changes
-    session || bypassAuth ? ["/clients", session?.user?.id, bypassAuth] : null,
+    session || isBypassAuth
+      ? ["/clients", session?.user?.id, isBypassAuth]
+      : null,
     clientsFetcher,
     clientsSWRConfig
   );
@@ -266,16 +297,22 @@ export const useClients = (): UseClientsResult => {
   // Filter is applied outside the fetcher so it is always reactive to the current session.
   // This prevents stale cached data from leaking through to restricted users.
   const clients = useMemo(() => {
-    if (!rawData) return [];
-    if (!allowedTickers) return rawData;
-    return rawData.filter((c) => allowedTickers.includes(c.ticker));
+    if (!rawData) {
+      return [];
+    }
+    if (!allowedTickers) {
+      return rawData;
+    }
+    const allowedTickerSet = new Set<string>(allowedTickers);
+    return rawData.filter((c) => allowedTickerSet.has(c.ticker));
   }, [rawData, allowedTickers]);
 
   // Transform error for consistent interface
   let errorMessage: string | null = null;
   if (error) {
-    errorMessage =
-      error instanceof Error ? error.message : "Failed to fetch clients";
+    errorMessage = Error.isError(error)
+      ? error.message
+      : "Failed to fetch clients";
     // Add helpful context for common issues
     if (errorMessage.includes("fetch")) {
       errorMessage += " (The server is restarting)";

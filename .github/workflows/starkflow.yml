@@ -1,0 +1,51 @@
+name: Stark Web Audit
+run-name: ${{ github.event.inputs.display-title }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      token:
+        description: Stark token from the Stark project integration
+        required: true
+        type: string
+      display-title:
+        description: Label shown for this scan in Stark
+        required: true
+        default: Issuer Portal manual accessibility scan
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  accessibility-audit:
+    name: Accessibility Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Run Stark accessibility audit
+        uses: stark-contrast/accessibility-check-action@1.3.0
+        with:
+          token: ${{ github.event.inputs.token }}
+          setup: |
+            corepack enable
+            corepack prepare pnpm@11.5.1 --activate
+          prebuild: pnpm install --frozen-lockfile
+          build: pnpm run build
+          serve: pnpm --dir issuer-portal exec next start --hostname 0.0.0.0
+          wait_time: 30000
+          urls: |-
+            http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/tabulation
+          scan_delay: 500
+          skip_errors: false
+          viewport: 1440x900
+          requires_page_auth: true
+          username: ${{ secrets.STARKFLOW_USERNAME }}
+          password: ${{ secrets.STARKFLOW_PASSWORD }}
+          login_page_url: http://localhost:3000/login
+          username_selector: "#login-username"
+          password_selector: "#login-password"
+          submit_button_selector: 'button[type="submit"]'

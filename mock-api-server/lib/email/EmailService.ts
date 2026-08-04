@@ -1,11 +1,10 @@
-import type React from "react";
-
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { render } from "@react-email/render";
-import fs from "fs";
 import nodemailer from "nodemailer";
-import os from "os";
-import path from "path";
 import { Resend } from "resend";
+import type React from "react";
 
 interface SendInput {
   to: string[];
@@ -21,12 +20,12 @@ interface SendResult {
 }
 
 interface EmailService {
-  send(input: SendInput): Promise<SendResult>;
+  send: (input: SendInput) => Promise<SendResult>;
 }
 
 class ResendEmailService implements EmailService {
-  private client: Resend;
-  private from: string;
+  private readonly client: Resend;
+  private readonly from: string;
 
   constructor(apiKey: string, from: string) {
     this.client = new Resend(apiKey);
@@ -58,8 +57,8 @@ class NoopEmailService implements EmailService {
     const id = `noop-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const html = await render(input.react);
 
-    const tmpFile = path.join(os.tmpdir(), `betanxt-email-${id}.html`);
-    fs.writeFileSync(tmpFile, html, "utf-8");
+    const temporaryFile = path.join(os.tmpdir(), `betanxt-email-${id}.html`);
+    fs.writeFileSync(temporaryFile, html, "utf-8");
 
     console.log(
       "\n╔══════════════════════════════════════════════════════════════╗"
@@ -71,8 +70,8 @@ class NoopEmailService implements EmailService {
       "╠══════════════════════════════════════════════════════════════╣"
     );
     console.log(`║  To:      ${input.to.join(", ").padEnd(52)}║`);
-    console.log(`║  Subject: ${input.subject.substring(0, 52).padEnd(52)}║`);
-    console.log(`║  Preview: file://${tmpFile.substring(0, 44).padEnd(44)}║`);
+    console.log(`║  Subject: ${input.subject.slice(0, 52).padEnd(52)}║`);
+    console.log(`║  Preview: file://${temporaryFile.slice(0, 44).padEnd(44)}║`);
     console.log(
       "╠══════════════════════════════════════════════════════════════╣"
     );
@@ -83,13 +82,13 @@ class NoopEmailService implements EmailService {
       "╚══════════════════════════════════════════════════════════════╝\n"
     );
 
-    return Promise.resolve({ id });
+    return { id };
   }
 }
 
 class SmtpEmailService implements EmailService {
-  private transporter: nodemailer.Transporter;
-  private from: string;
+  private readonly transporter: nodemailer.Transporter;
+  private readonly from: string;
 
   constructor(from: string) {
     this.from = from;
@@ -104,9 +103,9 @@ class SmtpEmailService implements EmailService {
     });
 
     // Verify connection on startup so misconfiguration surfaces immediately
-    this.transporter.verify((err) => {
-      if (err) {
-        console.error("[EmailService] SMTP connection failed:", err.message);
+    this.transporter.verify((error) => {
+      if (error) {
+        console.error("[EmailService] SMTP connection failed:", error.message);
         console.error(
           "[EmailService] Check EMAIL_SMTP_HOST / USER / PASS in .env.local"
         );
@@ -135,10 +134,10 @@ class SmtpEmailService implements EmailService {
         `[EmailService] Sent to ${input.to.join(", ")} — messageId: ${String(info.messageId)}`
       );
       return { id: String(info.messageId) };
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[EmailService] SMTP send failed: ${msg}`);
-      throw new Error(`SMTP send failed: ${msg}`);
+    } catch (error) {
+      const message = Error.isError(error) ? error.message : String(error);
+      console.error(`[EmailService] SMTP send failed: ${message}`);
+      throw new Error(`SMTP send failed: ${message}`);
     }
   }
 }
@@ -186,9 +185,15 @@ export function getEmailService(): EmailService {
       : new NoopEmailService();
   } else if (provider === "smtp") {
     const missingKeys: string[] = [];
-    if (!process.env.EMAIL_SMTP_HOST) missingKeys.push("EMAIL_SMTP_HOST");
-    if (!process.env.EMAIL_SMTP_USER) missingKeys.push("EMAIL_SMTP_USER");
-    if (!process.env.EMAIL_SMTP_PASS) missingKeys.push("EMAIL_SMTP_PASS");
+    if (!process.env.EMAIL_SMTP_HOST) {
+      missingKeys.push("EMAIL_SMTP_HOST");
+    }
+    if (!process.env.EMAIL_SMTP_USER) {
+      missingKeys.push("EMAIL_SMTP_USER");
+    }
+    if (!process.env.EMAIL_SMTP_PASS) {
+      missingKeys.push("EMAIL_SMTP_PASS");
+    }
 
     if (missingKeys.length > 0 && requiresConfiguredProvider(provider)) {
       throw createMissingProviderError(provider, missingKeys);

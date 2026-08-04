@@ -4,7 +4,6 @@ import useSWR from "swr";
 
 import type { Meeting } from "@/types/api-exports";
 import type { ProposalVoting, VotingSummary } from "@/types/phases";
-
 import buildApiClient from "@/domain-models/apiClient";
 import { asArray, asRecord, asString } from "@/utils/typeUtils";
 
@@ -28,10 +27,14 @@ export interface NormalizedProposal {
 
 // Normalize position data to ensure consistent fields
 function normalizePosition(position: unknown): NormalizedPosition | null {
-  if (!position) return null;
+  if (!position) {
+    return null;
+  }
 
   const record = asRecord(position);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   return {
     id: asString(record.id) || "",
@@ -49,10 +52,14 @@ function normalizePosition(position: unknown): NormalizedPosition | null {
 
 // Normalize proposal data to ensure consistent fields
 function normalizeProposal(proposal: unknown): NormalizedProposal | null {
-  if (!proposal) return null;
+  if (!proposal) {
+    return null;
+  }
 
   const record = asRecord(proposal);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   return {
     id: asString(record.id) || "",
@@ -105,30 +112,36 @@ export interface UseMeetingDataResult {
 }
 
 const pickString = (
-  obj: Record<string, unknown>,
+  object: Record<string, unknown>,
   keys: string[]
 ): string | undefined => {
   for (const key of keys) {
-    const value = asString(obj[key]);
-    if (value !== null && value !== undefined) return value;
-    const nestedValue = obj[key];
-    if (typeof nestedValue === "string") return nestedValue;
+    const value = asString(object[key]);
+    if (value !== null && value !== undefined) {
+      return value;
+    }
+    const nestedValue = object[key];
+    if (typeof nestedValue === "string") {
+      return nestedValue;
+    }
   }
   return undefined;
 };
 
 const pickNumber = (
-  obj: Record<string, unknown>,
+  object: Record<string, unknown>,
   keys: string[]
 ): number | undefined => {
   for (const key of keys) {
-    const value = obj[key];
+    const value = object[key];
     if (typeof value === "number" && Number.isFinite(value)) {
       return value;
     }
     if (typeof value === "string") {
       const parsed = Number(value);
-      if (Number.isFinite(parsed)) return parsed;
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
     }
   }
   return undefined;
@@ -136,11 +149,15 @@ const pickNumber = (
 
 const normalizePhase = (raw: unknown): Phase | null => {
   const rec = asRecord(raw);
-  if (!rec) return null;
+  if (!rec) {
+    return null;
+  }
 
   const id = pickString(rec, ["id"]);
   const name = pickString(rec, ["name", "phase_name"]);
-  if (!id || !name) return null;
+  if (!id || !name) {
+    return null;
+  }
 
   const meetingId = pickString(rec, ["meetingId", "meeting_id"]) ?? "";
   const orderIndex = pickNumber(rec, ["orderIndex", "order_index"]) ?? 0;
@@ -209,7 +226,9 @@ const fetchMeetingData = async (meetingId: string): Promise<MeetingData> => {
       : [];
     for (const item of items) {
       const normalized = normalizePhase(item);
-      if (normalized) phases.push(normalized);
+      if (normalized) {
+        phases.push(normalized);
+      }
     }
   }
 
@@ -352,13 +371,13 @@ export const useMeetingData = (
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    () => fetchMeetingData(meetingId!),
+    async () => await fetchMeetingData(meetingId!),
     {
       revalidateOnFocus: false,
       revalidateOnMount: true,
       revalidateOnReconnect: true,
-      refreshInterval: 30000,
-      dedupingInterval: 10000,
+      refreshInterval: 30_000,
+      dedupingInterval: 10_000,
       errorRetryCount: 2,
       keepPreviousData: true,
     }

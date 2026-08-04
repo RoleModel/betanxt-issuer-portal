@@ -16,14 +16,16 @@ import {
 import React from "react";
 
 import { useMeeting } from "@/contexts/MeetingContext";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import { getVotingOptionsDisplay } from "@/utils/votingOptions";
+
+import GlossaryText from "@/components/ui/GlossaryText";
 
 interface AgendaTableProps {
   onUploadClick?: () => void;
 }
 
-export default function AgendaTable(_props: AgendaTableProps) {
+const AgendaTable = (_props: AgendaTableProps) => {
   const { currentMeeting } = useMeeting();
   const { proposals } = useVotingTabulation(currentMeeting?.id);
 
@@ -44,7 +46,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
   return (
     <Card>
       <CardHeader
-        title="Meeting Agenda"
+        title={<GlossaryText>Meeting Agenda</GlossaryText>}
         sx={{
           backgroundColor: "background.default",
           borderBottom: "1px solid",
@@ -85,7 +87,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
                   return (
                     <>
                       {/* Add header row for director elections if we have them */}
-                      {hasDirectorElections && (
+                      {hasDirectorElections ? (
                         <TableRow>
                           <TableCell
                             colSpan={3}
@@ -102,23 +104,21 @@ export default function AgendaTable(_props: AgendaTableProps) {
                             </Typography>
                           </TableCell>
                         </TableRow>
-                      )}
+                      ) : null}
 
                       {/* Render all proposals, filtering out proposal 1 if we have sub-proposals */}
-                      {proposals
-                        .filter((proposal) => {
-                          // If we have director sub-proposals (1.01, 1.02, etc), don't show proposal 1
-                          if (
-                            hasDirectorElections &&
-                            proposal.proposalNumber.toString() === "1"
-                          ) {
-                            return false;
-                          }
-                          return true;
-                        })
-                        .map((proposal, index) => (
+                      {proposals.flatMap((proposal) => {
+                        // If we have director sub-proposals (1.01, 1.02, etc), don't show proposal 1
+                        if (
+                          hasDirectorElections &&
+                          proposal.proposalNumber.toString() === "1"
+                        ) {
+                          return [];
+                        }
+
+                        return [
                           <TableRow
-                            key={index}
+                            key={proposal.proposalNumber}
                             sx={{
                               "&:hover": {
                                 backgroundColor: "action.hover",
@@ -128,7 +128,7 @@ export default function AgendaTable(_props: AgendaTableProps) {
                             <TableCell>
                               <Box>
                                 <Box
-                                  display={"flex"}
+                                  display="flex"
                                   alignItems="center"
                                   gap={0.5}
                                   sx={{
@@ -176,8 +176,9 @@ export default function AgendaTable(_props: AgendaTableProps) {
                                 ))}
                               </Box>
                             </TableCell>
-                          </TableRow>
-                        ))}
+                          </TableRow>,
+                        ];
+                      })}
                     </>
                   );
                 })()}
@@ -196,4 +197,6 @@ export default function AgendaTable(_props: AgendaTableProps) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default AgendaTable;

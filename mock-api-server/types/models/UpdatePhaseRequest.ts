@@ -1,6 +1,3 @@
-import type { PhaseStatus } from "./PhaseStatus";
-import type { UpdatePhaseRequestKeyDates } from "./UpdatePhaseRequestKeyDates";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -26,6 +23,8 @@ import {
   UpdatePhaseRequestKeyDatesToJSON,
   UpdatePhaseRequestKeyDatesToJSONTyped,
 } from "./UpdatePhaseRequestKeyDates";
+import type { UpdatePhaseRequestKeyDates } from "./UpdatePhaseRequestKeyDates";
+import type { PhaseStatus } from "./PhaseStatus";
 
 /**
  *

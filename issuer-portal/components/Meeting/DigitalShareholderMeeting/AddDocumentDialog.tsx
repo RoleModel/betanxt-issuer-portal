@@ -14,7 +14,8 @@ import {
   Select,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 
 import BNFileDropzone from "@/components/FileUpload/BNFileDropzone";
 import BNFilePreview from "@/components/FileUpload/BNFilePreview";
@@ -36,73 +37,68 @@ interface FileWithMetadata {
 }
 
 interface AddDocumentDialogProps {
-  open: boolean;
-  onClose: () => void;
-  participantName: string;
-  meetingId: string;
-  participantId: string;
-  onDocumentAdded: (documentName: string, documentStatus: string) => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly participantName: string;
+  readonly meetingId: string;
+  readonly participantId: string;
+  readonly onDocumentAdded: (
+    documentName: string,
+    documentStatus: string
+  ) => void;
 }
 
-export function AddDocumentDialog({
+const handleFileRejections = (rejections: unknown[]): void => {
+  console.warn("File rejections:", rejections);
+  // Handle file rejections if needed
+};
+
+const fetchDSMDocuments = async (meetingId: string): Promise<DSMDocument[]> => {
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+  const response = await fetch(`${API_URL}/meetings/${meetingId}/documents`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch DSM documents");
+  }
+
+  const documents = (await response.json()) as {
+    documentType?: string;
+    title?: string;
+    [key: string]: unknown;
+  }[];
+  // Filter for DSM-related documents
+  const dsmDocs = documents.filter(
+    (doc) =>
+      doc.documentType === "digital-shareholder-meeting" ||
+      doc.title?.includes("DSM") ||
+      doc.title?.includes("Digital Shareholder Meeting")
+  );
+
+  return dsmDocs as unknown as DSMDocument[];
+};
+
+export const AddDocumentDialog = ({
   open,
   onClose,
   participantName,
   meetingId,
   participantId,
   onDocumentAdded,
-}: AddDocumentDialogProps) {
-  const [dsmDocuments, setDsmDocuments] = useState<DSMDocument[]>([]);
+}: AddDocumentDialogProps) => {
   const [selectedDocumentId, setSelectedDocumentId] = useState("");
   const [uploadFiles, setUploadFiles] = useState<FileWithMetadata[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isUploadMode, setIsUploadMode] = useState(false);
 
-  // Fetch DSM documents when dialog opens
-  useEffect(() => {
-    if (open && meetingId) {
-      void fetchDSMDocuments();
-    }
-    // fetchDSMDocuments is a stable function defined in this component
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, meetingId]);
-
-  const fetchDSMDocuments = async () => {
-    try {
-      setIsLoading(true);
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
-      const response = await fetch(
-        `${API_URL}/meetings/${meetingId}/documents`
-      );
-
-      if (response.ok) {
-        const documents = (await response.json()) as {
-          documentType?: string;
-          title?: string;
-          [key: string]: unknown;
-        }[];
-        // Filter for DSM-related documents
-        const dsmDocs = documents.filter(
-          (doc) =>
-            doc.documentType === "digital-shareholder-meeting" ||
-            doc.title?.includes("DSM") ||
-            doc.title?.includes("Digital Shareholder Meeting")
-        );
-        setDsmDocuments(dsmDocs as unknown as DSMDocument[]);
-        setIsUploadMode(dsmDocs.length === 0);
-      } else {
-        setDsmDocuments([]);
-        setIsUploadMode(true);
-      }
-    } catch (error) {
-      console.error("Failed to fetch DSM documents:", error);
-      setDsmDocuments([]);
-      setIsUploadMode(true);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Fetch DSM documents when the dialog opens. SWR handles request
+  // deduplication and race conditions, so no manual effect is needed. When a
+  // fetch fails or returns no documents, `dsmDocuments` is an empty array and
+  // the render falls back to upload mode via `dsmDocuments.length === 0`.
+  const { data: dsmDocuments = [], isLoading } = useSWR<DSMDocument[]>(
+    open && meetingId ? ["dsm-documents", meetingId] : null,
+    async () => await fetchDSMDocuments(meetingId),
+    { revalidateOnFocus: false }
+  );
 
   const handleFilesSelected = (files: File[]) => {
     const newFiles: FileWithMetadata[] = files.map((file) => ({
@@ -111,11 +107,6 @@ export function AddDocumentDialog({
       status: "complete" as const, // Set to complete initially, will change to uploading when upload starts
     }));
     setUploadFiles((prev) => [...prev, ...newFiles]);
-  };
-
-  const handleFileRejections = (rejections: unknown[]) => {
-    console.warn("File rejections:", rejections);
-    // Handle file rejections if needed
   };
 
   const handleFileRemove = (fileId: string) => {
@@ -274,7 +265,9 @@ export function AddDocumentDialog({
               <InputLabel>DSM Document</InputLabel>
               <Select
                 value={selectedDocumentId}
-                onChange={(e) => setSelectedDocumentId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDocumentId(e.target.value);
+                }}
                 label="DSM Document"
               >
                 {dsmDocuments.map((doc) => (
@@ -298,7 +291,9 @@ export function AddDocumentDialog({
 
             <Button
               variant="outlined"
-              onClick={() => setIsUploadMode(true)}
+              onClick={() => {
+                setIsUploadMode(true);
+              }}
               fullWidth
             >
               Upload New Document
@@ -335,4 +330,4 @@ export function AddDocumentDialog({
       </DialogActions>
     </Dialog>
   );
-}
+};

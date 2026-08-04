@@ -15,10 +15,10 @@ import "./signature-maker.css";
  */
 
 interface SignatureMakerConfigProps {
-  onSave?: (signature: string) => void;
-  withTyped?: boolean;
-  withDrawn?: boolean;
-  withUpload?: boolean;
+  readonly onSave?: (signature: string) => void;
+  readonly withTyped?: boolean;
+  readonly withDrawn?: boolean;
+  readonly withUpload?: boolean;
 }
 
 const SignatureMakerConfig: React.FC<SignatureMakerConfigProps> = ({

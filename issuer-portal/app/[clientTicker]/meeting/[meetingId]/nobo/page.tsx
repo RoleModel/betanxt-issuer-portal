@@ -19,7 +19,7 @@ const formatNumber = (value: number): string => value.toLocaleString("en-US");
  * Renders nothing while the meeting context resolves; the position count in
  * the card subheader updates once the positions fetch completes.
  */
-export default function NoboPage() {
+const NoboPage = () => {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
   const meetingId = currentMeeting?.id;
   const { positions, loading: positionsLoading } = useNoboPositions(meetingId);
@@ -55,4 +55,6 @@ export default function NoboPage() {
       </Grid>
     </Container>
   );
-}
+};
+
+export default NoboPage;

@@ -27,8 +27,8 @@ test.describe("Tabulation Report API", () => {
       expect(data.positionsVoted.votedShares).toBeGreaterThan(0); // Should have real voted shares
 
       // Should have realistic participation rate
-      const totalShares = data.positionsVoted.totalShares;
-      const votedShares = data.positionsVoted.votedShares;
+      const { totalShares } = data.positionsVoted;
+      const { votedShares } = data.positionsVoted;
       const participationRate = (votedShares / totalShares) * 100;
       expect(participationRate).toBeGreaterThan(0);
       expect(participationRate).toBeLessThan(100); // Realistic - not 100% participation
@@ -313,7 +313,7 @@ test.describe("Tabulation Report API", () => {
       const data = await response.json();
       expect(
         data.positionsVoted.voted + data.positionsVoted.unvoted
-      ).toBeGreaterThan(10000);
+      ).toBeGreaterThan(10_000);
     });
   });
 });

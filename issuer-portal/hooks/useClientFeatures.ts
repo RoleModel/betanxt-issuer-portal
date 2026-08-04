@@ -2,12 +2,10 @@
 
 import { useMemo } from "react";
 
+import type { ClientFeatureKey } from "@/hooks/useClients";
 import { useClient } from "@/contexts/ClientContext";
-import {
-  type ClientFeatureKey,
-  DEFAULT_FEATURE_KEYS,
-} from "@/hooks/useClients";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
+import { DEFAULT_FEATURE_KEYS } from "@/hooks/useClients";
 import { FEATURE_KEYS } from "@/utils/clientFeatures";
 
 interface UseClientFeaturesResult {
@@ -41,16 +39,21 @@ export function useClientFeatures(): UseClientFeaturesResult {
   const enabledFeatures = useMemo<ClientFeatureKey[]>(() => {
     const baseFeatures = (() => {
       // No client loaded yet — show the standard set while loading (NOBO stays opt-in)
-      if (!currentClient) return DEFAULT_FEATURE_KEYS;
+      if (!currentClient) {
+        return DEFAULT_FEATURE_KEYS;
+      }
       // Trust whatever was saved; an empty array means all tabs disabled (admin intent)
-      if (Array.isArray(currentClient.enabledFeatures))
+      if (Array.isArray(currentClient.enabledFeatures)) {
         return currentClient.enabledFeatures;
+      }
       // Null / undefined means the column was never set — default to the standard set
       return DEFAULT_FEATURE_KEYS;
     })();
     // The Vercel `enable-nobo` flag is a hard kill-switch: when it's off for
     // this client, NOBO is suppressed even if saved in enabledFeatures.
-    if (flags.enableNobo) return baseFeatures;
+    if (flags.enableNobo) {
+      return baseFeatures;
+    }
     return baseFeatures.filter((feature) => feature !== FEATURE_KEYS.nobo);
   }, [currentClient, flags.enableNobo]);
 

@@ -1,9 +1,8 @@
-import type { JWT } from "next-auth/jwt";
-
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import type { JWT } from "next-auth/jwt";
 
-// Defined at module level so the jwt callback can always re-read the latest
+// Defined at module level so the JWT callback can always re-read the latest
 // clientTickers without requiring a fresh login — changes take effect on the
 // next JWT refresh without forcing users to log out.
 const mockUsers: Record<
@@ -181,7 +180,9 @@ async function getCreatedClientTickers(username: string): Promise<string[]> {
       .from("clients")
       .select("ticker")
       .eq("created_by", username);
-    if (error || !data) return [];
+    if (error || !data) {
+      return [];
+    }
     return data
       .map((row) => (typeof row.ticker === "string" ? row.ticker : null))
       .filter((t): t is string => Boolean(t));
@@ -197,9 +198,7 @@ export const {
   signOut,
 } = NextAuth({
   trustHost: true,
-  secret:
-    process.env.NEXTAUTH_SECRET ??
-    "fallback-secret-for-development-only-change-in-production",
+  secret: process.env.NEXTAUTH_SECRET,
 
   useSecureCookies: process.env.NODE_ENV === "production",
 
@@ -250,11 +249,17 @@ export const {
           };
         }
 
-        if (!credentials?.username || !credentials?.password) return null;
+        if (!credentials?.username || !credentials?.password) {
+          return null;
+        }
 
         const user = mockUsers[credentials.username as string];
-        if (!user) return null;
-        if (credentials.password !== user.password) return null;
+        if (!user) {
+          return null;
+        }
+        if (credentials.password !== user.password) {
+          return null;
+        }
         return {
           id: user.id,
           username: user.username,
@@ -289,7 +294,7 @@ export const {
 
         // Always re-read clientTickers from the live mockUsers config so stale
         // sessions pick up ticker list changes without requiring a re-login.
-        const username = token.username;
+        const { username } = token;
         if (username && mockUsers[username]) {
           const mockUser = mockUsers[username];
           const baseTickers = [...(mockUser.clientTickers ?? [])];
@@ -297,15 +302,18 @@ export const {
             baseTickers.push(mockUser.client_ticker);
           }
           const createdTickers = await getCreatedClientTickers(username);
-          token.clientTickers = [
-            ...new Set([...baseTickers, ...createdTickers]),
-          ];
+          for (const ticker of createdTickers) {
+            baseTickers.push(ticker);
+          }
+          token.clientTickers = [...new Set(baseTickers)];
         }
 
-        if (trigger === "update" && updateData) {
-          if (updateData.image !== undefined) {
-            token.image = updateData.image;
-          }
+        if (
+          trigger === "update" &&
+          updateData &&
+          updateData.image !== undefined
+        ) {
+          token.image = updateData.image;
         }
 
         return token;
@@ -327,7 +335,7 @@ export const {
         email?: string;
         clientTickers?: string[];
       };
-      const user = session.user;
+      const { user } = session;
       user.id = t.id ?? t.sub ?? "";
       user.type = t.type ?? undefined;
       user.account_id = t.account_id ?? undefined;
@@ -342,7 +350,9 @@ export const {
     },
     // eslint-disable-next-line @typescript-eslint/require-await
     async redirect({ url, baseUrl }) {
-      if (url === baseUrl) return baseUrl;
+      if (url === baseUrl) {
+        return baseUrl;
+      }
       return url.startsWith(baseUrl) ? url : baseUrl;
     },
   },

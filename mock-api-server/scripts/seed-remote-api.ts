@@ -1,8 +1,7 @@
-#!/usr/bin/env tsx
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
-import { readFileSync } from "fs";
-import { join } from "path";
 
 // Load environment variables from .env.local
 config({ path: ".env.local" });
@@ -185,8 +184,8 @@ async function seedRemote() {
       let inserted = 0;
       let failed = 0;
 
-      for (let i = 0; i < localData.length; i += batchSize) {
-        const batch = localData.slice(i, i + batchSize);
+      for (let index = 0; index < localData.length; index += batchSize) {
+        const batch = localData.slice(index, index + batchSize);
 
         const { error: insertError, data: insertData } = await supabase
           .from(table)
@@ -195,40 +194,42 @@ async function seedRemote() {
 
         if (insertError) {
           console.error(
-            `   ❌ Failed to insert batch ${i}-${i + batch.length}:`,
+            `   ❌ Failed to insert batch ${index}-${index + batch.length}:`,
             insertError.message
           );
           console.log(`   🔄 Retrying batch one by one...`);
 
           // Try one by one to identify problematic records
-          for (let j = 0; j < batch.length; j++) {
-            const row = batch[j];
+          for (const [index_, row] of batch.entries()) {
             const { error } = await supabase.from(table).insert(row);
-            if (!error) {
+            if (error) {
+              failed++;
+              if (failed <= 5) {
+                console.error(
+                  `   ⚠️  Failed record ${index + index_}:`,
+                  error.message
+                );
+                console.error(
+                  `   Record data:`,
+                  JSON.stringify(row).slice(0, 200)
+                );
+              }
+            } else {
               inserted++;
               if (inserted % 100 === 0) {
                 console.log(`   📊 Progress: ${inserted}/${localData.length}`);
-              }
-            } else {
-              failed++;
-              if (failed <= 5) {
-                console.error(`   ⚠️  Failed record ${i + j}:`, error.message);
-                console.error(
-                  `   Record data:`,
-                  JSON.stringify(row).substring(0, 200)
-                );
               }
             }
           }
         } else {
           inserted += insertData?.length || batch.length;
-          if (i % 1000 === 0 || inserted === localData.length) {
+          if (index % 1000 === 0 || inserted === localData.length) {
             console.log(`   ✅ Inserted ${inserted}/${localData.length}`);
           }
         }
 
         // Add small delay for large tables to avoid rate limiting
-        if (localData.length > 5000 && i % 1000 === 0) {
+        if (localData.length > 5000 && index % 1000 === 0) {
           await new Promise((resolve) => setTimeout(resolve, 100));
         }
       }

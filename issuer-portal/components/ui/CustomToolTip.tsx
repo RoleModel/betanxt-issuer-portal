@@ -7,9 +7,13 @@ export const CustomTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip describeChild {...props} arrow classes={{ popper: className }} />
 ))(({ theme }) => ({
   [`& .${tooltipClasses.arrow}`]: {
-    color: theme.vars.palette.secondary.dark,
+    color: theme.vars.palette.primary.dark,
   },
   [`& .${tooltipClasses.tooltip}`]: {
-    backgroundColor: theme.vars.palette.secondary.dark,
+    backgroundColor: theme.vars.palette.primary.dark,
   },
+  [`& .${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+    {
+      marginTop: 0,
+    },
 }));

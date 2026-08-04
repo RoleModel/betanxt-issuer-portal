@@ -18,7 +18,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport, type ChatStatus, type UIMessage } from "ai";
 import { usePathname } from "next/navigation";
 import React from "react";
 
@@ -43,7 +43,7 @@ interface StoredConversation {
   updatedAt: number;
 }
 
-const STORAGE_KEY = "chatbot-conversations";
+const STORAGE_KEY = "chatbot-conversations:v1";
 const MAX_MESSAGES_PER_REQUEST = 10;
 
 const toRequestMessage = (message: UIMessage): UIMessage => {
@@ -65,8 +65,7 @@ const toRequestMessage = (message: UIMessage): UIMessage => {
 
 const getMessageContent = (message: UIMessage): string => {
   return message.parts
-    .filter((part) => part.type === "text")
-    .map((part) => part.text)
+    .flatMap((part) => (part.type === "text" ? [part.text] : []))
     .join("\n")
     .trim();
 };
@@ -96,82 +95,582 @@ const toUiMessages = (messages: StoredConversationMessage[]): UIMessage[] => {
   }));
 };
 
-export default function IssuerChatbot() {
-  const [showConversations, setShowConversations] = React.useState(false);
-  const [conversations, setConversations] = React.useState<
-    StoredConversation[]
-  >([]);
-  const [currentConversationId, setCurrentConversationId] = React.useState<
-    string | null
-  >(null);
-  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-  const [input, setInput] = React.useState("");
-  const [messageTimestamps, setMessageTimestamps] = React.useState<
-    Record<string, number>
-  >({});
-  const [actionPollBudget, setActionPollBudget] = React.useState(0);
-  const chatContainerRef = React.useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
-  const { messages, sendMessage, status, setMessages } = useChat({
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-      prepareSendMessagesRequest: ({
-        messages: pendingMessages,
-        body,
-        headers,
-        credentials,
-      }) => {
-        return {
-          body: {
-            ...body,
-            messages: pendingMessages
-              .slice(-MAX_MESSAGES_PER_REQUEST)
-              .map(toRequestMessage),
-          },
-          headers,
-          credentials,
-        };
-      },
-    }),
+const formatTime = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
   });
-  const { executeAction, isEnabled, isOpen, closeChatbot } =
-    useChatbotContext();
+};
 
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
-  const scrollToBottom = React.useCallback(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
-    }
-  }, []);
+// Locale/timezone formatting runs only after mount (in an effect) so the
+// server and client render the same text and avoid a hydration mismatch.
+const MessageTimestamp = ({
+  timestamp,
+}: {
+  readonly timestamp: number | undefined;
+}): React.JSX.Element => {
+  const [formatted, setFormatted] = React.useState("");
 
   React.useEffect(() => {
-    scrollToBottom();
-  }, [messages, status, scrollToBottom]);
+    setFormatted(formatTime(timestamp ?? Date.now()));
+  }, [timestamp]);
 
-  React.useEffect(() => {
-    setMessageTimestamps((prev) => {
-      let changed = false;
-      const next = { ...prev };
+  return (
+    <Typography variant="caption" color="text.secondary" textAlign="right">
+      {formatted}
+    </Typography>
+  );
+};
 
-      messages.forEach((message) => {
-        if (!next[message.id]) {
-          next[message.id] = Date.now();
-          changed = true;
-        }
-      });
+const ChatbotHeader = ({
+  showConversations,
+  hasConversations,
+  onShowConversationsChange,
+  onClose,
+}: {
+  readonly showConversations: boolean;
+  readonly hasConversations: boolean;
+  readonly onShowConversationsChange: (show: boolean) => void;
+  readonly onClose: () => void;
+}): React.JSX.Element => {
+  return (
+    <Box
+      sx={{
+        bgcolor: "var(--mui-palette-primary-main)",
+        color: "var(--mui-palette-primary-contrastText)",
+        p: 3,
+        backdropFilter: "blur(50px)",
+        minHeight: 169,
+      }}
+    >
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="flex-start"
+        sx={{ mb: 2.5 }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1}>
+          {showConversations ? (
+            <IconButton
+              size="medium"
+              onClick={() => {
+                onShowConversationsChange(false);
+              }}
+              sx={{
+                p: 1,
+                color: "primary.contrastText",
+                "&:hover": {
+                  bgcolor: "rgba(255, 255, 255, 0.1)",
+                },
+              }}
+            >
+              <ArrowBackIosNewIcon fontSize="medium" />
+            </IconButton>
+          ) : (
+            hasConversations && (
+              <IconButton
+                size="medium"
+                onClick={() => {
+                  onShowConversationsChange(true);
+                }}
+                sx={{
+                  p: 1,
+                  color: "white",
+                  "&:hover": {
+                    bgcolor: "rgba(255, 255, 255, 0.1)",
+                  },
+                }}
+              >
+                <ArrowBackIosNewIcon fontSize="medium" />
+              </IconButton>
+            )
+          )}
+          <Avatar
+            sx={{
+              width: 40,
+              height: 40,
+              bgcolor: "tertiary.main",
+              color: "tertiary.contrastText",
+            }}
+          >
+            <SmartToy />
+          </Avatar>
+        </Stack>
+        <IconButton
+          onClick={onClose}
+          sx={{
+            p: 1,
+            color: "white",
+            "&:hover": {
+              bgcolor: "rgba(255, 255, 255, 0.1)",
+            },
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </Stack>
 
-      return changed ? next : prev;
-    });
-  }, [messages]);
+      <Stack spacing={0.625}>
+        <Typography
+          variant="h4"
+          sx={{
+            color: "white",
+            fontFamily: "Roboto Condensed",
+            fontWeight: 500,
+            fontSize: 32,
+            lineHeight: "36px",
+            letterSpacing: "0.15px",
+          }}
+        >
+          {showConversations ? "Conversations" : "Assistant"}
+        </Typography>
+        <Typography
+          sx={{
+            color: "white",
+            fontFamily: "Roboto",
+            fontWeight: 400,
+            fontSize: 14,
+            lineHeight: "20px",
+            letterSpacing: "0.15px",
+          }}
+        >
+          {showConversations
+            ? "Your chat history"
+            : "You can ask the Assistant anything about the portal."}
+        </Typography>
+      </Stack>
+    </Box>
+  );
+};
+
+const ConversationsView = ({
+  conversations,
+  onSelect,
+}: {
+  readonly conversations: StoredConversation[];
+  readonly onSelect: (conversation: StoredConversation) => void;
+}): React.JSX.Element => {
+  return (
+    <Box
+      sx={{
+        flex: 1,
+        p: 3,
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        overflowY: "auto",
+      }}
+    >
+      {conversations.length === 0 ? (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flex: 1,
+            color: "text.secondary",
+          }}
+        >
+          <Typography>No conversations yet</Typography>
+        </Box>
+      ) : (
+        <Stack spacing={3} sx={{ flexGrow: 1 }}>
+          <Box>
+            <Typography
+              variant="body2"
+              fontWeight={500}
+              color="text.primary"
+              sx={{ mb: 0.5 }}
+            >
+              Recent Conversations
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Just Now
+            </Typography>
+          </Box>
+
+          <Stack spacing={3}>
+            {[...conversations]
+              .sort((a, b) => b.updatedAt - a.updatedAt)
+              .map((conversation) => {
+                const sanitize = (text: string) =>
+                  text.replaceAll("**", "").replaceAll("##", "");
+                const lastAssistantMessage = conversation.messages
+                  .filter((message) => message.role === "assistant")
+                  .pop();
+
+                return (
+                  <Stack
+                    key={conversation.id}
+                    direction="row"
+                    spacing={1.25}
+                    alignItems="flex-start"
+                    sx={{
+                      cursor: "pointer",
+                      transition: "opacity 0.2s ease-in-out",
+                      "&:hover": {
+                        opacity: 0.8,
+                      },
+                    }}
+                    onClick={() => {
+                      onSelect(conversation);
+                    }}
+                  >
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        bgcolor: "tertiary.main",
+                        color: "tertiary.contrastText",
+                        mt: 0.5,
+                      }}
+                    >
+                      <SmartToy />
+                    </Avatar>
+                    <Stack spacing={0.625} sx={{ flex: 1, maxWidth: 285 }}>
+                      <Typography
+                        variant="body2"
+                        color="text.primary"
+                        fontWeight={500}
+                      >
+                        Assistant
+                      </Typography>
+                      <Box
+                        sx={{
+                          p: "10px 0px",
+                          borderRadius: "0px 10px 10px 10px",
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          color="text.primary"
+                          sx={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {sanitize(
+                            lastAssistantMessage?.content || conversation.title
+                          )}
+                        </Typography>
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        textAlign="right"
+                      >
+                        {new Date(conversation.updatedAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            timeZone: "UTC",
+                          }
+                        )}{" "}
+                        {new Date(conversation.updatedAt).toLocaleTimeString(
+                          "en-US",
+                          {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                            timeZone: "UTC",
+                          }
+                        )}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                );
+              })}
+          </Stack>
+        </Stack>
+      )}
+    </Box>
+  );
+};
+
+const MessageThread = ({
+  messages,
+  status,
+  messageTimestamps,
+  chatContainerRef,
+}: {
+  readonly messages: UIMessage[];
+  readonly status: ChatStatus;
+  readonly messageTimestamps: Record<string, number>;
+  readonly chatContainerRef: React.RefObject<HTMLDivElement | null>;
+}): React.JSX.Element => {
+  return (
+    <Box
+      ref={chatContainerRef}
+      sx={{
+        flex: 1,
+        overflow: "auto",
+        p: 3,
+        pb: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+      }}
+    >
+      {messages.length === 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flex: 1,
+            color: "text.secondary",
+          }}
+        >
+          <Typography>Start a conversation with the Assistant</Typography>
+        </Box>
+      )}
+      {messages.map((message) => {
+        const messageContent = getMessageContent(message);
+        const timestamp = messageTimestamps[message.id];
+
+        return (
+          <Box key={message.id}>
+            {message.role === "user" ? (
+              <Stack alignItems="flex-end" spacing={0.625}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    bgcolor: "primary.main",
+                    color: "primary.contrastText",
+                    p: "10px 15px",
+                    borderRadius: "10px 0px 10px 10px",
+                    maxWidth: "70%",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  <FormattedMessage content={messageContent} variant="body2" />
+                </Paper>
+                <MessageTimestamp timestamp={timestamp} />
+              </Stack>
+            ) : (
+              <Stack direction="row" spacing={1.25} alignItems="flex-start">
+                <Avatar
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    bgcolor: "tertiary.main",
+                    color: "tertiary.contrastText",
+                    mt: 0.5,
+                  }}
+                >
+                  <SmartToy />
+                </Avatar>
+                <Stack spacing={0.625} sx={{ flex: 1, maxWidth: 285 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.primary"
+                    fontWeight={500}
+                  >
+                    Assistant
+                  </Typography>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      bgcolor: "info.main",
+                      color: "info.contrastText",
+                      p: "10px 15px",
+                      borderRadius: "0px 10px 10px 10px",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    <FormattedMessage
+                      content={messageContent}
+                      variant="body2"
+                    />
+                  </Paper>
+                  <MessageTimestamp timestamp={timestamp} />
+                </Stack>
+              </Stack>
+            )}
+          </Box>
+        );
+      })}
+      {status === "streaming" &&
+        messages.length > 0 &&
+        messages[messages.length - 1].role === "user" && (
+          <Stack direction="row" spacing={1.25} alignItems="flex-start">
+            <Avatar
+              sx={{
+                width: 40,
+                height: 40,
+                bgcolor: "tertiary.main",
+                color: "tertiary.contrastText",
+                mt: 0.5,
+              }}
+            >
+              <SmartToy />
+            </Avatar>
+            <Stack spacing={0.625} sx={{ flex: 1, maxWidth: 285 }}>
+              <Typography variant="body2" color="text.primary" fontWeight={500}>
+                Assistant
+              </Typography>
+              <Paper
+                elevation={0}
+                sx={{
+                  bgcolor: "info.main",
+                  color: "info.contrastText",
+                  p: "10px 15px",
+                  borderRadius: "0px 10px 10px 10px",
+                  display: "flex",
+                  gap: 1,
+                }}
+              >
+                {[0, 1, 2].map((index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      bgcolor: "currentColor",
+                      animation: "pulse 1.4s infinite",
+                      animationDelay: `${index * 0.2}s`,
+                      "@keyframes pulse": {
+                        "0%, 80%, 100%": { opacity: 0.3 },
+                        "40%": { opacity: 1 },
+                      },
+                    }}
+                  />
+                ))}
+              </Paper>
+            </Stack>
+          </Stack>
+        )}
+      <Box sx={{ pb: 3 }} />
+    </Box>
+  );
+};
+
+const ConversationsFooter = ({
+  onNewConversation,
+}: {
+  readonly onNewConversation: () => void;
+}): React.JSX.Element => {
+  return (
+    <Box
+      sx={{
+        bgcolor: "inputOutlinedEnabledFill",
+        px: 2,
+        py: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        borderRadius: "0px 0px 4px 4px",
+      }}
+    >
+      <Button
+        variant="text"
+        onClick={onNewConversation}
+        sx={{
+          color: "primary.main",
+          textTransform: "none",
+          fontWeight: 500,
+          fontSize: 14,
+        }}
+      >
+        Begin a New Conversation
+      </Button>
+    </Box>
+  );
+};
+
+const ChatInputBar = ({
+  input,
+  onInputChange,
+  onSubmit,
+  isStreaming,
+}: {
+  readonly input: string;
+  readonly onInputChange: (value: string) => void;
+  readonly onSubmit: (event: React.FormEvent) => void;
+  readonly isStreaming: boolean;
+}): React.JSX.Element => {
+  return (
+    <Box
+      component="form"
+      onSubmit={onSubmit}
+      sx={{
+        bgcolor: "inputOutlinedEnabledFill",
+        p: "20px 24px",
+        display: "flex",
+        alignItems: "center",
+        gap: 3.125,
+        borderRadius: "0px 0px 4px 4px",
+      }}
+    >
+      <TextField
+        fullWidth
+        placeholder="Reply ..."
+        value={input}
+        onChange={(event) => {
+          onInputChange(event.target.value);
+        }}
+        disabled={isStreaming}
+        variant="standard"
+        slotProps={{
+          input: {
+            disableUnderline: true,
+            sx: {
+              fontSize: 15,
+              "&::placeholder": {
+                color: "text.secondary",
+                fontSize: 15,
+                fontWeight: 400,
+                lineHeight: "20px",
+                letterSpacing: "0.15px",
+              },
+            },
+          },
+        }}
+      />
+      <Fab
+        type="submit"
+        size="small"
+        color="primary"
+        disabled={isStreaming || !input.trim()}
+        sx={{
+          minWidth: 40,
+          minHeight: 40,
+          height: 40,
+          width: 40,
+          boxShadow: "none",
+          "&:hover": {
+            boxShadow: "none",
+          },
+        }}
+      >
+        <ChevronRightIcon fontSize="small" />
+      </Fab>
+    </Box>
+  );
+};
+
+// Encapsulates the action-polling budget and effects. Returns a helper to
+// prime the budget when a new request is likely to produce actions.
+const useChatbotActionPolling = ({
+  isOpen,
+  status,
+  executeAction,
+}: {
+  readonly isOpen: boolean;
+  readonly status: ChatStatus;
+  readonly executeAction: (action: ChatbotAction) => Promise<void>;
+}): { readonly primeActionPoll: (budget: number) => void } => {
+  const [actionPollBudget, setActionPollBudget] = React.useState(0);
 
   const pollForActions = React.useCallback(async (): Promise<boolean> => {
     try {
@@ -184,6 +683,9 @@ export default function IssuerChatbot() {
         actions: { id: string; action: ChatbotAction }[];
       };
 
+      // Actions represent an ordered sequence of UI steps (navigation, event
+      // dispatch) that must run one after another, so they cannot be
+      // parallelized.
       for (const { action } of payload.actions) {
         await executeAction(action);
       }
@@ -227,8 +729,90 @@ export default function IssuerChatbot() {
       });
     }, 500);
 
-    return () => window.clearTimeout(timeoutId);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [isOpen, actionPollBudget, pollForActions]);
+
+  const primeActionPoll = React.useCallback((budget: number): void => {
+    setActionPollBudget((previousBudget) => Math.max(previousBudget, budget));
+  }, []);
+
+  return { primeActionPoll };
+};
+
+const IssuerChatbot = () => {
+  const [showConversations, setShowConversations] = React.useState(false);
+  const [conversations, setConversations] = React.useState<
+    StoredConversation[]
+  >([]);
+  const [currentConversationId, setCurrentConversationId] = React.useState<
+    string | null
+  >(null);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+  const [input, setInput] = React.useState("");
+  const [messageTimestamps, setMessageTimestamps] = React.useState<
+    Record<string, number>
+  >({});
+  const chatContainerRef = React.useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const { messages, sendMessage, status, setMessages } = useChat({
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      prepareSendMessagesRequest: ({
+        messages: pendingMessages,
+        body,
+        headers,
+        credentials,
+      }) => {
+        return {
+          body: {
+            ...body,
+            messages: pendingMessages
+              .slice(-MAX_MESSAGES_PER_REQUEST)
+              .map(toRequestMessage),
+          },
+          headers,
+          credentials,
+        };
+      },
+    }),
+  });
+  const { executeAction, isEnabled, isOpen, closeChatbot } =
+    useChatbotContext();
+
+  const { primeActionPoll } = useChatbotActionPolling({
+    isOpen,
+    status,
+    executeAction,
+  });
+
+  const scrollToBottom = React.useCallback(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, []);
+
+  React.useEffect(() => {
+    scrollToBottom();
+  }, [messages, status, scrollToBottom]);
+
+  React.useEffect(() => {
+    setMessageTimestamps((prev) => {
+      let changed = false;
+      const next = { ...prev };
+
+      messages.forEach((message) => {
+        if (!next[message.id]) {
+          next[message.id] = Date.now();
+          changed = true;
+        }
+      });
+
+      return changed ? next : prev;
+    });
+  }, [messages]);
 
   React.useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -284,21 +868,19 @@ export default function IssuerChatbot() {
         updatedAt: now,
       };
 
-      setConversations((prev) => {
-        const existing = prev.find(
-          (conversation) => conversation.id === conversationData.id
-        );
-        const updated = existing
-          ? prev.map((conversation) =>
-              conversation.id === conversationData.id
-                ? conversationData
-                : conversation
-            )
-          : [...prev, conversationData];
+      const existing = conversations.find(
+        (conversation) => conversation.id === conversationData.id
+      );
+      const updated = existing
+        ? conversations.map((conversation) =>
+            conversation.id === conversationData.id
+              ? conversationData
+              : conversation
+          )
+        : [...conversations, conversationData];
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-        return updated;
-      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      setConversations(updated);
 
       if (!currentConversationId) {
         setCurrentConversationId(conversationData.id);
@@ -306,7 +888,9 @@ export default function IssuerChatbot() {
     };
 
     const timeoutId = window.setTimeout(saveConversation, 1000);
-    return () => window.clearTimeout(timeoutId);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [messages, currentConversationId, conversations, messageTimestamps]);
 
   React.useEffect(() => {
@@ -324,8 +908,8 @@ export default function IssuerChatbot() {
 
     setAnchorEl(nextAnchor);
     setShowConversations(false);
-    setActionPollBudget((budget) => Math.max(budget, 2));
-  }, [isOpen, pathname]);
+    primeActionPoll(2);
+  }, [isOpen, pathname, primeActionPoll]);
 
   if (!isEnabled) {
     return null;
@@ -363,7 +947,7 @@ export default function IssuerChatbot() {
     }
 
     setInput("");
-    setActionPollBudget(12);
+    primeActionPoll(12);
     await sendMessage({ text: nextInput });
   };
 
@@ -398,496 +982,43 @@ export default function IssuerChatbot() {
         },
       }}
     >
-      <Box
-        sx={{
-          bgcolor: "var(--mui-palette-primary-main)",
-          color: "var(--mui-palette-primary-contrastText)",
-          p: 3,
-          backdropFilter: "blur(50px)",
-          minHeight: 169,
-        }}
-      >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="flex-start"
-          sx={{ mb: 2.5 }}
-        >
-          <Stack direction="row" alignItems="center" spacing={1}>
-            {showConversations ? (
-              <IconButton
-                size="medium"
-                onClick={() => setShowConversations(false)}
-                sx={{
-                  p: 1,
-                  color: "primary.contrastText",
-                  "&:hover": {
-                    bgcolor: "rgba(255, 255, 255, 0.1)",
-                  },
-                }}
-              >
-                <ArrowBackIosNewIcon fontSize="medium" />
-              </IconButton>
-            ) : (
-              conversations.length > 0 && (
-                <IconButton
-                  size="medium"
-                  onClick={() => setShowConversations(true)}
-                  sx={{
-                    p: 1,
-                    color: "white",
-                    "&:hover": {
-                      bgcolor: "rgba(255, 255, 255, 0.1)",
-                    },
-                  }}
-                >
-                  <ArrowBackIosNewIcon fontSize="medium" />
-                </IconButton>
-              )
-            )}
-            <Avatar
-              sx={{
-                width: 40,
-                height: 40,
-                bgcolor: "tertiary.main",
-                color: "tertiary.contrastText",
-              }}
-            >
-              <SmartToy />
-            </Avatar>
-          </Stack>
-          <IconButton
-            onClick={handleClose}
-            sx={{
-              p: 1,
-              color: "white",
-              "&:hover": {
-                bgcolor: "rgba(255, 255, 255, 0.1)",
-              },
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </Stack>
-
-        <Stack spacing={0.625}>
-          <Typography
-            variant="h4"
-            sx={{
-              color: "white",
-              fontFamily: "Roboto Condensed",
-              fontWeight: 500,
-              fontSize: 32,
-              lineHeight: "36px",
-              letterSpacing: "0.15px",
-            }}
-          >
-            {showConversations ? "Conversations" : "Assistant"}
-          </Typography>
-          <Typography
-            sx={{
-              color: "white",
-              fontFamily: "Roboto",
-              fontWeight: 400,
-              fontSize: 14,
-              lineHeight: "20px",
-              letterSpacing: "0.15px",
-            }}
-          >
-            {showConversations
-              ? "Your chat history"
-              : "You can ask the Assistant anything about the portal."}
-          </Typography>
-        </Stack>
-      </Box>
+      <ChatbotHeader
+        showConversations={showConversations}
+        hasConversations={conversations.length > 0}
+        onShowConversationsChange={setShowConversations}
+        onClose={handleClose}
+      />
 
       {showConversations ? (
-        <Box
-          sx={{
-            flex: 1,
-            p: 3,
-            display: "flex",
-            flexDirection: "column",
-            gap: 3,
-            overflowY: "auto",
-          }}
-        >
-          {conversations.length === 0 ? (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flex: 1,
-                color: "text.secondary",
-              }}
-            >
-              <Typography>No conversations yet</Typography>
-            </Box>
-          ) : (
-            <Stack spacing={3} sx={{ flexGrow: 1 }}>
-              <Box>
-                <Typography
-                  variant="body2"
-                  fontWeight={500}
-                  color="text.primary"
-                  sx={{ mb: 0.5 }}
-                >
-                  Recent Conversations
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Just Now
-                </Typography>
-              </Box>
-
-              <Stack spacing={3}>
-                {[...conversations]
-                  .sort((a, b) => b.updatedAt - a.updatedAt)
-                  .map((conversation) => {
-                    const sanitize = (text: string) =>
-                      text.replaceAll("**", "").replaceAll("##", "");
-                    const lastAssistantMessage = conversation.messages
-                      .filter((message) => message.role === "assistant")
-                      .pop();
-
-                    return (
-                      <Stack
-                        key={conversation.id}
-                        direction="row"
-                        spacing={1.25}
-                        alignItems="flex-start"
-                        sx={{
-                          cursor: "pointer",
-                          transition: "opacity 0.2s ease-in-out",
-                          "&:hover": {
-                            opacity: 0.8,
-                          },
-                        }}
-                        onClick={() => loadConversation(conversation)}
-                      >
-                        <Avatar
-                          sx={{
-                            width: 40,
-                            height: 40,
-                            bgcolor: "tertiary.main",
-                            color: "tertiary.contrastText",
-                            mt: 0.5,
-                          }}
-                        >
-                          <SmartToy />
-                        </Avatar>
-                        <Stack spacing={0.625} sx={{ flex: 1, maxWidth: 285 }}>
-                          <Typography
-                            variant="body2"
-                            color="text.primary"
-                            fontWeight={500}
-                          >
-                            Assistant
-                          </Typography>
-                          <Box
-                            sx={{
-                              p: "10px 0px",
-                              borderRadius: "0px 10px 10px 10px",
-                            }}
-                          >
-                            <Typography
-                              variant="body2"
-                              color="text.primary"
-                              sx={{
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                lineHeight: 1.4,
-                              }}
-                            >
-                              {sanitize(
-                                lastAssistantMessage?.content ||
-                                  conversation.title
-                              )}
-                            </Typography>
-                          </Box>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            textAlign="right"
-                          >
-                            {new Date(
-                              conversation.updatedAt
-                            ).toLocaleDateString("en-US", {
-                              weekday: "long",
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}{" "}
-                            {new Date(
-                              conversation.updatedAt
-                            ).toLocaleTimeString("en-US", {
-                              hour: "numeric",
-                              minute: "2-digit",
-                              hour12: true,
-                            })}
-                          </Typography>
-                        </Stack>
-                      </Stack>
-                    );
-                  })}
-              </Stack>
-            </Stack>
-          )}
-        </Box>
+        <ConversationsView
+          conversations={conversations}
+          onSelect={loadConversation}
+        />
       ) : (
-        <Box
-          ref={chatContainerRef}
-          sx={{
-            flex: 1,
-            overflow: "auto",
-            p: 3,
-            pb: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: 3,
-          }}
-        >
-          {messages.length === 0 && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flex: 1,
-                color: "text.secondary",
-              }}
-            >
-              <Typography>Start a conversation with the Assistant</Typography>
-            </Box>
-          )}
-          {messages.map((message) => {
-            const messageContent = getMessageContent(message);
-            const timestamp = messageTimestamps[message.id] ?? Date.now();
-
-            return (
-              <Box key={message.id}>
-                {message.role === "user" ? (
-                  <Stack alignItems="flex-end" spacing={0.625}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        bgcolor: "primary.main",
-                        color: "primary.contrastText",
-                        p: "10px 15px",
-                        borderRadius: "10px 0px 10px 10px",
-                        maxWidth: "70%",
-                        wordBreak: "break-word",
-                      }}
-                    >
-                      <FormattedMessage
-                        content={messageContent}
-                        variant="body2"
-                      />
-                    </Paper>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      textAlign="right"
-                    >
-                      {formatTime(timestamp)}
-                    </Typography>
-                  </Stack>
-                ) : (
-                  <Stack direction="row" spacing={1.25} alignItems="flex-start">
-                    <Avatar
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        bgcolor: "tertiary.main",
-                        color: "tertiary.contrastText",
-                        mt: 0.5,
-                      }}
-                    >
-                      <SmartToy />
-                    </Avatar>
-                    <Stack spacing={0.625} sx={{ flex: 1, maxWidth: 285 }}>
-                      <Typography
-                        variant="body2"
-                        color="text.primary"
-                        fontWeight={500}
-                      >
-                        Assistant
-                      </Typography>
-                      <Paper
-                        elevation={0}
-                        sx={{
-                          bgcolor: "info.main",
-                          color: "info.contrastText",
-                          p: "10px 15px",
-                          borderRadius: "0px 10px 10px 10px",
-                          wordBreak: "break-word",
-                        }}
-                      >
-                        <FormattedMessage
-                          content={messageContent}
-                          variant="body2"
-                        />
-                      </Paper>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        textAlign="right"
-                      >
-                        {formatTime(timestamp)}
-                      </Typography>
-                    </Stack>
-                  </Stack>
-                )}
-              </Box>
-            );
-          })}
-          {status === "streaming" &&
-            messages.length > 0 &&
-            messages[messages.length - 1].role === "user" && (
-              <Stack direction="row" spacing={1.25} alignItems="flex-start">
-                <Avatar
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    bgcolor: "tertiary.main",
-                    color: "tertiary.contrastText",
-                    mt: 0.5,
-                  }}
-                >
-                  <SmartToy />
-                </Avatar>
-                <Stack spacing={0.625} sx={{ flex: 1, maxWidth: 285 }}>
-                  <Typography
-                    variant="body2"
-                    color="text.primary"
-                    fontWeight={500}
-                  >
-                    Assistant
-                  </Typography>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      bgcolor: "info.main",
-                      color: "info.contrastText",
-                      p: "10px 15px",
-                      borderRadius: "0px 10px 10px 10px",
-                      display: "flex",
-                      gap: 1,
-                    }}
-                  >
-                    {[0, 1, 2].map((index) => (
-                      <Box
-                        key={index}
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: "50%",
-                          bgcolor: "currentColor",
-                          animation: "pulse 1.4s infinite",
-                          animationDelay: `${index * 0.2}s`,
-                          "@keyframes pulse": {
-                            "0%, 80%, 100%": { opacity: 0.3 },
-                            "40%": { opacity: 1 },
-                          },
-                        }}
-                      />
-                    ))}
-                  </Paper>
-                </Stack>
-              </Stack>
-            )}
-          <Box sx={{ pb: 3 }} />
-        </Box>
+        <MessageThread
+          messages={messages}
+          status={status}
+          messageTimestamps={messageTimestamps}
+          chatContainerRef={chatContainerRef}
+        />
       )}
 
       <Divider sx={{ borderColor: "rgba(31, 30, 28, 0.12)" }} />
 
       {showConversations ? (
-        <Box
-          sx={{
-            bgcolor: "inputOutlinedEnabledFill",
-            px: 2,
-            py: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            borderRadius: "0px 0px 4px 4px",
-          }}
-        >
-          <Button
-            variant="text"
-            onClick={startNewConversation}
-            sx={{
-              color: "primary.main",
-              textTransform: "none",
-              fontWeight: 500,
-              fontSize: 14,
-            }}
-          >
-            Begin a New Conversation
-          </Button>
-        </Box>
+        <ConversationsFooter onNewConversation={startNewConversation} />
       ) : (
-        <Box
-          component="form"
+        <ChatInputBar
+          input={input}
+          onInputChange={setInput}
           onSubmit={(event) => {
             void handleFormSubmit(event);
           }}
-          sx={{
-            bgcolor: "inputOutlinedEnabledFill",
-            p: "20px 24px",
-            display: "flex",
-            alignItems: "center",
-            gap: 3.125,
-            borderRadius: "0px 0px 4px 4px",
-          }}
-        >
-          <TextField
-            fullWidth
-            placeholder="Reply ..."
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            disabled={status === "streaming"}
-            variant="standard"
-            slotProps={{
-              input: {
-                disableUnderline: true,
-                sx: {
-                  fontSize: 15,
-                  "&::placeholder": {
-                    color: "text.secondary",
-                    fontSize: 15,
-                    fontWeight: 400,
-                    lineHeight: "20px",
-                    letterSpacing: "0.15px",
-                  },
-                },
-              },
-            }}
-          />
-          <Fab
-            type="submit"
-            size="small"
-            color="primary"
-            disabled={status === "streaming" || !input.trim()}
-            sx={{
-              minWidth: 40,
-              minHeight: 40,
-              height: 40,
-              width: 40,
-              boxShadow: "none",
-              "&:hover": {
-                boxShadow: "none",
-              },
-            }}
-          >
-            <ChevronRightIcon fontSize="small" />
-          </Fab>
-        </Box>
+          isStreaming={status === "streaming"}
+        />
       )}
     </Popover>
   );
-}
+};
+
+export default IssuerChatbot;

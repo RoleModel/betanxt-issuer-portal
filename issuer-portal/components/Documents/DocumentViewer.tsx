@@ -32,7 +32,6 @@ import {
   Stack,
   TextField,
   Toolbar,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { useSession } from "next-auth/react";
@@ -57,31 +56,35 @@ import {
   convertDataUriToPdfBytes,
   embedSignaturesIntoPDF,
 } from "@/utils/pdfSignatureEmbed";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 // Dynamically import SignatureModal to avoid SSR issues
 const SignatureModal = dynamic(
-  () => import("@/components/Documents/SignatureModal"),
+  async () => await import("@/components/Documents/SignatureModal"),
   {
     ssr: false,
     loading: () => null,
   }
 );
 
-const PDFViewer = dynamic(() => import("@/components/Documents/PDFViewer"), {
-  ssr: false,
-  loading: () => (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: 400,
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  ),
-});
+const PDFViewer = dynamic(
+  async () => await import("@/components/Documents/PDFViewer"),
+  {
+    ssr: false,
+    loading: () => (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 400,
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    ),
+  }
+);
 
 interface SignatureArea {
   id: string;
@@ -111,60 +114,71 @@ interface CommentWithUser {
 const defaultSignatureData =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
+// Hoisted to module scope so the default prop value keeps a stable reference
+// across renders (see rerender-memo-with-default-value).
+const EMPTY_SIGNATURE_AREAS: SignatureArea[] = [];
+
+// The runtime's default time zone. Passing it explicitly keeps locale/timezone
+// formatting deterministic instead of relying on implicit render-time defaults.
+const RESOLVED_TIME_ZONE: string =
+  Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 interface DocumentViewerProps {
   // New task-based API
-  task?: {
+  readonly task?: {
     id: string;
     task_id?: string | null;
     title: string;
     type?: string | null;
     meeting_id?: string | null;
   } | null;
-  onSuccess?: () => void;
+  readonly onSuccess?: () => void;
 
   // Legacy props for backward compatibility
-  open?: boolean;
-  onClose?: () => void;
-  fileUrl?: string;
-  title?: string;
-  signatureData?: string;
-  signatureAreas?: SignatureArea[];
-  documentId?: string;
-  showHistoryButton?: boolean;
-  showCommentButton?: boolean;
+  readonly open?: boolean;
+  readonly onClose?: () => void;
+  readonly fileUrl?: string;
+  readonly title?: string;
+  readonly signatureData?: string;
+  readonly signatureAreas?: SignatureArea[];
+  readonly documentId?: string;
+  readonly showHistoryButton?: boolean;
+  readonly showCommentButton?: boolean;
   /** When true, completely hides both History & Comment buttons and their side panel */
-  hideActivityButtons?: boolean;
+  readonly hideActivityButtons?: boolean;
   /** When true, shows a download button in the toolbar */
-  showDownloadButton?: boolean;
-  taskId?: string;
-  documentType?: string;
-  isWebsiteView?: boolean;
-  onSignatureRequest?: (
+  readonly showDownloadButton?: boolean;
+  readonly taskId?: string;
+  readonly documentType?: string;
+  readonly isWebsiteView?: boolean;
+  readonly onSignatureRequest?: (
     pageNumber: number,
     signatureArea: SignatureArea
   ) => void;
-  onSignatureInsert?: (signatureData: string) => void;
-  onSubmitSuccess?: () => void;
-  onApproveSite?: () => Promise<void>;
-  onRequestRevision?: () => void;
-  onPdfStateChange?: (
+  readonly onSignatureInsert?: (signatureData: string) => void;
+  readonly onSubmitSuccess?: () => void;
+  readonly onApproveSite?: () => Promise<void>;
+  readonly onRequestRevision?: () => void;
+  readonly onPdfStateChange?: (
     formFields: Record<string, string>,
     signatures: Record<string, string>
   ) => void;
 }
 
-const Transition = React.forwardRef(function Transition(
-  props: TransitionProps & {
-    children: React.ReactElement<unknown>;
-  },
-  ref: React.Ref<unknown>
-) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
+const Transition = React.forwardRef(
+  (
+    props: TransitionProps & {
+      readonly children: React.ReactElement<unknown>;
+    },
+    ref: React.Ref<unknown>
+  ) => {
+    return <Slide direction="up" ref={ref} {...props} />;
+  }
+);
 
 interface WebsiteIframeWithErrorHandlingProps {
-  url: string;
-  title: string;
+  readonly url: string;
+  readonly title: string;
 }
 
 const WebsiteIframeWithErrorHandling: React.FC<
@@ -254,7 +268,7 @@ const WebsiteIframeWithErrorHandling: React.FC<
         position: "relative",
       }}
     >
-      {isLoading && (
+      {isLoading ? (
         <Box
           sx={{
             position: "absolute",
@@ -273,7 +287,7 @@ const WebsiteIframeWithErrorHandling: React.FC<
             Loading document hosting site...
           </Typography>
         </Box>
-      )}
+      ) : null}
       <iframe
         ref={iframeRef}
         src={url}
@@ -283,11 +297,37 @@ const WebsiteIframeWithErrorHandling: React.FC<
           border: "none",
         }}
         title={title}
+        sandbox="allow-scripts allow-forms allow-popups"
         onLoad={handleIframeLoad}
         onError={handleIframeError}
       />
     </Box>
   );
+};
+
+// Helper function to format timestamps
+const formatTimestamp = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffInHours =
+    Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+  if (diffInHours < 24) {
+    return (
+      date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: RESOLVED_TIME_ZONE,
+      }) + ", Today"
+    );
+  } else {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      timeZone: RESOLVED_TIME_ZONE,
+    });
+  }
 };
 
 const DocumentViewer: React.FC<DocumentViewerProps> = ({
@@ -305,7 +345,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   hideActivityButtons = false,
   showDownloadButton = false,
   signatureData,
-  signatureAreas = [],
+  signatureAreas = EMPTY_SIGNATURE_AREAS,
   documentId,
   documentType,
   isWebsiteView = false,
@@ -322,9 +362,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const [signatureDataMap, setSignatureDataMap] = useState<
     Record<string, string>
   >({});
-  const [currentSignatureAreaId, setCurrentSignatureAreaId] = useState<
-    string | null
-  >(null);
+  // Only read/written inside event handlers, never during render, so a ref
+  // avoids needless re-renders (see rerender-state-only-in-handlers).
+  const currentSignatureAreaIdRef = useRef<string | null>(null);
   const [formFieldValues, setFormFieldValues] = useState<
     Record<string, string>
   >({});
@@ -378,10 +418,16 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       return;
     }
 
+    let cancelled = false;
+
     const fetchTaskDocument = async () => {
       try {
         // Use hook to get task document data
         const document = await getTaskDocument(task.id);
+
+        // Bail out if a newer effect run superseded this one while awaiting,
+        // so overlapping runs cannot write stale state.
+        if (cancelled) return;
 
         if (!document) {
           // Don't close, proceed with fallback PDF for signature tasks
@@ -543,6 +589,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     };
 
     void fetchTaskDocument();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     task,
     getTaskDocument,
@@ -683,7 +733,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       setSignatureDataMap({});
       setFormFieldValues({});
       setInternalSignatureData("");
-      setCurrentSignatureAreaId(null);
+      currentSignatureAreaIdRef.current = null;
 
       // Update the ref to track this document
       lastDocumentKeyRef.current = documentKey;
@@ -792,12 +842,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
   // Fetch document history when document opens and we have an ID
   useEffect(() => {
+    let cancelled = false;
+
     const loadDocumentHistory = async () => {
       if (!actualOpen || !currentDocumentId) return;
 
       try {
         // Load document history using API
         const history = await getDocumentHistory(currentDocumentId);
+        if (cancelled) return;
         setDocumentHistory(
           history.map((event) => ({
             event_type: event.event_type,
@@ -808,6 +861,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
         // Load comments using hook
         const comments = await getCommentsForDocument(currentDocumentId);
+        if (cancelled) return;
         const transformedComments = comments.map((comment) => ({
           id: comment.id,
           comment: comment.comment,
@@ -828,6 +882,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     };
 
     void loadDocumentHistory();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     actualOpen,
     currentDocumentId,
@@ -854,7 +912,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         return;
       }
 
-      setCurrentSignatureAreaId(areaId);
+      currentSignatureAreaIdRef.current = areaId;
       // Open signature modal on top of document viewer
       setSignatureModalOpen(true);
     },
@@ -868,11 +926,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const handleSignatureModalInsert = useCallback(
     (signature: string) => {
       // Store signature data for the specific area
-      if (currentSignatureAreaId) {
+      const activeAreaId = currentSignatureAreaIdRef.current;
+      if (activeAreaId) {
         setSignatureDataMap((prev) => {
           const updated = {
             ...prev,
-            [currentSignatureAreaId]: signature,
+            [activeAreaId]: signature,
           };
           return updated;
         });
@@ -880,9 +939,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       // Also update the single signature data for backward compatibility
       handleTaskSignatureInsert(signature);
       setSignatureModalOpen(false);
-      setCurrentSignatureAreaId(null);
+      currentSignatureAreaIdRef.current = null;
     },
-    [currentSignatureAreaId, handleTaskSignatureInsert]
+    [handleTaskSignatureInsert]
   );
 
   const handleSubmitSignedForm = useCallback(async () => {
@@ -925,6 +984,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         } else {
           // For regular URLs, fetch the PDF
           const response = await fetch(fileUrlToUse);
+          if (!response.ok) {
+            throw new Error(
+              `Failed to load document for signing (status ${response.status})`
+            );
+          }
           const arrayBuffer = await response.arrayBuffer();
           pdfBytes = new Uint8Array(arrayBuffer);
         }
@@ -1087,36 +1151,11 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     setShowComments(false); // Hide comments when showing history
   }, [showHistory]);
 
-  // Disable activity panels entirely if hideActivityButtons is true
-  useEffect(() => {
-    if (hideActivityButtons) {
-      if (showComments) setShowComments(false);
-      if (showHistory) setShowHistory(false);
-    }
-  }, [hideActivityButtons, showComments, showHistory]);
-
-  // Helper function to format timestamps
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours =
-      Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    if (diffInHours < 24) {
-      return (
-        date.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }) + ", Today"
-      );
-    } else {
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-    }
-  };
+  // Activity panels are forced off when hideActivityButtons is set. Derive the
+  // effective visibility during render rather than adjusting state in an effect
+  // (see no-adjust-state-on-prop-change).
+  const effectiveShowComments = showComments && !hideActivityButtons;
+  const effectiveShowHistory = showHistory && !hideActivityButtons;
 
   const handleAddComment = () => {
     setShowCommentField(true);
@@ -1186,16 +1225,22 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
       if (!currentDocumentId) {
         throw new Error("No document selected to attach uploads to");
       }
-      for (const file of files) {
-        // Use hook to upload document
-        const meetingId =
-          typeof task?.meeting_id === "string" ? task?.meeting_id : undefined;
-        const result = await uploadDocument(file, currentDocumentId, meetingId);
+      // Uploads are independent, so run them concurrently instead of serially.
+      const meetingId =
+        typeof task?.meeting_id === "string" ? task?.meeting_id : undefined;
+      await Promise.all(
+        files.map(async (file) => {
+          const result = await uploadDocument(
+            file,
+            currentDocumentId,
+            meetingId
+          );
 
-        if (!result) {
-          throw new Error("Failed to upload document");
-        }
-      }
+          if (!result) {
+            throw new Error("Failed to upload document");
+          }
+        })
+      );
 
       setUploadDialogOpen(false);
 
@@ -1265,213 +1310,31 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={1} alignItems="center">
-            {isWebsiteView ? (
-              <>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  onClick={onRequestRevision}
-                  sx={{
-                    color: (theme) => theme.vars?.palette.common.white,
-                    borderColor: (theme) => theme.vars?.palette.common.white,
-                    "&:hover": {
-                      borderColor: (theme) => theme.vars.palette.common.white,
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    },
-                  }}
-                >
-                  Request Revision
-                </Button>
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={onApproveSite}
-                >
-                  Approve Site
-                </Button>
-              </>
-            ) : (
-              <>
-                {isPDF &&
-                  (documentType === "signature" ||
-                    (task &&
-                      (task.type === "signature" ||
-                        task.type === "Document" ||
-                        task.type === "Authorization"))) && (
-                    <Button
-                      variant="outlined"
-                      color="inherit"
-                      onClick={handleUploadSignedDocument}
-                      sx={{
-                        color: (theme) => theme.vars.palette.common.white,
-                        borderColor: (theme) => theme.vars.palette.common.white,
-                        "&:hover": {
-                          borderColor: (theme) =>
-                            theme.vars.palette.common.white,
-                          backgroundColor: "rgba(255, 255, 255, 0.1)",
-                        },
-                      }}
-                    >
-                      Upload Signed Document
-                    </Button>
-                  )}
-
-                {isPDF &&
-                  (documentType === "signature" ||
-                    (task &&
-                      (task.type === "signature" ||
-                        task.type === "Document" ||
-                        task.type === "Authorization"))) &&
-                  localSignatureAreas.length > 0 && // Only show submit button if there are signature areas (not view-only mode)
-                  (() => {
-                    // Check if all required fields are complete
-                    // Since all areas have undefined type, detect field type by ID/label
-                    const allFieldsComplete =
-                      process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
-                      localSignatureAreas.every((area) => {
-                        // Check if it's filled based on what storage it should use
-                        let hasValue = false;
-
-                        // Detect field type by ID or label
-                        if (
-                          area.id?.includes("sig") ||
-                          (area.label?.toLowerCase().includes("signature") &&
-                            !area.label?.toLowerCase().includes("print"))
-                        ) {
-                          // Signature field - check signatureDataMap
-                          hasValue = !!signatureDataMap[area.id];
-                        } else {
-                          // Text/date field - check formFieldValues
-                          hasValue = !!formFieldValues[area.id];
-                        }
-
-                        return hasValue;
-                      });
-
-                    return (
-                      <Tooltip
-                        title={
-                          !allFieldsComplete
-                            ? "Please complete all required fields and signatures"
-                            : ""
-                        }
-                        placement="top"
-                      >
-                        <Button
-                          variant="contained"
-                          color="success"
-                          onClick={
-                            allFieldsComplete && !isSubmitting
-                              ? handleSubmitSignedForm
-                              : undefined
-                          }
-                          startIcon={
-                            isSubmitting ? (
-                              <CircularProgress size={20} color="inherit" />
-                            ) : undefined
-                          }
-                          sx={{
-                            opacity:
-                              allFieldsComplete && !isSubmitting ? 1 : 0.65,
-                            cursor:
-                              allFieldsComplete && !isSubmitting
-                                ? "pointer"
-                                : "not-allowed",
-                            pointerEvents: "auto",
-                            "&:hover": {
-                              backgroundColor: (theme) =>
-                                allFieldsComplete && !isSubmitting
-                                  ? theme.vars.palette.success.light
-                                  : theme.vars.palette.success.main,
-                            },
-                          }}
-                        >
-                          {isSubmitting ? "Sending…" : "Submit"}
-                        </Button>
-                      </Tooltip>
-                    );
-                  })()}
-              </>
-            )}
-
-            {/* Download Button */}
-            {showDownloadButton && !isWebsiteView && isPDF && (
-              <Tooltip title="Download PDF">
-                <IconButton
-                  color="inherit"
-                  onClick={handleDownloadPdf}
-                  aria-label="download pdf"
-                >
-                  <DownloadIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-
-            {/* PDF Navigation */}
-            {!isWebsiteView && numPages && numPages > 1 && (
-              <>
-                <IconButton
-                  color="inherit"
-                  onClick={goToPrevPage}
-                  disabled={pageNumber <= 1}
-                  sx={{
-                    "&.Mui-disabled": {
-                      color: (theme) => theme.vars.palette.common.white,
-                      opacity: 0.5,
-                    },
-                  }}
-                >
-                  <ChevronLeftIcon />
-                </IconButton>
-                <Typography
-                  variant="body3"
-                  sx={{
-                    color: (theme) => theme.vars.palette.common.white,
-                    mx: 1,
-                  }}
-                >
-                  {pageNumber} / {numPages}
-                </Typography>
-                <IconButton
-                  color="inherit"
-                  onClick={goToNextPage}
-                  disabled={pageNumber >= numPages}
-                  sx={{
-                    "&.Mui-disabled": {
-                      color: (theme) => theme.vars.palette.common.white,
-                      opacity: 0.5,
-                    },
-                  }}
-                >
-                  <ChevronRightIcon />
-                </IconButton>
-              </>
-            )}
-
-            {!hideActivityButtons && showHistoryButton && (
-              <Tooltip title="History">
-                <IconButton
-                  color="inherit"
-                  aria-label="history"
-                  onClick={handleHistory}
-                >
-                  <HistoryIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-            {!hideActivityButtons && showCommentButton && (
-              <Tooltip title="Comments">
-                <IconButton
-                  color="inherit"
-                  aria-label="comments"
-                  onClick={handleComments}
-                >
-                  <CommentIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-          </Stack>
+          <DocumentViewerToolbarActions
+            isWebsiteView={isWebsiteView}
+            onRequestRevision={onRequestRevision}
+            onApproveSite={onApproveSite}
+            isPDF={isPDF}
+            documentType={documentType}
+            task={task}
+            onUploadSignedDocument={handleUploadSignedDocument}
+            localSignatureAreas={localSignatureAreas}
+            signatureDataMap={signatureDataMap}
+            formFieldValues={formFieldValues}
+            isSubmitting={isSubmitting}
+            onSubmitSignedForm={handleSubmitSignedForm}
+            showDownloadButton={showDownloadButton}
+            onDownloadPdf={handleDownloadPdf}
+            numPages={numPages}
+            pageNumber={pageNumber}
+            onPrevPage={goToPrevPage}
+            onNextPage={goToNextPage}
+            hideActivityButtons={hideActivityButtons}
+            showHistoryButton={showHistoryButton}
+            onToggleHistory={handleHistory}
+            showCommentButton={showCommentButton}
+            onToggleComments={handleComments}
+          />
         </Toolbar>
       </AppBar>
 
@@ -1484,426 +1347,53 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         }}
       >
         {/* PDF Viewer or Website Iframe */}
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-start",
-            p: { xs: 1, sm: 2 },
-            overflow: "auto",
-            background: "var(--mui-palette-background-default)",
-          }}
-        >
-          {isWebsiteView ? (
-            // Website iframe view
-            actualfileUrl ? (
-              <WebsiteIframeWithErrorHandling
-                url={actualfileUrl}
-                title={actualTitle ?? "Website View"}
-              />
-            ) : (
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: "100%",
-                  gap: 2,
-                  p: 4,
-                }}
-              >
-                <Typography variant="h6" color="text.primary">
-                  Document Hosting Site Not Available
-                </Typography>
-                <Typography
-                  variant="body3"
-                  color="text.secondary"
-                  textAlign="center"
-                >
-                  The document hosting site has not been set up yet. Please
-                  contact your administrator to configure the hosting site.
-                </Typography>
-              </Box>
-            )
-          ) : (
-            // PDF viewer
-            <Box
-              sx={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "flex-start",
-                pt: 2,
-              }}
-            >
-              {isLoading && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    zIndex: 1000,
-                  }}
-                >
-                  <Typography variant="body3">Loading document...</Typography>
-                </Box>
-              )}
-
-              {/* React-PDF Document Viewer */}
-              <Box
-                sx={{
-                  position: "relative",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "flex-start",
-                  width: "100%",
-                  maxWidth: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    position: "relative",
-                    maxWidth: "100%",
-                    boxShadow: 3,
-                    borderRadius: 1,
-                    overflow: "hidden",
-                    background: (theme) => theme.vars.palette.common.white,
-                  }}
-                >
-                  {actualfileUrl ? (
-                    isPDF ? (
-                      (() => {
-                        // Convert relative storage paths to full Supabase URLs
-                        let pdfUrl = actualfileUrl;
-                        if (
-                          actualfileUrl.startsWith("/storage/v1/object/public/")
-                        ) {
-                          const supabaseUrl =
-                            process.env.NEXT_PUBLIC_SUPABASE_URL ||
-                            "http://127.0.0.1:54321";
-                          pdfUrl = `${supabaseUrl}${actualfileUrl}`;
-                        }
-
-                        return (
-                          <PDFViewer
-                            file={pdfUrl}
-                            pageNumber={pageNumber}
-                            width={Math.min(
-                              800,
-                              typeof window !== "undefined"
-                                ? window.innerWidth -
-                                    (showComments || showHistory ? 500 : 100)
-                                : 800
-                            )}
-                            onLoadSuccess={onDocumentLoadSuccess}
-                            onLoadError={onDocumentLoadError}
-                          />
-                        );
-                      })()
-                    ) : isOfficeDocument ? (
-                      <OfficeDocumentViewer
-                        url={actualfileUrl}
-                        title={actualTitle ?? undefined}
-                        fileType={fileExtension ?? undefined}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          height: "100%",
-                          gap: 2,
-                        }}
-                      >
-                        <Typography variant="h6">
-                          Unsupported file type
-                        </Typography>
-                        <Typography variant="body3" color="text.secondary">
-                          This file type ({fileExtension}) cannot be previewed
-                        </Typography>
-                      </Box>
-                    )
-                  ) : (
-                    <Box
-                      display="flex"
-                      justifyContent="center"
-                      alignItems="center"
-                      minHeight={400}
-                    >
-                      <div>No document URL available</div>
-                    </Box>
-                  )}
-
-                  {/* Signature and Form Field Area Overlays - positioned relative to the Page */}
-                  {localSignatureAreas
-                    .filter((area) => (area.page ?? 1) === pageNumber)
-                    .map((area) => {
-                      // Check if this is a form field (text or date) based on type or label
-                      const fieldType =
-                        area.type ??
-                        (area.label?.toLowerCase().includes("print name")
-                          ? "text"
-                          : area.label?.toLowerCase().includes("name") &&
-                              !area.label?.toLowerCase().includes("signature")
-                            ? "text"
-                            : area.label?.toLowerCase().includes("date")
-                              ? "date"
-                              : "signature");
-
-                      if (fieldType === "text" || fieldType === "date") {
-                        // Render form field for text/date inputs
-                        return (
-                          <FormFieldArea
-                            key={area.id}
-                            area={{
-                              ...area,
-                              type: fieldType,
-                              value:
-                                formFieldValues[area.id] ?? area.value ?? "",
-                            }}
-                            onValueChange={handleFormFieldChange}
-                          />
-                        );
-                      } else {
-                        // Render signature area for signatures
-                        const areaSignatureData =
-                          signatureDataMap[area.id] ?? actualSignatureData;
-                        return (
-                          <DraggableSignatureArea
-                            key={area.id}
-                            area={area}
-                            signatureData={areaSignatureData}
-                            documentId={currentDocumentId ?? ""}
-                            onClick={() => handleCustomSignature(area.id)}
-                            onPositionUpdate={handlePositionUpdate}
-                          />
-                        );
-                      }
-                    })}
-                </Box>
-              </Box>
-            </Box>
-          )}
-        </Box>
+        <DocumentContentArea
+          isWebsiteView={isWebsiteView}
+          actualfileUrl={actualfileUrl}
+          actualTitle={actualTitle}
+          isLoading={isLoading}
+          isPDF={isPDF}
+          isOfficeDocument={isOfficeDocument}
+          fileExtension={fileExtension}
+          pageNumber={pageNumber}
+          showComments={effectiveShowComments}
+          showHistory={effectiveShowHistory}
+          onDocumentLoadSuccess={onDocumentLoadSuccess}
+          onDocumentLoadError={onDocumentLoadError}
+          localSignatureAreas={localSignatureAreas}
+          formFieldValues={formFieldValues}
+          onFormFieldChange={handleFormFieldChange}
+          signatureDataMap={signatureDataMap}
+          actualSignatureData={actualSignatureData}
+          currentDocumentId={currentDocumentId}
+          onCustomSignature={handleCustomSignature}
+          onPositionUpdate={handlePositionUpdate}
+        />
 
         {/* Right Side Panel - Only show for PDF documents */}
-        {!isWebsiteView &&
-          !hideActivityButtons &&
-          (showComments || showHistory) && (
-            <Paper
-              elevation={3}
-              sx={{
-                width: 380,
-                background: "var(--mui-palette-background-paper)",
-                borderLeft: (theme) =>
-                  `1px solid ${theme.vars?.palette.divider}`,
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              {/* Header */}
-              <Box
-                sx={(theme) => ({
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "start",
-                  p: 2,
-                  py: 1,
-                  background: theme.vars?.palette.appSwitcher.background,
-                  color: theme.vars?.palette.appSwitcher.contrastText,
-                })}
-              >
-                <Typography variant="caption" sx={{ fontWeight: 500 }}>
-                  {showComments ? "Comments" : "Document History"}
-                </Typography>
-              </Box>
-
-              {/* Content */}
-              {showComments ? (
-                /* Comments View */
-                <Box
-                  sx={{
-                    p: 1,
-                    flex: 1,
-                    overflow: "auto",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                  data-comments-container
-                >
-                  <List sx={{ flex: 1 }}>
-                    {comments.length > 0 ? (
-                      comments.map((commentItem) => (
-                        <ListItem key={commentItem.id} divider>
-                          <ListItemAvatar>
-                            <Avatar
-                              src={commentItem.users?.avatar ?? undefined}
-                              sx={{
-                                width: 40,
-                                height: 40,
-                                backgroundColor: (theme) =>
-                                  theme.vars.palette.secondary.main,
-                                borderRadius: 1,
-                              }}
-                            />
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={
-                              <Box
-                                component="span"
-                                sx={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "start",
-                                }}
-                              >
-                                <Typography
-                                  component="span"
-                                  variant="body3"
-                                  fontWeight={500}
-                                >
-                                  {`${commentItem.first_name} ${commentItem.last_name}`}
-                                </Typography>
-                                <Typography
-                                  component="span"
-                                  variant="caption"
-                                  color="text.secondary"
-                                >
-                                  {formatTimestamp(commentItem.created_at)}
-                                </Typography>
-                              </Box>
-                            }
-                            secondary={commentItem.comment}
-                          />
-                        </ListItem>
-                      ))
-                    ) : (
-                      <ListItem>
-                        <ListItemText
-                          primary={
-                            <Typography
-                              variant="body3"
-                              color="text.secondary"
-                              align="center"
-                            >
-                              No comments yet
-                            </Typography>
-                          }
-                        />
-                      </ListItem>
-                    )}
-                  </List>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 2,
-                      p: 2,
-                      borderTop: (theme) =>
-                        `1px solid ${theme.vars?.palette.divider}`,
-                    }}
-                  >
-                    {showCommentField && (
-                      <TextField
-                        label="Add Comment"
-                        aria-label="Add Comment"
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                        multiline
-                        rows={4}
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        autoFocus
-                      />
-                    )}
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={
-                        showCommentField
-                          ? handleSubmitComment
-                          : handleAddComment
-                      }
-                      sx={{ alignSelf: "flex-end" }}
-                    >
-                      {showCommentField ? "Submit Comment" : "Add Comment"}
-                    </Button>
-                  </Box>
-                </Box>
-              ) : showHistory ? (
-                /* History View */
-                <List sx={{ p: 1, flex: 1 }}>
-                  {documentHistory && documentHistory.length > 0 ? (
-                    documentHistory.map((historyItem, index) => (
-                      <React.Fragment key={index}>
-                        <ListItem dense>
-                          <ListItemIcon>
-                            {historyItem.event_type === "Signed" ? (
-                              <HistoryIcon />
-                            ) : (
-                              <UpdateIcon />
-                            )}
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={historyItem.event_type}
-                            secondary={`${historyItem.user}: ${historyItem.timestamp}`}
-                          />
-                        </ListItem>
-                        {index < documentHistory.length - 1 && <Divider />}
-                      </React.Fragment>
-                    ))
-                  ) : (
-                    <ListItem dense>
-                      <ListItemIcon>
-                        <UpdateIcon />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="No history available"
-                        secondary="Document history will appear here"
-                      />
-                    </ListItem>
-                  )}
-                </List>
-              ) : (
-                /* Default View - No panel selected */
-                <Box
-                  sx={{
-                    p: 2,
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Typography
-                    variant="body3"
-                    color="text.secondary"
-                    align="center"
-                  >
-                    Click History or Comments to view document information
-                  </Typography>
-                </Box>
-              )}
-            </Paper>
-          )}
+        {!isWebsiteView && (effectiveShowComments || effectiveShowHistory) ? (
+          <DocumentActivityPanel
+            showComments={effectiveShowComments}
+            showHistory={effectiveShowHistory}
+            comments={comments}
+            documentHistory={documentHistory}
+            showCommentField={showCommentField}
+            comment={comment}
+            onCommentChange={setComment}
+            onSubmitComment={handleSubmitComment}
+            onAddComment={handleAddComment}
+          />
+        ) : null}
       </Box>
 
       {/* Signature Modal - Rendered on top of DocumentViewer */}
-      {signatureModalOpen && (
+      {signatureModalOpen ? (
         <SignatureModal
           open={signatureModalOpen}
           onClose={handleSignatureModalClose}
           onSignatureInsert={handleSignatureModalInsert}
         />
-      )}
+      ) : null}
 
       {/* File Upload Dialog for signed documents */}
       <FileUploadDialog
@@ -1914,6 +1404,749 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         documentType="signed-document"
       />
     </Dialog>
+  );
+};
+
+interface DocumentViewerToolbarActionsProps {
+  readonly isWebsiteView: boolean;
+  readonly onRequestRevision?: () => void;
+  readonly onApproveSite?: () => Promise<void>;
+  readonly isPDF: boolean | undefined;
+  readonly documentType?: string;
+  readonly task: DocumentViewerProps["task"];
+  readonly onUploadSignedDocument: () => void;
+  readonly localSignatureAreas: SignatureArea[];
+  readonly signatureDataMap: Record<string, string>;
+  readonly formFieldValues: Record<string, string>;
+  readonly isSubmitting: boolean;
+  readonly onSubmitSignedForm: () => void;
+  readonly showDownloadButton: boolean;
+  readonly onDownloadPdf: () => void;
+  readonly numPages: number | null;
+  readonly pageNumber: number;
+  readonly onPrevPage: () => void;
+  readonly onNextPage: () => void;
+  readonly hideActivityButtons: boolean;
+  readonly showHistoryButton: boolean;
+  readonly onToggleHistory: () => void;
+  readonly showCommentButton: boolean;
+  readonly onToggleComments: () => void;
+}
+
+const DocumentViewerToolbarActions: React.FC<
+  DocumentViewerToolbarActionsProps
+> = ({
+  isWebsiteView,
+  onRequestRevision,
+  onApproveSite,
+  isPDF,
+  documentType,
+  task,
+  onUploadSignedDocument,
+  localSignatureAreas,
+  signatureDataMap,
+  formFieldValues,
+  isSubmitting,
+  onSubmitSignedForm,
+  showDownloadButton,
+  onDownloadPdf,
+  numPages,
+  pageNumber,
+  onPrevPage,
+  onNextPage,
+  hideActivityButtons,
+  showHistoryButton,
+  onToggleHistory,
+  showCommentButton,
+  onToggleComments,
+}) => {
+  const isSignatureContext =
+    isPDF &&
+    (documentType === "signature" ||
+      (task &&
+        (task.type === "signature" ||
+          task.type === "Document" ||
+          task.type === "Authorization")));
+
+  return (
+    <Stack direction="row" spacing={1} alignItems="center">
+      {isWebsiteView ? (
+        <>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={onRequestRevision}
+            sx={{
+              color: (theme) => theme.vars?.palette.common.white,
+              borderColor: (theme) => theme.vars?.palette.common.white,
+              "&:hover": {
+                borderColor: (theme) => theme.vars.palette.common.white,
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+              },
+            }}
+          >
+            Request Revision
+          </Button>
+          <Button variant="contained" color="success" onClick={onApproveSite}>
+            Approve Site
+          </Button>
+        </>
+      ) : (
+        <>
+          {isSignatureContext ? (
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={onUploadSignedDocument}
+              sx={{
+                color: (theme) => theme.vars.palette.common.white,
+                borderColor: (theme) => theme.vars.palette.common.white,
+                "&:hover": {
+                  borderColor: (theme) => theme.vars.palette.common.white,
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                },
+              }}
+            >
+              Upload Signed Document
+            </Button>
+          ) : null}
+
+          {isSignatureContext && localSignatureAreas.length > 0
+            ? (() => {
+                // Check if all required fields are complete
+                // Since all areas have undefined type, detect field type by ID/label
+                const allFieldsComplete =
+                  process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ||
+                  localSignatureAreas.every((area) => {
+                    // Check if it's filled based on what storage it should use
+                    let hasValue = false;
+
+                    // Detect field type by ID or label
+                    if (
+                      area.id?.includes("sig") ||
+                      (area.label?.toLowerCase().includes("signature") &&
+                        !area.label?.toLowerCase().includes("print"))
+                    ) {
+                      // Signature field - check signatureDataMap
+                      hasValue = !!signatureDataMap[area.id];
+                    } else {
+                      // Text/date field - check formFieldValues
+                      hasValue = !!formFieldValues[area.id];
+                    }
+
+                    return hasValue;
+                  });
+
+                return (
+                  <CustomTooltip
+                    title={
+                      !allFieldsComplete
+                        ? "Please complete all required fields and signatures"
+                        : ""
+                    }
+                    placement="top"
+                  >
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={
+                        allFieldsComplete && !isSubmitting
+                          ? onSubmitSignedForm
+                          : undefined
+                      }
+                      startIcon={
+                        isSubmitting ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : undefined
+                      }
+                      sx={{
+                        opacity: allFieldsComplete && !isSubmitting ? 1 : 0.65,
+                        cursor:
+                          allFieldsComplete && !isSubmitting
+                            ? "pointer"
+                            : "not-allowed",
+                        pointerEvents: "auto",
+                        "&:hover": {
+                          backgroundColor: (theme) =>
+                            allFieldsComplete && !isSubmitting
+                              ? theme.vars.palette.success.light
+                              : theme.vars.palette.success.main,
+                        },
+                      }}
+                    >
+                      {isSubmitting ? "Sending…" : "Submit"}
+                    </Button>
+                  </CustomTooltip>
+                );
+              })()
+            : null}
+        </>
+      )}
+
+      {/* Download Button */}
+      {showDownloadButton && !isWebsiteView && isPDF ? (
+        <CustomTooltip title="Download PDF">
+          <IconButton
+            color="inherit"
+            onClick={onDownloadPdf}
+            aria-label="download pdf"
+          >
+            <DownloadIcon />
+          </IconButton>
+        </CustomTooltip>
+      ) : null}
+
+      {/* PDF Navigation */}
+      {!isWebsiteView && numPages && numPages > 1 ? (
+        <>
+          <IconButton
+            color="inherit"
+            onClick={onPrevPage}
+            disabled={pageNumber <= 1}
+            sx={{
+              "&.Mui-disabled": {
+                color: (theme) => theme.vars.palette.common.white,
+                opacity: 0.5,
+              },
+            }}
+          >
+            <ChevronLeftIcon />
+          </IconButton>
+          <Typography
+            variant="body3"
+            sx={{
+              color: (theme) => theme.vars.palette.common.white,
+              mx: 1,
+            }}
+          >
+            {pageNumber} / {numPages}
+          </Typography>
+          <IconButton
+            color="inherit"
+            onClick={onNextPage}
+            disabled={pageNumber >= numPages}
+            sx={{
+              "&.Mui-disabled": {
+                color: (theme) => theme.vars.palette.common.white,
+                opacity: 0.5,
+              },
+            }}
+          >
+            <ChevronRightIcon />
+          </IconButton>
+        </>
+      ) : null}
+
+      {!hideActivityButtons && showHistoryButton ? (
+        <CustomTooltip title="History">
+          <IconButton
+            color="inherit"
+            aria-label="history"
+            onClick={onToggleHistory}
+          >
+            <HistoryIcon />
+          </IconButton>
+        </CustomTooltip>
+      ) : null}
+      {!hideActivityButtons && showCommentButton ? (
+        <CustomTooltip title="Comments">
+          <IconButton
+            color="inherit"
+            aria-label="comments"
+            onClick={onToggleComments}
+          >
+            <CommentIcon />
+          </IconButton>
+        </CustomTooltip>
+      ) : null}
+    </Stack>
+  );
+};
+
+interface DocumentContentAreaProps {
+  readonly isWebsiteView: boolean;
+  readonly actualfileUrl: string | undefined;
+  readonly actualTitle: string | undefined;
+  readonly isLoading: boolean;
+  readonly isPDF: boolean | undefined;
+  readonly isOfficeDocument: boolean;
+  readonly fileExtension: string | null | undefined;
+  readonly pageNumber: number;
+  readonly showComments: boolean;
+  readonly showHistory: boolean;
+  readonly onDocumentLoadSuccess: (info: { numPages: number }) => void;
+  readonly onDocumentLoadError: () => void;
+  readonly localSignatureAreas: SignatureArea[];
+  readonly formFieldValues: Record<string, string>;
+  readonly onFormFieldChange: (areaId: string, value: string) => void;
+  readonly signatureDataMap: Record<string, string>;
+  readonly actualSignatureData: string | undefined;
+  readonly currentDocumentId: string | null;
+  readonly onCustomSignature: (areaId: string) => void;
+  readonly onPositionUpdate: (areaId: string, x: number, y: number) => void;
+}
+
+const DocumentContentArea: React.FC<DocumentContentAreaProps> = ({
+  isWebsiteView,
+  actualfileUrl,
+  actualTitle,
+  isLoading,
+  isPDF,
+  isOfficeDocument,
+  fileExtension,
+  pageNumber,
+  showComments,
+  showHistory,
+  onDocumentLoadSuccess,
+  onDocumentLoadError,
+  localSignatureAreas,
+  formFieldValues,
+  onFormFieldChange,
+  signatureDataMap,
+  actualSignatureData,
+  currentDocumentId,
+  onCustomSignature,
+  onPositionUpdate,
+}) => {
+  // Render a stable width on the server and first client paint, then read the
+  // real window width after mount to avoid an SSR/client hydration mismatch.
+  const [mounted, setMounted] = useState<boolean>(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return (
+    <Box
+      sx={{
+        flex: 1,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        p: { xs: 1, sm: 2 },
+        overflow: "auto",
+        background: "var(--mui-palette-background-default)",
+      }}
+    >
+      {isWebsiteView ? (
+        // Website iframe view
+        actualfileUrl ? (
+          <WebsiteIframeWithErrorHandling
+            url={actualfileUrl}
+            title={actualTitle ?? "Website View"}
+          />
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+              gap: 2,
+              p: 4,
+            }}
+          >
+            <Typography variant="h6" color="text.primary">
+              Document Hosting Site Not Available
+            </Typography>
+            <Typography
+              variant="body3"
+              color="text.secondary"
+              textAlign="center"
+            >
+              The document hosting site has not been set up yet. Please contact
+              your administrator to configure the hosting site.
+            </Typography>
+          </Box>
+        )
+      ) : (
+        // PDF viewer
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            pt: 2,
+          }}
+        >
+          {isLoading ? (
+            <Box
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 1000,
+              }}
+            >
+              <Typography variant="body3">Loading document...</Typography>
+            </Box>
+          ) : null}
+
+          {/* React-PDF Document Viewer */}
+          <Box
+            sx={{
+              position: "relative",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              width: "100%",
+              maxWidth: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                position: "relative",
+                maxWidth: "100%",
+                boxShadow: 3,
+                borderRadius: 1,
+                overflow: "hidden",
+                background: (theme) => theme.vars.palette.common.white,
+              }}
+            >
+              {actualfileUrl ? (
+                isPDF ? (
+                  (() => {
+                    // Convert relative storage paths to full Supabase URLs
+                    let pdfUrl = actualfileUrl;
+                    if (
+                      actualfileUrl.startsWith("/storage/v1/object/public/")
+                    ) {
+                      const supabaseUrl =
+                        process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                        "http://127.0.0.1:54321";
+                      pdfUrl = `${supabaseUrl}${actualfileUrl}`;
+                    }
+
+                    return (
+                      <PDFViewer
+                        file={pdfUrl}
+                        pageNumber={pageNumber}
+                        width={Math.min(
+                          800,
+                          mounted
+                            ? window.innerWidth -
+                                (showComments || showHistory ? 500 : 100)
+                            : 800
+                        )}
+                        onLoadSuccess={onDocumentLoadSuccess}
+                        onLoadError={onDocumentLoadError}
+                      />
+                    );
+                  })()
+                ) : isOfficeDocument ? (
+                  <OfficeDocumentViewer
+                    url={actualfileUrl}
+                    title={actualTitle ?? undefined}
+                    fileType={fileExtension ?? undefined}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "100%",
+                      gap: 2,
+                    }}
+                  >
+                    <Typography variant="h6">Unsupported file type</Typography>
+                    <Typography variant="body3" color="text.secondary">
+                      This file type ({fileExtension}) cannot be previewed
+                    </Typography>
+                  </Box>
+                )
+              ) : (
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  minHeight={400}
+                >
+                  <div>No document URL available</div>
+                </Box>
+              )}
+
+              {/* Signature and Form Field Area Overlays - positioned relative to the Page */}
+              {/* Single pass: skip areas not on this page, otherwise render */}
+              {localSignatureAreas.flatMap((area) => {
+                if ((area.page ?? 1) !== pageNumber) {
+                  return [];
+                }
+
+                // Check if this is a form field (text or date) based on type or label
+                const fieldType =
+                  area.type ??
+                  (area.label?.toLowerCase().includes("print name")
+                    ? "text"
+                    : area.label?.toLowerCase().includes("name") &&
+                        !area.label?.toLowerCase().includes("signature")
+                      ? "text"
+                      : area.label?.toLowerCase().includes("date")
+                        ? "date"
+                        : "signature");
+
+                if (fieldType === "text" || fieldType === "date") {
+                  // Render form field for text/date inputs
+                  return [
+                    <FormFieldArea
+                      key={area.id}
+                      area={{
+                        ...area,
+                        type: fieldType,
+                        value: formFieldValues[area.id] ?? area.value ?? "",
+                      }}
+                      onValueChange={onFormFieldChange}
+                    />,
+                  ];
+                }
+
+                // Render signature area for signatures
+                const areaSignatureData =
+                  signatureDataMap[area.id] ?? actualSignatureData;
+                return [
+                  <DraggableSignatureArea
+                    key={area.id}
+                    area={area}
+                    signatureData={areaSignatureData}
+                    documentId={currentDocumentId ?? ""}
+                    onClick={() => {
+                      onCustomSignature(area.id);
+                    }}
+                    onPositionUpdate={onPositionUpdate}
+                  />,
+                ];
+              })}
+            </Box>
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+interface DocumentActivityPanelProps {
+  readonly showComments: boolean;
+  readonly showHistory: boolean;
+  readonly comments: CommentWithUser[];
+  readonly documentHistory: {
+    event_type: string;
+    user: string;
+    timestamp: string;
+  }[];
+  readonly showCommentField: boolean;
+  readonly comment: string;
+  readonly onCommentChange: (value: string) => void;
+  readonly onSubmitComment: () => void;
+  readonly onAddComment: () => void;
+}
+
+const DocumentActivityPanel: React.FC<DocumentActivityPanelProps> = ({
+  showComments,
+  showHistory,
+  comments,
+  documentHistory,
+  showCommentField,
+  comment,
+  onCommentChange,
+  onSubmitComment,
+  onAddComment,
+}) => {
+  return (
+    <Paper
+      elevation={3}
+      sx={{
+        width: 380,
+        background: "var(--mui-palette-background-paper)",
+        borderLeft: (theme) => `1px solid ${theme.vars?.palette.divider}`,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={(theme) => ({
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "start",
+          p: 2,
+          py: 1,
+          background: theme.vars?.palette.appSwitcher.background,
+          color: theme.vars?.palette.appSwitcher.contrastText,
+        })}
+      >
+        <Typography variant="caption" sx={{ fontWeight: 500 }}>
+          {showComments ? "Comments" : "Document History"}
+        </Typography>
+      </Box>
+
+      {/* Content */}
+      {showComments ? (
+        /* Comments View */
+        <Box
+          sx={{
+            p: 1,
+            flex: 1,
+            overflow: "auto",
+            display: "flex",
+            flexDirection: "column",
+          }}
+          data-comments-container
+        >
+          <List sx={{ flex: 1 }}>
+            {comments.length > 0 ? (
+              comments.map((commentItem) => (
+                <ListItem key={commentItem.id} divider>
+                  <ListItemAvatar>
+                    <Avatar
+                      src={commentItem.users?.avatar ?? undefined}
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        backgroundColor: (theme) =>
+                          theme.vars.palette.secondary.main,
+                        borderRadius: 1,
+                      }}
+                    />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Box
+                        component="span"
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "start",
+                        }}
+                      >
+                        <Typography
+                          component="span"
+                          variant="body3"
+                          fontWeight={500}
+                        >
+                          {`${commentItem.first_name} ${commentItem.last_name}`}
+                        </Typography>
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          color="text.secondary"
+                        >
+                          {formatTimestamp(commentItem.created_at)}
+                        </Typography>
+                      </Box>
+                    }
+                    secondary={commentItem.comment}
+                  />
+                </ListItem>
+              ))
+            ) : (
+              <ListItem>
+                <ListItemText
+                  primary={
+                    <Typography
+                      variant="body3"
+                      color="text.secondary"
+                      align="center"
+                    >
+                      No comments yet
+                    </Typography>
+                  }
+                />
+              </ListItem>
+            )}
+          </List>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              p: 2,
+              borderTop: (theme) => `1px solid ${theme.vars?.palette.divider}`,
+            }}
+          >
+            {showCommentField ? (
+              <TextField
+                label="Add Comment"
+                aria-label="Add Comment"
+                variant="outlined"
+                size="small"
+                fullWidth
+                multiline
+                rows={4}
+                value={comment}
+                onChange={(e) => {
+                  onCommentChange(e.target.value);
+                }}
+                autoFocus
+              />
+            ) : null}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={showCommentField ? onSubmitComment : onAddComment}
+              sx={{ alignSelf: "flex-end" }}
+            >
+              {showCommentField ? "Submit Comment" : "Add Comment"}
+            </Button>
+          </Box>
+        </Box>
+      ) : showHistory ? (
+        /* History View */
+        <List sx={{ p: 1, flex: 1 }}>
+          {documentHistory && documentHistory.length > 0 ? (
+            documentHistory.map((historyItem, index) => (
+              <React.Fragment
+                key={`${historyItem.timestamp}-${historyItem.event_type}-${historyItem.user}`}
+              >
+                <ListItem dense>
+                  <ListItemIcon>
+                    {historyItem.event_type === "Signed" ? (
+                      <HistoryIcon />
+                    ) : (
+                      <UpdateIcon />
+                    )}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={historyItem.event_type}
+                    secondary={`${historyItem.user}: ${historyItem.timestamp}`}
+                  />
+                </ListItem>
+                {index < documentHistory.length - 1 && <Divider />}
+              </React.Fragment>
+            ))
+          ) : (
+            <ListItem dense>
+              <ListItemIcon>
+                <UpdateIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="No history available"
+                secondary="Document history will appear here"
+              />
+            </ListItem>
+          )}
+        </List>
+      ) : (
+        /* Default View - No panel selected */
+        <Box
+          sx={{
+            p: 2,
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Typography variant="body3" color="text.secondary" align="center">
+            Click History or Comments to view document information
+          </Typography>
+        </Box>
+      )}
+    </Paper>
   );
 };
 

@@ -3,7 +3,6 @@
 import { useCallback, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
-
 import buildApiClient from "@/domain-models/apiClient";
 
 type MailingType = components["schemas"]["Mailing"];
@@ -34,19 +33,20 @@ export function useMailing(): UseMailingResult {
         );
 
         if (fetchError) {
-          const errorMsg =
+          const errorMessage =
             typeof fetchError === "object" && "message" in fetchError
               ? String((fetchError as { message: unknown }).message)
               : "Failed to fetch mailing data";
-          setError(errorMsg);
+          setError(errorMessage);
           return null;
         }
 
         return data || null;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Unknown error occurred";
-        console.error("Error in getMailingByMeetingId:", err);
+      } catch (error_) {
+        const errorMessage = Error.isError(error_)
+          ? error_.message
+          : "Unknown error occurred";
+        console.error("Error in getMailingByMeetingId:", error_);
         setError(errorMessage);
         return null;
       } finally {

@@ -1,16 +1,15 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { listKeyDatesForMeeting } from "@/domain-models/api/keyDates";
 
-interface RouteParams {
+interface RouteParameters {
   meetingId: string;
 }
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParameters> }
 ): Promise<NextResponse> {
   try {
     const { meetingId } = await params;

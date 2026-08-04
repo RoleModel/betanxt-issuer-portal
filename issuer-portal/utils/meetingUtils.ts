@@ -22,7 +22,9 @@ export interface Meeting {
  * Get the current active phase for a meeting
  */
 export function getCurrentPhase(meeting: Meeting): MeetingPhase | null {
-  if (!meeting.phases) return null;
+  if (!meeting.phases) {
+    return null;
+  }
 
   return meeting.phases.find((phase) => phase.status === "active") || null;
 }
@@ -31,12 +33,14 @@ export function getCurrentPhase(meeting: Meeting): MeetingPhase | null {
  * Get the next upcoming phase for a meeting
  */
 export function getNextPhase(meeting: Meeting): MeetingPhase | null {
-  if (!meeting.phases) return null;
+  if (!meeting.phases) {
+    return null;
+  }
 
-  const upcomingPhases = meeting.phases.filter(
+  const upcomingPhase = meeting.phases.find(
     (phase) => phase.status === "upcoming"
   );
-  return upcomingPhases[0] || null;
+  return upcomingPhase || null;
 }
 
 /**
@@ -57,7 +61,9 @@ export function isMeetingCompleted(meeting: Meeting): boolean {
  * Get meeting progress percentage
  */
 export function getMeetingProgress(meeting: Meeting): number {
-  if (!meeting.phases || meeting.phases.length === 0) return 0;
+  if (!meeting.phases || meeting.phases.length === 0) {
+    return 0;
+  }
 
   const completedPhases = meeting.phases.filter(
     (phase) => phase.status === "completed"
@@ -69,11 +75,15 @@ export function getMeetingProgress(meeting: Meeting): number {
  * Format meeting date for display
  */
 export function formatMeetingDate(dateString?: string): string {
-  if (!dateString) return "Date TBD";
+  if (!dateString) {
+    return "Date TBD";
+  }
 
   try {
     const date = parseDisplayDate(dateString);
-    if (isNaN(date.getTime())) return "Invalid Date";
+    if (isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -91,13 +101,17 @@ export function getMeetingStatusColor(
   status?: string
 ): "success" | "warning" | "error" | "info" {
   switch (status) {
-    case "ACTIVE":
+    case "ACTIVE": {
       return "success";
-    case "COMPLETE":
+    }
+    case "COMPLETE": {
       return "info";
-    case "ADJOURNED":
+    }
+    case "ADJOURNED": {
       return "warning";
-    default:
+    }
+    default: {
       return "info";
+    }
   }
 }

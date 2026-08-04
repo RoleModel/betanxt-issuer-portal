@@ -24,7 +24,7 @@ import buildApiClient from "@/domain-models/apiClient";
 type Document = components["schemas"]["Document"];
 
 const DocumentViewer = dynamic(
-  () => import("@/components/Documents/DocumentViewer"),
+  async () => await import("@/components/Documents/DocumentViewer"),
   {
     ssr: false,
   }
@@ -62,7 +62,7 @@ interface HostingSiteStatusData {
   hosting_site_comments?: HostingSiteComment[];
 }
 
-export default function DocumentSiteCard() {
+const DocumentSiteCard = () => {
   const { currentMeeting } = useMeeting();
   const { currentClient } = useClient();
   const { data: session } = useSession();
@@ -75,6 +75,8 @@ export default function DocumentSiteCard() {
 
   // Fetch hosting site status on mount
   React.useEffect(() => {
+    let ignore = false;
+
     const fetchHostingSiteStatus = async () => {
       if (!currentMeeting?.id) return;
 
@@ -88,43 +90,46 @@ export default function DocumentSiteCard() {
           }
         )) as { data?: Document[]; error?: unknown };
 
-        if (!response.error && response.data) {
-          // Filter for HOSTING_SITE documents
-          const documents = response.data;
-          const hostingDocs = documents.filter(
-            (d) => d.type === "HOSTING_SITE" || d.type === "hosting_site"
-          );
-          if (hostingDocs && hostingDocs.length > 0) {
-            const doc = hostingDocs[0];
-            const mappedStatus: HostingSiteStatusData["status"] =
-              doc.status === "APPROVED"
-                ? "Approved"
-                : doc.status === "IN_PROGRESS" ||
-                    doc.status === "AWAITING_REVIEW"
-                  ? "Pending Review"
-                  : "Incomplete";
+        if (!ignore) {
+          if (!response.error && response.data) {
+            // Filter for HOSTING_SITE documents
+            const documents = response.data;
+            const hostingDocs = documents.filter(
+              (d) => d.type === "HOSTING_SITE" || d.type === "hosting_site"
+            );
+            if (hostingDocs && hostingDocs.length > 0) {
+              const doc = hostingDocs[0];
+              const mappedStatus: HostingSiteStatusData["status"] =
+                doc.status === "APPROVED"
+                  ? "Approved"
+                  : doc.status === "IN_PROGRESS" ||
+                      doc.status === "AWAITING_REVIEW"
+                    ? "Pending Review"
+                    : "Incomplete";
 
-            setHostingSiteStatus({
-              id: doc.id,
-              meeting_id: doc.meetingId ?? "",
-              status: mappedStatus,
-              site_url: doc.filePath || null,
-              approved_by: null,
-              approved_at: null,
-              created_at: doc.createdAt,
-              updated_at: doc.updatedAt,
-              test_control_number: "123456782",
-            });
-          } else {
-            // No hosting site document exists yet
-            setHostingSiteStatus({
-              meeting_id: currentMeeting.id,
-              status: "Incomplete",
-              test_control_number: "123456782",
-            });
+              setHostingSiteStatus({
+                id: doc.id,
+                meeting_id: doc.meetingId ?? "",
+                status: mappedStatus,
+                site_url: doc.filePath || null,
+                approved_by: null,
+                approved_at: null,
+                created_at: doc.createdAt,
+                updated_at: doc.updatedAt,
+                test_control_number: "123456782",
+              });
+            } else {
+              // No hosting site document exists yet
+              setHostingSiteStatus({
+                meeting_id: currentMeeting.id,
+                status: "Incomplete",
+                test_control_number: "123456782",
+              });
+            }
           }
         }
       } catch (error) {
+        if (ignore) return;
         console.error("Failed to fetch hosting site status", error);
         setHostingSiteStatus({
           meeting_id: currentMeeting.id,
@@ -135,6 +140,10 @@ export default function DocumentSiteCard() {
     };
 
     void fetchHostingSiteStatus();
+
+    return () => {
+      ignore = true;
+    };
   }, [currentMeeting?.id, currentClient?.id]);
 
   const updateHostingSiteStatus = async (
@@ -348,11 +357,15 @@ export default function DocumentSiteCard() {
 
       <RevisionRequestDialog
         open={revisionDialogOpen}
-        onClose={() => setRevisionDialogOpen(false)}
+        onClose={() => {
+          setRevisionDialogOpen(false);
+        }}
         onSubmit={handleRevisionSubmit}
         title="Request Site Revision"
         description="Please describe the revisions needed for the document hosting site."
       />
     </>
   );
-}
+};
+
+export default DocumentSiteCard;

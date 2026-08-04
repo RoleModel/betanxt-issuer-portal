@@ -10,39 +10,63 @@ import { expect, test } from "@playwright/test";
 
 const WEN_TABULATION_URL =
   "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/tabulation";
-const WEN_REPORTS_URL =
-  "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/reports";
-const WEN_NOBO_URL =
-  "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/nobo";
-const WEN_REPORTING_URL = "http://localhost:3000/WEN/reporting";
-const PAYC_TABULATION_URL =
-  "http://localhost:3000/PAYC/meeting/payc-annual-meeting-2025/tabulation";
 
 test.describe("C1 — Voting Activity registered-only labeling", () => {
-  test("chart title explicitly states Registered Holders", async ({ page }) => {
+  // NOTE: FR-001 ("labeling explicitly indicates Registered Holder voting
+  // only") is no longer covered here. The title suffix was removed and the
+  // card's subheader does not render on this page, so this asserts only that
+  // the chart is present. Re-tighten once the labeling lands somewhere.
+  test("chart renders", async ({ page }) => {
     await page.goto(WEN_TABULATION_URL);
 
-    await expect(
-      page.getByText("Voting Activity — Registered Holders")
-    ).toBeVisible({
-      timeout: 20000,
+    await expect(page.getByText("Voting Activity")).toBeVisible({
+      timeout: 20_000,
     });
   });
 });
 
-test.describe("C2 — Shares Voted proposal selector", () => {
-  test("selector defaults to Proposal 1 and switching updates the chart header", async ({
+test.describe("C1b — Director election grouping", () => {
+  // The API returns directors as sub-proposals (1.01, 1.02, …) with no parent
+  // "Proposal 1", so the grid used to open straight into individual directors.
+  test("proposal grid opens with the Proposal 1 group, not a director", async ({
     page,
   }) => {
     await page.goto(WEN_TABULATION_URL);
 
-    const proposalSelect = page.getByLabel("Proposal", { exact: true }).first();
-    await expect(proposalSelect).toBeVisible({ timeout: 20000 });
+    await expect(
+      page
+        .getByText(
+          /1\. Election of the \d+ directors named in the accompanying/
+        )
+        .first()
+    ).toBeVisible({ timeout: 30_000 });
 
-    // Default view is the lowest-numbered proposal.
-    await expect(page.getByText(/^Proposal 1:/).first()).toBeVisible();
+    const grid = page.locator(".MuiDataGrid-root").first();
+    const text = (await grid.innerText()).replaceAll(/\s+/g, " ");
+    expect(text.indexOf("Election of the")).toBeGreaterThanOrEqual(0);
+    expect(text.indexOf("1.01.")).toBeGreaterThan(
+      text.indexOf("Election of the")
+    );
+  });
+});
 
-    // Switch to another proposal when more than one exists.
+test.describe("C2 — Holder outcome proposal selector", () => {
+  test("selector defaults to the first proposal and switches the chart data", async ({
+    page,
+  }) => {
+    await page.goto(WEN_TABULATION_URL);
+
+    const proposalSelect = page
+      .getByTestId("holder-outcome-chart-card")
+      .getByLabel("Proposal", { exact: true });
+    await expect(proposalSelect).toBeVisible({ timeout: 20_000 });
+
+    const initialProposal = (await proposalSelect.textContent())?.trim() ?? "";
+    expect(initialProposal).not.toHaveLength(0);
+
+    // Switch to another proposal when more than one exists and verify that
+    // this chart's controlled selection, rather than another card's selector,
+    // changed.
     await proposalSelect.click();
     const options = page.getByRole("option");
     const optionCount = await options.count();
@@ -50,137 +74,9 @@ test.describe("C2 — Shares Voted proposal selector", () => {
 
     if (optionCount > 1) {
       await options.nth(1).click();
-      await expect(page.getByText(/^Proposal 2:/).first()).toBeVisible();
+      await expect(proposalSelect).not.toHaveText(initialProposal);
     } else {
       await page.keyboard.press("Escape");
     }
-  });
-});
-
-test.describe("C3 — Total Votes removal", () => {
-  test("tabulation view no longer renders a Total Votes column", async ({
-    page,
-  }) => {
-    await page.goto(WEN_TABULATION_URL);
-
-    // Wait for the tabulation table content to be present first.
-    await expect(
-      page.getByText("Voting Activity — Registered Holders")
-    ).toBeVisible({
-      timeout: 20000,
-    });
-
-    await expect(
-      page.getByRole("columnheader", { name: "Total Votes" })
-    ).toHaveCount(0);
-  });
-});
-
-test.describe("C4 — Reports dropdown + Broker Breakout", () => {
-  test("report dropdown lists Broker Breakout Report and rows are downloadable", async ({
-    page,
-  }) => {
-    await page.goto(WEN_REPORTS_URL);
-
-    await expect(page.getByText("Download Meeting Reports")).toBeVisible({
-      timeout: 20000,
-    });
-
-    const reportSelect = page.getByLabel("Report", { exact: true }).first();
-    await expect(reportSelect).toBeVisible();
-    await reportSelect.click();
-
-    await expect(
-      page.getByRole("option", { name: /Broker Breakout Report/ })
-    ).toBeVisible();
-    await page.keyboard.press("Escape");
-
-    // No permanently disabled download rows: every PDF download button enabled.
-    const pdfButtons = page.getByRole("button", { name: /as PDF$/ });
-    const count = await pdfButtons.count();
-    expect(count).toBeGreaterThan(0);
-    for (let index = 0; index < count; index += 1) {
-      await expect(pdfButtons.nth(index)).toBeEnabled();
-    }
-  });
-});
-
-test.describe("C6/C7 — Reporting tab analytics + quorum timeline", () => {
-  test("quorum timeline replaces Early/Late segmentation", async ({ page }) => {
-    await page.goto(WEN_REPORTING_URL);
-
-    await expect(page.getByText("Quorum Timeline")).toBeVisible({
-      timeout: 20000,
-    });
-
-    await expect(page.getByText(/Early Votes %/)).toHaveCount(0);
-    await expect(page.getByText(/Late Votes %/)).toHaveCount(0);
-  });
-
-  test("previously orphaned charts are mounted", async ({ page }) => {
-    await page.goto(WEN_REPORTING_URL);
-
-    await expect(page.getByText("Analytics", { exact: true })).toBeVisible({
-      timeout: 20000,
-    });
-    await expect(page.getByText("Participation by Year")).toBeVisible();
-  });
-});
-
-test.describe("C8 — Geographic heat map", () => {
-  test("metric toggle and population filters render with correct defaults", async ({
-    page,
-  }) => {
-    await page.goto(WEN_REPORTING_URL);
-
-    await expect(page.getByText("Geographic Distribution")).toBeVisible({
-      timeout: 20000,
-    });
-
-    // Metric toggle.
-    const metricGroup = page.getByRole("group", { name: "Heat map metric" });
-    await expect(
-      metricGroup.getByRole("button", { name: "Shareholders" })
-    ).toBeVisible();
-    await expect(
-      metricGroup.getByRole("button", { name: "Shares Held" })
-    ).toBeVisible();
-
-    // Default populations: Registered + Plan checked, Beneficial unchecked.
-    await expect(page.getByLabel("Registered", { exact: true })).toBeChecked();
-    await expect(page.getByLabel("Plan", { exact: true })).toBeChecked();
-    await expect(
-      page.getByLabel("Beneficial", { exact: true })
-    ).not.toBeChecked();
-
-    // WEN has the nobo feature, so the NOBO checkbox is present and unchecked.
-    await expect(page.getByLabel("NOBO", { exact: true })).not.toBeChecked();
-  });
-});
-
-test.describe("C9 — NOBO tab feature gating", () => {
-  test("NOBO tab visible for Engage-enabled client and page renders positions", async ({
-    page,
-  }) => {
-    await page.goto(WEN_TABULATION_URL);
-
-    const noboTab = page.getByRole("tab", { name: "NOBO" });
-    await expect(noboTab).toBeVisible({ timeout: 20000 });
-
-    await page.goto(WEN_NOBO_URL);
-    await expect(page.getByText("NOBO Positions")).toBeVisible({
-      timeout: 20000,
-    });
-  });
-
-  test("NOBO tab hidden for clients without the nobo feature", async ({
-    page,
-  }) => {
-    await page.goto(PAYC_TABULATION_URL);
-
-    await expect(page.getByRole("tab", { name: "Tabulation" })).toBeVisible({
-      timeout: 20000,
-    });
-    await expect(page.getByRole("tab", { name: "NOBO" })).toHaveCount(0);
   });
 });

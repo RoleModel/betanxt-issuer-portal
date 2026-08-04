@@ -154,10 +154,10 @@ const outRoot = path.join(process.cwd(), "public", "mock-mailings");
 fs.mkdirSync(outRoot, { recursive: true });
 
 /** Faux Intelligent Mail barcode (variable-height vertical bars). */
-const FauxBarcode: React.FC<{ width: number; height: number }> = ({
-  width,
-  height,
-}) => {
+const FauxBarcode: React.FC<{
+  readonly width: number;
+  readonly height: number;
+}> = ({ width, height }) => {
   const bars = 65;
   const gap = width / bars;
   return (
@@ -191,7 +191,7 @@ const FauxBarcode: React.FC<{ width: number; height: number }> = ({
 };
 
 /** Deterministic faux-QR block (white bg, black modules + corner finders). */
-const FauxQr: React.FC<{ size: number }> = ({ size }) => {
+const FauxQr: React.FC<{ readonly size: number }> = ({ size }) => {
   const cells = 11;
   const c = size / cells;
 
@@ -239,10 +239,10 @@ const FauxQr: React.FC<{ size: number }> = ({ size }) => {
 };
 
 /** Outlined checkbox with an X mark, used in the "Your vote matters!" panel. */
-const CheckboxMark: React.FC<{ size: number; color: string }> = ({
-  size,
-  color,
-}) => (
+const CheckboxMark: React.FC<{
+  readonly size: number;
+  readonly color: string;
+}> = ({ size, color }) => (
   <Svg width={size} height={size}>
     <Rect
       x={2}
@@ -273,10 +273,10 @@ const CheckboxMark: React.FC<{ size: number; color: string }> = ({
 );
 
 interface ContactProps {
-  label: string;
-  value: string;
-  primary: string;
-  secondary: string;
+  readonly label: string;
+  readonly value: string;
+  readonly primary: string;
+  readonly secondary: string;
 }
 
 const Contact: React.FC<ContactProps> = ({
@@ -298,14 +298,14 @@ const Contact: React.FC<ContactProps> = ({
 );
 
 /** Page 1 of the proxy mailing: themed Notice of Internet Availability card. */
-const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({
-  client,
-  job,
-}) => {
+const ProxyNoticePage: React.FC<{
+  readonly client: ClientTheme;
+  readonly job: MailingJob;
+}> = ({ client, job }) => {
   const primary = client.primaryColor;
   const secondary = client.secondaryColor;
   const bannerText = contrastText(primary);
-  const logo = client.logo;
+  const { logo } = client;
 
   return (
     <Page size="LETTER" style={{ fontFamily: "Roboto", padding: 0 }}>
@@ -574,7 +574,7 @@ const ProxyNoticePage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({
 };
 
 /** Page 2 of the proxy mailing: full agenda / reverse side. */
-const AgendaPage: React.FC<{ client: ClientTheme }> = ({ client }) => {
+const AgendaPage: React.FC<{ readonly client: ClientTheme }> = ({ client }) => {
   const primary = client.primaryColor;
   return (
     <Page size="LETTER" style={{ fontFamily: "Roboto", padding: 0 }}>
@@ -616,10 +616,10 @@ const AgendaPage: React.FC<{ client: ClientTheme }> = ({ client }) => {
 };
 
 /** Generic themed-header document layout for non-proxy-card mailings. */
-const GenericPage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({
-  client,
-  job,
-}) => {
+const GenericPage: React.FC<{
+  readonly client: ClientTheme;
+  readonly job: MailingJob;
+}> = ({ client, job }) => {
   const primary = client.primaryColor;
   const secondary = client.secondaryColor;
   const headerText = contrastText(primary);
@@ -723,10 +723,10 @@ const GenericPage: React.FC<{ client: ClientTheme; job: MailingJob }> = ({
   );
 };
 
-const MailingDocument: React.FC<{ client: ClientTheme; job: MailingJob }> = ({
-  client,
-  job,
-}) => (
+const MailingDocument: React.FC<{
+  readonly client: ClientTheme;
+  readonly job: MailingJob;
+}> = ({ client, job }) => (
   <Document>
     {job.layout === "proxy" ? (
       <>
@@ -747,7 +747,7 @@ async function main() {
   let headerLogoHits = 0;
 
   for (const [fullName, cfg] of Object.entries(brandConfigs)) {
-    const ticker = cfg.ticker;
+    const { ticker } = cfg;
     if (!ticker) continue;
 
     const logo = await loadLogoForBrand(cfg);

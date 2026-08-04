@@ -1,442 +1,645 @@
+/* eslint-disable react-hooks/todo */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 "use client";
+
+import type {
+  GridColDef,
+  GridColSpanFn,
+  GridRenderCellParams,
+  GridRowHeightParams,
+} from "@mui/x-data-grid";
+import type { ReactNode } from "react";
 
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import { Box, Grid, IconButton, MenuItem, Typography } from "@mui/material";
 import {
-  Box,
-  Collapse,
-  Grid,
-  IconButton,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  Typography,
-} from "@mui/material";
-import React, { useMemo, useState } from "react";
+  DataGrid,
+  gridFilteredSortedRowIdsSelector,
+  gridPageCountSelector,
+  gridPaginationModelSelector,
+  useGridApiRef,
+} from "@mui/x-data-grid";
+import { useEffect, useState } from "react";
 
 import type { TabulationPosition } from "@/hooks/useTabulationInsights";
 
-import NoWrapTableCell from "../ui/NoWrapTableCell";
-import SortableHeaderCell, { useSortableTable } from "../ui/SortableHeaderCell";
-import SROnlyTableCaption from "../ui/SROnlyTableCaption";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
+import GlossaryText from "@/components/ui/GlossaryText";
+import { GridTopPagination } from "@/components/ui/GridTopPagination";
+import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
+import { formatTabulationMetric } from "@/utils/tabulation-display";
+import {
+  dateFilterOperators,
+  getDistinctStringValues,
+  numericFilterOperators,
+  singleSelectFilterOperators,
+  textFilterOperators,
+} from "@/utils/tabulation-grid-filter-operators";
 
-interface PositionsTableProps {
-  positions: TabulationPosition[];
-  loading?: boolean;
+// The built-in v8 grid toolbar accepts `additionalExportMenuItems`, but the
+// public slot-props type still points at the legacy toolbar props, so it has to
+// be declared here to pass it through `slotProps.toolbar` type-safely.
+declare module "@mui/x-data-grid" {
+  interface ToolbarPropsOverrides {
+    readonly additionalExportMenuItems?: (
+      onMenuItemClick: () => void
+    ) => ReactNode;
+  }
 }
 
-export default function PositionsTable({
+interface PositionsTableProps {
+  readonly positions: readonly TabulationPosition[];
+  readonly loading?: boolean;
+  readonly meetingTitle?: string;
+  readonly clientTicker?: string;
+}
+
+interface PositionGridRow extends TabulationPosition {
+  readonly positionId: string;
+  readonly rowType: "account" | "details";
+}
+
+const formatAccountType = (accountType: string): string => {
+  if (accountType === "DTC/CDS") {
+    return "CEDE & CO / CDS & CO";
+  }
+
+  if (accountType === "Non-DTC") {
+    return "Registered Account";
+  }
+
+  return accountType;
+};
+
+const parseDate = (date: string | null): Date | null => {
+  if (date === null || date.length === 0) return null;
+
+  const sanitizedDate = date.includes(" 12:00AM")
+    ? date.replace(" 12:00AM", "")
+    : date;
+  const parsedDate = new Date(sanitizedDate);
+
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
+const formatDate = (date: Date | null): string => {
+  if (date === null) return "";
+
+  return date.toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+};
+
+const PositionDetailField = ({
+  label,
+  value,
+}: {
+  readonly label: string;
+  readonly value: string;
+}) => (
+  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+    <Typography color="text.secondary" variant="body3">
+      <GlossaryText>{label}</GlossaryText>
+    </Typography>
+    <Typography variant="body3">{value}</Typography>
+  </Grid>
+);
+
+const PositionDetailsRow = ({
+  position,
+}: {
+  readonly position: PositionGridRow;
+}) => (
+  <Box
+    sx={{
+      border: 1,
+      borderColor: "divider",
+      borderRadius: 1,
+      m: 1,
+      p: 2,
+    }}
+  >
+    <Grid container spacing={2}>
+      <PositionDetailField label="CUSIP:" value={position.cusip} />
+      <PositionDetailField label="Account Name:" value={position.name} />
+      <PositionDetailField label="Set Key:" value={position.setKey} />
+      <PositionDetailField
+        label="Account Number:"
+        value={position.accountNumber}
+      />
+      <PositionDetailField
+        label="Account Type:"
+        value={formatAccountType(position.accountType)}
+      />
+      <PositionDetailField
+        label="Account Email:"
+        value={position.accountEmail ?? ""}
+      />
+      <PositionDetailField
+        label="Control Number:"
+        value={position.controlNumber}
+      />
+      <PositionDetailField label="Last Vote Method:" value={position.source} />
+      <PositionDetailField
+        label="Last Voted Date:"
+        value={formatDate(parseDate(position.dateVoted))}
+      />
+    </Grid>
+  </Box>
+);
+
+const AccountNumberCell = ({
+  accountNumber,
+  expanded,
+  onToggle,
+}: {
+  readonly accountNumber: string;
+  readonly expanded: boolean;
+  readonly onToggle: () => void;
+}) => (
+  <Box
+    sx={{
+      alignItems: "center",
+      display: "flex",
+      gap: 1,
+      width: "100%",
+      height: "100%",
+    }}
+  >
+    <IconButton
+      aria-expanded={expanded}
+      aria-label={`${expanded ? "Collapse" : "Expand"} account ${accountNumber}`}
+      onClick={onToggle}
+      size="small"
+    >
+      {expanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+    </IconButton>
+    <Typography color="primary" noWrap variant="body3">
+      {accountNumber}
+    </Typography>
+  </Box>
+);
+
+const getPositionRowHeight = ({ model }: GridRowHeightParams): number | null =>
+  (model as PositionGridRow).rowType === "details" ? 232 : null;
+
+const getPositionDetailColSpan =
+  (totalColumnCount: number): GridColSpanFn<PositionGridRow> =>
+  (value, row) => {
+    void value;
+    return row.rowType === "details" ? totalColumnCount : 1;
+  };
+
+const staticColumns: GridColDef<PositionGridRow>[] = [
+  {
+    field: "cusip",
+    filterOperators: textFilterOperators,
+    headerName: "CUSIP",
+    minWidth: 120,
+  },
+  {
+    field: "accountType",
+    filterOperators: singleSelectFilterOperators,
+    headerName: "Account Type",
+    minWidth: 190,
+    type: "singleSelect",
+    valueFormatter: (value: string) => formatAccountType(value),
+  },
+  {
+    field: "setKey",
+    filterOperators: singleSelectFilterOperators,
+    headerName: "Set Key",
+    minWidth: 120,
+    type: "singleSelect",
+  },
+  {
+    field: "name",
+    filterOperators: textFilterOperators,
+    flex: 1,
+    headerName: "Name",
+    minWidth: 180,
+  },
+  {
+    field: "accountNumber",
+    filterOperators: textFilterOperators,
+    headerName: "Account #",
+    minWidth: 220,
+  },
+  {
+    field: "controlNumber",
+    filterOperators: textFilterOperators,
+    headerName: "Control #",
+    minWidth: 180,
+  },
+  {
+    field: "voteStatus",
+    filterOperators: singleSelectFilterOperators,
+    headerName: "Vote Status",
+    minWidth: 130,
+    type: "singleSelect",
+  },
+  {
+    field: "source",
+    filterOperators: singleSelectFilterOperators,
+    headerName: "Source",
+    minWidth: 110,
+    type: "singleSelect",
+  },
+  {
+    field: "dateVoted",
+    filterOperators: dateFilterOperators,
+    headerName: "Date Voted",
+    minWidth: 130,
+    type: "date",
+    valueFormatter: (value: Date | null) => formatDate(value),
+    valueGetter: (value: string | null) => parseDate(value),
+  },
+  {
+    field: "sentBy",
+    filterOperators: textFilterOperators,
+    headerName: "Sent By",
+    minWidth: 110,
+    align: "center",
+    headerAlign: "center",
+    renderCell: ({ value }) => {
+      const wasSent = typeof value === "string" && value.length > 0;
+      const label = wasSent ? value : "Not sent";
+
+      return (
+        <CustomTooltip title={label}>
+          <Box
+            aria-label={label}
+            component="span"
+            sx={{ alignItems: "center", display: "inline-flex" }}
+          >
+            {wasSent ? (
+              <MailOutlineIcon fontSize="small" />
+            ) : (
+              <InsertDriveFileOutlinedIcon fontSize="small" />
+            )}
+          </Box>
+        </CustomTooltip>
+      );
+    },
+  },
+  {
+    field: "accountEmail",
+    filterOperators: textFilterOperators,
+    headerName: "Account Email",
+    minWidth: 220,
+  },
+  {
+    field: "state",
+    filterOperators: singleSelectFilterOperators,
+    headerName: "State",
+    minWidth: 90,
+    type: "singleSelect",
+  },
+  {
+    field: "country",
+    filterOperators: singleSelectFilterOperators,
+    headerName: "Country",
+    minWidth: 110,
+    type: "singleSelect",
+  },
+];
+
+const PositionsTable = ({
   positions,
   loading = false,
-}: PositionsTableProps) {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  meetingTitle = "Meeting Positions",
+  clientTicker,
+}: PositionsTableProps) => {
+  const { displayMode } = useTabulationDisplay();
+  const apiRef = useGridApiRef();
+  const [topPage, setTopPage] = useState(0);
+  const [topPageCount, setTopPageCount] = useState(1);
 
-  const { sortColumn, sortDirection, handleSort, sortData } =
-    useSortableTable<TabulationPosition>();
+  // Drives the pagination bar shown above the grid. Reading the grid's own
+  // filtered page selectors (the same ones the footer uses) keeps the top and
+  // bottom counts in sync; the subscription runs after commit to avoid updating
+  // during the grid's render.
+  useEffect(() => {
+    const api = apiRef.current;
+    if (!api) {
+      return undefined;
+    }
 
-  const sortedPositions = useMemo(
-    () => sortData(positions),
-    [positions, sortData]
+    const syncPagination = () => {
+      setTopPage(gridPaginationModelSelector(apiRef).page);
+      setTopPageCount(gridPageCountSelector(apiRef));
+    };
+
+    syncPagination();
+    return api.subscribeEvent("stateChange", syncPagination);
+  }, [apiRef]);
+
+  const [expandedPositionIds, setExpandedPositionIds] = useState<Set<string>>(
+    new Set()
   );
-
-  const paginatedPositions = sortedPositions.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+  const [isExporting, setIsExporting] = useState(false);
+  const totalShares = positions.reduce(
+    (total, position) => total + position.shares,
+    0
   );
-
-  const toggleRowExpansion = (index: number) => {
-    const nextExpanded = new Set(expandedRows);
-
-    if (nextExpanded.has(index)) {
-      nextExpanded.delete(index);
-    } else {
-      nextExpanded.add(index);
-    }
-
-    setExpandedRows(nextExpanded);
+  const categoricalValueOptions: Readonly<
+    Partial<Record<string, readonly string[]>>
+  > = {
+    country: getDistinctStringValues(positions, (position) => position.country),
+    setKey: getDistinctStringValues(positions, (position) => position.setKey),
+    source: getDistinctStringValues(positions, (position) => position.source),
+    state: getDistinctStringValues(positions, (position) => position.state),
+    voteStatus: getDistinctStringValues(
+      positions,
+      (position) => position.voteStatus
+    ),
   };
+  const totalColumnCount = staticColumns.length + 2;
+  const togglePositionExpansion = (positionId: string): void => {
+    setExpandedPositionIds((currentPositionIds) => {
+      const nextPositionIds = new Set(currentPositionIds);
 
-  const formatNumber = (num: number): string => {
-    return num.toLocaleString("en-US");
-  };
-
-  const formatAccountType = (accountType: string): string => {
-    if (accountType === "DTC/CDS") {
-      return "CEDE & CO / CDS & CO";
-    }
-    if (accountType === "Non-DTC") {
-      return "Registered Account";
-    }
-    return accountType;
-  };
-
-  const formatDate = (date: string | null): string => {
-    if (!date) return "";
-
-    try {
-      const sanitizedDate = date.includes(" 12:00AM")
-        ? date.replace(" 12:00AM", "")
-        : date;
-      const parsedDate = new Date(sanitizedDate);
-
-      if (Number.isNaN(parsedDate.getTime())) {
-        return "";
+      if (nextPositionIds.has(positionId)) {
+        nextPositionIds.delete(positionId);
+      } else {
+        nextPositionIds.add(positionId);
       }
 
-      return parsedDate.toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      });
-    } catch {
-      return "";
+      return nextPositionIds;
+    });
+  };
+  const configuredStaticColumns = staticColumns.map((column) => {
+    if (column.field === "cusip") {
+      return {
+        ...column,
+        colSpan: getPositionDetailColSpan(totalColumnCount),
+        renderCell: (parameters: GridRenderCellParams<PositionGridRow>) => {
+          if (parameters.row.rowType === "details") {
+            return <PositionDetailsRow position={parameters.row} />;
+          }
+
+          return parameters.formattedValue ?? parameters.value;
+        },
+      };
     }
+
+    if (column.field === "accountNumber") {
+      return {
+        ...column,
+        renderCell: (parameters: GridRenderCellParams<PositionGridRow>) => {
+          if (parameters.row.rowType === "details") return null;
+
+          return (
+            <AccountNumberCell
+              accountNumber={parameters.row.accountNumber}
+              expanded={expandedPositionIds.has(parameters.row.positionId)}
+              onToggle={() => {
+                togglePositionExpansion(parameters.row.positionId);
+              }}
+            />
+          );
+        },
+      };
+    }
+
+    if (column.field === "accountType") {
+      return {
+        ...column,
+        valueOptions: getDistinctStringValues(
+          positions,
+          (position) => position.accountType
+        ).map((value) => ({ label: formatAccountType(value), value })),
+      };
+    }
+
+    const valueOptions = categoricalValueOptions[column.field];
+    return valueOptions === undefined ? column : { ...column, valueOptions };
+  });
+  const columns: GridColDef<PositionGridRow>[] = [
+    ...configuredStaticColumns.slice(0, 7),
+    {
+      field: "shares",
+      filterOperators: numericFilterOperators,
+      headerAlign: "right",
+      headerName: "Shares",
+      minWidth: 130,
+      type: "number",
+      valueGetter: (value, row) => {
+        void value;
+        if (displayMode === "numbers") return row.shares;
+        return totalShares > 0 ? (row.shares / totalShares) * 100 : 0;
+      },
+      renderCell: (parameters) => {
+        if (parameters.row.rowType === "details") return null;
+
+        const metric = formatTabulationMetric(
+          parameters.row.shares,
+          totalShares,
+          displayMode
+        );
+        return (
+          <CustomTooltip title={metric.alternate}>
+            <span>{metric.display}</span>
+          </CustomTooltip>
+        );
+      },
+    },
+    {
+      field: "sharesVoted",
+      filterOperators: numericFilterOperators,
+      headerAlign: "right",
+      headerName: "Shares Voted",
+      minWidth: 150,
+      type: "number",
+      valueGetter: (value, row) => {
+        void value;
+        if (displayMode === "numbers") return row.sharesVoted;
+        return totalShares > 0 ? (row.sharesVoted / totalShares) * 100 : 0;
+      },
+      renderCell: (parameters) => {
+        if (parameters.row.rowType === "details") return null;
+
+        const metric = formatTabulationMetric(
+          parameters.row.sharesVoted,
+          totalShares,
+          displayMode
+        );
+        return (
+          <CustomTooltip title={metric.alternate}>
+            <span>{metric.display}</span>
+          </CustomTooltip>
+        );
+      },
+    },
+    ...configuredStaticColumns.slice(7),
+  ];
+  const gridRows = positions.flatMap<PositionGridRow>((position) => {
+    const accountRow: PositionGridRow = {
+      ...position,
+      positionId: position.id,
+      rowType: "account",
+    };
+
+    if (!expandedPositionIds.has(position.id)) {
+      return [accountRow];
+    }
+
+    return [
+      accountRow,
+      {
+        ...position,
+        id: `${position.id}-details`,
+        positionId: position.id,
+        rowType: "details",
+      },
+    ];
+  });
+
+  // Exports mirror what the user currently sees: filtered and sorted as in the
+  // grid, with the synthetic "details" rows and their helper fields removed.
+  const collectExportPositions = (): TabulationPosition[] => {
+    const gridApi = apiRef.current;
+    if (gridApi === null) return [];
+
+    return gridFilteredSortedRowIdsSelector(apiRef).reduce<
+      TabulationPosition[]
+    >((acc, rowId) => {
+      const row: PositionGridRow | null =
+        gridApi.getRow<PositionGridRow>(rowId);
+      if (row === null || row === undefined) return acc;
+      if (row.rowType !== "account") return acc;
+
+      const { positionId, rowType, ...position } = row;
+      void positionId;
+      void rowType;
+      acc.push(position);
+      return acc;
+    }, []);
+  };
+
+  // The PDF and spreadsheet writers are loaded on demand. Imported statically
+  // they pulled @react-pdf/pdfkit and xlsx (~2.4MB) into this page's chunk, and
+  // parsing them on load was a measurable chunk of the tabulation page's long
+  // animation frames even though neither is needed until an export is clicked.
+  const handleExportPdf = async (): Promise<void> => {
+    if (isExporting) return;
+
+    setIsExporting(true);
+
+    try {
+      const { exportPositionsToPdf } =
+        await import("@/utils/exportPositionsPdf");
+      await exportPositionsToPdf({
+        clientTicker,
+        meetingTitle,
+        positions: collectExportPositions(),
+      });
+      setIsExporting(false);
+    } catch {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportXlsx = async (): Promise<void> => {
+    const { exportPositionsToXlsx } =
+      await import("@/utils/exportPositionsXlsx");
+    exportPositionsToXlsx({
+      clientTicker,
+      meetingTitle,
+      positions: collectExportPositions(),
+    });
   };
 
   return (
-    <Box>
-      <TableContainer>
-        <Table sx={{ tableLayout: "auto" }}>
-          <SROnlyTableCaption>Positions Table</SROnlyTableCaption>
-          <TableHead>
-            <TableRow>
-              <SortableHeaderCell
-                column="cusip"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                CUSIP
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="accountType"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Account Type
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="setKey"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Set Key
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="name"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Name
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="accountNumber"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Account #
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="voteStatus"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Vote Status
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="shares"
-                align="right"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Shares
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="sharesVoted"
-                align="right"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Shares Voted
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="source"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Source
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="dateVoted"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Date Voted
-              </SortableHeaderCell>
-              <SortableHeaderCell
-                column="sentBy"
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                Sent By
-              </SortableHeaderCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              Array.from({ length: rowsPerPage }).map((_, rowIndex) => (
-                <TableRow key={rowIndex}>
-                  {Array.from({ length: 11 }).map((_, columnIndex) => (
-                    <NoWrapTableCell key={columnIndex}>
-                      <Skeleton />
-                    </NoWrapTableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : paginatedPositions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={11} align="center">
-                  <Typography
-                    variant="body3"
-                    color="text.secondary"
-                    sx={{ py: 4 }}
-                  >
-                    No positions found
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              paginatedPositions.map((position, index) => {
-                const rowKey = page * rowsPerPage + index;
-                const isExpanded = expandedRows.has(rowKey);
-
-                return (
-                  <React.Fragment key={`${position.accountNumber}-${rowKey}`}>
-                    <TableRow
-                      sx={{ "&:hover": { backgroundColor: "action.hover" } }}
-                    >
-                      <NoWrapTableCell>{position.cusip}</NoWrapTableCell>
-                      <NoWrapTableCell>
-                        {formatAccountType(position.accountType)}
-                      </NoWrapTableCell>
-                      <NoWrapTableCell>{position.setKey}</NoWrapTableCell>
-                      <NoWrapTableCell sx={{ width: 180 }}>
-                        {position.name}
-                      </NoWrapTableCell>
-                      <TableCell
-                        onClick={() => toggleRowExpansion(rowKey)}
-                        sx={{ cursor: "pointer", minWidth: 220 }}
-                      >
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          <IconButton
-                            aria-label="expand row"
-                            size="small"
-                            color="primary"
-                          >
-                            {isExpanded ? (
-                              <KeyboardArrowUpIcon />
-                            ) : (
-                              <KeyboardArrowDownIcon />
-                            )}
-                          </IconButton>
-                          <Box
-                            sx={{
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              color: "primary.main",
-                            }}
-                          >
-                            {position.accountNumber}
-                          </Box>
-                        </Box>
-                      </TableCell>
-                      <NoWrapTableCell>{position.voteStatus}</NoWrapTableCell>
-                      <NoWrapTableCell align="right">
-                        {formatNumber(position.shares)}
-                      </NoWrapTableCell>
-                      <NoWrapTableCell align="right">
-                        {formatNumber(position.sharesVoted)}
-                      </NoWrapTableCell>
-                      <NoWrapTableCell>{position.source}</NoWrapTableCell>
-                      <NoWrapTableCell>
-                        {formatDate(position.dateVoted)}
-                      </NoWrapTableCell>
-                      <TableCell align="right">
-                        {position.sentBy === "EMAIL" ? (
-                          <MailOutlineIcon fontSize="small" />
-                        ) : (
-                          <InsertDriveFileOutlinedIcon fontSize="small" />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                    {isExpanded && (
-                      <TableRow>
-                        <TableCell sx={{ pb: 0, pt: 0 }} colSpan={11}>
-                          <Collapse
-                            in={isExpanded}
-                            timeout="auto"
-                            unmountOnExit
-                          >
-                            <Box
-                              sx={{
-                                my: 2,
-                                mx: 2,
-                                p: 3,
-                                border: 1,
-                                borderColor: "divider",
-                                borderRadius: 1,
-                                backgroundColor:
-                                  "var(--mui-palette-Datagrid-defaultFill)",
-                              }}
-                            >
-                              <Grid container spacing={2}>
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    CUSIP:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {position.cusip}
-                                  </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    Account Name:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {position.name}
-                                  </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    Set Key:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {position.setKey}
-                                  </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    Account Number:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {position.accountNumber}
-                                  </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    Account Type:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {formatAccountType(position.accountType)}
-                                  </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    Account Email:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {position.accountEmail || ""}
-                                  </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    Control Number:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {position.controlNumber}
-                                  </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    Last Vote Method:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {position.source || ""}
-                                  </Typography>
-                                </Grid>
-                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                  >
-                                    Last Voted Date:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {formatDate(position.dateVoted)}
-                                  </Typography>
-                                </Grid>
-                              </Grid>
-                            </Box>
-                          </Collapse>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <TablePagination
-        component="div"
-        count={sortedPositions.length}
-        page={page}
-        onPageChange={(_, newPage) => setPage(newPage)}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(event) => {
-          setRowsPerPage(parseInt(event.target.value, 25));
-          setPage(0);
+    <Box sx={{ width: "100%" }}>
+      <GridTopPagination
+        count={topPageCount}
+        onChange={(nextPage) => apiRef.current?.setPage(nextPage - 1)}
+        page={topPage + 1}
+      />
+      <DataGrid
+        apiRef={apiRef}
+        autoHeight
+        columns={columns}
+        rows={gridRows}
+        loading={loading}
+        showToolbar
+        disableRowSelectionOnClick
+        getRowHeight={getPositionRowHeight}
+        getRowClassName={(parameters) =>
+          parameters.row.rowType === "details" ? "position-detail-row" : ""
+        }
+        initialState={{
+          columns: {
+            columnVisibilityModel: {
+              accountEmail: false,
+              country: false,
+              state: false,
+            },
+          },
+          pagination: {
+            paginationModel: {
+              page: 0,
+              pageSize: 10,
+            },
+          },
         }}
-        rowsPerPageOptions={[10, 25, 50]}
+        pageSizeOptions={[10, 25, 50]}
+        slotProps={{
+          toolbar: {
+            additionalExportMenuItems: (onMenuItemClick) => [
+              <MenuItem
+                disabled={isExporting}
+                key="export-pdf"
+                onClick={() => {
+                  onMenuItemClick();
+                  void handleExportPdf();
+                }}
+              >
+                {isExporting ? "Generating PDF…" : "Export as PDF"}
+              </MenuItem>,
+              <MenuItem
+                key="export-excel"
+                onClick={() => {
+                  onMenuItemClick();
+                  void handleExportXlsx();
+                }}
+              >
+                Export as Excel
+              </MenuItem>,
+            ],
+            csvOptions: {
+              disableToolbarButton: true,
+            },
+            printOptions: {
+              disableToolbarButton: true,
+            },
+            quickFilterProps: {
+              debounceMs: 300,
+            },
+          },
+        }}
+        sx={{
+          border: 0,
+          "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": {
+            outline: "none",
+          },
+          "& .position-detail-row .MuiDataGrid-cell": {
+            alignItems: "stretch",
+            backgroundColor: "var(--mui-palette-background-default)",
+            borderBottom: 0,
+            py: 0,
+          },
+        }}
       />
     </Box>
   );
-}
+};
+
+export default PositionsTable;

@@ -16,13 +16,13 @@ import React, { Suspense } from "react";
 import type { Meeting } from "@/types/api-exports";
 
 import DigitalShareholderMeetingCard from "@/components/Meeting/DigitalShareholderMeetingCard";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 
 import KeyDatesCard from "./KeyDatesCard";
 
 // Dynamic imports for heavy components
 const VotingTabulationTable = dynamic(
-  () => import("@/components/Meeting/VotingTabulationTable"),
+  async () => await import("@/components/Meeting/VotingTabulationTable"),
   {
     loading: () => <Skeleton variant="rectangular" height={400} />,
     ssr: false,
@@ -30,20 +30,23 @@ const VotingTabulationTable = dynamic(
 );
 
 const MeetingRolesCard = dynamic(
-  () => import("@/components/Meeting/MeetingRolesCard"),
+  async () => await import("@/components/Meeting/MeetingRolesCard"),
   {
     loading: () => <Skeleton variant="rectangular" height={300} />,
     ssr: false,
   }
 );
 
-const FeatureTile = dynamic(() => import("@/components/FeatureTile"), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-});
+const FeatureTile = dynamic(
+  async () => await import("@/components/FeatureTile"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={300} />,
+    ssr: false,
+  }
+);
 
 const SharesVotedChart = dynamic(
-  () => import("@/components/Meeting/SharesVotedChart"),
+  async () => await import("@/components/Meeting/SharesVotedChart"),
   {
     loading: () => <Skeleton variant="rectangular" height={300} />,
     ssr: false,
@@ -51,15 +54,12 @@ const SharesVotedChart = dynamic(
 );
 
 interface Phase6LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
-  phase?: number;
+  readonly meetingId?: string;
+  readonly meeting?: Meeting;
+  readonly phase?: number;
 }
 
-export default React.memo(function Phase6Layout({
-  meetingId,
-  meeting,
-}: Phase6LayoutProps) {
+export default React.memo(({ meetingId, meeting }: Phase6LayoutProps) => {
   const { proposals, loading: votingLoading } = useVotingTabulation(meetingId);
 
   return (

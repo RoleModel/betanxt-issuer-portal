@@ -1,3 +1,3 @@
 // Re-export essential frontend API utilities
-export * from "./generated";
+export type * from "./generated";
 export * from "./responseGuard";

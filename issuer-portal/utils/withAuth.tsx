@@ -13,7 +13,7 @@ export function withAuth<T extends object>(
   Component: React.ComponentType<T>,
   options: WithAuthOptions = {}
 ) {
-  return async function AuthenticatedComponent(props: T) {
+  return async function (props: T) {
     const session = await auth();
 
     if (!session) {

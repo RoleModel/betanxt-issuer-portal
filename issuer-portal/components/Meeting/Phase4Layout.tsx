@@ -2,7 +2,7 @@
 
 import { CalendarMonthOutlined } from "@mui/icons-material";
 import { Grid } from "@mui/material";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 
 import type { Meeting } from "@/types/api-exports";
 
@@ -13,10 +13,10 @@ import MeetingDocuments from "@/components/Meeting/MeetingDocuments";
 import { friendlyDate } from "@/utils/dateUtils";
 
 interface Phase4LayoutProps {
-  meeting?: Meeting;
+  readonly meeting?: Meeting;
 }
 
-function Phase4Layout({ meeting }: Phase4LayoutProps) {
+const Phase4Layout = ({ meeting }: Phase4LayoutProps) => {
   const materialsDate = meeting?.meetingDate
     ? new Date(
         new Date(meeting.meetingDate).getTime() - 48 * 24 * 60 * 60 * 1000
@@ -49,5 +49,5 @@ function Phase4Layout({ meeting }: Phase4LayoutProps) {
       </Grid>
     </Grid>
   );
-}
+};
 export default Phase4Layout;

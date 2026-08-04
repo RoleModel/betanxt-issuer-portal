@@ -77,7 +77,7 @@ const BreakpointIndicatorComponent: React.FC = () => {
 
 // Create dynamic wrapper with SSR disabled to prevent hydration mismatches
 export const BreakpointIndicator = dynamic(
-  () => Promise.resolve(BreakpointIndicatorComponent),
+  async () => await Promise.resolve(BreakpointIndicatorComponent),
   {
     ssr: false,
   }

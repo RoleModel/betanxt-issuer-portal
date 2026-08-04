@@ -14,6 +14,10 @@ From the repo root run `npm run dev` to start both workspaces through Turbo. `np
 
 Formatting is enforced by Prettier (`prettier.config.js`) with 2-space indentation, LF line endings, no semicolons, and single quotes. Imports are auto-sorted by `@trivago/prettier-plugin-sort-imports`; use the `@/...` alias for local modules and group third-party modules first. Prefer PascalCase for React components, camelCase for functions and variables, and kebab-case for files except Next.js route conventions under `app/`. Commit only formatted code; run `npm run format` before pushing.
 
+### Documentation
+
+When creating or materially changing TypeScript code, add or update TSDoc (`/** ... */`) for every public, shared, or reusable API and for non-obvious business rules, calculations, data transformations, and UI behavior. Document the contract and important invariants or edge cases; include `@param` and `@returns` when they clarify how a function is used. Keep documentation synchronized with behavior. Do not duplicate information already expressed by TypeScript types or add comments to trivial, self-explanatory code.
+
 ## Testing Guidelines
 
 Playwright drives browser tests located in `issuer-portal/tests/e2e/*.spec.ts`. Name new specs with descriptive verbs (`user-login.spec.ts`) and colocate shared fixtures in `issuer-portal/tests`. Run the full suite with `npm run test`; add `--ui` or `--headed` when debugging. For unit-style scenarios, prefer lightweight tests under `issuer-portal/tests/*.test.ts` and ensure any new data contracts update `domain-models/generated-schema.ts`. Investigate flaky tests before merging and attach Playwright reports on failures.
@@ -25,30 +29,6 @@ Follow the existing Conventional-Commit-inspired prefixes (`feat:`, `fix:`, `cho
 ## Environment & Security Notes
 
 Create `.env.local` from `issuer-portal/env.template` and keep Supabase service keys server-side only. Use the mock API by pointing `NEXT_PUBLIC_API_BASE_URL` at `http://localhost:3001`. Never commit generated secrets or Playwright reports; add sensitive overrides through Vercel or Supabase configuration.
-
-[byterover-mcp]
-
-[byterover-mcp]
-
-You are given two tools from Byterover MCP server, including
-
-## 1. `byterover-store-knowledge`
-
-You `MUST` always use this tool when:
-
-- Learning new patterns, APIs, or architectural decisions from the codebase
-- Encountering error solutions or debugging techniques
-- Finding reusable code patterns or utility functions
-- Completing any significant task or plan implementation
-
-## 2. `byterover-retrieve-knowledge`
-
-You `MUST` always use this tool when:
-
-- Starting any new task or implementation to gather relevant context
-- Before making architectural decisions to understand existing patterns
-- When debugging issues to check for previous solutions
-- Working with unfamiliar parts of the codebase
 
 ## Learned User Preferences
 
@@ -166,12 +146,6 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 **React 19+:**
 
 - Use ref as a prop instead of `React.forwardRef`
-
-**Solid/Svelte/Vue/Qwik:**
-
-- Use `class` and `for` attributes (not `className` or `htmlFor`)
-
----
 
 ## Testing
 

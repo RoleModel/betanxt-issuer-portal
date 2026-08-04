@@ -1,22 +1,21 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { downloadDocument } from "@/domain-models/api/documents";
 import { handleCors, withCors } from "@/utils/cors";
 import { supabase } from "@/utils/supabase/client";
 
-interface RouteParams {
+interface RouteParameters {
   id: string;
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<RouteParams> }
+  { params }: { params: Promise<RouteParameters> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = await params;
-    const id = resolvedParams.id;
+    const resolvedParameters = await params;
+    const { id } = resolvedParameters;
 
     const { data: filePath, error } = await downloadDocument(id);
 
@@ -64,7 +63,7 @@ export async function GET(
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "downloadDocument",
         },
         { status: 500 }

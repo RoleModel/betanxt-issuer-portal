@@ -22,64 +22,65 @@ import ProductsLayout from "@/components/Layout/ProductLayout";
 import CTACard from "@/components/Products/CTACard";
 import { SidebarCard } from "@/components/Products/SidebarCard";
 
-export default function InspectorOfElectionsPage() {
+const benefits = [
+  {
+    icon: <ChecklistDocumentIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Certified Vote Tabulation",
+    description: [
+      "Independent verification of all voting results",
+      "Real-time accuracy monitoring and validation",
+      "Compliance with state-specific legal requirements",
+    ],
+  },
+  {
+    icon: <TeamCircleIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Pre-Meeting Preparation",
+    description: [
+      "Shareholder eligibility verification",
+      "Voting materials audit and review",
+      "Quorum requirement analysis",
+    ],
+  },
+  {
+    icon: <PersonShieldIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Meeting Oversight",
+    description: [
+      "Live meeting supervision and monitoring",
+      "Ballot collection and verification processes",
+      "Challenge resolution and dispute management",
+    ],
+  },
+  {
+    icon: <JusticeScaleIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Legal Compliance Assurance",
+    description: [
+      "State regulation adherence verification",
+      "Documentation and audit trail maintenance",
+      "Regulatory filing preparation",
+    ],
+  },
+  {
+    icon: <DocumentEditIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Results Certification",
+    description: [
+      "Official vote count declarations",
+      "Legally binding result certifications",
+      "Transparent reporting to all stakeholders",
+    ],
+  },
+  {
+    icon: <HandshakeAgreementIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Post-Meeting Services",
+    description: [
+      "Comprehensive voting analysis",
+      "Regulatory filing submissions",
+      "Detailed compliance reporting",
+    ],
+  },
+];
+
+const InspectorOfElectionsPage = () => {
   const [open, setOpen] = useState(false);
-  const benefits = [
-    {
-      icon: <ChecklistDocumentIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Certified Vote Tabulation",
-      description: [
-        "Independent verification of all voting results",
-        "Real-time accuracy monitoring and validation",
-        "Compliance with state-specific legal requirements",
-      ],
-    },
-    {
-      icon: <TeamCircleIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Pre-Meeting Preparation",
-      description: [
-        "Shareholder eligibility verification",
-        "Voting materials audit and review",
-        "Quorum requirement analysis",
-      ],
-    },
-    {
-      icon: <PersonShieldIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Meeting Oversight",
-      description: [
-        "Live meeting supervision and monitoring",
-        "Ballot collection and verification processes",
-        "Challenge resolution and dispute management",
-      ],
-    },
-    {
-      icon: <JusticeScaleIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Legal Compliance Assurance",
-      description: [
-        "State regulation adherence verification",
-        "Documentation and audit trail maintenance",
-        "Regulatory filing preparation",
-      ],
-    },
-    {
-      icon: <DocumentEditIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Results Certification",
-      description: [
-        "Official vote count declarations",
-        "Legally binding result certifications",
-        "Transparent reporting to all stakeholders",
-      ],
-    },
-    {
-      icon: <HandshakeAgreementIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Post-Meeting Services",
-      description: [
-        "Comprehensive voting analysis",
-        "Regulatory filing submissions",
-        "Detailed compliance reporting",
-      ],
-    },
-  ];
 
   const leftColumnContent = (
     <Stack useFlexGap gap={2}>
@@ -105,14 +106,14 @@ export default function InspectorOfElectionsPage() {
             gap: 2,
           }}
         >
-          {benefits.map((benefit, index) => (
+          {benefits.map((benefit) => (
             <FeatureTile
-              key={index}
+              key={benefit.title}
               titleVariant="h1"
               variant="base"
               title={benefit.title}
               description={benefit.description}
-              actionText={""}
+              actionText=""
               brandFont={true}
               icon={benefit.icon}
             />
@@ -129,7 +130,9 @@ export default function InspectorOfElectionsPage() {
         title="Why do I need an Inspector of Elections?"
         button
         buttonText="View PDF Overview"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+        }}
       >
         <Typography variant="body3" component="p" gutterBottom>
           Get detailed information about our certified Inspector of Elections
@@ -138,9 +141,11 @@ export default function InspectorOfElectionsPage() {
       </SidebarCard>
       <DocumentViewer
         open={open}
-        onClose={() => setOpen(false)}
-        fileUrl={"/documents/inspector-of-elections.pdf"}
-        title={"Inspector of Elections Overview"}
+        onClose={() => {
+          setOpen(false);
+        }}
+        fileUrl="/documents/inspector-of-elections.pdf"
+        title="Inspector of Elections Overview"
         showCommentButton={false}
         showHistoryButton={false}
         showDownloadButton={true}
@@ -154,4 +159,6 @@ export default function InspectorOfElectionsPage() {
       rightColumnContent={rightColumnContent}
     />
   );
-}
+};
+
+export default InspectorOfElectionsPage;

@@ -1,6 +1,7 @@
 import type { Session } from "next-auth";
 
-import { type Permission, allowedTo } from "@/authorization/permissions";
+import type { Permission } from "@/authorization/permissions";
+import { allowedTo } from "@/authorization/permissions";
 
 const defaultLandingPages = [
   { path: "/meeting", permissions: ["viewDashboard"] },
@@ -8,7 +9,7 @@ const defaultLandingPages = [
 ];
 
 export class UserRoutes {
-  constructor(private session: Session | null) {}
+  constructor(private readonly session: Session | null) {}
 
   get defaultLandingPage(): string {
     if (!this.session) {
@@ -19,7 +20,9 @@ export class UserRoutes {
 
     // Find first accessible page for the user
     const accessiblePage = defaultLandingPages.find((page) => {
-      if (page.permissions.length === 0) return true;
+      if (page.permissions.length === 0) {
+        return true;
+      }
       // For now, just return true - we can add proper permission checking later
       return true;
     });

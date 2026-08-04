@@ -24,10 +24,10 @@ type DigitalShareholderMeeting =
   components["schemas"]["DigitalShareholderMeeting"];
 
 interface DSMActualAttendeesProps {
-  meetingId: string;
+  readonly meetingId: string;
 }
 
-export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
+export const DSMActualAttendees = ({ meetingId }: DSMActualAttendeesProps) => {
   const [attendees, setAttendees] = useState<DigitalShareholderMeeting[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -146,4 +146,4 @@ export function DSMActualAttendees({ meetingId }: DSMActualAttendeesProps) {
       </Card>
     </Box>
   );
-}
+};

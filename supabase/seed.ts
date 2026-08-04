@@ -1473,75 +1473,75 @@ const main = async () => {
     string,
     { meetingDate: string; recordDate: string }
   > = {
-    WEN: { meetingDate: "2026-05-20", recordDate: "2026-03-23" },
-    PAYC: { meetingDate: "2026-05-04", recordDate: "2026-03-11" },
-    WWD: { meetingDate: "2026-04-15", recordDate: "2026-02-16" },
-    ELVN: { meetingDate: "2026-06-10", recordDate: "2026-04-13" },
-    FOC: { meetingDate: "2026-05-20", recordDate: "2026-03-23" },
-    JPMR: { meetingDate: "2026-04-14", recordDate: "2026-02-13" },
-    WAL: { meetingDate: "2026-04-16", recordDate: "2026-02-15" },
-    ILG: { meetingDate: "2026-04-21", recordDate: "2026-02-20" },
-    PHX: { meetingDate: "2026-04-23", recordDate: "2026-02-22" },
-    ETWO: { meetingDate: "2026-04-28", recordDate: "2026-02-27" },
-    ARTV: { meetingDate: "2026-04-29", recordDate: "2026-02-28" },
-    BCSF: { meetingDate: "2026-05-05", recordDate: "2026-03-06" },
-    FREQ: { meetingDate: "2026-05-06", recordDate: "2026-03-07" },
-    TBIO: { meetingDate: "2026-05-07", recordDate: "2026-03-08" },
-    CHH: { meetingDate: "2026-05-12", recordDate: "2026-03-13" },
-    AMTB: { meetingDate: "2026-05-13", recordDate: "2026-03-14" },
-    AMAM: { meetingDate: "2026-05-14", recordDate: "2026-03-15" },
-    STTK: { meetingDate: "2026-05-18", recordDate: "2026-03-19" },
-    HLVX: { meetingDate: "2026-05-19", recordDate: "2026-03-20" },
-    MDLZ: { meetingDate: "2026-05-19", recordDate: "2026-03-20" },
-    INAB: { meetingDate: "2026-05-20", recordDate: "2026-03-21" },
-    QRHC: { meetingDate: "2026-05-21", recordDate: "2026-03-22" },
-    SLGC: { meetingDate: "2026-05-26", recordDate: "2026-03-27" },
-    ICU: { meetingDate: "2026-05-27", recordDate: "2026-03-28" },
-    NOMD: { meetingDate: "2026-05-27", recordDate: "2026-03-28" },
-    BBIO: { meetingDate: "2026-06-02", recordDate: "2026-04-03" },
-    SONM: { meetingDate: "2026-06-02", recordDate: "2026-04-03" },
-    CTNM: { meetingDate: "2026-06-03", recordDate: "2026-04-04" },
-    AZTR: { meetingDate: "2026-06-03", recordDate: "2026-04-04" },
-    FULC: { meetingDate: "2026-06-04", recordDate: "2026-04-05" },
-    PTLO: { meetingDate: "2026-06-04", recordDate: "2026-04-05" },
-    LAC: { meetingDate: "2026-06-09", recordDate: "2026-04-10" },
-    LCTX: { meetingDate: "2026-06-09", recordDate: "2026-04-10" },
-    CALC: { meetingDate: "2026-06-10", recordDate: "2026-04-11" },
-    PCOR: { meetingDate: "2026-06-10", recordDate: "2026-04-11" },
-    SPRY: { meetingDate: "2026-06-11", recordDate: "2026-04-12" },
-    INZY: { meetingDate: "2026-06-11", recordDate: "2026-04-12" },
-    AFRM: { meetingDate: "2026-06-16", recordDate: "2026-04-17" },
-    TOI: { meetingDate: "2026-06-16", recordDate: "2026-04-17" },
-    GOSS: { meetingDate: "2026-06-17", recordDate: "2026-04-18" },
-    ALGS: { meetingDate: "2026-06-18", recordDate: "2026-04-19" },
-    ERAS: { meetingDate: "2026-06-23", recordDate: "2026-04-24" },
-    IDYA: { meetingDate: "2026-06-24", recordDate: "2026-04-25" },
-    CD: { meetingDate: "2026-06-25", recordDate: "2026-04-26" },
-    ENRS: { meetingDate: "2026-04-21", recordDate: "2026-02-20" },
-    EHAB: { meetingDate: "2026-05-07", recordDate: "2026-03-08" },
-    VANI: { meetingDate: "2026-05-14", recordDate: "2026-03-15" },
-    MDGL: { meetingDate: "2026-05-21", recordDate: "2026-03-22" },
-    CBNA: { meetingDate: "2026-06-04", recordDate: "2026-04-05" },
-    INTT: { meetingDate: "2026-06-10", recordDate: "2026-04-11" },
-    DFIN: { meetingDate: "2026-04-23", recordDate: "2026-02-22" },
-    VAPO: { meetingDate: "2026-04-30", recordDate: "2026-03-01" },
-    SQZ: { meetingDate: "2026-05-12", recordDate: "2026-03-13" },
-    NEX: { meetingDate: "2026-05-19", recordDate: "2026-03-20" },
-    MNMD: { meetingDate: "2026-06-02", recordDate: "2026-04-03" },
-    ADPT: { meetingDate: "2026-06-09", recordDate: "2026-04-10" },
+    WEN: { meetingDate: "2026-09-20", recordDate: "2026-06-23" },
+    PAYC: { meetingDate: "2026-09-04", recordDate: "2026-06-11" },
+    WWD: { meetingDate: "2026-09-15", recordDate: "2026-06-16" },
+    ELVN: { meetingDate: "2026-09-10", recordDate: "2026-06-13" },
+    FOC: { meetingDate: "2026-09-20", recordDate: "2026-06-23" },
+    JPMR: { meetingDate: "2026-09-14", recordDate: "2026-06-13" },
+    WAL: { meetingDate: "2026-09-16", recordDate: "2026-06-15" },
+    ILG: { meetingDate: "2026-09-21", recordDate: "2026-06-20" },
+    PHX: { meetingDate: "2026-09-23", recordDate: "2026-06-22" },
+    ETWO: { meetingDate: "2026-09-28", recordDate: "2026-06-27" },
+    ARTV: { meetingDate: "2026-09-29", recordDate: "2026-06-28" },
+    BCSF: { meetingDate: "2026-09-05", recordDate: "2026-06-06" },
+    FREQ: { meetingDate: "2026-09-06", recordDate: "2026-06-07" },
+    TBIO: { meetingDate: "2026-09-07", recordDate: "2026-06-08" },
+    CHH: { meetingDate: "2026-09-12", recordDate: "2026-06-13" },
+    AMTB: { meetingDate: "2026-09-13", recordDate: "2026-06-14" },
+    AMAM: { meetingDate: "2026-09-14", recordDate: "2026-06-15" },
+    STTK: { meetingDate: "2026-09-18", recordDate: "2026-06-19" },
+    HLVX: { meetingDate: "2026-09-19", recordDate: "2026-06-20" },
+    MDLZ: { meetingDate: "2026-09-19", recordDate: "2026-06-20" },
+    INAB: { meetingDate: "2026-09-20", recordDate: "2026-06-21" },
+    QRHC: { meetingDate: "2026-09-21", recordDate: "2026-06-22" },
+    SLGC: { meetingDate: "2026-09-26", recordDate: "2026-06-27" },
+    ICU: { meetingDate: "2026-09-27", recordDate: "2026-06-28" },
+    NOMD: { meetingDate: "2026-09-27", recordDate: "2026-06-28" },
+    BBIO: { meetingDate: "2026-09-02", recordDate: "2026-06-03" },
+    SONM: { meetingDate: "2026-09-02", recordDate: "2026-06-03" },
+    CTNM: { meetingDate: "2026-09-03", recordDate: "2026-06-04" },
+    AZTR: { meetingDate: "2026-09-03", recordDate: "2026-06-04" },
+    FULC: { meetingDate: "2026-09-04", recordDate: "2026-06-05" },
+    PTLO: { meetingDate: "2026-09-04", recordDate: "2026-06-05" },
+    LAC: { meetingDate: "2026-09-09", recordDate: "2026-06-10" },
+    LCTX: { meetingDate: "2026-09-09", recordDate: "2026-06-10" },
+    CALC: { meetingDate: "2026-09-10", recordDate: "2026-06-11" },
+    PCOR: { meetingDate: "2026-09-10", recordDate: "2026-06-11" },
+    SPRY: { meetingDate: "2026-09-11", recordDate: "2026-06-12" },
+    INZY: { meetingDate: "2026-09-11", recordDate: "2026-06-12" },
+    AFRM: { meetingDate: "2026-09-16", recordDate: "2026-06-17" },
+    TOI: { meetingDate: "2026-09-16", recordDate: "2026-06-17" },
+    GOSS: { meetingDate: "2026-09-17", recordDate: "2026-06-18" },
+    ALGS: { meetingDate: "2026-09-18", recordDate: "2026-06-19" },
+    ERAS: { meetingDate: "2026-09-23", recordDate: "2026-06-24" },
+    IDYA: { meetingDate: "2026-09-24", recordDate: "2026-06-25" },
+    CD: { meetingDate: "2026-09-25", recordDate: "2026-06-26" },
+    ENRS: { meetingDate: "2026-09-21", recordDate: "2026-06-20" },
+    EHAB: { meetingDate: "2026-09-07", recordDate: "2026-06-08" },
+    VANI: { meetingDate: "2026-09-14", recordDate: "2026-06-15" },
+    MDGL: { meetingDate: "2026-09-21", recordDate: "2026-06-22" },
+    CBNA: { meetingDate: "2026-09-04", recordDate: "2026-06-05" },
+    INTT: { meetingDate: "2026-09-10", recordDate: "2026-06-11" },
+    DFIN: { meetingDate: "2026-09-23", recordDate: "2026-06-22" },
+    VAPO: { meetingDate: "2026-09-30", recordDate: "2026-06-01" },
+    SQZ: { meetingDate: "2026-09-12", recordDate: "2026-06-13" },
+    NEX: { meetingDate: "2026-09-19", recordDate: "2026-06-20" },
+    MNMD: { meetingDate: "2026-09-02", recordDate: "2026-06-03" },
+    ADPT: { meetingDate: "2026-09-09", recordDate: "2026-06-10" },
   };
 
-  const real2026JulyMeetings: Record<
+  const real2026SeptMeetings: Record<
     string,
     { meetingDate: string; recordDate: string }
   > = Object.fromEntries(
     Object.entries(real2026Meetings).map(([ticker, dates]) => {
       const originalMeetingDate = DateTime.fromISO(dates.meetingDate);
-      const julyMeetingDate = originalMeetingDate.set({ month: 7 });
+      const septMeetingDate = originalMeetingDate.set({ month: 9 });
       const meetingShiftDays = Math.round(
-        julyMeetingDate.diff(originalMeetingDate, "days").days
+        septMeetingDate.diff(originalMeetingDate, "days").days
       );
-      const julyRecordDate = DateTime.fromISO(dates.recordDate).plus({
+      const septRecordDate = DateTime.fromISO(dates.recordDate).plus({
         days: meetingShiftDays,
       });
 
@@ -1549,10 +1549,10 @@ const main = async () => {
         ticker,
         {
           meetingDate:
-            julyMeetingDate.toISODate() ||
-            julyMeetingDate.toFormat("yyyy-MM-dd"),
+            septMeetingDate.toISODate() ||
+            septMeetingDate.toFormat("yyyy-MM-dd"),
           recordDate:
-            julyRecordDate.toISODate() || julyRecordDate.toFormat("yyyy-MM-dd"),
+            septRecordDate.toISODate() || septRecordDate.toFormat("yyyy-MM-dd"),
         },
       ];
     })
@@ -1606,7 +1606,7 @@ const main = async () => {
         if ("useRealDates" in meeting && meeting.useRealDates) {
           // Use real CSV-based dates for 2025 and 2026
           const realDataSource =
-            yearConfig.year === 2026 ? real2026JulyMeetings : real2025Meetings;
+            yearConfig.year === 2026 ? real2026SeptMeetings : real2025Meetings;
           const realData = realDataSource[client.ticker];
 
           if (realData) {
@@ -1819,7 +1819,7 @@ const main = async () => {
 
         sqlStatements.push(
           `INSERT INTO meeting(` +
-            `id, title, cusip, ticker, pre_filing_date, filing_date, broker_search_date, ` +
+            `id, title, cusip, ticker, set_key, pre_filing_date, filing_date, broker_search_date, ` +
             `record_date, mailing_date, meeting_date, cutoff_date, ` +
             `meeting_type, meeting_year, status, current_phase, overall_completion, ` +
             `distribution_type, transfer_agent, transfer_agent_confirmed, employee_stock_plans, plan_administrator, ` +
@@ -1831,6 +1831,9 @@ const main = async () => {
             `${sqlValue(meeting.type)}, ` +
             `${sqlValue(account.cusip)}, ` +
             `${sqlValue(client.ticker)}, ` +
+            // Broadridge set key: ${TICKER}J${YEAR}, matching the key carried
+            // on this meeting's positions.
+            `${sqlValue(`${client.ticker.toUpperCase()}J${yearConfig.year}`)}, ` +
             `${sqlValue(preFilingDate)}, ` +
             `${sqlValue(filingDate)}, ` +
             `${sqlValue(brokerSearchDate)}, ` +
@@ -4594,8 +4597,6 @@ SELECT
   // 002-tabulation-enhancements: holder population + geography enrichment
   appendHolderEnrichment(sqlStatements);
 
-  sqlStatements.push("");
-
   // Output all SQL statements
   console.log(sqlStatements.join("\n"));
 };
@@ -4779,13 +4780,14 @@ FROM (
 ) m
 CROSS JOIN generate_series(1, 40) AS gs(i);`);
 
-  // holder_category backfill. CEDE/DTC omnibus rows stay REGISTERED to match the
-  // legacy accountType convention; individual holders split deterministically
-  // 55% REGISTERED / 15% PLAN / 30% BENEFICIAL so every population has data.
+  // holder_category backfill. CEDE/DTC omnibus rows stay REGISTERED, while
+  // Non-DTC records retain their beneficial-holder semantics. Remaining
+  // individual holders split deterministically so every population has data.
   sqlStatements.push(`
 UPDATE "position"
 SET holder_category = CASE
   WHEN account_type = 'DTC/CDS' THEN 'REGISTERED'::position_holder_category
+  WHEN account_type = 'Non-DTC' THEN 'BENEFICIAL'::position_holder_category
   WHEN account_number LIKE 'ACC%' OR account_number LIKE 'CSV%'
     THEN 'REGISTERED'::position_holder_category
   WHEN account_number LIKE 'NDTC%'

@@ -29,8 +29,8 @@ interface ProposalPerformanceData {
 }
 
 interface ProposalPerformanceTableProps {
-  data: ProposalPerformanceData[];
-  loading?: boolean;
+  readonly data: ProposalPerformanceData[];
+  readonly loading?: boolean;
 }
 
 type Order = "asc" | "desc";
@@ -109,7 +109,9 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
                   <TableSortLabel
                     active={orderBy === "type"}
                     direction={orderBy === "type" ? order : "asc"}
-                    onClick={() => handleRequestSort("type")}
+                    onClick={() => {
+                      handleRequestSort("type");
+                    }}
                   >
                     Proposal Type
                   </TableSortLabel>
@@ -118,7 +120,9 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
                   <TableSortLabel
                     active={orderBy === "totalPresented"}
                     direction={orderBy === "totalPresented" ? order : "asc"}
-                    onClick={() => handleRequestSort("totalPresented")}
+                    onClick={() => {
+                      handleRequestSort("totalPresented");
+                    }}
                   >
                     Total Presented
                   </TableSortLabel>
@@ -127,7 +131,9 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
                   <TableSortLabel
                     active={orderBy === "averageSupport"}
                     direction={orderBy === "averageSupport" ? order : "asc"}
-                    onClick={() => handleRequestSort("averageSupport")}
+                    onClick={() => {
+                      handleRequestSort("averageSupport");
+                    }}
                   >
                     Average Support
                   </TableSortLabel>
@@ -136,7 +142,9 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
                   <TableSortLabel
                     active={orderBy === "min"}
                     direction={orderBy === "min" ? order : "asc"}
-                    onClick={() => handleRequestSort("min")}
+                    onClick={() => {
+                      handleRequestSort("min");
+                    }}
                   >
                     Min
                   </TableSortLabel>
@@ -145,7 +153,9 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
                   <TableSortLabel
                     active={orderBy === "max"}
                     direction={orderBy === "max" ? order : "asc"}
-                    onClick={() => handleRequestSort("max")}
+                    onClick={() => {
+                      handleRequestSort("max");
+                    }}
                   >
                     Max
                   </TableSortLabel>
@@ -154,7 +164,9 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
                   <TableSortLabel
                     active={orderBy === "percentPassed"}
                     direction={orderBy === "percentPassed" ? order : "asc"}
-                    onClick={() => handleRequestSort("percentPassed")}
+                    onClick={() => {
+                      handleRequestSort("percentPassed");
+                    }}
                   >
                     Percent Passed
                   </TableSortLabel>
@@ -168,8 +180,8 @@ const ProposalPerformanceTable: React.FC<ProposalPerformanceTableProps> = ({
                     page * rowsPerPage + rowsPerPage
                   )
                 : sortedData
-              ).map((row, index) => (
-                <TableRow key={index} hover>
+              ).map((row) => (
+                <TableRow key={row.type} hover>
                   <TableCell>{row.type}</TableCell>
                   <TableCell>{row.totalPresented}</TableCell>
                   <TableCell>{row.averageSupport}</TableCell>

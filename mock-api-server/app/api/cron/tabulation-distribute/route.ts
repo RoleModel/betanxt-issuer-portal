@@ -1,7 +1,6 @@
-import type { NextRequest } from "next/server";
-
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import type { TabulationReportProposal } from "@/emails/types";
 import type { components } from "@/types/api";
@@ -56,10 +55,13 @@ function isScheduledDistributionHour(): boolean {
   return getDistributionHour() === SCHEDULED_DISTRIBUTION_HOUR;
 }
 
-function isInWindow(meetingDateStr: string, startOffsetDays: number): boolean {
+function isInWindow(
+  meetingDateString: string,
+  startOffsetDays: number
+): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const meetingDate = new Date(meetingDateStr);
+  const meetingDate = new Date(meetingDateString);
   meetingDate.setHours(0, 0, 0, 0);
   const windowStart = new Date(meetingDate);
   windowStart.setDate(meetingDate.getDate() - startOffsetDays);
@@ -67,25 +69,32 @@ function isInWindow(meetingDateStr: string, startOffsetDays: number): boolean {
 }
 
 function alreadySentToday(lastSentAt: string | null | undefined): boolean {
-  if (!lastSentAt) return false;
+  if (!lastSentAt) {
+    return false;
+  }
   return getDistributionDate(new Date(lastSentAt)) === getDistributionDate();
 }
 
-function parseDist(
+function parseDistribution(
   raw: MeetingRow["tabulation_distribution"]
 ): TabulationDistribution | null {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const obj = raw as Record<string, unknown>;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    return null;
+  }
+  const object = raw as Record<string, unknown>;
   return {
-    enabled: Boolean(obj.enabled),
+    enabled: Boolean(object.enabled),
     startOffsetDays:
-      typeof obj.startOffsetDays === "number" ? obj.startOffsetDays : 15,
-    recipients: Array.isArray(obj.recipients)
-      ? (obj.recipients as string[])
+      typeof object.startOffsetDays === "number" ? object.startOffsetDays : 15,
+    recipients: Array.isArray(object.recipients)
+      ? (object.recipients as string[])
       : [],
-    lastSentAt: typeof obj.lastSentAt === "string" ? obj.lastSentAt : null,
+    lastSentAt:
+      typeof object.lastSentAt === "string" ? object.lastSentAt : null,
     nextScheduledAt:
-      typeof obj.nextScheduledAt === "string" ? obj.nextScheduledAt : null,
+      typeof object.nextScheduledAt === "string"
+        ? object.nextScheduledAt
+        : null,
   };
 }
 
@@ -100,7 +109,9 @@ async function getNotificationUserIds(
     requestingUserId,
     requestingUsername
   );
-  if (resolvedRequesterId) ids.add(resolvedRequesterId);
+  if (resolvedRequesterId) {
+    ids.add(resolvedRequesterId);
+  }
 
   const clientId = meeting.client_id;
 
@@ -126,7 +137,9 @@ async function getNotificationUserIds(
         .map((a) => a.id)
         .filter(Boolean) as string[];
       for (const account of accounts ?? []) {
-        if (account.primary_contact) ids.add(account.primary_contact);
+        if (account.primary_contact) {
+          ids.add(account.primary_contact);
+        }
       }
 
       if (accountIds.length > 0) {
@@ -136,7 +149,9 @@ async function getNotificationUserIds(
           .in("account_id", accountIds);
 
         for (const u of users ?? []) {
-          if (u.id) ids.add(u.id);
+          if (u.id) {
+            ids.add(u.id);
+          }
         }
       }
     }
@@ -201,7 +216,7 @@ async function getMeetingEmailData(
         ) / proposals.length
       : 0;
 
-  const quorumMet =
+  const isQuorumMet =
     totalSharesEligible > 0
       ? (totalSharesVoted / totalSharesEligible) * 100 >= quorumRequired
       : false;
@@ -211,7 +226,7 @@ async function getMeetingEmailData(
     totalSharesEligible,
     totalSharesVoted: Math.round(totalSharesVoted),
     quorumRequired,
-    quorumMet,
+    quorumMet: isQuorumMet,
   };
 }
 
@@ -228,7 +243,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
 
   // force=true bypasses window and already-sent checks (for manual testing from the drawer)
   const url = new URL(request.url);
-  const force = url.searchParams.get("force") === "true";
+  const isForce = url.searchParams.get("force") === "true";
   const forceMeetingId = url.searchParams.get("meetingId");
   const requestingUserId = url.searchParams.get("userId") ?? undefined;
   const requestingUsername = url.searchParams.get("username") ?? undefined;
@@ -236,7 +251,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
   const results: TabulationDistributeMeetingResult[] = [];
   const today = getDistributionDate();
 
-  if (!force && !isScheduledDistributionHour()) {
+  if (!isForce && !isScheduledDistributionHour()) {
     return withCors(
       NextResponse.json({
         ok: true,
@@ -256,7 +271,9 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         "id, ticker, client_id, meeting_date, tabulation_distribution, title, meeting_type, total_shares_outstanding, quorum_requirement"
       );
 
-    if (forceMeetingId) query = query.eq("id", forceMeetingId);
+    if (forceMeetingId) {
+      query = query.eq("id", forceMeetingId);
+    }
 
     const { data: meetings, error: meetingsError } = await query;
 
@@ -272,9 +289,9 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
     for (const meeting of meetings ?? []) {
       const meetingId = meeting.id ?? "";
       const ticker = meeting.ticker ?? "";
-      const dist = parseDist(meeting.tabulation_distribution);
+      const distribution = parseDistribution(meeting.tabulation_distribution);
 
-      if (!dist?.enabled) {
+      if (!distribution?.enabled) {
         results.push({
           meetingId,
           ticker,
@@ -287,9 +304,9 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
       }
 
       const meetingDate = meeting.meeting_date ?? "";
-      const offsetDays = dist.startOffsetDays ?? 15;
+      const offsetDays = distribution.startOffsetDays ?? 15;
 
-      if (!force && !isInWindow(meetingDate, offsetDays)) {
+      if (!isForce && !isInWindow(meetingDate, offsetDays)) {
         results.push({
           meetingId,
           ticker,
@@ -301,7 +318,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         continue;
       }
 
-      if (!force && alreadySentToday(dist.lastSentAt)) {
+      if (!isForce && alreadySentToday(distribution.lastSentAt)) {
         results.push({
           meetingId,
           ticker,
@@ -328,7 +345,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         user_id: userId,
         meeting_id: meetingId,
         title: "Daily Tabulation Report Available",
-        message: `Today's tabulation report for ${meeting.title ?? ticker} is ready. ${daysUntil} day${daysUntil !== 1 ? "s" : ""} until the meeting.`,
+        message: `Today's tabulation report for ${meeting.title ?? ticker} is ready. ${daysUntil} day${daysUntil === 1 ? "" : "s"} until the meeting.`,
         type: "info" as const,
         priority: "medium" as const,
         action_url: actionUrl,
@@ -342,14 +359,14 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         const { error: insertError } = await supabase
           .from("notification")
           .insert(notificationRows);
-        if (!insertError) {
-          notificationsCreated = notificationRows.length;
-        } else {
+        if (insertError) {
           notificationError = insertError.message;
+        } else {
+          notificationsCreated = notificationRows.length;
         }
       }
 
-      const recipients = dist.recipients ?? [];
+      const recipients = distribution.recipients ?? [];
       let emailsSent = 0;
 
       if (recipients.length > 0) {
@@ -394,14 +411,16 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         }
       }
 
-      const updatedDist: TabulationDistribution = {
-        ...dist,
+      const updatedDistribution: TabulationDistribution = {
+        ...distribution,
         lastSentAt: new Date().toISOString(),
       };
       await supabase
         .from("meeting")
         .update({
-          tabulation_distribution: JSON.parse(JSON.stringify(updatedDist)),
+          tabulation_distribution: JSON.parse(
+            JSON.stringify(updatedDistribution)
+          ),
         })
         .eq("id", meetingId);
 
@@ -411,9 +430,9 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
         notificationsCreated,
         emailsSent,
         emailRecipients: recipients,
-        ...(notificationError
-          ? { skipped: `notification insert failed: ${notificationError}` }
-          : {}),
+        ...(notificationError && {
+          skipped: `notification insert failed: ${notificationError}`,
+        }),
       });
     }
 
@@ -431,7 +450,7 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
         },
         { status: 500 }
       )
@@ -440,11 +459,11 @@ async function handleDistribute(request: NextRequest): Promise<NextResponse> {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  return handleDistribute(request);
+  return await handleDistribute(request);
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  return handleDistribute(request);
+  return await handleDistribute(request);
 }
 
 export function OPTIONS() {

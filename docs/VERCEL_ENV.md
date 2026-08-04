@@ -25,6 +25,29 @@ Do **not** use `issuer-portal-mock-api-server.vercel.app` (404) or `mock-api-ser
 
 After changing production variables, **redeploy issuer-portal** so `NEXT_PUBLIC_*` values are baked into the client bundle.
 
+## Sentry (issuer-portal)
+
+Errors, tracing and Session Replay report to the `rolemodel-software` / `issuer-portal` Sentry project. The DSN is committed as a fallback in `instrumentation-client.ts` / `sentry.server.config.ts` / `sentry.edge.config.ts` — a DSN is a public write-only ingest key, so no environment variable is needed just to report events.
+
+Sentry is enabled automatically in preview and production builds. It is disabled for local `next dev` by default so Fast Refresh and compiler errors do not flood the shared project. To deliberately test local reporting, set `NEXT_PUBLIC_SENTRY_ENABLED=true` for browser events and `SENTRY_ENABLED=true` for server/edge events in `issuer-portal/.env.local`.
+
+Source map upload is the part that needs a secret:
+
+| Variable | Where | Notes |
+| --- | --- | --- |
+| `SENTRY_AUTH_TOKEN` | Vercel env + local `issuer-portal/.env.sentry-build-plugin` | Build-time only. Never committed — the filename is gitignored |
+| `SENTRY_ORG` | optional | Defaults to `rolemodel-software` in `next.config.ts` |
+| `SENTRY_PROJECT` | optional | Defaults to `issuer-portal` |
+
+Generate or rotate the token at <https://rolemodel-software.sentry.io/settings/auth-tokens/> with the `project:releases` scope (add `project:read` if you also want to query issues over the API — the token `sentry wizard` creates does not have it).
+
+Two gotchas that cost real time:
+
+- **The plugin reads `.env.sentry-build-plugin` relative to the build's working directory**, which is `issuer-portal/`. `sentry wizard` writes it to the repo root, where the build never looks — hence "No auth token provided. Will not upload source maps." Copy it into `issuer-portal/`.
+- **Turborepo filters the environment.** `SENTRY_AUTH_TOKEN` is listed in `passThroughEnv` in `turbo.json` so it reaches the build without becoming part of the cache key. Remove it from there and the token silently stops arriving on CI.
+
+Build output is quiet unless `CI` is set (`silent: !process.env.CI`), so to confirm uploads locally run `CI=1 pnpm --filter issuer-portal run build` and look for "Successfully uploaded source maps to Sentry".
+
 ## mock-api-server — required variables
 
 | Variable                    | Correct value                              |

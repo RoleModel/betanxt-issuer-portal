@@ -3,8 +3,7 @@
 import type { User } from "next-auth";
 
 import NotificationsOutlined from "@mui/icons-material/NotificationsOutlined";
-import { Badge, IconButton, Typography } from "@mui/material";
-import { Box } from "@mui/material";
+import { Badge, Box, IconButton, Typography } from "@mui/material";
 import { BNAppBar } from "@rolemodel/betanxt-design-system/components/app-bar/BNAppBar";
 import { BNLogo } from "@rolemodel/betanxt-design-system/components/BNLogo";
 import Image from "next/image";
@@ -41,27 +40,25 @@ const NextImageComponent = React.memo(
 NextImageComponent.displayName = "NextImageComponent";
 
 interface BNAppBarWrapperProps {
-  title?: string;
-  logoImg?: React.ReactNode;
-  logoSrc?: string;
-  logoImgStyles?: React.CSSProperties;
-  color?: "primary" | "secondary";
-  tabPermissions?: Record<string, boolean>;
-  user?: User;
-  appSwitcher?: boolean;
+  readonly title?: string;
+  readonly logoImg?: React.ReactNode;
+  readonly logoSrc?: string;
+  readonly logoImgStyles?: React.CSSProperties;
+  readonly color?: "primary" | "secondary";
+  readonly tabPermissions?: Record<string, boolean>;
+  readonly user?: User;
+  readonly appSwitcher?: boolean;
 }
 
-export function BNAppBarClient(props: BNAppBarWrapperProps) {
+export const BNAppBarClient = (props: BNAppBarWrapperProps) => {
   return (
     <Suspense fallback={null}>
       <BNAppBarClientMemo {...props} />
     </Suspense>
   );
-}
+};
 
-const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
-  props: BNAppBarWrapperProps
-) {
+const BNAppBarClientMemo = (props: BNAppBarWrapperProps) => {
   const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
   const {
@@ -90,13 +87,14 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
     () => (
       <>
         <IconButton
+          color="inherit"
           ref={notificationButtonRef}
           onClick={handleNotificationClick}
           aria-label="notifications"
           disableRipple={false}
           disableTouchRipple={false}
         >
-          <Badge badgeContent={unreadCount} color="primary">
+          <Badge badgeContent={unreadCount} color="error">
             <NotificationsOutlined />
           </Badge>
         </IconButton>
@@ -157,16 +155,11 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
   return (
     <Box onClick={handleWrapperClick}>
       <BNAppBar {...appBarProps}>
-        {props.appSwitcher && (
-          <Box
-            aria-label="Client and Application Switcher"
-            role="complementary"
-          >
-            <ClientAppSwitcher />
-          </Box>
-        )}
+        <Box aria-label="Client and Application Switcher">
+          <ClientAppSwitcher />
+        </Box>
       </BNAppBar>
-      {!!currentMeetingId && (
+      {!(currentMeetingId == null) && (
         <Box
           sx={{
             paddingInline: 3,
@@ -193,7 +186,7 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
                     : theme.vars.palette.warning.contrastText,
             }}
           >
-            {meetingStatus === "COMPLETE" && meetingDateLabel
+            {meetingStatus === "COMPLETE" && meetingDateLabel != null
               ? `You are viewing a past meeting from ${meetingDateLabel}.`
               : !meetingStatus || meetingStatus === "ACTIVE"
                 ? "You are viewing an active meeting."
@@ -203,6 +196,6 @@ const BNAppBarClientMemo = React.memo(function BNAppBarClientComponent(
       )}
     </Box>
   );
-});
+};
 
 export { BNAppBar };

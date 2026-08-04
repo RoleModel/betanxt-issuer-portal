@@ -56,7 +56,7 @@ interface ParsedAttendee {
 
 // Function to parse CSV or Excel files
 const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -206,7 +206,22 @@ const parseFile = async (file: File): Promise<ParsedAttendee[]> => {
   });
 };
 
-export default function GuestsPage() {
+const getRegistrantTypeColor = (
+  type: string
+): "primary" | "secondary" | "info" | "default" => {
+  switch (type) {
+    case "Shareholder":
+      return "primary";
+    case "Proxy":
+      return "secondary";
+    case "Guest":
+      return "info";
+    default:
+      return "default";
+  }
+};
+
+const GuestsPage = () => {
   const { currentMeeting } = useMeeting();
   const { attendees, error, isLoading, uploadAttendees } =
     useDigitalShareholderMeeting(currentMeeting?.id);
@@ -272,19 +287,6 @@ export default function GuestsPage() {
     setUploadDialogOpen(true);
   }, []);
 
-  const getRegistrantTypeColor = (type: string) => {
-    switch (type) {
-      case "Shareholder":
-        return "primary";
-      case "Proxy":
-        return "secondary";
-      case "Guest":
-        return "info";
-      default:
-        return "default";
-    }
-  };
-
   const hasAttendees = attendees && attendees.length > 0;
 
   if (isLoading) {
@@ -309,7 +311,9 @@ export default function GuestsPage() {
             <Button
               variant="contained"
               startIcon={<FileUploadOutlined />}
-              onClick={() => setUploadDialogOpen(true)}
+              onClick={() => {
+                setUploadDialogOpen(true);
+              }}
             >
               Upload Attendees
             </Button>
@@ -324,7 +328,9 @@ export default function GuestsPage() {
               <Button
                 variant="contained"
                 startIcon={<FileUploadOutlined />}
-                onClick={() => setUploadDialogOpen(true)}
+                onClick={() => {
+                  setUploadDialogOpen(true);
+                }}
               >
                 Upload
               </Button>
@@ -386,21 +392,23 @@ export default function GuestsPage() {
         documentType="digital-shareholder-meeting"
       />
 
-      {uploadError && (
+      {uploadError ? (
         <Alert
           severity="error"
           sx={{ mt: 2 }}
-          onClose={() => setUploadError(null)}
+          onClose={() => {
+            setUploadError(null);
+          }}
         >
           {uploadError}
         </Alert>
-      )}
+      ) : null}
 
-      {uploadSuccess && (
+      {uploadSuccess ? (
         <Alert severity="success" sx={{ mt: 2 }}>
           Attendees uploaded successfully!
         </Alert>
-      )}
+      ) : null}
 
       <Dialog
         open={previewDialogOpen}
@@ -423,8 +431,10 @@ export default function GuestsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {previewData?.map((row, index) => (
-                  <TableRow key={index}>
+                {previewData?.map((row) => (
+                  <TableRow
+                    key={`${row.emailAddress}-${row.firstName}-${row.lastName}-${row.registrantType}`}
+                  >
                     <TableCell>{row.registrantType}</TableCell>
                     <TableCell>{row.firstName}</TableCell>
                     <TableCell>{row.lastName}</TableCell>
@@ -444,4 +454,6 @@ export default function GuestsPage() {
       </Dialog>
     </Container>
   );
-}
+};
+
+export default GuestsPage;

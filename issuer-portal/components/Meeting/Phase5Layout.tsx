@@ -3,7 +3,7 @@
 import { CalendarMonthOutlined } from "@mui/icons-material";
 import { Box, Grid, Stack } from "@mui/material";
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 
 import type { Meeting } from "@/types/api-exports";
 
@@ -16,12 +16,12 @@ import VotingSharesCard from "@/components/Meeting/VotingSharesCard";
 import KeyDatesCard from "./KeyDatesCard";
 
 interface Phase5LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
-  phase?: number;
+  readonly meetingId?: string;
+  readonly meeting?: Meeting;
+  readonly phase?: number;
 }
 
-function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) {
+const Phase5Layout = ({ meetingId, meeting }: Phase5LayoutProps) => {
   return (
     <Box display="flex" flexDirection="column" gap={3}>
       <Suspense>
@@ -35,7 +35,7 @@ function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) {
             useFlexGap={true}
           >
             <MeetingDocuments meetingId={meetingId} meeting={meeting} />
-            {meetingId && <VotingSharesCard meetingId={meetingId} />}
+            {meetingId ? <VotingSharesCard meetingId={meetingId} /> : null}
           </Stack>
         </Grid>
 
@@ -72,6 +72,6 @@ function Phase5Layout({ meetingId, meeting }: Phase5LayoutProps) {
       </Grid>
     </Box>
   );
-}
+};
 
 export default Phase5Layout;

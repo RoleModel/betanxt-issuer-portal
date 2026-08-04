@@ -117,7 +117,9 @@ const TaskActions: React.FC<TaskActionsProps> = ({
         return isClickable ? (
           <Link
             key={linkIndex}
-            onClick={() => onLinkClick(link)}
+            onClick={() => {
+              onLinkClick(link);
+            }}
             sx={{ cursor: "pointer" }}
           >
             {link.label}

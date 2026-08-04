@@ -11,6 +11,8 @@ import type { FileUploadProps, UploadFile } from "./types";
 
 import { DEFAULT_ACCEPTED_TYPES, DEFAULT_MAX_SIZE } from "./types";
 
+const EMPTY_UPLOAD_FILES: UploadFile[] = [];
+
 const BNFileUpload: React.FC<FileUploadProps> = ({
   maxFiles = 5,
   maxSize = DEFAULT_MAX_SIZE,
@@ -21,7 +23,7 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
   onFileStateChange,
   disabled = false,
   multiple = true,
-  uploadedFiles = [],
+  uploadedFiles = EMPTY_UPLOAD_FILES,
   dsmDocumentOptions = [],
   onFileAssociationChange,
 }) => {
@@ -161,7 +163,7 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
   return (
     <Stack spacing={2}>
       {/* Dropzone - only show if we can add more files */}
-      {canAddMore && (
+      {canAddMore ? (
         <BNFileDropzone
           onFilesSelected={handleFilesSelected}
           onFileRejections={handleFileRejections}
@@ -172,10 +174,10 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
           multiple={multiple}
           hasUnsupportedFiles={hasUnsupportedFiles}
         />
-      )}
+      ) : null}
 
       {/* File Previews */}
-      {hasFiles && (
+      {hasFiles ? (
         <Stack spacing={2}>
           {files.map((file) => (
             <BNFilePreview
@@ -188,7 +190,7 @@ const BNFileUpload: React.FC<FileUploadProps> = ({
             />
           ))}
         </Stack>
-      )}
+      ) : null}
     </Stack>
   );
 };

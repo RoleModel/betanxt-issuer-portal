@@ -32,28 +32,40 @@ export function isIssuerUser(
   }
 
   const role = normalizeRole(user.type);
-  if (role === "ISSUER") return true;
+  if (role === "ISSUER") {
+    return true;
+  }
 
-  if (user.roles?.some((r) => normalizeRole(r) === "ISSUER")) return true;
+  if (user.roles?.some((r) => normalizeRole(r) === "ISSUER")) {
+    return true;
+  }
 
-  if (user.username && ISSUER_USERNAMES.has(user.username)) return true;
+  if (user.username && ISSUER_USERNAMES.has(user.username)) {
+    return true;
+  }
 
-  if (role && MULTI_CLIENT_ROLES.has(role)) return false;
+  if (role && MULTI_CLIENT_ROLES.has(role)) {
+    return false;
+  }
 
   const homeTicker = user.client_ticker?.trim();
-  if (!homeTicker) return false;
+  if (!homeTicker) {
+    return false;
+  }
 
   const assigned = user.clientTickers ?? [];
-  if (assigned.length === 0) return true;
-  if (assigned.length === 1 && assigned[0] === homeTicker) return true;
-
-  return false;
+  if (assigned.length === 0) {
+    return true;
+  }
+  return assigned.length === 1 && assigned[0] === homeTicker;
 }
 
 export function canUserSwitchClients(
   user: IssuerSessionUser | null | undefined
 ): boolean {
-  if (isIssuerUser(user)) return false;
+  if (isIssuerUser(user)) {
+    return false;
+  }
 
   const role = normalizeRole(user?.type);
   if (
@@ -66,7 +78,9 @@ export function canUserSwitchClients(
     return true;
   }
 
-  if (process.env.NEXT_PUBLIC_BYPASS_AUTH !== "true") return false;
+  if (process.env.NEXT_PUBLIC_BYPASS_AUTH !== "true") {
+    return false;
+  }
 
   if (!user) {
     const bypassRole = normalizeRole(process.env.NEXT_PUBLIC_BYPASS_USER_ROLE);

@@ -62,7 +62,7 @@ test.describe("User Model", () => {
       "spaces in@email.com",
     ];
 
-    invalidEmails.forEach((email) => {
+    for (const email of invalidEmails) {
       const userData = {
         username: "test.user",
         firstName: "Test",
@@ -75,7 +75,7 @@ test.describe("User Model", () => {
 
       // Should fail validation for invalid email formats
       expect(userData.email).toBe(email);
-    });
+    }
   });
 
   test("should validate UserType enum values", () => {
@@ -111,7 +111,7 @@ test.describe("User Model", () => {
       "abc", // Too short
     ];
 
-    weakPasswords.forEach((password) => {
+    for (const password of weakPasswords) {
       const userData = {
         username: "test.user",
         firstName: "Test",
@@ -124,7 +124,7 @@ test.describe("User Model", () => {
 
       // Should fail validation for weak passwords
       expect(userData.password.length).toBeLessThanOrEqual(8);
-    });
+    }
   });
 
   test("should allow optional accountId for system admins", () => {

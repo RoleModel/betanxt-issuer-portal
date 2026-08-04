@@ -18,7 +18,7 @@ declare module "*.css" {
 }
 
 declare module "@mui/material/Typography" {
-  interface TypographyPropsVariantOverrides {
+  interface TypographyPropertiesVariantOverrides {
     appTitle: true;
     body3: true;
     condensed: true;

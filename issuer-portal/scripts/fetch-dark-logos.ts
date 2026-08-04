@@ -5,9 +5,8 @@
  * Requires BRANDFETCH_API_KEY in issuer-portal/.env
  */
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 
-import { type BrandConfig, brandConfigs } from "../utils/brandConfig";
+import { brandConfigs } from "../utils/brandConfig";
 import {
   BRANDFETCH_API_KEY,
   darkAssetPublicPath,
@@ -18,9 +17,10 @@ import {
   usesBrandsFolder,
 } from "./brandfetch-utils";
 import { writeBrandConfigFile } from "./write-brand-config";
+import type { BrandConfig } from "../utils/brandConfig";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
 const CONFIG_PATH = path.resolve(__dirname, "../utils/brandConfig.ts");
 const PUBLIC_LOGOS = path.resolve(__dirname, "../public/logos");
 
@@ -28,11 +28,13 @@ async function downloadDarkAsset(
   format: { src: string; format: string } | null,
   publicPath: string
 ): Promise<string | null> {
-  if (!format) return null;
+  if (!format) {
+    return null;
+  }
   const rel = publicPath.replace(/^\//, "");
-  const destPath = path.join(PUBLIC_LOGOS, rel.replace(/^logos\//, ""));
-  const ok = await downloadFile(format.src, destPath);
-  return ok ? publicPath : null;
+  const destinationPath = path.join(PUBLIC_LOGOS, rel.replace(/^logos\//, ""));
+  const isOk = await downloadFile(format.src, destinationPath);
+  return isOk ? publicPath : null;
 }
 
 async function main(): Promise<void> {
@@ -46,30 +48,30 @@ async function main(): Promise<void> {
   let skipped = 0;
 
   const entries = Object.entries(brandConfigs);
-  for (let i = 0; i < entries.length; i++) {
-    const [company, cfg] = entries[i];
-    console.log(`[${i + 1}/${entries.length}] ${company}`);
+  for (let index = 0; index < entries.length; index++) {
+    const [company, config] = entries[index];
+    console.log(`[${index + 1}/${entries.length}] ${company}`);
 
-    if (!cfg.domain) {
+    if (!config.domain) {
       console.warn("  No domain — skipping");
       skipped++;
       continue;
     }
 
-    const brand = await fetchBrand(cfg.domain, BRANDFETCH_API_KEY);
+    const brand = await fetchBrand(config.domain, BRANDFETCH_API_KEY);
     if (!brand?.logos?.length) {
-      console.warn(`  No brand data for ${cfg.domain}`);
+      console.warn(`  No brand data for ${config.domain}`);
       skipped++;
       continue;
     }
 
     const base = inferAssetBase(
-      cfg.logoPath,
-      cfg.iconPath,
-      cfg.ticker,
+      config.logoPath,
+      config.iconPath,
+      config.ticker,
       company
     );
-    const inBrands = usesBrandsFolder(cfg.logoPath, cfg.iconPath);
+    const isInBrands = usesBrandsFolder(config.logoPath, config.iconPath);
 
     const darkFull =
       pickBestLogo(brand.logos, "logo", "dark") ??
@@ -78,15 +80,14 @@ async function main(): Promise<void> {
       pickBestLogo(brand.logos, "icon", "dark") ??
       pickBestLogo(brand.logos, "symbol", "dark");
 
-    let headerLogoPath = cfg.headerLogoPath;
-    let headerIconPath = cfg.headerIconPath;
+    let { headerLogoPath, headerIconPath } = config;
 
     if (darkFull) {
       const publicPath = darkAssetPublicPath(
         base,
         "logo",
         darkFull.format === "svg" ? "svg" : "png",
-        inBrands
+        isInBrands
       );
       const saved = await downloadDarkAsset(darkFull, publicPath);
       if (saved) {
@@ -100,7 +101,7 @@ async function main(): Promise<void> {
         base,
         "icon",
         darkIcon.format === "svg" ? "svg" : "png",
-        inBrands
+        isInBrands
       );
       const saved = await downloadDarkAsset(darkIcon, publicPath);
       if (saved) {
@@ -111,9 +112,9 @@ async function main(): Promise<void> {
 
     if (headerLogoPath || headerIconPath) {
       updated[company] = {
-        ...cfg,
-        headerLogoPath: headerLogoPath ?? cfg.headerLogoPath,
-        headerIconPath: headerIconPath ?? cfg.headerIconPath,
+        ...config,
+        headerLogoPath: headerLogoPath ?? config.headerLogoPath,
+        headerIconPath: headerIconPath ?? config.headerIconPath,
       };
       fetched++;
     } else {

@@ -40,9 +40,9 @@ interface PopulationState {
 
 interface GeoHeatmapCardProps {
   /** Meeting whose positions are aggregated; no data is shown when omitted. */
-  meetingId?: string;
+  readonly meetingId?: string;
   /** Card subheader; defaults to the chart description when unset. */
-  subheader?: string;
+  readonly subheader?: string;
 }
 
 const METRIC_LABELS: Record<GeoMetric, string> = {
@@ -122,10 +122,10 @@ const getCategoryMetricValue = (
  * Renders a skeleton while loading, the fetch error when one occurs, and an
  * empty state when no positions match the selected populations.
  */
-export function GeoHeatmapCard({
+export const GeoHeatmapCard = ({
   meetingId,
   subheader = "Holder locations by US state, with international and unknown buckets",
-}: GeoHeatmapCardProps) {
+}: GeoHeatmapCardProps) => {
   const { mode, systemMode } = useColorScheme();
   const { isEnabled } = useClientFeatures();
   const hasNoboFeature = isEnabled("nobo");
@@ -264,7 +264,9 @@ export function GeoHeatmapCard({
                 <Checkbox
                   size="small"
                   checked={populations.registered}
-                  onChange={() => handlePopulationToggle("registered")}
+                  onChange={() => {
+                    handlePopulationToggle("registered");
+                  }}
                 />
               }
               label="Registered"
@@ -274,7 +276,9 @@ export function GeoHeatmapCard({
                 <Checkbox
                   size="small"
                   checked={populations.plan}
-                  onChange={() => handlePopulationToggle("plan")}
+                  onChange={() => {
+                    handlePopulationToggle("plan");
+                  }}
                 />
               }
               label="Plan"
@@ -284,23 +288,27 @@ export function GeoHeatmapCard({
                 <Checkbox
                   size="small"
                   checked={populations.beneficial}
-                  onChange={() => handlePopulationToggle("beneficial")}
+                  onChange={() => {
+                    handlePopulationToggle("beneficial");
+                  }}
                 />
               }
               label="Beneficial"
             />
-            {hasNoboFeature && (
+            {hasNoboFeature ? (
               <FormControlLabel
                 control={
                   <Checkbox
                     size="small"
                     checked={populations.nobo}
-                    onChange={() => handlePopulationToggle("nobo")}
+                    onChange={() => {
+                      handlePopulationToggle("nobo");
+                    }}
                   />
                 }
                 label="NOBO"
               />
-            )}
+            ) : null}
           </FormGroup>
         </Stack>
 
@@ -379,4 +387,4 @@ export function GeoHeatmapCard({
       </CardContent>
     </Card>
   );
-}
+};

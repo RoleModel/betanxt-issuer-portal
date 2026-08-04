@@ -1,6 +1,5 @@
-import type { FetchResponse } from "openapi-fetch";
-
 import createClient from "openapi-fetch";
+import type { FetchResponse } from "openapi-fetch";
 
 import type { paths } from "../types/api";
 
@@ -41,23 +40,21 @@ export const auth = {
     return result;
   },
 
-  async getCurrentUser(): Promise<FetchResponse<paths["/auth/me"]["get"]>> {
-    return await apiClient.GET("/auth/me");
-  },
+  getCurrentUser: async (): Promise<FetchResponse<paths["/auth/me"]["get"]>> =>
+    await apiClient.GET("/auth/me"),
 };
 
 export const users = {
-  async list(params?: {
+  list: async (parameters?: {
     page?: number;
     limit?: number;
     role?: string;
-  }): Promise<FetchResponse<paths["/users"]["get"]>> {
-    return await apiClient.GET("/users", {
-      params: { query: params },
-    });
-  },
+  }): Promise<FetchResponse<paths["/users"]["get"]>> =>
+    await apiClient.GET("/users", {
+      params: { query: parameters },
+    }),
 
-  async create(userData: {
+  create: async (userData: {
     username: string;
     firstName: string;
     lastName: string;
@@ -65,21 +62,19 @@ export const users = {
     password: string;
     type: "ADMIN" | "ISSUER" | "RELATIONSHIP_MANAGER";
     accountId?: string;
-  }): Promise<FetchResponse<paths["/users"]["post"]>> {
-    return await apiClient.POST("/users", {
+  }): Promise<FetchResponse<paths["/users"]["post"]>> =>
+    await apiClient.POST("/users", {
       body: userData,
-    });
-  },
+    }),
 
-  async getById(
+  getById: async (
     id: string
-  ): Promise<FetchResponse<paths["/users/{id}"]["get"]>> {
-    return await apiClient.GET("/users/{id}", {
+  ): Promise<FetchResponse<paths["/users/{id}"]["get"]>> =>
+    await apiClient.GET("/users/{id}", {
       params: { path: { id } },
-    });
-  },
+    }),
 
-  async update(
+  update: async (
     id: string,
     userData: {
       firstName?: string;
@@ -88,24 +83,22 @@ export const users = {
       type?: "ADMIN" | "ISSUER" | "RELATIONSHIP_MANAGER";
       accountId?: string;
     }
-  ): Promise<FetchResponse<paths["/users/{id}"]["put"]>> {
-    return await apiClient.PUT("/users/{id}", {
+  ): Promise<FetchResponse<paths["/users/{id}"]["put"]>> =>
+    await apiClient.PUT("/users/{id}", {
       params: { path: { id } },
       body: userData,
-    });
-  },
+    }),
 
-  async delete(
+  delete: async (
     id: string
-  ): Promise<FetchResponse<paths["/users/{id}"]["delete"]>> {
-    return await apiClient.DELETE("/users/{id}", {
+  ): Promise<FetchResponse<paths["/users/{id}"]["delete"]>> =>
+    await apiClient.DELETE("/users/{id}", {
       params: { path: { id } },
-    });
-  },
+    }),
 };
 
 export const meetings = {
-  async list(params?: {
+  list: async (parameters?: {
     page?: number;
     limit?: number;
     status?: "ACTIVE" | "ADJOURNED" | "COMPLETE";
@@ -113,13 +106,12 @@ export const meetings = {
     meetingYear?: number;
     cusip?: string;
     ticker?: string;
-  }): Promise<FetchResponse<paths["/meetings"]["get"]>> {
-    return await apiClient.GET("/meetings", {
-      params: { query: params },
-    });
-  },
+  }): Promise<FetchResponse<paths["/meetings"]["get"]>> =>
+    await apiClient.GET("/meetings", {
+      params: { query: parameters },
+    }),
 
-  async create(meetingData: {
+  create: async (meetingData: {
     id: string;
     title: string;
     cusip: string;
@@ -140,21 +132,19 @@ export const meetings = {
     planAdministratorContactEmail?: string;
     solicitor?: string;
     solicitorEmail?: string;
-  }): Promise<FetchResponse<paths["/meetings"]["post"]>> {
-    return await apiClient.POST("/meetings", {
+  }): Promise<FetchResponse<paths["/meetings"]["post"]>> =>
+    await apiClient.POST("/meetings", {
       body: meetingData,
-    });
-  },
+    }),
 
-  async getById(
+  getById: async (
     id: string
-  ): Promise<FetchResponse<paths["/meetings/{meetingId}"]["get"]>> {
-    return await apiClient.GET("/meetings/{meetingId}", {
+  ): Promise<FetchResponse<paths["/meetings/{meetingId}"]["get"]>> =>
+    await apiClient.GET("/meetings/{meetingId}", {
       params: { path: { meetingId: id } },
-    });
-  },
+    }),
 
-  async update(
+  update: async (
     id: string,
     meetingData: {
       title?: string;
@@ -181,20 +171,18 @@ export const meetings = {
       totalSharesOutstanding?: string;
       quorumRequirement?: number;
     }
-  ): Promise<FetchResponse<paths["/meetings/{meetingId}"]["put"]>> {
-    return await apiClient.PUT("/meetings/{meetingId}", {
+  ): Promise<FetchResponse<paths["/meetings/{meetingId}"]["put"]>> =>
+    await apiClient.PUT("/meetings/{meetingId}", {
       params: { path: { meetingId: id } },
       body: meetingData,
-    });
-  },
+    }),
 
-  async delete(
+  delete: async (
     id: string
-  ): Promise<FetchResponse<paths["/meetings/{meetingId}"]["delete"]>> {
-    return await apiClient.DELETE("/meetings/{meetingId}", {
+  ): Promise<FetchResponse<paths["/meetings/{meetingId}"]["delete"]>> =>
+    await apiClient.DELETE("/meetings/{meetingId}", {
       params: { path: { meetingId: id } },
-    });
-  },
+    }),
 };
 
 // Add more API methods as needed for accounts, phases, tasks, documents, etc.

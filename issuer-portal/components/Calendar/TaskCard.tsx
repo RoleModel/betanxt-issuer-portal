@@ -28,17 +28,17 @@ import type { Task } from "@/types/api-exports";
 import StatusChip from "@/components/ui/StatusChip";
 
 interface TaskCardProps {
-  task: Task;
-  phase?: number;
-  phaseColor?: string; // Direct phase color to use
-  variant?: "compact" | "expanded";
-  onClick?: () => void;
-  onContextMenu?: (event: React.MouseEvent) => void;
-  showPhaseIndicator?: boolean;
-  isKeyDate?: boolean;
-  isMeetingDate?: boolean;
-  isActualKeyDate?: boolean; // True when this is an actual key date, not a task
-  sx?: SxProps<Theme>; // Allow custom styles
+  readonly task: Task;
+  readonly phase?: number;
+  readonly phaseColor?: string; // Direct phase color to use
+  readonly variant?: "compact" | "expanded";
+  readonly onClick?: () => void;
+  readonly onContextMenu?: (event: React.MouseEvent) => void;
+  readonly showPhaseIndicator?: boolean;
+  readonly isKeyDate?: boolean;
+  readonly isMeetingDate?: boolean;
+  readonly isActualKeyDate?: boolean; // True when this is an actual key date, not a task
+  readonly sx?: SxProps<Theme>; // Allow custom styles
 }
 
 // Helper functions for complex styling logic
@@ -211,300 +211,349 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   isActualKeyDate = false,
   sx,
 }) => {
-  // Use theme.vars.palette.phase directly in sx functions
-
   if (variant === "compact") {
     return (
-      <Card
-        tabIndex={onClick ? 0 : -1}
-        sx={{
-          cursor: onClick ? "pointer" : "default",
-          mb: 0.5,
-          background: (theme) =>
-            getTaskBackground(theme, task, isMeetingDate, isKeyDate),
-          boxShadow: (theme) =>
-            isKeyDate || isMeetingDate
-              ? "none"
-              : `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
-          borderLeft: (theme) =>
-            getTaskBorderLeft(
-              theme,
-              task,
-              isMeetingDate,
-              isActualKeyDate,
-              isKeyDate,
-              phase
-            ),
-          transition: (theme) => theme.transitions.create(["background-color"]),
-          borderRadius: 1,
-          "&:hover": {
-            backgroundColor: (theme) =>
-              getTaskHoverBackground(
-                theme,
-                task,
-                isActualKeyDate,
-                isKeyDate,
-                isMeetingDate
-              ),
-          },
-          ...sx, // Apply custom styles
-        }}
+      <CompactTaskCard
+        task={task}
+        phase={phase}
         onClick={onClick}
         onContextMenu={onContextMenu}
-      >
-        <CardContent sx={{ p: 1, "&:last-child": { pb: 1 } }}>
-          <Typography
-            variant="caption"
-            sx={{
-              fontWeight: 500,
-              ...textTruncationStyles,
-              mb: 0.25,
-              ...getCompletionStyles(task.status),
-              color: (theme) =>
-                getTaskTextColor(theme, task, isMeetingDate, isKeyDate),
-            }}
-          >
-            {task.title}
-          </Typography>{" "}
-          {!isActualKeyDate && task.owner && (
-            <Typography
-              variant="caption"
-              className="owner-text"
-              sx={{
-                fontSize: "0.725rem",
-                ...textTruncationStyles,
-                ...getCompletionStyles(task.status),
-                color: (theme) =>
-                  getTaskTextColor(theme, task, isMeetingDate, isKeyDate, true),
-                mb: 0.25,
-              }}
-            >
-              {task.owner}
-            </Typography>
-          )}
-          {!isActualKeyDate && (
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <StatusChip
-                status={task.status || null}
-                size="small"
-                sx={{
-                  fontSize: "0.7rem",
-                  height: 18,
-                  ...(isKeyDate
-                    ? {
-                        backgroundColor:
-                          task.status === "COMPLETE" ||
-                          task.status === "AUTHORIZED"
-                            ? (theme) => theme.vars?.palette.keydate.dark
-                            : "transparent",
-                        color:
-                          task.status === "COMPLETE" ||
-                          task.status === "AUTHORIZED"
-                            ? "white"
-                            : (theme) =>
-                                theme.vars?.palette.keydate.contrastText,
-                        border:
-                          task.status === "COMPLETE" ||
-                          task.status === "AUTHORIZED"
-                            ? "none"
-                            : (theme) =>
-                                `1px solid ${theme.vars?.palette.keydate.contrastText}`,
-                      }
-                    : isMeetingDate
-                      ? {
-                          backgroundColor:
-                            task.status === "COMPLETE" ||
-                            task.status === "AUTHORIZED"
-                              ? (theme) => theme.vars?.palette.complete
-                              : "rgba(255,255,255,0.2)",
-                          color: "white",
-                          border:
-                            task.status === "COMPLETE" ||
-                            task.status === "AUTHORIZED"
-                              ? "none"
-                              : "1px solid white",
-                        }
-                      : {}),
-                }}
-              />
-            </Box>
-          )}
-        </CardContent>
-      </Card>
+        isKeyDate={isKeyDate}
+        isMeetingDate={isMeetingDate}
+        isActualKeyDate={isActualKeyDate}
+        sx={sx}
+      />
     );
   }
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        cursor: onClick ? "pointer" : "default",
-        mb: 2,
-        background: (theme) => theme.vars?.palette?.tableCellRow.fill,
-        boxShadow: (theme) =>
-          `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
-        borderLeft: (theme) =>
-          task.status === "COMPLETE" || task.status === "AUTHORIZED"
-            ? `4px solid ${theme.vars?.palette.complete}`
-            : showPhaseIndicator && phase
-              ? `4px solid ${theme.vars.palette.phase[phase - 1]?.main}`
-              : "none",
-
-        "&:hover": onClick
-          ? {
-              transform: "translateY(-1px)",
-              transition: "all 0.2s ease-in-out",
-            }
-          : {},
-      }}
+    <ExpandedTaskCard
+      task={task}
+      phase={phase}
       onClick={onClick}
       onContextMenu={onContextMenu}
-    >
-      <CardContent>
-        {/* Header with title and status */}
-        <Box
-          display="flex"
-          alignItems="flex-start"
-          justifyContent="space-between"
-          mb={1}
-        >
-          <Box display="flex" alignItems="center" gap={1} flexGrow={1}>
-            <TaskIcon
-              className="task-icon"
-              sx={(theme) => ({
-                color:
-                  showPhaseIndicator && phase
-                    ? theme.vars.palette.phase[phase - 1]?.main
-                    : "text.primary",
-                mt: 0.25,
-              })}
-            />
-            <Typography
-              variant="subtitle1"
-              fontWeight={600}
-              sx={{
-                textDecoration:
-                  task.status === "COMPLETE" || task.status === "AUTHORIZED"
-                    ? "line-through"
-                    : "none",
-                opacity:
-                  task.status === "COMPLETE" || task.status === "AUTHORIZED"
-                    ? 0.6
-                    : 1,
-              }}
-            >
-              {task.title}
-            </Typography>
-          </Box>
+      showPhaseIndicator={showPhaseIndicator}
+    />
+  );
+};
 
+interface CompactTaskCardProps {
+  readonly task: Task;
+  readonly phase?: number;
+  readonly onClick?: () => void;
+  readonly onContextMenu?: (event: React.MouseEvent) => void;
+  readonly isKeyDate: boolean;
+  readonly isMeetingDate: boolean;
+  readonly isActualKeyDate: boolean;
+  readonly sx?: SxProps<Theme>;
+}
+
+const CompactTaskCard: React.FC<CompactTaskCardProps> = ({
+  task,
+  phase,
+  onClick,
+  onContextMenu,
+  isKeyDate,
+  isMeetingDate,
+  isActualKeyDate,
+  sx,
+}) => (
+  <Card
+    tabIndex={onClick ? 0 : -1}
+    sx={{
+      cursor: onClick ? "pointer" : "default",
+      mb: 0.5,
+      background: (theme) =>
+        getTaskBackground(theme, task, isMeetingDate, isKeyDate),
+      boxShadow: (theme) =>
+        isKeyDate || isMeetingDate
+          ? "none"
+          : `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
+      borderLeft: (theme) =>
+        getTaskBorderLeft(
+          theme,
+          task,
+          isMeetingDate,
+          isActualKeyDate,
+          isKeyDate,
+          phase
+        ),
+      transition: (theme) => theme.transitions.create(["background-color"]),
+      borderRadius: 1,
+      "&:hover": {
+        backgroundColor: (theme) =>
+          getTaskHoverBackground(
+            theme,
+            task,
+            isActualKeyDate,
+            isKeyDate,
+            isMeetingDate
+          ),
+      },
+      ...sx, // Apply custom styles
+    }}
+    onClick={onClick}
+    onContextMenu={onContextMenu}
+  >
+    <CardContent sx={{ p: 1, "&:last-child": { pb: 1 } }}>
+      <Typography
+        variant="caption"
+        sx={{
+          fontWeight: 500,
+          ...textTruncationStyles,
+          mb: 0.25,
+          ...getCompletionStyles(task.status),
+          color: (theme) =>
+            getTaskTextColor(theme, task, isMeetingDate, isKeyDate),
+        }}
+      >
+        {task.title}
+      </Typography>{" "}
+      {!isActualKeyDate && task.owner ? (
+        <Typography
+          variant="caption"
+          className="owner-text"
+          sx={{
+            fontSize: "0.725rem",
+            ...textTruncationStyles,
+            ...getCompletionStyles(task.status),
+            color: (theme) =>
+              getTaskTextColor(theme, task, isMeetingDate, isKeyDate, true),
+            mb: 0.25,
+          }}
+        >
+          {task.owner}
+        </Typography>
+      ) : null}
+      {!isActualKeyDate && (
+        <Box display="flex" alignItems="center" justifyContent="space-between">
           <StatusChip
             status={task.status || null}
+            size="small"
             sx={{
-              ml: 2,
+              fontSize: "0.7rem",
+              height: 18,
+              ...(isKeyDate
+                ? {
+                    backgroundColor:
+                      task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                        ? (theme) => theme.vars?.palette.keydate.dark
+                        : "transparent",
+                    color:
+                      task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                        ? "white"
+                        : (theme) => theme.vars?.palette.keydate.contrastText,
+                    border:
+                      task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                        ? "none"
+                        : (theme) =>
+                            `1px solid ${theme.vars?.palette.keydate.contrastText}`,
+                  }
+                : isMeetingDate
+                  ? {
+                      backgroundColor:
+                        task.status === "COMPLETE" ||
+                        task.status === "AUTHORIZED"
+                          ? (theme) => theme.vars?.palette.complete
+                          : "rgba(255,255,255,0.2)",
+                      color: "white",
+                      border:
+                        task.status === "COMPLETE" ||
+                        task.status === "AUTHORIZED"
+                          ? "none"
+                          : "1px solid white",
+                    }
+                  : {}),
             }}
           />
         </Box>
+      )}
+    </CardContent>
+  </Card>
+);
 
-        {/* Description */}
-        <Typography
-          variant="body3"
-          color="text.secondary"
-          sx={{
-            mb: 2,
-            lineHeight: 1.5,
-            textDecoration:
-              task.status === "COMPLETE" ? "line-through" : "none",
-          }}
-        >
-          {task.description}
-        </Typography>
+interface ExpandedTaskCardProps {
+  readonly task: Task;
+  readonly phase?: number;
+  readonly onClick?: () => void;
+  readonly onContextMenu?: (event: React.MouseEvent) => void;
+  readonly showPhaseIndicator: boolean;
+}
 
-        {/* Task metadata */}
-        <Box
-          display="flex"
-          flexWrap="wrap"
-          gap={2}
-          mb={Array.isArray(task.links) && task.links.length ? 2 : 0}
-        >
-          {task.dueDate && (
-            <Box display="flex" alignItems="center" gap={0.5}>
-              <CalendarIcon fontSize="small" color="action" />
-              <Typography variant="body3" color="text.secondary">
-                Due: {task.dueDate}
-              </Typography>
-            </Box>
-          )}
+const ExpandedTaskCard: React.FC<ExpandedTaskCardProps> = ({
+  task,
+  phase,
+  onClick,
+  onContextMenu,
+  showPhaseIndicator,
+}) => (
+  <Card
+    variant="outlined"
+    sx={{
+      cursor: onClick ? "pointer" : "default",
+      mb: 2,
+      background: (theme) => theme.vars?.palette?.tableCellRow.fill,
+      boxShadow: (theme) =>
+        `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
+      borderLeft: (theme) =>
+        task.status === "COMPLETE" || task.status === "AUTHORIZED"
+          ? `4px solid ${theme.vars?.palette.complete}`
+          : showPhaseIndicator && phase
+            ? `4px solid ${theme.vars.palette.phase[phase - 1]?.main}`
+            : "none",
 
-          {task.owner && (
-            <Box display="flex" alignItems="center" gap={0.5}>
-              <PersonIcon fontSize="small" color="action" />
-              <Typography variant="body3" color="text.secondary">
-                {task.owner}
-              </Typography>
-            </Box>
-          )}
-
-          {task.type && (
-            <Chip
-              label={task.type}
-              size="small"
-              variant="outlined"
-              sx={{ height: 24 }}
-            />
-          )}
+      "&:hover": onClick
+        ? {
+            transform: "translateY(-1px)",
+            transition: "all 0.2s ease-in-out",
+          }
+        : {},
+    }}
+    onClick={onClick}
+    onContextMenu={onContextMenu}
+  >
+    <CardContent>
+      {/* Header with title and status */}
+      <Box
+        display="flex"
+        alignItems="flex-start"
+        justifyContent="space-between"
+        mb={1}
+      >
+        <Box display="flex" alignItems="center" gap={1} flexGrow={1}>
+          <TaskIcon
+            className="task-icon"
+            sx={(theme) => ({
+              color:
+                showPhaseIndicator && phase
+                  ? theme.vars.palette.phase[phase - 1]?.main
+                  : "text.primary",
+              mt: 0.25,
+            })}
+          />
+          <Typography
+            variant="subtitle1"
+            fontWeight={600}
+            sx={{
+              textDecoration:
+                task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                  ? "line-through"
+                  : "none",
+              opacity:
+                task.status === "COMPLETE" || task.status === "AUTHORIZED"
+                  ? 0.6
+                  : 1,
+            }}
+          >
+            {task.title}
+          </Typography>
         </Box>
 
-        {/* Action links */}
-        {Array.isArray(task.links) && task.links.length > 0 && (
-          <Box display="flex" flexWrap="wrap" gap={1}>
-            {task.links.map((link, index) => (
-              <Tooltip key={index} title={link.label}>
-                <IconButton
-                  size="small"
-                  sx={{
-                    border: "1px solid",
-                    borderColor: "divider",
-                    color: "primary.main",
-                    "&:hover": {
-                      backgroundColor: "primary.main",
-                      color: "primary.contrastText",
-                    },
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (link.url) {
-                      window.open(link.url, "_blank");
-                    }
-                  }}
-                >
-                  {getActionIcon(link.action ?? "external")}
-                </IconButton>
-              </Tooltip>
-            ))}
-          </Box>
-        )}
+        <StatusChip
+          status={task.status || null}
+          sx={{
+            ml: 2,
+          }}
+        />
+      </Box>
 
-        {/* Document links */}
-        {task.documentId && (
-          <Box mt={2}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              display="block"
-              mb={1}
-            >
-              Document ID: {task.documentId}
+      {/* Description */}
+      <Typography
+        variant="body3"
+        color="text.secondary"
+        sx={{
+          mb: 2,
+          lineHeight: 1.5,
+          textDecoration: task.status === "COMPLETE" ? "line-through" : "none",
+        }}
+      >
+        {task.description}
+      </Typography>
+
+      {/* Task metadata */}
+      <Box
+        display="flex"
+        flexWrap="wrap"
+        gap={2}
+        mb={Array.isArray(task.links) && task.links.length ? 2 : 0}
+      >
+        {task.dueDate ? (
+          <Box display="flex" alignItems="center" gap={0.5}>
+            <CalendarIcon fontSize="small" color="action" />
+            <Typography variant="body3" color="text.secondary">
+              Due: {task.dueDate}
             </Typography>
           </Box>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
+        ) : null}
+
+        {task.owner ? (
+          <Box display="flex" alignItems="center" gap={0.5}>
+            <PersonIcon fontSize="small" color="action" />
+            <Typography variant="body3" color="text.secondary">
+              {task.owner}
+            </Typography>
+          </Box>
+        ) : null}
+
+        {task.type ? (
+          <Chip
+            label={task.type}
+            size="small"
+            variant="outlined"
+            sx={{ height: 24 }}
+          />
+        ) : null}
+      </Box>
+
+      {/* Action links */}
+      {Array.isArray(task.links) && task.links.length > 0 && (
+        <Box display="flex" flexWrap="wrap" gap={1}>
+          {task.links.map((link) => (
+            <Tooltip
+              key={`${link.label ?? ""}-${link.url ?? ""}`}
+              title={link.label}
+            >
+              <IconButton
+                size="small"
+                sx={{
+                  border: "1px solid",
+                  borderColor: "divider",
+                  color: "primary.main",
+                  "&:hover": {
+                    backgroundColor: "primary.main",
+                    color: "primary.contrastText",
+                  },
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (link.url) {
+                    window.open(link.url, "_blank", "noopener");
+                  }
+                }}
+              >
+                {getActionIcon(link.action ?? "external")}
+              </IconButton>
+            </Tooltip>
+          ))}
+        </Box>
+      )}
+
+      {/* Document links */}
+      {task.documentId ? (
+        <Box mt={2}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            display="block"
+            mb={1}
+          >
+            Document ID: {task.documentId}
+          </Typography>
+        </Box>
+      ) : null}
+    </CardContent>
+  </Card>
+);
 
 // Also export as default for backward compatibility
 export default TaskCard;

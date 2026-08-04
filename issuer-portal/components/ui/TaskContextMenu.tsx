@@ -16,12 +16,12 @@ export interface ContextMenuPosition {
 }
 
 interface TaskContextMenuProps {
-  open: boolean;
-  position: ContextMenuPosition | null;
-  onClose: () => void;
-  onEdit: () => void;
-  onDelete?: () => void;
-  showEdit?: boolean;
+  readonly open: boolean;
+  readonly position: ContextMenuPosition | null;
+  readonly onClose: () => void;
+  readonly onEdit: () => void;
+  readonly onDelete?: () => void;
+  readonly showEdit?: boolean;
 }
 
 export const TaskContextMenu: React.FC<TaskContextMenuProps> = ({
@@ -55,25 +55,33 @@ export const TaskContextMenu: React.FC<TaskContextMenuProps> = ({
         },
       }}
     >
-      {showEdit && (
-        <MenuItem onClick={() => handleItemClick(onEdit)}>
+      {showEdit ? (
+        <MenuItem
+          onClick={() => {
+            handleItemClick(onEdit);
+          }}
+        >
           <ListItemText>Edit Task</ListItemText>
         </MenuItem>
-      )}
+      ) : null}
 
-      {onDelete && [
-        <Divider key="divider-delete" />,
-        <MenuItem
-          key="delete"
-          onClick={() => handleItemClick(onDelete)}
-          sx={{ color: "error.main" }}
-        >
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" sx={{ color: "error.main" }} />
-          </ListItemIcon>
-          <ListItemText>Delete Task</ListItemText>
-        </MenuItem>,
-      ]}
+      {onDelete
+        ? [
+            <Divider key="divider-delete" />,
+            <MenuItem
+              key="delete"
+              onClick={() => {
+                handleItemClick(onDelete);
+              }}
+              sx={{ color: "error.main" }}
+            >
+              <ListItemIcon>
+                <DeleteIcon fontSize="small" sx={{ color: "error.main" }} />
+              </ListItemIcon>
+              <ListItemText>Delete Task</ListItemText>
+            </MenuItem>,
+          ]
+        : null}
     </Menu>
   );
 };

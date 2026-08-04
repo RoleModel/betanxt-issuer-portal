@@ -11,17 +11,17 @@ import { useServerInsertedHTML } from "next/navigation";
 import * as React from "react";
 
 export interface NextAppDirEmotionCacheProviderProps {
-  options: Omit<OptionsOfCreateCache, "insertionPoint">;
-  CacheProvider?: (props: {
+  readonly options: Omit<OptionsOfCreateCache, "insertionPoint">;
+  readonly CacheProvider?: (props: {
     value: EmotionCache;
     children: React.ReactNode;
   }) => React.JSX.Element | null;
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
 
-export function NextAppDirEmotionCacheProvider(
+export const NextAppDirEmotionCacheProvider = (
   props: NextAppDirEmotionCacheProviderProps
-) {
+) => {
   const {
     options,
     CacheProvider: DefaultCacheProvider = CacheProvider,
@@ -69,4 +69,4 @@ export function NextAppDirEmotionCacheProvider(
   });
 
   return <DefaultCacheProvider value={cache}>{children}</DefaultCacheProvider>;
-}
+};

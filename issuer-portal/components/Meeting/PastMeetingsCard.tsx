@@ -14,8 +14,8 @@ import { asRecord, asString } from "@/utils/typeUtils";
 import PastMeetingsTable, { type PastMeetingData } from "./PastMeetingsTable";
 
 interface PastMeetingsCardProps {
-  maxHeight?: number | string;
-  limit?: number;
+  readonly maxHeight?: number | string;
+  readonly limit?: number;
 }
 
 type Meeting = components["schemas"]["Meeting"];
@@ -106,34 +106,34 @@ const _computeParticipationMetrics = (
   };
 };
 
-export default function PastMeetingsCard({
+const formatDate = (dateString: string) => {
+  if (!dateString) return "";
+  try {
+    const dateParts = dateString.split("-");
+    if (dateParts.length !== 3) return "Invalid Date";
+    const [year, month, day] = dateParts.map((part) => parseInt(part));
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch (error) {
+    console.warn("Error parsing date:", dateString, error);
+    return "Invalid Date";
+  }
+};
+
+const PastMeetingsCard = ({
   maxHeight = 400,
   limit = 6,
-}: PastMeetingsCardProps) {
+}: PastMeetingsCardProps) => {
   const { currentClient } = useClient();
   const clientTicker = currentClient?.ticker ?? "";
 
   const [meetings, setMeetings] = useState<PastMeetingData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "";
-    try {
-      const dateParts = dateString.split("-");
-      if (dateParts.length !== 3) return "Invalid Date";
-      const [year, month, day] = dateParts.map((part) => parseInt(part));
-      const date = new Date(year, month - 1, day);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch (error) {
-      console.warn("Error parsing date:", dateString, error);
-      return "Invalid Date";
-    }
-  };
 
   const fetchData = useCallback(async () => {
     if (!clientTicker) return;
@@ -204,4 +204,6 @@ export default function PastMeetingsCard({
       maxHeight={maxHeight}
     />
   );
-}
+};
+
+export default PastMeetingsCard;

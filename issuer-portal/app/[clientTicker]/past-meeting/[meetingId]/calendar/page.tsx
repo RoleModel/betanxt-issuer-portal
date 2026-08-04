@@ -7,8 +7,8 @@ import { useMeeting } from "@/contexts/MeetingContext";
 
 // Dynamic import for heavy calendar component to enable route-based code splitting
 const CalendarView = dynamic(
-  () =>
-    import("@/components/Calendar/CalendarView").then((mod) => ({
+  async () =>
+    await import("@/components/Calendar/CalendarView").then((mod) => ({
       default: mod.CalendarView,
     })),
   {
@@ -17,7 +17,7 @@ const CalendarView = dynamic(
   }
 );
 
-export default function CalendarPage() {
+const CalendarPage = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const { currentMeeting } = useMeeting();
 
@@ -43,4 +43,6 @@ export default function CalendarPage() {
       onFullscreenChange={setIsFullscreen}
     />
   );
-}
+};
+
+export default CalendarPage;

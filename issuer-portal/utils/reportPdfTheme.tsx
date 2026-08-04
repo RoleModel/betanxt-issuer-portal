@@ -10,7 +10,7 @@ import {
 import React from "react";
 
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
-import { loadImageAsPngDataUrl } from "@/utils/clientBranding";
+import { loadImageAsPngDataUrl } from "@/utils/client-branding";
 
 /**
  * Shared @react-pdf/renderer theme for all generated portal reports.
@@ -334,15 +334,15 @@ export function formatRunDate(): string {
 
 export interface ReportPdfHeaderProps {
   /** Bold left-aligned title under the logo row (e.g. `Tabulation Report`). */
-  reportTitle: string;
+  readonly reportTitle: string;
   /** Gray subtitle under the title (e.g. the meeting type). */
-  subtitle?: string;
+  readonly subtitle?: string;
   /** Ticker used for the text fallback when no client logo resolves. */
-  clientTicker?: string;
+  readonly clientTicker?: string;
   /** Base64 data URL of the client logo (see {@link resolveReportLogos}). */
-  clientLogoUrl?: string;
+  readonly clientLogoUrl?: string;
   /** Base64 data URL of the BetaNXT logo; falls back to styled text. */
-  betanxtLogoUrl?: string;
+  readonly betanxtLogoUrl?: string;
 }
 
 /**
@@ -393,7 +393,7 @@ export interface ReportMetaItem {
 
 interface ReportMetaGridProps {
   /** Items laid out two per row, in reading order (left, right, left, right…). */
-  items: ReportMetaItem[];
+  readonly items: ReportMetaItem[];
 }
 
 /**
@@ -458,14 +458,16 @@ async function imageUrlToBase64(url: string): Promise<string | undefined> {
     return await new Promise<string | undefined>((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result;
+        const { result } = reader;
         resolve(
           typeof result === "string" && result.startsWith("data:")
             ? result
             : undefined
         );
       };
-      reader.onerror = () => resolve(undefined);
+      reader.onerror = () => {
+        resolve(undefined);
+      };
       reader.readAsDataURL(blob);
     });
   } catch {

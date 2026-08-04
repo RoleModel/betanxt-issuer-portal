@@ -25,21 +25,21 @@ import { getDocumentActionLabel } from "@/utils/documentUtils";
 type Document = components["schemas"]["Document"];
 
 interface DocumentsTableProps {
-  documents: Document[];
-  page: number;
-  rowsPerPage: number;
-  emptyRows: number;
-  onPageChange: (
+  readonly documents: Document[];
+  readonly page: number;
+  readonly rowsPerPage: number;
+  readonly emptyRows: number;
+  readonly onPageChange: (
     _event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
   ) => void;
-  onRowsPerPageChange: (
+  readonly onRowsPerPageChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  onOpenDocument?: (doc: Document) => void;
+  readonly onOpenDocument?: (doc: Document) => void;
 }
 
-export default function DocumentsTable(props: DocumentsTableProps) {
+const DocumentsTable = (props: DocumentsTableProps) => {
   const {
     documents,
     page,
@@ -98,6 +98,7 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                           hour: "numeric",
                           minute: "2-digit",
                           hour12: true,
+                          timeZone: "UTC",
                         })
                       : doc.createdAt
                         ? new Date(doc.createdAt).toLocaleDateString("en-US", {
@@ -107,6 +108,7 @@ export default function DocumentsTable(props: DocumentsTableProps) {
                             hour: "numeric",
                             minute: "2-digit",
                             hour12: true,
+                            timeZone: "UTC",
                           })
                         : "-"}
                   </Typography>
@@ -183,4 +185,6 @@ export default function DocumentsTable(props: DocumentsTableProps) {
       </Table>
     </TableContainer>
   );
-}
+};
+
+export default DocumentsTable;

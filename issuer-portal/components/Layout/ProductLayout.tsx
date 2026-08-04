@@ -4,16 +4,16 @@ import { Box, Container } from "@mui/material";
 import React from "react";
 
 interface ProductLayoutProps {
-  leftColumnContent: React.ReactElement;
-  rightColumnContent: React.ReactElement;
-  documentViewer?: React.ReactElement;
+  readonly leftColumnContent: React.ReactElement;
+  readonly rightColumnContent: React.ReactElement;
+  readonly documentViewer?: React.ReactElement;
 }
 
-export default function ProductLayout({
+const ProductLayout = ({
   leftColumnContent,
   rightColumnContent,
   documentViewer,
-}: ProductLayoutProps) {
+}: ProductLayoutProps) => {
   return (
     <Container
       component="main"
@@ -84,4 +84,6 @@ export default function ProductLayout({
       {documentViewer}
     </Container>
   );
-}
+};
+
+export default ProductLayout;

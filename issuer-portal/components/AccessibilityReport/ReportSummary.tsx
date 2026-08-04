@@ -16,14 +16,11 @@ interface TestResult {
 }
 
 interface ReportSummaryProps {
-  pages: TestResult[];
-  timestamp: string;
+  readonly pages: TestResult[];
+  readonly timestamp: string;
 }
 
-export default function ReportSummary({
-  pages,
-  timestamp,
-}: ReportSummaryProps) {
+const ReportSummary = ({ pages, timestamp }: ReportSummaryProps) => {
   const totalViolations = pages.reduce(
     (total, test) => total + test.violations.length,
     0
@@ -83,4 +80,6 @@ export default function ReportSummary({
       </Stack>
     </>
   );
-}
+};
+
+export default ReportSummary;

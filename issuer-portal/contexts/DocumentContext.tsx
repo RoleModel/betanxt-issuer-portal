@@ -35,7 +35,7 @@ const DocumentContext = createContext<DocumentContextType | undefined>(
 );
 
 interface DocumentProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export const DocumentProvider: React.FC<DocumentProviderProps> = ({
@@ -134,8 +134,9 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({
                 reject(new Error(`Failed to read ${file.name}`));
               }
             };
-            reader.onerror = () =>
+            reader.onerror = () => {
               reject(new Error(`Failed to read ${file.name}`));
+            };
             reader.readAsDataURL(file);
           });
 

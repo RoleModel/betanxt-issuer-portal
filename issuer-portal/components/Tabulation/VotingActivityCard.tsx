@@ -1,116 +1,167 @@
 "use client";
 
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-  Typography,
-} from "@mui/material";
+import { Box, Card, CardContent, CardHeader, Skeleton } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
-import React, { useMemo } from "react";
 
-import PieCenterLabel from "@/components/Reporting/PieChartCenterLabel";
+import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
 import {
   type RegisteredVotingMethods,
   useVotingTabulation,
-} from "@/hooks/useVotingTabulation";
+} from "../../hooks/use-voting-tabulation";
+import {
+  tabulationCardContentStyles,
+  tabulationCardHeaderStyles,
+  tabulationCardStyles,
+  tabulationChartHeight,
+  tabulationDonutCenterY,
+  tabulationDonutChartMargin,
+  tabulationDonutInnerRadius,
+  tabulationDonutOuterRadius,
+} from "../../utils/tabulation-card-layout";
+import { formatTabulationMetric } from "../../utils/tabulation-display";
+import { voteChartColors } from "../../utils/vote-chart-colors";
+import PieCenterLabel from "../Reporting/PieChartCenterLabel";
 
 interface VotingActivityCardProps {
-  meetingId: string;
+  readonly meetingId: string;
   /** Pre-computed registered-holder method counts to render instead of fetching by `meetingId`. */
-  registeredVotingMethodsOverride?: RegisteredVotingMethods | null;
-  loadingOverride?: boolean;
+  readonly registeredVotingMethodsOverride?: RegisteredVotingMethods | null;
+  readonly loadingOverride?: boolean;
 }
+
+interface VotingMethodData {
+  readonly id: string;
+  readonly label: string;
+  readonly value: number;
+  readonly sharesVoted: number;
+  readonly color: string;
+}
+
+const emptyPieSlice = {
+  color: "var(--mui-palette-divider)",
+  id: "empty",
+  label: undefined,
+  sharesVoted: 0,
+  value: 1,
+} as const;
+
+const votingMethodDefinitions = [
+  {
+    id: "web",
+    label: "Web",
+    color: voteChartColors.sources.web.color,
+  },
+  {
+    id: "print",
+    label: "Print",
+    color: voteChartColors.sources.print.color,
+  },
+  {
+    id: "ivr",
+    label: "IVR",
+    color: voteChartColors.sources.ivr.color,
+  },
+] as const;
+
+const buildVotingMethodsData = (
+  resolvedMethods: RegisteredVotingMethods | null
+): VotingMethodData[] => {
+  if (resolvedMethods === null) return [];
+
+  const methods: VotingMethodData[] = [];
+
+  if (resolvedMethods.web > 0) {
+    methods.push({
+      id: "web",
+      label: "Web",
+      value: resolvedMethods.web,
+      color: voteChartColors.sources.web.color,
+      sharesVoted: 34,
+    });
+  }
+
+  if (resolvedMethods.paper > 0) {
+    methods.push({
+      id: "print",
+      label: "Print",
+      value: resolvedMethods.paper,
+      color: voteChartColors.sources.print.color,
+      sharesVoted: 12,
+    });
+  }
+
+  if (resolvedMethods.phone > 0) {
+    methods.push({
+      id: "ivr",
+      label: "IVR",
+      value: resolvedMethods.phone,
+      color: voteChartColors.sources.ivr.color,
+      sharesVoted: 4,
+    });
+  }
+
+  return methods;
+};
 
 /**
  * Donut chart of vote submissions by method (Web / Print / IVR) scoped to
- * Registered Holders only — beneficial votes are excluded upstream by
- * {@link useVotingTabulation}, and the header/empty state call out the
- * registered-only scope. Zero-count methods are omitted from the chart.
+ * Registered Holders only. Beneficial votes are excluded upstream by
+ * {@link useVotingTabulation}; when no registered votes exist, an empty
+ * divider-colored donut preserves the chart layout. Zero-count methods remain
+ * in the legend using the divider color.
  */
-export default function VotingActivityCard({
+const VotingActivityCard = ({
   meetingId,
   registeredVotingMethodsOverride,
   loadingOverride = false,
-}: VotingActivityCardProps) {
+}: VotingActivityCardProps) => {
+  const { displayMode } = useTabulationDisplay();
   const { registeredVotingMethods, loading } = useVotingTabulation(meetingId);
   const resolvedMethods =
     registeredVotingMethodsOverride ?? registeredVotingMethods;
 
-  const votingMethodsData = useMemo(() => {
-    if (!resolvedMethods) return [];
+  const votingMethodsData = buildVotingMethodsData(resolvedMethods);
+  const hasRegisteredVotingActivity = votingMethodsData.length > 0;
+  const votingMethodsWithLegendItems = votingMethodDefinitions.map(
+    (definition) => {
+      const method = votingMethodsData.find(
+        (item) => item.id === definition.id
+      );
 
-    const methods: {
-      id: string;
-      label: string;
-      value: number;
-      color: string;
-    }[] = [];
-
-    if (resolvedMethods.web > 0) {
-      methods.push({
-        id: "web",
-        label: "Web",
-        value: resolvedMethods.web,
-        color: "var(--mui-palette-chartSeries-0-main)",
-      });
+      return {
+        ...definition,
+        color:
+          method === undefined
+            ? "var(--mui-palette-divider)"
+            : definition.color,
+        sharesVoted: method?.sharesVoted ?? 0,
+        value: method?.value ?? 0,
+      };
     }
-
-    if (resolvedMethods.paper > 0) {
-      methods.push({
-        id: "print",
-        label: "Print",
-        value: resolvedMethods.paper,
-        color: "var(--mui-palette-chartSeries-1-main)",
-      });
-    }
-
-    if (resolvedMethods.phone > 0) {
-      methods.push({
-        id: "ivr",
-        label: "IVR",
-        value: resolvedMethods.phone,
-        color: "var(--mui-palette-chartSeries-2-main)",
-      });
-    }
-
-    return methods;
-  }, [resolvedMethods]);
+  );
 
   const total = votingMethodsData.reduce((sum, item) => sum + item.value, 0);
+  const totalMetric = formatTabulationMetric(total, total, displayMode);
 
-  const pieChartData = votingMethodsData.map((item, index) => ({
+  const pieChartData = [
+    ...votingMethodsWithLegendItems,
+    ...(hasRegisteredVotingActivity ? [] : [emptyPieSlice]),
+  ].map((item, index) => ({
     ...item,
+    votes: item.value,
     id: index,
   }));
 
   return (
-    <Card sx={{ flex: 1, height: "100%" }}>
+    <Card sx={tabulationCardStyles}>
       <CardHeader
-        title="Voting Activity — Registered Holders"
-        subheader={
-          <Typography variant="caption" color="text.secondary">
-            Reflects Registered Holder voting only
-          </Typography>
-        }
+        title="Voting Activity"
+        subheader="Registered Holder votes"
+        sx={tabulationCardHeaderStyles}
       />
-      <CardContent>
+      <CardContent sx={tabulationCardContentStyles}>
         {loading || loadingOverride ? (
           <Skeleton variant="rectangular" height={250} />
-        ) : votingMethodsData.length === 0 ? (
-          <Box
-            sx={{
-              height: 250,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "text.secondary",
-            }}
-          >
-            No Registered Holder voting activity available
-          </Box>
         ) : (
           <Box
             sx={{
@@ -125,14 +176,29 @@ export default function VotingActivityCard({
               series={[
                 {
                   data: pieChartData,
-                  innerRadius: 75,
-                  outerRadius: 100,
+                  cy: tabulationDonutCenterY,
+                  innerRadius: tabulationDonutInnerRadius,
+                  outerRadius: tabulationDonutOuterRadius,
                   highlightScope: { fade: "global", highlight: "item" },
+                  valueFormatter: (value, context) => {
+                    const item = pieChartData[context.dataIndex];
+                    if (item?.label === undefined) {
+                      return "";
+                    }
+
+                    const metric = formatTabulationMetric(
+                      value.value,
+                      total,
+                      displayMode
+                    );
+                    // The tooltip already renders the series label, so return
+                    // only the value. Active display mode leads.
+                    return `${metric.display} (${metric.alternate})`;
+                  },
                 },
               ]}
-              width={250}
-              height={250}
-              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+              height={tabulationChartHeight}
+              margin={tabulationDonutChartMargin}
               slotProps={{
                 legend: {
                   direction: "horizontal",
@@ -143,7 +209,9 @@ export default function VotingActivityCard({
               <PieCenterLabel
                 data={{
                   total,
-                  label: "Registered Votes",
+                  centerTooltip: totalMetric.alternate,
+                  centerValue: totalMetric.display,
+                  label: "Votes",
                   sliceData: pieChartData,
                 }}
               />
@@ -153,4 +221,6 @@ export default function VotingActivityCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default VotingActivityCard;

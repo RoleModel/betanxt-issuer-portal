@@ -1,31 +1,55 @@
+/* eslint-disable @typescript-eslint/consistent-return */
 "use client";
 
 import type { BarLabelProps } from "@mui/x-charts/BarChart";
 
 import { Box, Card, CardContent, CardHeader, Skeleton } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import { BarChart } from "@mui/x-charts/BarChart";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-import buildApiClient from "@/domain-models/apiClient";
-import { formatNumber } from "@/utils/numberUtils";
-import { asArray, asRecord, asString } from "@/utils/typeUtils";
+import { useTabulationDisplay } from "../../contexts/TabulationDisplayContext";
+import buildApiClient from "../../domain-models/apiClient";
+import {
+  getHolderTypeFromCategory,
+  type HolderCategory,
+  normalizeHolderCategory,
+} from "../../utils/holderCategory";
+import { formatNumber } from "../../utils/number-utilities";
+import {
+  tabulationCardContentStyles,
+  tabulationCardHeaderStyles,
+  tabulationCardStyles,
+} from "../../utils/tabulation-card-layout";
+import {
+  formatTabulationMetric,
+  formatTabulationPercentage,
+} from "../../utils/tabulation-display";
+import { asArray, asRecord, asString } from "../../utils/typeUtils";
+import { voteChartColors } from "../../utils/vote-chart-colors";
 
 interface Position {
   accountType: string;
+  holderCategory: HolderCategory | null;
   voteStatus: string;
   shares: number;
   sharesVoted: number;
 }
 
 interface BeneficialVsRegisteredCardProps {
-  meetingId: string;
-  chartOverride?: {
-    beneficial: number;
-    registered: number;
+  readonly meetingId: string;
+  readonly chartOverride?: {
+    readonly beneficial: number;
+    readonly registered: number;
   };
-  loadingOverride?: boolean;
+  readonly loadingOverride?: boolean;
 }
+
+const beneficialBarColor = voteChartColors.holders.beneficial.color;
+const beneficialBarContrastText =
+  voteChartColors.holders.beneficial.contrastColor;
+const registeredBarColor = voteChartColors.holders.registered.color;
+const registeredBarContrastText =
+  voteChartColors.holders.registered.contrastColor;
 
 const toFiniteNumber = (value: unknown): number => {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -39,7 +63,7 @@ const toFiniteNumber = (value: unknown): number => {
 const toStringValue = (value: unknown): string => {
   if (value === null || value === undefined) return "";
   const str = asString(value);
-  if (str) return str;
+  if (str !== null && str.length > 0) return str;
   // Only convert to string if it's a primitive type
   if (
     typeof value === "string" ||
@@ -53,112 +77,147 @@ const toStringValue = (value: unknown): string => {
 
 const normalizePosition = (value: unknown): Position | null => {
   const record = asRecord(value);
-  if (!record) return null;
+  if (record === null) return null;
 
   // API returns snake_case from PostgREST
   return {
     accountType: toStringValue(record.account_type ?? record.accountType),
+    holderCategory: normalizeHolderCategory(
+      record.holder_category ?? record.holderCategory
+    ),
     voteStatus: toStringValue(record.vote_status ?? record.voteStatus),
     shares: toFiniteNumber(record.shares),
     sharesVoted: toFiniteNumber(record.shares_voted ?? record.sharesVoted),
   };
 };
 
-const StyledText = styled("text")(({ theme }) => ({
-  ...theme.typography.body3,
-  stroke: "none",
-  fill: (theme.vars || theme)?.palette?.text?.primary,
-  textAnchor: "middle",
-  dominantBaseline: "central",
-  pointerEvents: "none",
-}));
+const getBarContrastText = (barColor: string): string => {
+  if (barColor === beneficialBarColor) return beneficialBarContrastText;
+  if (barColor === registeredBarColor) return registeredBarContrastText;
+  return "var(--mui-palette-text-primary)";
+};
 
-function CustomBarLabel(props: BarLabelProps) {
-  const { x, y, width, children, ...otherProps } = props;
+const CustomBarLabel = (props: BarLabelProps) => {
+  const { displayMode } = useTabulationDisplay();
+  const { children, className, color, style, width, x, y } = props;
+  const value = Number(children) || 0;
 
   return (
-    <StyledText {...otherProps} x={x + width / 2} y={y - 8} textAnchor="middle">
-      {formatNumber(Number(children) || 0)}
-    </StyledText>
+    <text
+      className={className}
+      dominantBaseline="central"
+      fill={getBarContrastText(color)}
+      pointerEvents="none"
+      stroke="none"
+      style={style}
+      textAnchor="middle"
+      x={x + width / 2}
+      y={y + 20}
+    >
+      {displayMode === "numbers"
+        ? formatNumber(value)
+        : formatTabulationPercentage(value)}
+    </text>
   );
-}
+};
 
-export default function BeneficialVsRegisteredCard({
+const BeneficialVsRegisteredCard = ({
   meetingId,
   chartOverride,
   loadingOverride = false,
-}: BeneficialVsRegisteredCardProps) {
+}: BeneficialVsRegisteredCardProps) => {
+  const { displayMode } = useTabulationDisplay();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!meetingId) return;
+    if (meetingId.length === 0) return;
+
+    let ignore = false;
 
     const fetchPositions = async () => {
       setLoading(true);
       try {
         const apiClient = await buildApiClient();
-        const { data, error } = await apiClient.GET("/positions", {
+        const { data } = await apiClient.GET("/positions", {
           params: {
             query: { meetingId },
           },
         });
 
-        if (error) {
-          console.error("Failed to fetch positions:", error);
-          return;
-        }
+        const rawData: unknown[] = Array.isArray(data)
+          ? data
+          : asArray(asRecord(data)?.positions);
 
-        if (data) {
-          const rawData: unknown[] = Array.isArray(data)
-            ? data
-            : asArray(asRecord(data)?.positions);
+        const positionsList = rawData.reduce<Position[]>((acc, item) => {
+          const normalized = normalizePosition(item);
+          if (normalized !== null) acc.push(normalized);
+          return acc;
+        }, []);
 
-          const positionsList = rawData.reduce<Position[]>((acc, item) => {
-            const normalized = normalizePosition(item);
-            if (normalized) acc.push(normalized);
-            return acc;
-          }, []);
-
-          setPositions(positionsList);
-        }
+        if (!ignore) setPositions(positionsList);
       } catch (error) {
         console.error("Failed to fetch positions:", error);
-      } finally {
-        setLoading(false);
       }
+
+      if (!ignore) setLoading(false);
     };
 
     void fetchPositions();
+
+    return () => {
+      ignore = true;
+    };
   }, [meetingId]);
 
-  const chartData = useMemo(() => {
-    if (chartOverride) {
-      return chartOverride;
-    }
+  let chartData = chartOverride;
 
-    // Beneficial = Non-DTC (beneficial shareholders voting through brokers)
-    // Based on wendys_non_dtc_vote_status.csv
+  if (chartData === undefined) {
     const beneficialVoted = positions
-      .filter((p) => p.accountType === "Non-DTC" && p.voteStatus === "Voted")
+      .filter(
+        (position) =>
+          position.voteStatus === "Voted" &&
+          getHolderTypeFromCategory(
+            position.holderCategory,
+            position.accountType
+          ) === "beneficial"
+      )
       .reduce((sum, p) => sum + p.sharesVoted, 0);
 
-    // Registered = DTC/CDS (registered holders/participants)
-    // Based on wendys_dtc_vote_status.csv
     const registeredVoted = positions
-      .filter((p) => p.accountType === "DTC/CDS" && p.voteStatus === "Voted")
+      .filter(
+        (position) =>
+          position.voteStatus === "Voted" &&
+          getHolderTypeFromCategory(
+            position.holderCategory,
+            position.accountType
+          ) === "registered"
+      )
       .reduce((sum, p) => sum + p.sharesVoted, 0);
 
-    return {
+    chartData = {
       beneficial: beneficialVoted,
       registered: registeredVoted,
     };
-  }, [chartOverride, positions]);
+  }
+
+  const totalShares = chartData.beneficial + chartData.registered;
+  const shareCounts = [chartData.beneficial, chartData.registered];
+  const displayedValues = shareCounts.map((value) =>
+    displayMode === "numbers"
+      ? value
+      : totalShares > 0
+        ? (value / totalShares) * 100
+        : 0
+  );
 
   return (
-    <Card sx={{ flex: 1, height: "100%" }}>
-      <CardHeader title="Beneficial vs. Registered" />
-      <CardContent>
+    <Card sx={tabulationCardStyles}>
+      <CardHeader
+        title="Beneficial vs. Registered"
+        sx={tabulationCardHeaderStyles}
+      />
+      <CardContent sx={tabulationCardContentStyles}>
         {loading || loadingOverride ? (
           <Skeleton variant="rectangular" height={300} />
         ) : (
@@ -171,21 +230,28 @@ export default function BeneficialVsRegisteredCard({
                   colorMap: {
                     type: "ordinal",
                     values: ["Beneficial", "Registered"],
-                    colors: [
-                      "var(--mui-palette-chartSeries-0-main)",
-                      "var(--mui-palette-chartSeries-1-main)",
-                    ],
+                    colors: [beneficialBarColor, registeredBarColor],
                   },
                 },
               ]}
               series={[
                 {
-                  data: [chartData.beneficial, chartData.registered],
+                  data: displayedValues,
                   barLabel: "value",
+                  valueFormatter: (value, context) => {
+                    if (!Number.isFinite(value)) return "";
+                    const shareCount = shareCounts[context.dataIndex] ?? 0;
+                    const metric = formatTabulationMetric(
+                      shareCount,
+                      totalShares,
+                      displayMode
+                    );
+                    return `${metric.display} (${metric.alternate})`;
+                  },
                 },
               ]}
-              height={350}
-              margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
+              height={360}
+              margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
               hideLegend={true}
               slots={{ barLabel: CustomBarLabel }}
               yAxis={[
@@ -199,4 +265,6 @@ export default function BeneficialVsRegisteredCard({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default BeneficialVsRegisteredCard;

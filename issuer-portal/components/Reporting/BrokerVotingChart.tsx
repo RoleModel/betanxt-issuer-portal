@@ -10,9 +10,11 @@ import {
 import { BarChart } from "@mui/x-charts/BarChart";
 import React, { useState } from "react";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import { EmptyState } from "@/components/EmptyState";
 import SkeletonChart from "@/components/ui/SkeletonChart";
-import { truncateNumber } from "@/utils/numberUtils";
+import { truncateNumber } from "@/utils/number-utilities";
+import { voteChartColors } from "@/utils/vote-chart-colors";
 
 interface BrokerVotingData {
   broker: string;
@@ -29,36 +31,32 @@ interface Proposal {
 }
 
 interface BrokerVotingChartProps {
-  meetingId?: string;
-  proposals?: Proposal[];
-  brokerData?: Record<string, BrokerVotingData[]>;
-  loading?: boolean;
+  readonly meetingId?: string;
+  readonly proposals?: readonly Proposal[];
+  readonly brokerData?: Record<string, BrokerVotingData[]>;
+  readonly loading?: boolean;
   /** Optional card subheader, e.g. the currently selected event. */
-  subheader?: string;
+  readonly subheader?: string;
 }
 
-export default function BrokerVotingChart({
-  meetingId,
-  proposals = [],
-  brokerData = {},
+const EMPTY_PROPOSALS: readonly Proposal[] = [];
+const EMPTY_BROKER_DATA: Record<string, BrokerVotingData[]> = {};
+
+const BrokerVotingChart = ({
+  proposals = EMPTY_PROPOSALS,
+  brokerData = EMPTY_BROKER_DATA,
   loading = false,
   subheader,
-}: BrokerVotingChartProps) {
+}: BrokerVotingChartProps) => {
   const [selectedProposalId, setSelectedProposalId] = useState<string>("");
 
-  // Reset selectedProposalId when meetingId changes or when current selection is invalid
-  React.useEffect(() => {
-    if (proposals.length > 0) {
-      const currentProposalExists = proposals.some(
-        (p) => p.id === selectedProposalId
-      );
-      if (!currentProposalExists) {
-        setSelectedProposalId(proposals[0].id);
-      }
-    } else {
-      setSelectedProposalId("");
-    }
-  }, [proposals, selectedProposalId, meetingId]);
+  // Derive the effective selection during render: keep the user's choice while
+  // it is still valid, otherwise fall back to the first available proposal.
+  const effectiveProposalId =
+    selectedProposalId &&
+    proposals.some((proposal) => proposal.id === selectedProposalId)
+      ? selectedProposalId
+      : (proposals[0]?.id ?? "");
 
   // Map generic proposal keys (proposal1, proposal2) to actual proposal IDs based on order
   const mappedBrokerData = React.useMemo(() => {
@@ -87,8 +85,8 @@ export default function BrokerVotingChart({
 
   // Get broker data for selected proposal
   const data =
-    selectedProposalId && mappedBrokerData[selectedProposalId]
-      ? mappedBrokerData[selectedProposalId]
+    effectiveProposalId && mappedBrokerData[effectiveProposalId]
+      ? mappedBrokerData[effectiveProposalId]
       : [];
   const hasData = Object.keys(mappedBrokerData).length > 0;
 
@@ -106,15 +104,17 @@ export default function BrokerVotingChart({
   return (
     <Card sx={{ height: "100%" }}>
       <CardHeader
-        title="Broker Voting by Proposal"
+        title={<GlossaryText>Broker Voting by Proposal</GlossaryText>}
         subheader={subheader}
         action={
           <TextField
             select
             size="small"
             label="Proposal"
-            value={selectedProposalId}
-            onChange={(e) => setSelectedProposalId(e.target.value)}
+            value={effectiveProposalId}
+            onChange={(e) => {
+              setSelectedProposalId(e.target.value);
+            }}
             sx={{ minWidth: 200 }}
           >
             {proposals.map((proposal) => (
@@ -162,19 +162,19 @@ export default function BrokerVotingChart({
                 data: data.map((d) => d.for),
                 label: "For",
                 stack: "total",
-                color: "var(--mui-palette-chartSeries-1-main)",
+                color: voteChartColors.outcomes.for.color,
               },
               {
                 data: data.map((d) => d.against),
                 label: "Against",
                 stack: "total",
-                color: "var(--mui-palette-chartSeries-5-main)",
+                color: voteChartColors.outcomes.against.color,
               },
               {
                 data: data.map((d) => d.abstain),
                 label: "Abstain",
                 stack: "total",
-                color: "var(--mui-palette-action-active)",
+                color: voteChartColors.outcomes.abstain.color,
               },
             ]}
             height={Math.max(330, data.length * 50 + 80)}
@@ -191,4 +191,6 @@ export default function BrokerVotingChart({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default BrokerVotingChart;

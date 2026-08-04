@@ -6,10 +6,9 @@ import {
   AccordionDetails,
   AccordionSummary,
   Container,
-  LinearProgress,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 const faqs = [
   {
@@ -73,26 +72,17 @@ const faqs = [
 
 const FAQsPage: React.FC = () => {
   const [expanded, setExpanded] = React.useState<string | false>("panel1");
-  const [loading, setLoading] = useState(true);
 
   const handleChange =
     (panel: string) => (_event: React.SyntheticEvent, newExpanded: boolean) => {
       setExpanded(newExpanded ? panel : false);
     };
 
-  useEffect(() => {
-    setLoading(false);
-  }, []);
-
-  if (loading) {
-    return <LinearProgress />;
-  }
-
   return (
     <Container component="main" maxWidth="lg" sx={{ p: 3 }}>
       {faqs.map((faq, index) => (
         <Accordion
-          key={index}
+          key={faq.question}
           expanded={expanded === `panel-${index}`}
           onChange={handleChange(`panel-${index}`)}
         >

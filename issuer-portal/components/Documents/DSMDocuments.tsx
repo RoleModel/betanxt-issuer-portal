@@ -33,25 +33,29 @@ type Document = Omit<ApiDocument, "status"> & {
 };
 
 interface DSMDocumentsProps {
-  dsmDocuments: Document[];
-  dsmPage: number;
-  dsmRowsPerPage: number;
-  dsmEmptyRows: number;
-  dsmProgress: { uploaded: number; totalRequired: number; percentage: number };
-  onUpload: () => void;
-  onPageChange: (
+  readonly dsmDocuments: Document[];
+  readonly dsmPage: number;
+  readonly dsmRowsPerPage: number;
+  readonly dsmEmptyRows: number;
+  readonly dsmProgress: {
+    uploaded: number;
+    totalRequired: number;
+    percentage: number;
+  };
+  readonly onUpload: () => void;
+  readonly onPageChange: (
     _event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
   ) => void;
-  onRowsPerPageChange: (
+  readonly onRowsPerPageChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  onOpenDocument: (doc: Document) => void;
-  onOpenUploadFor: (doc: Document) => void;
-  placeholders?: { id: string; title: string }[];
+  readonly onOpenDocument: (doc: Document) => void;
+  readonly onOpenUploadFor: (doc: Document) => void;
+  readonly placeholders?: { id: string; title: string }[];
 }
 
-export default function DSMDocuments(props: DSMDocumentsProps) {
+const DSMDocuments = (props: DSMDocumentsProps) => {
   const {
     dsmDocuments,
     dsmPage,
@@ -121,7 +125,7 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
   return (
     <Card>
       <CardHeader
-        title={" Digital Shareholder Meeting Documents"}
+        title=" Digital Shareholder Meeting Documents"
         subheader={`${dsmProgress.uploaded} of ${dsmProgress.totalRequired} Materials Uploaded`}
         action={
           <Button
@@ -235,4 +239,6 @@ export default function DSMDocuments(props: DSMDocumentsProps) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default DSMDocuments;

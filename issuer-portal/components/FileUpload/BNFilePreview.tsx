@@ -20,6 +20,14 @@ import React from "react";
 
 import type { FilePreviewProps } from "./types";
 
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+};
+
 const BNFilePreview: React.FC<FilePreviewProps> = ({
   file,
   onRemove,
@@ -27,14 +35,6 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
   dsmDocumentOptions = [],
   onAssociationChange,
 }) => {
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-  };
-
   const handleRemoveClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     onRemove(file.id);
@@ -176,7 +176,9 @@ const BNFilePreview: React.FC<FilePreviewProps> = ({
             <FormControl size="small" fullWidth>
               <Select
                 value={file.associatedDocumentId ?? ""}
-                onChange={(e) => handleAssociationChange(e.target.value)}
+                onChange={(e) => {
+                  handleAssociationChange(e.target.value);
+                }}
                 displayEmpty
                 aria-label="Select DSM Document"
                 disabled={disabled}

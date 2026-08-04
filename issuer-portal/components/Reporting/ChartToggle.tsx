@@ -8,8 +8,8 @@ import React from "react";
 export type ChartView = "aggregate" | "individual";
 
 interface ChartToggleProps {
-  value: ChartView;
-  onChange: (value: ChartView) => void;
+  readonly value: ChartView;
+  readonly onChange: (value: ChartView) => void;
 }
 
 const ChartToggle: React.FC<ChartToggleProps> = ({ value, onChange }) => {

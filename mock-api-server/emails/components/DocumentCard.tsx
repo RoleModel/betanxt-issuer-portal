@@ -4,21 +4,21 @@ import React from "react";
 import { COLORS, FONTS } from "../styles";
 
 interface DocumentCardProps {
-  uploaderName: string;
-  uploaderAvatarUrl?: string;
-  documentName: string;
-  documentDescription: string;
-  uploadDate: string;
-  viewDocumentUrl: string;
+  readonly uploaderName: string;
+  readonly uploaderAvatarUrl?: string;
+  readonly documentName: string;
+  readonly documentDescription: string;
+  readonly uploadDate: string;
+  readonly viewDocumentUrl: string;
 }
 
-function UploaderAvatar({
+const UploaderAvatar = ({
   name,
   avatarUrl,
 }: {
-  name: string;
-  avatarUrl?: string;
-}) {
+  readonly name: string;
+  readonly avatarUrl?: string;
+}) => {
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -63,16 +63,16 @@ function UploaderAvatar({
       {initials}
     </div>
   );
-}
+};
 
-export function DocumentCard({
+export const DocumentCard = ({
   uploaderName,
   uploaderAvatarUrl,
   documentName,
   documentDescription,
   uploadDate,
   viewDocumentUrl,
-}: DocumentCardProps) {
+}: DocumentCardProps) => {
   return (
     <Section
       style={{
@@ -152,4 +152,4 @@ export function DocumentCard({
       </Link>
     </Section>
   );
-}
+};

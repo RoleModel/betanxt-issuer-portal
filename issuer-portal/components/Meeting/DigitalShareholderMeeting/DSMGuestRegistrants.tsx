@@ -18,7 +18,6 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
@@ -32,6 +31,7 @@ import PreviewDialog, {
 } from "@/components/FileUpload/PreviewDialog";
 
 import { ExportButton } from "./ExportButton";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 
 type DigitalShareholderMeeting =
   components["schemas"]["DigitalShareholderMeeting"];
@@ -46,10 +46,149 @@ interface ParsedGuest {
 }
 
 interface DSMGuestRegistrantsProps {
-  meetingId: string;
+  readonly meetingId: string;
 }
 
-export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
+const parseFile = async (file: File): Promise<ParsedGuest[]> => {
+  return await new Promise((resolve, reject) => {
+    if (!file) {
+      reject(new Error("No file provided"));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        if (!data) {
+          reject(new Error("Failed to read file data"));
+          return;
+        }
+
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData: ExcelRow[] = XLSX.utils.sheet_to_json(firstSheet);
+
+        const mappedData = jsonData
+          .map((row: ExcelRow) => {
+            const firstName = row["First Name"] ?? "";
+            const lastName = row["Last Name"] ?? "";
+            const emailAddress = row["Email Address"] ?? "";
+            const title = row.Title ?? "";
+            const department = row.Department ?? "";
+
+            if (!firstName || !lastName || !emailAddress) {
+              return null;
+            }
+
+            const parsedGuest: ParsedGuest = {
+              firstName: String(firstName),
+              lastName: String(lastName),
+              emailAddress: String(emailAddress),
+            };
+
+            if (title) parsedGuest.title = String(title);
+            if (department) parsedGuest.department = String(department);
+
+            return parsedGuest;
+          })
+          .filter((item): item is ParsedGuest => item !== null);
+
+        resolve(mappedData);
+      } catch (error) {
+        reject(error instanceof Error ? error : new Error(String(error)));
+      }
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Failed to read file"));
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+};
+
+const formatRegisteredDate = (createdAt: string | undefined): string =>
+  createdAt
+    ? new Date(createdAt).toLocaleDateString("en-US", { timeZone: "UTC" })
+    : "Unknown";
+
+interface GuestTableProps {
+  readonly filteredGuests: DigitalShareholderMeeting[];
+  readonly guests: DigitalShareholderMeeting[];
+}
+
+const GuestTable = ({ filteredGuests, guests }: GuestTableProps) => (
+  <TableContainer sx={{ maxHeight: 500 }}>
+    <Table stickyHeader>
+      {guests.length > 0 && (
+        <TableHead>
+          <TableRow>
+            <TableCell>Name</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell>Registered</TableCell>
+            <TableCell align="center">Actions</TableCell>
+          </TableRow>
+        </TableHead>
+      )}
+      <TableBody>
+        {filteredGuests.map((guest) => {
+          return (
+            <TableRow key={guest.id} hover>
+              <TableCell>
+                {guest.firstName} {guest.lastName}
+              </TableCell>
+              <TableCell>{guest.emailAddress}</TableCell>
+              <TableCell>
+                <Typography variant="caption" color="text.secondary">
+                  {formatRegisteredDate(guest.createdAt)}
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                {guest.emailAddress ? (
+                  <CustomTooltip title="Send Email">
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        const subject = encodeURIComponent(
+                          "Regarding Your Meeting Registration"
+                        );
+                        const body = encodeURIComponent(
+                          `Dear ${guest.firstName} ${guest.lastName},\n\nThank you for registering for our shareholder meeting.\n\nBest regards`
+                        );
+                        window.open(
+                          `mailto:${guest.emailAddress}?subject=${subject}&body=${body}`,
+                          "_blank"
+                        );
+                      }}
+                    >
+                      <Email fontSize="small" />
+                    </IconButton>
+                  </CustomTooltip>
+                ) : null}
+              </TableCell>
+            </TableRow>
+          );
+        })}
+        {/* Show empty row when no guests at all */}
+        {guests.length === 0 && (
+          <TableRow>
+            <TableCell
+              colSpan={4}
+              sx={{ textAlign: "center", py: 4, color: "text.disabled" }}
+            >
+              No guests have been added yet.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  </TableContainer>
+);
+
+export const DSMGuestRegistrants = ({
+  meetingId,
+}: DSMGuestRegistrantsProps) => {
   const [guests, setGuests] = useState<DigitalShareholderMeeting[]>([]);
   const [filteredGuests, setFilteredGuests] = useState<
     DigitalShareholderMeeting[]
@@ -115,65 +254,6 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
 
   const handleUploadClick = () => {
     setUploadDialogOpen(true);
-  };
-
-  const parseFile = async (file: File): Promise<ParsedGuest[]> => {
-    return new Promise((resolve, reject) => {
-      if (!file) {
-        reject(new Error("No file provided"));
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = e.target?.result;
-          if (!data) {
-            reject(new Error("Failed to read file data"));
-            return;
-          }
-
-          const workbook = XLSX.read(data, { type: "array" });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData: ExcelRow[] = XLSX.utils.sheet_to_json(firstSheet);
-
-          const mappedData = jsonData
-            .map((row: ExcelRow) => {
-              const firstName = row["First Name"] ?? "";
-              const lastName = row["Last Name"] ?? "";
-              const emailAddress = row["Email Address"] ?? "";
-              const title = row.Title ?? "";
-              const department = row.Department ?? "";
-
-              if (!firstName || !lastName || !emailAddress) {
-                return null;
-              }
-
-              const parsedGuest: ParsedGuest = {
-                firstName: String(firstName),
-                lastName: String(lastName),
-                emailAddress: String(emailAddress),
-              };
-
-              if (title) parsedGuest.title = String(title);
-              if (department) parsedGuest.department = String(department);
-
-              return parsedGuest;
-            })
-            .filter((item): item is ParsedGuest => item !== null);
-
-          resolve(mappedData);
-        } catch (error) {
-          reject(error instanceof Error ? error : new Error(String(error)));
-        }
-      };
-
-      reader.onerror = () => {
-        reject(new Error("Failed to read file"));
-      };
-
-      reader.readAsArrayBuffer(file);
-    });
   };
 
   const handleFileUpload = useCallback(
@@ -296,7 +376,9 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
               size="small"
               placeholder="Search guests"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+              }}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -311,82 +393,21 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
         )}
 
         {/* Upload Error */}
-        {uploadError && (
+        {uploadError ? (
           <Box sx={{ px: 2, pb: 2 }}>
-            <Alert severity="error" onClose={() => setUploadError(null)}>
+            <Alert
+              severity="error"
+              onClose={() => {
+                setUploadError(null);
+              }}
+            >
               {uploadError}
             </Alert>
           </Box>
-        )}
+        ) : null}
 
         {/* Guests Table */}
-        <TableContainer sx={{ maxHeight: 500 }}>
-          <Table stickyHeader>
-            {guests.length > 0 && (
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Registered</TableCell>
-                  <TableCell align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-            )}
-            <TableBody>
-              {filteredGuests.map((guest) => {
-                return (
-                  <TableRow key={guest.id} hover>
-                    <TableCell>
-                      {guest.firstName} {guest.lastName}
-                    </TableCell>
-                    <TableCell>{guest.emailAddress}</TableCell>
-                    <TableCell>
-                      <Typography variant="caption" color="text.secondary">
-                        {guest.createdAt
-                          ? new Date(guest.createdAt).toLocaleDateString()
-                          : "Unknown"}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      {guest.emailAddress && (
-                        <Tooltip title="Send Email">
-                          <IconButton
-                            size="small"
-                            onClick={() => {
-                              const subject = encodeURIComponent(
-                                "Regarding Your Meeting Registration"
-                              );
-                              const body = encodeURIComponent(
-                                `Dear ${guest.firstName} ${guest.lastName},\n\nThank you for registering for our shareholder meeting.\n\nBest regards`
-                              );
-                              window.open(
-                                `mailto:${guest.emailAddress}?subject=${subject}&body=${body}`,
-                                "_blank"
-                              );
-                            }}
-                          >
-                            <Email fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {/* Show empty row when no guests at all */}
-              {guests.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    sx={{ textAlign: "center", py: 4, color: "text.disabled" }}
-                  >
-                    No guests have been added yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <GuestTable filteredGuests={filteredGuests} guests={guests} />
 
         {filteredGuests.length === 0 && guests.length > 0 && (
           <Box sx={{ textAlign: "center", py: 4 }}>
@@ -442,4 +463,4 @@ export function DSMGuestRegistrants({ meetingId }: DSMGuestRegistrantsProps) {
       />
     </Card>
   );
-}
+};

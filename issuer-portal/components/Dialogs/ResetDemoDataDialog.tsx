@@ -12,14 +12,14 @@ import React from "react";
 import { useResetDemoData } from "@/hooks/useResetDemoData";
 
 interface ResetDemoDataDialogProps {
-  open: boolean;
-  onClose: () => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
 }
 
-export function ResetDemoDataDialog({
+export const ResetDemoDataDialog = ({
   open,
   onClose,
-}: ResetDemoDataDialogProps) {
+}: ResetDemoDataDialogProps) => {
   const { resetDemoData, isResetting, error } = useResetDemoData();
 
   const handleConfirm = async () => {
@@ -35,11 +35,11 @@ export function ResetDemoDataDialog({
     >
       <DialogTitle>Reset</DialogTitle>
       <DialogContent>
-        {error && (
+        {error ? (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
-        )}
+        ) : null}
         <Typography variant="body1" gutterBottom>
           This will reset all meeting data.
         </Typography>
@@ -66,4 +66,4 @@ export function ResetDemoDataDialog({
       </DialogActions>
     </Dialog>
   );
-}
+};

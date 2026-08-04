@@ -3,7 +3,9 @@
 import React, {
   type ReactNode,
   createContext,
+  useCallback,
   useContext,
+  useMemo,
   useState,
 } from "react";
 
@@ -31,8 +33,12 @@ export const usePhaseDrawer = (): PhaseDrawerContextType => {
 };
 
 interface PhaseDrawerProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
+
+const onTaskClick = (_taskId: string): void => {
+  // Handle task click logic here
+};
 
 export const PhaseDrawerProvider: React.FC<PhaseDrawerProviderProps> = ({
   children,
@@ -40,24 +46,32 @@ export const PhaseDrawerProvider: React.FC<PhaseDrawerProviderProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [currentPhase, setCurrentPhase] = useState<number | null>(null);
 
-  const openDrawer = (): void => setIsOpen(true);
-  const closeDrawer = (): void => setIsOpen(false);
-  const toggleDrawer = (): void => setIsOpen(!isOpen);
-  const setPhase = (phase: number): void => setCurrentPhase(phase);
-  const onTaskClick = (_taskId: string): void => {
-    // Handle task click logic here
-  };
+  const openDrawer = useCallback((): void => {
+    setIsOpen(true);
+  }, []);
+  const closeDrawer = useCallback((): void => {
+    setIsOpen(false);
+  }, []);
+  const toggleDrawer = useCallback((): void => {
+    setIsOpen((prev) => !prev);
+  }, []);
+  const setPhase = useCallback((phase: number): void => {
+    setCurrentPhase(phase);
+  }, []);
 
-  const value = {
-    isOpen,
-    drawerOpen: isOpen,
-    currentPhase,
-    openDrawer,
-    closeDrawer,
-    toggleDrawer,
-    setPhase,
-    onTaskClick,
-  };
+  const value = useMemo<PhaseDrawerContextType>(
+    () => ({
+      isOpen,
+      drawerOpen: isOpen,
+      currentPhase,
+      openDrawer,
+      closeDrawer,
+      toggleDrawer,
+      setPhase,
+      onTaskClick,
+    }),
+    [isOpen, currentPhase, openDrawer, closeDrawer, toggleDrawer, setPhase]
+  );
 
   return (
     <PhaseDrawerContext.Provider value={value}>

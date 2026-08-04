@@ -87,18 +87,18 @@ interface PhaseContextType {
 const PhaseContext = createContext<PhaseContextType | undefined>(undefined);
 
 interface PhaseProviderProps {
-  children: ReactNode;
-  meetingId: string;
-  initialPhases?: Phase[];
-  initialTasks?: Task[];
+  readonly children: ReactNode;
+  readonly meetingId: string;
+  readonly initialPhases?: Phase[];
+  readonly initialTasks?: Task[];
 }
 
-export function PhaseProvider({
+export const PhaseProvider = ({
   children,
   meetingId: _meetingId,
   initialPhases = [],
   initialTasks = [],
-}: PhaseProviderProps) {
+}: PhaseProviderProps) => {
   const [state, dispatch] = useReducer(phaseReducer, {
     ...initialState,
     phases: initialPhases,
@@ -185,7 +185,9 @@ export function PhaseProvider({
         void advanceToNextPhase();
       }, 1000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }
     // advanceToNextPhase depends on state variables already tracked
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -202,7 +204,7 @@ export function PhaseProvider({
   return (
     <PhaseContext.Provider value={value}>{children}</PhaseContext.Provider>
   );
-}
+};
 
 export function usePhaseContext() {
   const context = useContext(PhaseContext);

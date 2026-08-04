@@ -74,7 +74,7 @@ Each unknown from the spec is resolved below with a decision, rationale, and alt
 
 ## R9. Registered-only labeling (FR-001/FR-002)
 
-**Decision**: `VotingActivityCard` title/subheader becomes "Voting Activity — Registered Holders", with a persistent caption "Reflects Registered Holder voting only"; data is filtered to `holderCategory = REGISTERED` (or legacy `accountType === "DTC/CDS"` until reseed). Tooltips inherit the filtered series so no full-population implication remains.
+**Decision**: `VotingActivityCard` title/subheader becomes "Voting Activity", with a persistent caption "Registered Holder votes"; data is filtered to `holderCategory = REGISTERED` (or legacy `accountType === "DTC/CDS"` until reseed). Tooltips inherit the filtered series so no full-population implication remains.
 
 ## R10. Shares Voted proposal selector (FR-003–FR-006)
 

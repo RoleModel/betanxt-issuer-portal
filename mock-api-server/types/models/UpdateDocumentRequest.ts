@@ -1,5 +1,3 @@
-import type { DocumentStatus } from "./DocumentStatus";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -19,6 +17,7 @@ import {
   DocumentStatusToJSON,
   DocumentStatusToJSONTyped,
 } from "./DocumentStatus";
+import type { DocumentStatus } from "./DocumentStatus";
 
 /**
  *

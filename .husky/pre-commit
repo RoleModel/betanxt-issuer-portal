@@ -18,7 +18,16 @@ fi
 # Keep commits gated by deterministic checks. The full cross-browser Playwright
 # suite remains a CI check and is too broad and environment-dependent for a
 # local pre-commit hook.
+
+# Refresh the dev-overlay source snapshot before the checks run, so a component
+# change is reflected in the (git-ignored) manifest the type-check reads. The
+# deployed manifest is regenerated separately by the issuer-portal `prebuild`
+# script, so this keeps local and CI/deploy in sync.
+node issuer-portal/scripts/generate-dev-source-manifest.mjs
+
 pnpm run lint
 pnpm --filter issuer-portal run type-check
-pnpm --filter mock-api-server run test:unit
+# Playwright forces color for useful worker output. Clear a user-level NO_COLOR
+# setting for this invocation so Node does not emit its conflicting-env warning.
+NO_COLOR= pnpm --filter mock-api-server run test:unit
 pnpm run check

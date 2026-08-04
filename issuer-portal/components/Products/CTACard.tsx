@@ -29,18 +29,18 @@ const AutoAreasizeStyles = {
   fontFamily: "var(--font-roboto)",
 } as React.CSSProperties;
 
-export function CTACard() {
+const handleContactSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  // Handle form submission
+};
+
+export const CTACard = () => {
   const theme = useTheme();
   const [contactForm, setContactForm] = useState<ContactFormData>({
     name: "",
     email: "",
     message: "",
   });
-
-  const handleContactSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
-  };
 
   return (
     <Card
@@ -54,7 +54,7 @@ export function CTACard() {
           <Typography
             variant="h1"
             component="p"
-            fontFamily={"var(--font-tungsten)"}
+            fontFamily="var(--font-tungsten)"
           >
             Let&apos;s Talk
           </Typography>
@@ -96,9 +96,9 @@ export function CTACard() {
                   placeholder="How can we help you this proxy season?"
                   minRows={5}
                   value={contactForm.message}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, message: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setContactForm({ ...contactForm, message: e.target.value });
+                  }}
                   required
                 />
               </Box>
@@ -116,7 +116,7 @@ export function CTACard() {
       </CardContent>
     </Card>
   );
-}
+};
 
 // Export types for external use
 export type { ContactFormData };

@@ -1,6 +1,5 @@
-import type { NextAuthConfig } from "next-auth";
-
 import Credentials from "next-auth/providers/credentials";
+import type { NextAuthConfig } from "next-auth";
 
 export default {
   trustHost: true,
@@ -162,27 +161,24 @@ export default {
       }
 
       // Handle session updates (like avatar uploads)
-      if (trigger === "update" && updateData) {
-        if (updateData.image !== undefined) {
-          token.image = updateData.image;
-        }
+      if (
+        trigger === "update" &&
+        updateData &&
+        updateData.image !== undefined
+      ) {
+        token.image = updateData.image;
       }
 
       return token;
     },
     async session({ session, token }) {
       session.user.id = (token.id as string | undefined) ?? token.sub ?? "";
-      session.user.type = (token.type as string | undefined) ?? undefined;
-      session.user.account_id =
-        (token.account_id as string | undefined) ?? undefined;
-      session.user.client_ticker =
-        (token.client_ticker as string | null | undefined) ?? null;
-      session.user.username =
-        (token.username as string | undefined) ?? undefined;
-      session.user.image = (token.image as string | null | undefined) ?? null;
-      session.user.roles = Array.isArray(token.roles)
-        ? (token.roles as string[])
-        : [];
+      session.user.type = token.type ?? undefined;
+      session.user.account_id = token.account_id ?? undefined;
+      session.user.client_ticker = token.client_ticker ?? null;
+      session.user.username = token.username ?? undefined;
+      session.user.image = token.image ?? null;
+      session.user.roles = Array.isArray(token.roles) ? token.roles : [];
       return session;
     },
     async redirect({ url, baseUrl }) {

@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 import { config } from "dotenv";
 import { Client } from "pg";
 
@@ -79,7 +78,7 @@ async function truncateRemote() {
     } catch (endError) {
       // Ignore connection termination errors - expected after TRUNCATE CASCADE
       if (endError && typeof endError === "object" && "code" in endError) {
-        const code = (endError as { code?: string }).code;
+        const { code } = endError as { code?: string };
         if (code !== "57P01" && code !== "ECONNRESET") {
           console.error("⚠️  Warning: Error closing connection:", endError);
         }
@@ -90,12 +89,12 @@ async function truncateRemote() {
 
 // Handle connection termination errors from Supabase pooler
 const handleConnectionError = (error: unknown): boolean => {
-  const errorStr = String(error);
+  const errorString = String(error);
   if (
-    errorStr.includes("db_termination") ||
-    errorStr.includes("shutdown") ||
-    errorStr.includes("ECONNRESET") ||
-    errorStr.includes("57P01")
+    errorString.includes("db_termination") ||
+    errorString.includes("shutdown") ||
+    errorString.includes("ECONNRESET") ||
+    errorString.includes("57P01")
   ) {
     // Expected - Supabase pooler terminates connections
     return true;
@@ -121,12 +120,12 @@ process.on("unhandledRejection", (error) => {
 
 truncateRemote().catch((error) => {
   // Don't fail for connection termination errors - they're expected after TRUNCATE
-  const errorStr = String(error);
+  const errorString = String(error);
   if (
-    errorStr.includes("db_termination") ||
-    errorStr.includes("shutdown") ||
-    errorStr.includes("ECONNRESET") ||
-    errorStr.includes("57P01")
+    errorString.includes("db_termination") ||
+    errorString.includes("shutdown") ||
+    errorString.includes("ECONNRESET") ||
+    errorString.includes("57P01")
   ) {
     console.log("ℹ️  Database connection terminated (expected after TRUNCATE)");
     process.exit(0);

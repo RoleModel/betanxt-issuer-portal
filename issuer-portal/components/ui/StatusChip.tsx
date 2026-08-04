@@ -231,12 +231,12 @@ const getStatusStyles = (status: string | null): SxProps<Theme> => {
 };
 
 export interface StatusChipProps {
-  status: string | null;
-  size?: "small" | "medium";
-  sx?: SxProps<Theme>;
-  reviewCount?: number;
-  totalReviews?: number;
-  variant?: "outlined" | "filled";
+  readonly status: string | null;
+  readonly size?: "small" | "medium";
+  readonly sx?: SxProps<Theme>;
+  readonly reviewCount?: number;
+  readonly totalReviews?: number;
+  readonly variant?: "outlined" | "filled";
 }
 
 // We avoid module augmentation for Chip props; use data-status attribute instead
@@ -274,6 +274,3 @@ const StatusChip: React.FC<StatusChipProps> = ({
 };
 
 export default StatusChip;
-
-// Helper functions for external use
-export { getStatusDisplayText, getStatusStyles };

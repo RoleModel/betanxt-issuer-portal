@@ -1,11 +1,11 @@
+import { useCallback, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { useCallback, useState } from "react";
-
 import type { components } from "@/types/api";
-
-import { determineTaskStatus } from "@/utils/taskControl";
-import { getDocumentTypeFromTask } from "@/utils/taskControl";
+import {
+  determineTaskStatus,
+  getDocumentTypeFromTask,
+} from "@/utils/taskControl";
 
 type TaskStatus = components["schemas"]["TaskStatus"];
 
@@ -25,7 +25,7 @@ interface TaskToSubmit {
   type?: string;
 }
 
-interface UseTaskSubmissionProps {
+interface UseTaskSubmissionProperties {
   uploadDocument?: (
     file: File,
     documentType: string,
@@ -44,7 +44,7 @@ export const useTaskSubmission = ({
   uploadDocument,
   updateTaskById,
   setUploadFiles,
-}: UseTaskSubmissionProps) => {
+}: UseTaskSubmissionProperties) => {
   const [isSubmittingTask, setIsSubmittingTask] = useState(false);
 
   const submitRegularFiles = useCallback(
@@ -68,66 +68,72 @@ export const useTaskSubmission = ({
       }
 
       // Upload each file to document repository with progress tracking
-      for (const uploadFile of uploadFiles) {
-        // Update file status to uploading
-        if (setUploadFiles) {
-          setUploadFiles((prev) =>
-            prev.map((f) =>
-              f.id === uploadFile.id
-                ? { ...f, status: "uploading" as const, progress: 0 }
-                : f
-            )
-          );
-        }
+      await Promise.all(
+        uploadFiles.map(async (uploadFile) => {
+          // Update file status to uploading
+          if (setUploadFiles) {
+            setUploadFiles((previous) =>
+              previous.map((f) =>
+                f.id === uploadFile.id
+                  ? { ...f, status: "uploading" as const, progress: 0 }
+                  : f
+              )
+            );
+          }
 
-        try {
-          const documentType = getDocumentTypeFromTask(taskToSubmit);
-          const uploadPath = await uploadDocument(
-            uploadFile.file,
-            documentType,
-            meetingId,
-            uploadFile.file.name,
-            taskIdToUse
-          );
+          try {
+            const documentType = getDocumentTypeFromTask(taskToSubmit);
+            const uploadPath = await uploadDocument(
+              uploadFile.file,
+              documentType,
+              meetingId,
+              uploadFile.file.name,
+              taskIdToUse
+            );
 
-          if (uploadPath === null) {
+            if (uploadPath === null) {
+              // Update file status to error
+              if (setUploadFiles) {
+                setUploadFiles((previous) =>
+                  previous.map((f) =>
+                    f.id === uploadFile.id
+                      ? {
+                          ...f,
+                          status: "error" as const,
+                          error: "Upload failed",
+                        }
+                      : f
+                  )
+                );
+              }
+              throw new Error(`Failed to upload file: ${uploadFile.file.name}`);
+            }
+
+            // Update file status to complete
+            if (setUploadFiles) {
+              setUploadFiles((previous) =>
+                previous.map((f) =>
+                  f.id === uploadFile.id
+                    ? { ...f, status: "complete" as const, progress: 100 }
+                    : f
+                )
+              );
+            }
+          } catch (error) {
             // Update file status to error
             if (setUploadFiles) {
-              setUploadFiles((prev) =>
-                prev.map((f) =>
+              setUploadFiles((previous) =>
+                previous.map((f) =>
                   f.id === uploadFile.id
                     ? { ...f, status: "error" as const, error: "Upload failed" }
                     : f
                 )
               );
             }
-            throw new Error(`Failed to upload file: ${uploadFile.file.name}`);
+            throw error;
           }
-
-          // Update file status to complete
-          if (setUploadFiles) {
-            setUploadFiles((prev) =>
-              prev.map((f) =>
-                f.id === uploadFile.id
-                  ? { ...f, status: "complete" as const, progress: 100 }
-                  : f
-              )
-            );
-          }
-        } catch (error) {
-          // Update file status to error
-          if (setUploadFiles) {
-            setUploadFiles((prev) =>
-              prev.map((f) =>
-                f.id === uploadFile.id
-                  ? { ...f, status: "error" as const, error: "Upload failed" }
-                  : f
-              )
-            );
-          }
-          throw error;
-        }
-      }
+        })
+      );
 
       // Dispatch event to notify other components (like MeetingDocuments) to refetch
       window.dispatchEvent(

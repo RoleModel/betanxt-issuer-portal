@@ -1,6 +1,5 @@
+import * as path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
-import * as path from "path";
-import { fileURLToPath } from "url";
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -8,10 +7,7 @@ import { fileURLToPath } from "url";
 export default defineConfig({
   testDir: "./tests",
   /* Global setup */
-  globalSetup: path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "tests/setup.ts"
-  ),
+  globalSetup: path.resolve(import.meta.dirname, "tests/setup.ts"),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -50,11 +46,12 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:3001',
-  //   reuseExistingServer: true,
-  //   timeout: 60000,
-  // },
+  /* Boot the API before the integration suite, which talks to it over HTTP.
+     Reuses an already-running dev server when there is one. */
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:3001/api/health",
+    reuseExistingServer: true,
+    timeout: 120_000,
+  },
 });

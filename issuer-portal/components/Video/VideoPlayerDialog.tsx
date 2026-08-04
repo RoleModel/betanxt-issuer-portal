@@ -7,16 +7,16 @@ import React from "react";
 import VideoPlayer from "./VideoPlayer";
 
 interface VideoPlayerDialogProps {
-  open: boolean;
-  onClose: () => void;
-  src?: string;
-  title?: string;
-  description?: string;
-  poster?: string;
-  seriesNumber?: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly src?: string;
+  readonly title?: string;
+  readonly description?: string;
+  readonly poster?: string;
+  readonly seriesNumber?: string;
 }
 
-export default function VideoPlayerDialog({
+const VideoPlayerDialog = ({
   open,
   onClose,
   src,
@@ -24,7 +24,7 @@ export default function VideoPlayerDialog({
   description,
   poster,
   seriesNumber,
-}: VideoPlayerDialogProps) {
+}: VideoPlayerDialogProps) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogContent
@@ -65,4 +65,6 @@ export default function VideoPlayerDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default VideoPlayerDialog;

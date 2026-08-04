@@ -5,17 +5,17 @@ import { Box, Typography } from "@mui/material";
 import React from "react";
 
 interface VideoThumbnailProps {
-  title: string;
-  description?: string;
-  seriesNumber?: string;
-  thumbnail?: string;
-  duration?: string;
-  onClick?: () => void;
-  isActive?: boolean;
-  isPlaying?: boolean;
+  readonly title: string;
+  readonly description?: string;
+  readonly seriesNumber?: string;
+  readonly thumbnail?: string;
+  readonly duration?: string;
+  readonly onClick?: () => void;
+  readonly isActive?: boolean;
+  readonly isPlaying?: boolean;
 }
 
-export default function VideoThumbnail({
+const VideoThumbnail = ({
   title,
   description,
   seriesNumber = "#1",
@@ -24,7 +24,7 @@ export default function VideoThumbnail({
   onClick,
   isActive = false,
   isPlaying = false,
-}: VideoThumbnailProps) {
+}: VideoThumbnailProps) => {
   return (
     <Box
       className="video-list-item"
@@ -121,7 +121,7 @@ export default function VideoThumbnail({
         </Box>
 
         {/* Duration badge (if provided) */}
-        {duration && (
+        {duration ? (
           <Box
             sx={{
               position: "absolute",
@@ -146,7 +146,7 @@ export default function VideoThumbnail({
               {duration}
             </Typography>
           </Box>
-        )}
+        ) : null}
 
         {/* Play button overlay */}
         {!isPlaying && (
@@ -207,7 +207,7 @@ export default function VideoThumbnail({
         >
           {title}
         </Typography>
-        {description && (
+        {description ? (
           <Typography
             variant="body3"
             sx={{
@@ -220,8 +220,10 @@ export default function VideoThumbnail({
           >
             {description}
           </Typography>
-        )}
+        ) : null}
       </Box>
     </Box>
   );
-}
+};
+
+export default VideoThumbnail;

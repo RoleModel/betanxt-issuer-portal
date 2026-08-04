@@ -1,19 +1,33 @@
 {
   "name": "@rolemodel/client-theming",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Portable per-client branding: Brandfetch integration, brand registry, and contrast-aware MUI theme generation.",
-  "license": "MIT",
-  "author": "RoleModel Software",
-  "type": "module",
-  "sideEffects": false,
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/RoleModel/client-theming.git"
-  },
+  "keywords": [
+    "brandfetch",
+    "branding",
+    "design-system",
+    "mui",
+    "multi-tenant",
+    "theme",
+    "white-label"
+  ],
   "homepage": "https://github.com/RoleModel/client-theming#readme",
   "bugs": {
     "url": "https://github.com/RoleModel/client-theming/issues"
   },
+  "license": "MIT",
+  "author": "RoleModel Software",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RoleModel/client-theming.git"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    ".env.example"
+  ],
+  "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -39,11 +53,10 @@
       "import": "./dist/logo/index.js"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    ".env.example"
-  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "scripts": {
     "build": "npm run clean && tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
@@ -52,28 +65,17 @@
     "lint:strict": "eslint src --max-warnings 0",
     "prepublishOnly": "npm run build"
   },
-  "peerDependencies": {
-    "@mui/material": ">=6",
-    "react": ">=18",
-    "react-dom": ">=18"
-  },
   "devDependencies": {
     "@mui/material": "^7",
-    "@types/react": "^19",
+    "@types/node": "^24",
+    "@types/react": "^18.3.31",
     "react": "^19",
     "react-dom": "^19",
     "typescript": "^5"
   },
-  "publishConfig": {
-    "access": "public"
-  },
-  "keywords": [
-    "branding",
-    "theme",
-    "mui",
-    "brandfetch",
-    "white-label",
-    "multi-tenant",
-    "design-system"
-  ]
+  "peerDependencies": {
+    "@mui/material": ">=6",
+    "react": ">=18",
+    "react-dom": ">=18"
+  }
 }

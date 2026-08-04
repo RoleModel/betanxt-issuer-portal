@@ -3,11 +3,11 @@
 import { Box, LinearProgress, Typography } from "@mui/material";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useClient } from "@/contexts/ClientContext";
 
-export default function HomePage() {
+const HomePage = () => {
   const { data: session, status } = useSession();
   const {
     currentClient,
@@ -17,7 +17,7 @@ export default function HomePage() {
   } = useClient();
   const router = useRouter();
   const [showError, setShowError] = useState(false);
-  const [hasRedirected, setHasRedirected] = useState(false);
+  const hasRedirectedRef = useRef(false);
 
   // Always redirect unauthenticated users to login
   useEffect(() => {
@@ -34,11 +34,13 @@ export default function HomePage() {
       }
     }, 5000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [clientLoading, currentClient]);
 
   useEffect(() => {
-    if (hasRedirected) return;
+    if (hasRedirectedRef.current) return;
     if (status !== "authenticated") return;
 
     const userType = session?.user?.type;
@@ -50,7 +52,7 @@ export default function HomePage() {
       userType === "SOLICITOR" ||
       userType === "CSM"
     ) {
-      setHasRedirected(true);
+      hasRedirectedRef.current = true;
       router.push("/events");
       return;
     }
@@ -58,7 +60,7 @@ export default function HomePage() {
     // ISSUER users with a client_ticker can redirect immediately (no API dependency)
     if (userType === "ISSUER" && clientTicker) {
       const defaultMeetingId = `${clientTicker.toLowerCase()}-annual-meeting-2026`;
-      setHasRedirected(true);
+      hasRedirectedRef.current = true;
       router.push(`/${clientTicker}/meeting/${defaultMeetingId}`);
       return;
     }
@@ -71,20 +73,20 @@ export default function HomePage() {
 
     if (currentClient) {
       const defaultMeetingId = `${currentClient.ticker.toLowerCase()}-annual-meeting-2026`;
-      setHasRedirected(true);
+      hasRedirectedRef.current = true;
       router.push(`/${currentClient.ticker}/meeting/${defaultMeetingId}`);
     } else if (availableClients.length > 0) {
       const firstClient = availableClients[0];
       const defaultMeetingId = `${firstClient.ticker.toLowerCase()}-annual-meeting-2026`;
-      setHasRedirected(true);
+      hasRedirectedRef.current = true;
       router.push(`/${firstClient.ticker}/meeting/${defaultMeetingId}`);
     } else {
       // No clients available — ADMIN gets a default, others go to login
       if (userType === "ADMIN") {
-        setHasRedirected(true);
+        hasRedirectedRef.current = true;
         router.push("/WEN/meeting/wen-annual-meeting-2026");
       } else {
-        setHasRedirected(true);
+        hasRedirectedRef.current = true;
         router.push("/login");
       }
     }
@@ -93,7 +95,6 @@ export default function HomePage() {
     currentClient,
     availableClients,
     clientLoading,
-    hasRedirected,
     session?.user?.type,
     session?.user?.client_ticker,
     status,
@@ -123,4 +124,6 @@ export default function HomePage() {
 
   // Show loading spinner while determining client
   return <LinearProgress />;
-}
+};
+
+export default HomePage;

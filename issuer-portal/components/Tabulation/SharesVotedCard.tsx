@@ -5,22 +5,22 @@ import type { ProposalVoting } from "@/types/phases";
 import SharesVotedChart from "@/components/Meeting/SharesVotedChart";
 
 interface SharesVotedCardProps {
-  meetingId: string;
-  loading?: boolean;
+  readonly meetingId: string;
+  readonly loading?: boolean;
   /** Pre-fetched proposals forwarded to the chart's proposal selector, avoiding a duplicate fetch. */
-  proposalsOverride?: ProposalVoting[];
+  readonly proposalsOverride?: ProposalVoting[];
 }
 
 /**
  * Tabulation-page wrapper around {@link SharesVotedChart}, which renders the
- * per-proposal shares-voted donut with its proposal selector. Exists so the
- * page can pass its already-fetched proposals straight through.
+ * per-proposal shares-voted donut with its proposal selector. The chart reads
+ * the page-level display mode from `TabulationDisplayContext`.
  */
-export default function SharesVotedCard({
+const SharesVotedCard = ({
   meetingId,
   loading,
   proposalsOverride,
-}: SharesVotedCardProps) {
+}: SharesVotedCardProps) => {
   return (
     <SharesVotedChart
       meetingId={meetingId}
@@ -28,4 +28,6 @@ export default function SharesVotedCard({
       proposalsOverride={proposalsOverride}
     />
   );
-}
+};
+
+export default SharesVotedCard;

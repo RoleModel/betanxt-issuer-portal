@@ -11,7 +11,7 @@ import type { Meeting } from "@/types/api-exports";
 
 import FeatureTile from "@/components/FeatureTile";
 import { useClient } from "@/contexts/ClientContext";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
 import {
   formatQuorumRequirementPercentLabel,
@@ -19,14 +19,11 @@ import {
 } from "@/utils/quorum";
 
 interface Phase8LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
+  readonly meetingId?: string;
+  readonly meeting?: Meeting;
 }
 
-export default React.memo(function Phase8Layout({
-  meeting,
-  meetingId,
-}: Phase8LayoutProps) {
+export default React.memo(({ meeting, meetingId }: Phase8LayoutProps) => {
   const { currentClient } = useClient();
   const { proposals, votingSummary } = useVotingTabulation(meetingId);
 

@@ -1,9 +1,7 @@
 import type {} from "@mui/material/themeCssVarsAugmentation";
-import type { Metadata } from "next";
-import type { Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v13-appRouter";
-import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import { LicenseInfo } from "@mui/x-license";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -13,6 +11,7 @@ import { Roboto, Roboto_Condensed } from "next/font/google";
 import localFont from "next/font/local";
 import React from "react";
 
+import DevOverlay from "@/components/DevOverlay/DevOverlay";
 import RootLayoutClient from "@/components/Layout/RootLayoutClient";
 import SWRProvider from "@/components/Layout/SWRProvider";
 import GlobalStyle from "@/components/mui-styling/GlobalStyles";
@@ -21,6 +20,7 @@ import MuiXLicense from "@/components/MuiXLicense";
 import { ChatbotProvider } from "@/contexts/ChatbotContext";
 import { ClientProvider } from "@/contexts/ClientContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { isDevOverlayEnabled } from "@/utils/developmentOverlay";
 
 LicenseInfo.setLicenseKey(process.env.NEXT_PUBLIC_MUI_XGRID_LICENSE ?? "");
 
@@ -64,27 +64,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const RootLayout = ({ children }: { readonly children: React.ReactNode }) => {
   return (
     <html
       lang="en"
       suppressHydrationWarning
       className={`${roboto.variable} ${robotoCondensed.variable} ${Tungsten.variable}`}
     >
-      <head>
-        {process.env.NODE_ENV === "development" && (
-          <script
-            src="https://mcp.figma.com/mcp/html-to-design/capture.js"
-            async
-          />
-        )}
-      </head>
       <body>
-        <InitColorSchemeScript attribute="class" />
         <AppRouterCacheProvider options={{ key: "mui", enableCssLayer: true }}>
           <SessionProvider>
             <SWRProvider>
@@ -95,6 +82,11 @@ export default function RootLayout({
                       <GlobalStyle />
                       <MuiXLicense />
                       <RootLayoutClient>{children}</RootLayoutClient>
+                      {/* Inside ClientProvider: the overlay reads the active
+                          ticker to open its theme panel on the right client.
+                          Gated on a flag (not NODE_ENV) so it can be switched
+                          on for Vercel Preview — see isDevOverlayEnabled. */}
+                      {isDevOverlayEnabled() && <DevOverlay />}
                     </ThemeRegistry>
                   </ChatbotProvider>
                 </NotificationProvider>
@@ -108,4 +100,6 @@ export default function RootLayout({
       </body>
     </html>
   );
-}
+};
+
+export default RootLayout;

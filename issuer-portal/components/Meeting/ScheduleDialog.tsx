@@ -15,20 +15,20 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import React, { useState } from "react";
 
 interface ScheduleDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSchedule: (date: Date, notes?: string) => void;
-  title: string;
-  description: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onSchedule: (date: Date, notes?: string) => void;
+  readonly title: string;
+  readonly description: string;
 }
 
-export default function ScheduleDialog({
+const ScheduleDialog = ({
   open,
   onClose,
   onSchedule,
   title,
   description,
-}: ScheduleDialogProps) {
+}: ScheduleDialogProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [notes, setNotes] = useState("");
 
@@ -56,7 +56,9 @@ export default function ScheduleDialog({
             <DateTimePicker
               label="Select Date and Time"
               value={selectedDate}
-              onChange={(newValue) => setSelectedDate(newValue)}
+              onChange={(newValue) => {
+                setSelectedDate(newValue);
+              }}
               slotProps={{
                 textField: {
                   fullWidth: true,
@@ -70,7 +72,9 @@ export default function ScheduleDialog({
               rows={4}
               fullWidth
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => {
+                setNotes(e.target.value);
+              }}
               placeholder={description}
             />
           </Box>
@@ -90,4 +94,6 @@ export default function ScheduleDialog({
       </Dialog>
     </LocalizationProvider>
   );
-}
+};
+
+export default ScheduleDialog;

@@ -26,9 +26,7 @@ export const calculateDaysUntil = (dateString: string): number => {
   targetDate.setHours(0, 0, 0, 0);
 
   const diffTime = targetDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  return diffDays;
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
 /**
@@ -64,9 +62,8 @@ export const friendlyDate = (dateString: string): string => {
  * @param dateString - The date string to check
  * @returns True if the date is in the past
  */
-export const isDateInPast = (dateString: string): boolean => {
-  return calculateDaysUntil(dateString) < 0;
-};
+export const isDateInPast = (dateString: string): boolean =>
+  calculateDaysUntil(dateString) < 0;
 
 /**
  * Format days until a date for display
@@ -74,10 +71,18 @@ export const isDateInPast = (dateString: string): boolean => {
  * @returns Formatted string describing the time until/since the date
  */
 export const formatDaysUntil = (days: number): string => {
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  if (days === -1) return "Yesterday";
-  if (days > 0) return `${days} Days`;
+  if (days === 0) {
+    return "Today";
+  }
+  if (days === 1) {
+    return "Tomorrow";
+  }
+  if (days === -1) {
+    return "Yesterday";
+  }
+  if (days > 0) {
+    return `${days} Days`;
+  }
   return `${Math.abs(days)} days ago`;
 };
 
@@ -105,7 +110,9 @@ export function classifyMailingDistribution(
   distributionType: string | null | undefined
 ): MailingDistributionType | null {
   const normalized = (distributionType ?? "").trim().toLowerCase();
-  if (!normalized) return null;
+  if (!normalized) {
+    return null;
+  }
 
   const hasNoticeAndAccess =
     normalized.includes("notice") ||
@@ -118,11 +125,18 @@ export function classifyMailingDistribution(
     normalized.includes("fs") ||
     normalized.includes("fullset");
 
-  if (normalized.includes("combination") || normalized.includes("both"))
+  if (normalized.includes("combination") || normalized.includes("both")) {
     return "combination";
-  if (hasNoticeAndAccess && hasFullSet) return "combination";
-  if (hasNoticeAndAccess) return "noticeAndAccess";
-  if (hasFullSet) return "fullSet";
+  }
+  if (hasNoticeAndAccess && hasFullSet) {
+    return "combination";
+  }
+  if (hasNoticeAndAccess) {
+    return "noticeAndAccess";
+  }
+  if (hasFullSet) {
+    return "fullSet";
+  }
   return null;
 }
 
@@ -131,13 +145,16 @@ export function mailingDistributionShortLabel(
   distribution: MailingDistributionType
 ): string {
   switch (distribution) {
-    case "fullSet":
+    case "fullSet": {
       return `FS (+${FULL_SET_LEAD_DAYS} days)`;
-    case "combination":
+    }
+    case "combination": {
       return `NAA/FS (+${NOTICE_AND_ACCESS_LEAD_DAYS} days)`;
+    }
     case "noticeAndAccess":
-    default:
+    default: {
       return `NAA (+${NOTICE_AND_ACCESS_LEAD_DAYS} days)`;
+    }
   }
 }
 
@@ -176,9 +193,9 @@ export function computeRecommendedMailByDate(
   meetingDate: Date,
   distribution: MailingDistributionType
 ): RecommendedMailByResult {
-  const governedByNoticeAndAccess =
+  const isGovernedByNoticeAndAccess =
     distribution === "noticeAndAccess" || distribution === "combination";
-  const leadDays = governedByNoticeAndAccess
+  const leadDays = isGovernedByNoticeAndAccess
     ? NOTICE_AND_ACCESS_LEAD_DAYS
     : FULL_SET_LEAD_DAYS;
 
@@ -192,7 +209,7 @@ export function computeRecommendedMailByDate(
   // Notice & Access (and combination) mailings cannot land on a weekend; step
   // back to the prior business day, which only increases the lead time and keeps
   // the 40-day floor.
-  if (governedByNoticeAndAccess) {
+  if (isGovernedByNoticeAndAccess) {
     while (isWeekend(date)) {
       date.setDate(date.getDate() - 1);
       effectiveLeadDays += 1;
@@ -202,7 +219,7 @@ export function computeRecommendedMailByDate(
   return {
     date,
     distribution,
-    required: governedByNoticeAndAccess,
+    required: isGovernedByNoticeAndAccess,
     leadDays: effectiveLeadDays,
   };
 }

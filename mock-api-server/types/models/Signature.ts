@@ -1,5 +1,3 @@
-import type { Document } from "./Document";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -19,6 +17,7 @@ import {
   DocumentToJSON,
   DocumentToJSONTyped,
 } from "./Document";
+import type { Document } from "./Document";
 
 /**
  *

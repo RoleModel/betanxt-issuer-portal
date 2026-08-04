@@ -12,9 +12,14 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import {
+  type ComponentProps,
+  type ReactElement,
+  Suspense,
+  useMemo,
+  useState,
+} from "react";
 
-import { buildMockFollowUpJobs } from "@/components/Meeting/AdditionalMailingSummaryCard";
 import BrokerVotingChart from "@/components/Reporting/BrokerVotingChart";
 import EventSummaryTable from "@/components/Reporting/EventSummaryTable";
 import { GeoHeatmapCard } from "@/components/Reporting/GeoHeatmapCard";
@@ -59,8 +64,7 @@ interface PositionsVotedBuckets {
  *
  * An event selector scopes the Analytics charts; it defaults to the first
  * available meeting until the user picks one. The quorum timeline derives its
- * milestones from the meeting plus the shared mock follow-up mailings
- * ({@link buildMockFollowUpJobs}) and threads the selected meeting's quorum
+ * milestones from the meeting and threads the selected meeting's quorum
  * requirement into the threshold line.
  */
 const ReportingPage = () => {
@@ -112,12 +116,17 @@ const ReportingPage = () => {
   const brokerChartProposals = useMemo(
     () =>
       proposals
-        .filter((proposal) => proposal.meetingId === effectiveMeetingId)
-        .map((proposal) => ({
-          id: proposal.id ?? "",
-          proposalNumber: String(proposal.proposalNumber ?? ""),
-          proposalTitle: proposal.proposalTitle ?? "",
-        }))
+        .flatMap((proposal) =>
+          proposal.meetingId === effectiveMeetingId
+            ? [
+                {
+                  id: proposal.id ?? "",
+                  proposalNumber: String(proposal.proposalNumber ?? ""),
+                  proposalTitle: proposal.proposalTitle ?? "",
+                },
+              ]
+            : []
+        )
         .sort((a, b) => Number(a.proposalNumber) - Number(b.proposalNumber)),
     [proposals, effectiveMeetingId]
   );
@@ -125,28 +134,28 @@ const ReportingPage = () => {
   const positionsVotedBySet = useMemo(() => {
     const record: Record<string, PositionsVotedBuckets> = {};
 
-    positions
-      .filter((position) => position.meetingId === effectiveMeetingId)
-      .forEach((position) => {
-        const key = position.setKey || "All Positions";
-        if (!record[key]) {
-          record[key] = {
-            registered: { voted: 0, notVoted: 0 },
-            beneficial: { voted: 0, notVoted: 0 },
-          };
-        }
+    for (const position of positions) {
+      if (position.meetingId !== effectiveMeetingId) continue;
 
-        const bucket =
-          position.accountType === "Non-DTC"
-            ? record[key].registered
-            : record[key].beneficial;
+      const key = position.setKey || "All Positions";
+      if (!record[key]) {
+        record[key] = {
+          registered: { voted: 0, notVoted: 0 },
+          beneficial: { voted: 0, notVoted: 0 },
+        };
+      }
 
-        if (position.voteStatus === "Voted") {
-          bucket.voted += 1;
-        } else {
-          bucket.notVoted += 1;
-        }
-      });
+      const bucket =
+        position.accountType === "Non-DTC"
+          ? record[key].registered
+          : record[key].beneficial;
+
+      if (position.voteStatus === "Voted") {
+        bucket.voted += 1;
+      } else {
+        bucket.notVoted += 1;
+      }
+    }
 
     return record;
   }, [positions, effectiveMeetingId]);
@@ -161,29 +170,22 @@ const ReportingPage = () => {
     const eventSummary = reportingData?.mappedEventSummary ?? [];
 
     return {
-      meetings: quorumData
-        .map((quorum) => {
-          const summary = eventSummary.find(
-            (event) => event.meetingId === quorum.meetingId
-          );
-          return {
+      meetings: quorumData.flatMap((quorum) => {
+        const summary = eventSummary.find(
+          (event) => event.meetingId === quorum.meetingId
+        );
+        const meetingYear = summary?.meetingYear ?? 0;
+        if (meetingYear <= 0) return [];
+        return [
+          {
             event: quorum.meetingTitle,
             participationRate: quorum.participationRate,
-            meetingYear: summary?.meetingYear ?? 0,
-          };
-        })
-        .filter((meeting) => meeting.meetingYear > 0),
+            meetingYear,
+          },
+        ];
+      }),
     };
   }, [reportingData]);
-
-  const followUpMailings = useMemo(
-    () =>
-      buildMockFollowUpJobs(clientTicker).map((job, index) => ({
-        label: job.alternateJobName.split(" — ")[0] || `Follow-Up ${index + 1}`,
-        date: job.sentDate ?? null,
-      })),
-    [clientTicker]
-  );
 
   const quorumTimelineInput = useMemo(() => {
     const meetingDate = selectedMeeting?.meetingDate
@@ -209,15 +211,6 @@ const ReportingPage = () => {
       });
     }
 
-    for (const mailing of followUpMailings) {
-      if (!mailing.date) continue;
-      milestones.push({
-        date: mailing.date,
-        kind: "followUp" as const,
-        label: mailing.label,
-      });
-    }
-
     if (endDate) {
       milestones.push({
         date: endDate,
@@ -233,19 +226,20 @@ const ReportingPage = () => {
       totalOutstandingShares: Number(
         selectedMeeting?.totalSharesOutstanding ?? 0
       ),
-      votes: positions
-        .filter(
-          (position) =>
-            position.meetingId === effectiveMeetingId &&
-            position.voteStatus === "Voted" &&
-            Boolean(position.dateVoted)
-        )
-        .map((position) => ({
-          date: parseLocalDate((position.dateVoted ?? "").slice(0, 10)),
-          shares: Number(position.sharesVoted ?? 0),
-        })),
+      votes: positions.flatMap((position) =>
+        position.meetingId === effectiveMeetingId &&
+        position.voteStatus === "Voted" &&
+        Boolean(position.dateVoted)
+          ? [
+              {
+                date: parseLocalDate((position.dateVoted ?? "").slice(0, 10)),
+                shares: Number(position.sharesVoted ?? 0),
+              },
+            ]
+          : []
+      ),
     };
-  }, [effectiveMeetingId, followUpMailings, positions, selectedMeeting]);
+  }, [effectiveMeetingId, positions, selectedMeeting]);
 
   const { points: quorumTimelinePoints, milestones: quorumTimelineMilestones } =
     useQuorumTimeline(quorumTimelineInput);
@@ -308,88 +302,135 @@ const ReportingPage = () => {
           />
         </Grid>
         {hasNoboFeature ? (
-          <>
-            <Grid size={12}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mt: 1,
-                }}
-              >
-                <Typography variant="pageTitle" component="h2">
-                  Analytics
-                </Typography>
-              </Box>
-            </Grid>
-
-            <Grid size={{ xs: 12, lg: 6 }}>
-              <BrokerVotingChart
-                meetingId={effectiveMeetingId || undefined}
-                proposals={brokerChartProposals}
-                brokerData={brokerVotingByProposal}
-                loading={loading || reportsLoading}
-                subheader={selectedMeetingLabel}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, lg: 6 }}>
-              {effectiveMeetingId ? (
-                <VotingPerformanceChart
-                  meetingId={effectiveMeetingId}
-                  subheader={selectedMeetingLabel}
-                />
-              ) : (
-                <ChartSkeleton />
-              )}
-            </Grid>
-
-            <Grid size={{ xs: 12, lg: 6 }}>
-              <GeoHeatmapCard
-                meetingId={effectiveMeetingId || undefined}
-                subheader={selectedMeetingLabel || undefined}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, lg: 6 }}>
-              <PositionsVotedChart
-                meetingId={effectiveMeetingId || undefined}
-                setKeys={positionsVotedSetKeys}
-                data={positionsVotedBySet}
-                subheader={selectedMeetingLabel}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, lg: 6 }}>
-              <Card sx={{ height: "100%" }}>
-                <CardHeader
-                  title="Participation by Year"
-                  subheader="Average participation rate across completed events"
-                />
-                <CardContent>
-                  <ParticipationChart
-                    data={participationChartData}
-                    loading={loading}
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid size={12}>
-              <Suspense fallback={<ChartSkeleton />}>
-                <ProposalPerformanceTable
-                  data={mappedProposalPerformanceData}
-                />
-              </Suspense>
-            </Grid>
-          </>
+          <ReportingAnalyticsSection
+            effectiveMeetingId={effectiveMeetingId}
+            brokerChartProposals={brokerChartProposals}
+            brokerVotingByProposal={brokerVotingByProposal}
+            loading={loading}
+            reportsLoading={reportsLoading}
+            selectedMeetingLabel={selectedMeetingLabel}
+            positionsVotedSetKeys={positionsVotedSetKeys}
+            positionsVotedBySet={positionsVotedBySet}
+            participationChartData={participationChartData}
+            mappedProposalPerformanceData={mappedProposalPerformanceData}
+          />
         ) : null}
       </Grid>
     </Container>
   );
 };
+
+interface ReportingAnalyticsSectionProps {
+  readonly effectiveMeetingId: string;
+  readonly brokerChartProposals: ComponentProps<
+    typeof BrokerVotingChart
+  >["proposals"];
+  readonly brokerVotingByProposal: ComponentProps<
+    typeof BrokerVotingChart
+  >["brokerData"];
+  readonly loading: boolean;
+  readonly reportsLoading: boolean;
+  readonly selectedMeetingLabel: string;
+  readonly positionsVotedSetKeys: string[];
+  readonly positionsVotedBySet: ComponentProps<
+    typeof PositionsVotedChart
+  >["data"];
+  readonly participationChartData: ComponentProps<
+    typeof ParticipationChart
+  >["data"];
+  readonly mappedProposalPerformanceData: ComponentProps<
+    typeof ProposalPerformanceTable
+  >["data"];
+}
+
+// Per-event Analytics section (gated behind the `nobo` client feature). Extracted
+// from ReportingPage to keep the page component focused; all data is derived in
+// the parent and threaded in via explicit props.
+const ReportingAnalyticsSection = ({
+  effectiveMeetingId,
+  brokerChartProposals,
+  brokerVotingByProposal,
+  loading,
+  reportsLoading,
+  selectedMeetingLabel,
+  positionsVotedSetKeys,
+  positionsVotedBySet,
+  participationChartData,
+  mappedProposalPerformanceData,
+}: ReportingAnalyticsSectionProps): ReactElement => (
+  <>
+    <Grid size={12}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 2,
+          mt: 1,
+        }}
+      >
+        <Typography variant="pageTitle" component="h2">
+          Analytics
+        </Typography>
+      </Box>
+    </Grid>
+
+    <Grid size={{ xs: 12, lg: 6 }}>
+      <BrokerVotingChart
+        meetingId={effectiveMeetingId || undefined}
+        proposals={brokerChartProposals}
+        brokerData={brokerVotingByProposal}
+        loading={loading || reportsLoading}
+        subheader={selectedMeetingLabel}
+      />
+    </Grid>
+
+    <Grid size={{ xs: 12, lg: 6 }}>
+      {effectiveMeetingId ? (
+        <VotingPerformanceChart
+          meetingId={effectiveMeetingId}
+          subheader={selectedMeetingLabel}
+        />
+      ) : (
+        <ChartSkeleton />
+      )}
+    </Grid>
+
+    <Grid size={{ xs: 12, lg: 6 }}>
+      <GeoHeatmapCard
+        meetingId={effectiveMeetingId || undefined}
+        subheader={selectedMeetingLabel || undefined}
+      />
+    </Grid>
+
+    <Grid size={{ xs: 12, lg: 6 }}>
+      <PositionsVotedChart
+        meetingId={effectiveMeetingId || undefined}
+        setKeys={positionsVotedSetKeys}
+        data={positionsVotedBySet}
+        subheader={selectedMeetingLabel}
+      />
+    </Grid>
+
+    <Grid size={{ xs: 12, lg: 6 }}>
+      <Card sx={{ height: "100%" }}>
+        <CardHeader
+          title="Participation by Year"
+          subheader="Average participation rate across completed events"
+        />
+        <CardContent>
+          <ParticipationChart data={participationChartData} loading={loading} />
+        </CardContent>
+      </Card>
+    </Grid>
+
+    <Grid size={12}>
+      <Suspense fallback={<ChartSkeleton />}>
+        <ProposalPerformanceTable data={mappedProposalPerformanceData} />
+      </Suspense>
+    </Grid>
+  </>
+);
 
 export default ReportingPage;

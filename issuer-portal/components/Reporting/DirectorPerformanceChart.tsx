@@ -6,6 +6,7 @@ import React from "react";
 
 import { ChartDataProvider } from "@/components/Reporting/ChartDataContext";
 import SkeletonChart from "@/components/ui/SkeletonChart";
+import { voteChartColors } from "@/utils/vote-chart-colors";
 
 interface DirectorPerformanceData {
   directorName: string;
@@ -16,9 +17,9 @@ interface DirectorPerformanceData {
 }
 
 interface DirectorPerformanceChartProps {
-  data: DirectorPerformanceData[];
-  loading?: boolean;
-  title?: string;
+  readonly data: DirectorPerformanceData[];
+  readonly loading?: boolean;
+  readonly title?: string;
 }
 
 const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
@@ -76,19 +77,19 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
           {
             data: forPercentageData,
             label: "For",
-            color: "var(--mui-palette-chartSeries-1-main)",
+            color: voteChartColors.outcomes.for.color,
             stack: "votes",
           },
           {
             data: againstPercentageData,
             label: "Against",
-            color: "var(--mui-palette-chartSeries-5-main)",
+            color: voteChartColors.outcomes.against.color,
             stack: "votes",
           },
           {
             data: abstainPercentageData,
             label: "Abstain",
-            color: "var(--mui-palette-chartSeries-2-main)",
+            color: voteChartColors.outcomes.abstain.color,
             stack: "votes",
           },
         ],
@@ -116,19 +117,19 @@ const DirectorPerformanceChart: React.FC<DirectorPerformanceChartProps> = ({
           {
             data: forPercentageData,
             label: "For",
-            color: "var(--mui-palette-chartSeries-1-main)",
+            color: voteChartColors.outcomes.for.color,
             stack: "votes",
           },
           {
             data: againstPercentageData,
             label: "Against",
-            color: "var(--mui-palette-chartSeries-5-main)",
+            color: voteChartColors.outcomes.against.color,
             stack: "votes",
           },
           {
             data: abstainPercentageData,
             label: "Abstain",
-            color: "var(--mui-palette-chartSeries-2-main)",
+            color: voteChartColors.outcomes.abstain.color,
             stack: "votes",
           },
         ]}

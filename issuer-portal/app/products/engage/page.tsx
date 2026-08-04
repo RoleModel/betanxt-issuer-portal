@@ -30,88 +30,88 @@ import ProductsLayout from "@/components/Layout/ProductLayout";
 import CTACard from "@/components/Products/CTACard";
 import { SidebarCard } from "@/components/Products/SidebarCard";
 
-export default function EngagePage() {
+const benefits = [
+  {
+    icon: <TeamGrowthIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Overcome voter complacency",
+    description:
+      "Enhanced solicitation and communication through multiple platforms maximize shareholder engagement.",
+  },
+  {
+    icon: <DatabaseStackIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Gain actionable shareholder data",
+    description:
+      "Demographics and robust data analysis are integrated into a detailed plan of action with our in-house call center and relationship managers to enhance our solicitation strategies to obtain quorum faster.",
+  },
+  {
+    icon: <TimerClockIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Access real-time voting status",
+    description:
+      "Real-time voting data and account information are accessible 24/7 from our web-based dashboard, providing visibility into the entire process and current voter status.",
+  },
+  {
+    icon: <CommentsIcon accentColor="#ebb322" fontSize="3xl" />,
+    title: "Digital-first approach",
+    description:
+      "Customized omni-channel technology increases instant communication with branded emails and text messages enabling you to meet investors where they are.",
+  },
+];
+
+const features = [
+  {
+    name: "Email campaigns",
+    essential: true,
+    enhanced: true,
+    ultimate: true,
+  },
+  {
+    name: "Multi-language SMS",
+    essential: true,
+    enhanced: true,
+    ultimate: true,
+  },
+  {
+    name: "Postcard mailings",
+    essential: true,
+    enhanced: true,
+    ultimate: true,
+  },
+  {
+    name: "Voicemail messages",
+    essential: true,
+    enhanced: true,
+    ultimate: true,
+  },
+  {
+    name: "Inbound information agent",
+    essential: true,
+    enhanced: true,
+    ultimate: true,
+  },
+  {
+    name: "Data extraction",
+    essential: false,
+    enhanced: true,
+    ultimate: true,
+  },
+  { name: "Text reminder", essential: false, enhanced: true, ultimate: true },
+  { name: "Verbal calls", essential: false, enhanced: false, ultimate: true },
+  {
+    name: "Outbound calling",
+    essential: false,
+    enhanced: false,
+    ultimate: true,
+  },
+  {
+    name: "Engagement follow",
+    essential: false,
+    enhanced: false,
+    ultimate: true,
+  },
+];
+
+const EngagePage = () => {
   const [open, setOpen] = useState(false);
-
-  const benefits = [
-    {
-      icon: <TeamGrowthIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Overcome voter complacency",
-      description:
-        "Enhanced solicitation and communication through multiple platforms maximize shareholder engagement.",
-    },
-    {
-      icon: <DatabaseStackIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Gain actionable shareholder data",
-      description:
-        "Demographics and robust data analysis are integrated into a detailed plan of action with our in-house call center and relationship managers to enhance our solicitation strategies to obtain quorum faster.",
-    },
-    {
-      icon: <TimerClockIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Access real-time voting status",
-      description:
-        "Real-time voting data and account information are accessible 24/7 from our web-based dashboard, providing visibility into the entire process and current voter status.",
-    },
-    {
-      icon: <CommentsIcon accentColor="#ebb322" fontSize="3xl" />,
-      title: "Digital-first approach",
-      description:
-        "Customized omni-channel technology increases instant communication with branded emails and text messages enabling you to meet investors where they are.",
-    },
-  ];
-
-  const features = [
-    {
-      name: "Email campaigns",
-      essential: true,
-      enhanced: true,
-      ultimate: true,
-    },
-    {
-      name: "Multi-language SMS",
-      essential: true,
-      enhanced: true,
-      ultimate: true,
-    },
-    {
-      name: "Postcard mailings",
-      essential: true,
-      enhanced: true,
-      ultimate: true,
-    },
-    {
-      name: "Voicemail messages",
-      essential: true,
-      enhanced: true,
-      ultimate: true,
-    },
-    {
-      name: "Inbound information agent",
-      essential: true,
-      enhanced: true,
-      ultimate: true,
-    },
-    {
-      name: "Data extraction",
-      essential: false,
-      enhanced: true,
-      ultimate: true,
-    },
-    { name: "Text reminder", essential: false, enhanced: true, ultimate: true },
-    { name: "Verbal calls", essential: false, enhanced: false, ultimate: true },
-    {
-      name: "Outbound calling",
-      essential: false,
-      enhanced: false,
-      ultimate: true,
-    },
-    {
-      name: "Engagement follow",
-      essential: false,
-      enhanced: false,
-      ultimate: true,
-    },
-  ];
 
   const leftColumnContent = (
     <Stack gap={2}>
@@ -141,15 +141,15 @@ export default function EngagePage() {
             gap: 2,
           }}
         >
-          {benefits.map((benefit, index) => (
+          {benefits.map((benefit) => (
             <FeatureTile
-              key={index}
+              key={benefit.title}
               brandFont={true}
               variant="base"
               title={benefit.title}
               titleVariant="h1"
               description={benefit.description}
-              actionText={""}
+              actionText=""
               icon={benefit.icon}
             />
           ))}
@@ -187,8 +187,8 @@ export default function EngagePage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {features.map((feature, index) => (
-                  <TableRow key={index}>
+                {features.map((feature) => (
+                  <TableRow key={feature.name}>
                     <TableCell>{feature.name}</TableCell>
                     <TableCell align="center">
                       {feature.essential ? <Check color="success" /> : ""}
@@ -220,16 +220,20 @@ export default function EngagePage() {
         <Button
           variant="outlined"
           color="primary"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setOpen(true);
+          }}
         >
           View PDF Overview
         </Button>
       </SidebarCard>
       <DocumentViewer
         open={open}
-        onClose={() => setOpen(false)}
-        fileUrl={"/documents/Mediant_Engage_Sell_Sheet.pdf"}
-        title={"Engage Overview"}
+        onClose={() => {
+          setOpen(false);
+        }}
+        fileUrl="/documents/Mediant_Engage_Sell_Sheet.pdf"
+        title="Engage Overview"
         showCommentButton={false}
         showHistoryButton={false}
         showDownloadButton={true}
@@ -243,4 +247,6 @@ export default function EngagePage() {
       rightColumnContent={rightColumnContent}
     />
   );
-}
+};
+
+export default EngagePage;

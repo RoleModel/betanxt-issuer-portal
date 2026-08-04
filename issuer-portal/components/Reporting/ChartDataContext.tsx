@@ -16,8 +16,8 @@ const ChartDataContext = createContext<ChartDataContextValue | undefined>(
 );
 
 export const ChartDataProvider: React.FC<{
-  value: ChartDataContextValue;
-  children: React.ReactNode;
+  readonly value: ChartDataContextValue;
+  readonly children: React.ReactNode;
 }> = ({ value, children }) => {
   return (
     <ChartDataContext.Provider value={value}>

@@ -4,20 +4,22 @@ export interface TaskLink {
   url?: string;
 }
 
-function isTaskLink(obj: unknown): obj is TaskLink {
+function isTaskLink(object: unknown): object is TaskLink {
   return (
-    typeof obj === "object" &&
-    obj !== null &&
-    "label" in obj &&
-    "action" in obj &&
-    typeof (obj as Record<string, unknown>).label === "string" &&
-    typeof (obj as Record<string, unknown>).action === "string"
+    typeof object === "object" &&
+    object !== null &&
+    "label" in object &&
+    "action" in object &&
+    typeof (object as Record<string, unknown>).label === "string" &&
+    typeof (object as Record<string, unknown>).action === "string"
   );
 }
 
 export function parseTaskLinks(json: unknown, taskTitle?: string): TaskLink[] {
   // Handle null/undefined
-  if (!json) return [];
+  if (!json) {
+    return [];
+  }
 
   let links: TaskLink[] = [];
 
@@ -32,8 +34,8 @@ export function parseTaskLinks(json: unknown, taskTitle?: string): TaskLink[] {
       if (Array.isArray(parsed)) {
         links = parsed.filter(isTaskLink);
       }
-    } catch (e) {
-      console.warn("Failed to parse task links JSON:", e);
+    } catch (error) {
+      console.warn("Failed to parse task links JSON:", error);
       return [];
     }
   }

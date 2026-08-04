@@ -1,6 +1,5 @@
-#!/usr/bin/env node
-import { exec } from "child_process";
-import { promisify } from "util";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
 
 const execAsync = promisify(exec);
 
@@ -9,7 +8,7 @@ console.log("🔧 Regenerating PostgreSQL schema to fix HTML entity issues...");
 try {
   const { stdout, stderr } = await execAsync(
     "cd /Users/dallas/Development/betanxt-issuer-portal/mock-api-server && npm run generate:postgres-schema",
-    { timeout: 60000 }
+    { timeout: 60_000 }
   );
 
   console.log("✅ Schema regeneration completed!");

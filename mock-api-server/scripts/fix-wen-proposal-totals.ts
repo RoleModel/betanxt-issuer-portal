@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 /**
  * Recalculates and corrects WEN 2026 proposal totals from position_vote records.
  */
@@ -28,7 +27,7 @@ async function run() {
        ORDER BY proposal_number`
     );
 
-    const totalShares = 190466246;
+    const totalShares = 190_466_246;
 
     for (const p of proposals.rows) {
       const totals = await client.query(
@@ -78,9 +77,9 @@ async function run() {
 
     await client.query("COMMIT");
     console.log("\n🎉 Proposal totals corrected.");
-  } catch (err) {
+  } catch (error) {
     await client.query("ROLLBACK");
-    console.error("❌ Error:", err);
+    console.error("❌ Error:", error);
     process.exit(1);
   } finally {
     await client.end();

@@ -1,5 +1,6 @@
 import { useMediaQuery, useTheme } from "@mui/material";
 import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BNTypographyPair";
+import { useMemo } from "react";
 
 export const NumberCounter = ({
   label,
@@ -9,25 +10,30 @@ export const NumberCounter = ({
   notation = "compact",
   compactDisplay = "short",
 }: {
-  isPercent?: boolean;
-  label?: string;
-  suffix?: string;
-  startValue?: number;
-  endValue?: number;
-  notation?: "compact" | "standard";
-  compactDisplay?: "short" | "long";
+  readonly isPercent?: boolean;
+  readonly label?: string;
+  readonly suffix?: string;
+  readonly startValue?: number;
+  readonly endValue?: number;
+  readonly notation?: "compact" | "standard";
+  readonly compactDisplay?: "short" | "long";
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const safeEnd = Number.isFinite(Number(endValue)) ? Number(endValue) : 0;
 
-  const formatNumber = (value: number) => {
-    const formatter = new Intl.NumberFormat("en-US", {
-      notation,
-      compactDisplay,
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    });
+  const formatter = useMemo(
+    (): Intl.NumberFormat =>
+      new Intl.NumberFormat("en-US", {
+        notation,
+        compactDisplay,
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
+    [notation, compactDisplay]
+  );
+
+  const formatNumber = (value: number): string => {
     const formatted = formatter.format(value);
     return `${formatted}${isPercent ? "%" : (suffix ?? "")}`;
   };

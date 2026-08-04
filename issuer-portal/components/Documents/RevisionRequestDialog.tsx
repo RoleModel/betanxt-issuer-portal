@@ -16,11 +16,11 @@ import {
 import React, { useState } from "react";
 
 interface RevisionRequestDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (revisionRequest: string) => Promise<void>;
-  title?: string;
-  description?: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onSubmit: (revisionRequest: string) => Promise<void>;
+  readonly title?: string;
+  readonly description?: string;
 }
 
 const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
@@ -102,7 +102,9 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
             multiline
             rows={4}
             value={revisionText}
-            onChange={(e) => setRevisionText(e.target.value)}
+            onChange={(e) => {
+              setRevisionText(e.target.value);
+            }}
             placeholder="Please describe the specific revisions needed..."
             variant="outlined"
             disabled={loading}
@@ -130,11 +132,15 @@ const RevisionRequestDialog: React.FC<RevisionRequestDialogProps> = ({
       <Snackbar
         open={showSuccessToast}
         autoHideDuration={6000}
-        onClose={() => setShowSuccessToast(false)}
+        onClose={() => {
+          setShowSuccessToast(false);
+        }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={() => setShowSuccessToast(false)}
+          onClose={() => {
+            setShowSuccessToast(false);
+          }}
           severity="success"
           icon={<CheckCircleOutline />}
           sx={{ width: "100%" }}

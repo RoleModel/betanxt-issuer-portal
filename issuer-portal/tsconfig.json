@@ -3,7 +3,7 @@
   "display": "Issuer Portal",
   "compilerOptions": {
     "target": "es2022",
-    "lib": ["dom", "dom.iterable", "es2022"],
+    "lib": ["dom", "dom.iterable", "es2022", "esnext.error", "esnext.iterator"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -35,7 +35,7 @@
       "@backend/*": ["../mock-api-server/*"],
       "@rolemodel/*": ["./node_modules/@rolemodel/betanxt-design-system/*"]
     },
-    "types": ["node"],
+    "types": ["node", "react/experimental"],
     "noErrorTruncation": true
   },
   "include": [
@@ -44,7 +44,8 @@
     "**/*.tsx",
     "**/*.d.ts",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".next/dev/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

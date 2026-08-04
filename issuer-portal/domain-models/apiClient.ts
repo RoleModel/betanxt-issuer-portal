@@ -1,7 +1,6 @@
-import type { Session } from "next-auth";
-
 import { getSession } from "next-auth/react";
 import createClient from "openapi-fetch";
+import type { Session } from "next-auth";
 
 import type { paths as ExpandedPaths } from "@/types/api";
 
@@ -45,11 +44,9 @@ const getCachedSession = async (): Promise<Session | null> => {
   // Fetch fresh session
   try {
     const session = await getSession();
-    if (session) {
-      sessionCache = { session, timestamp: Date.now() };
-    } else {
-      sessionCache = { session: null, timestamp: Date.now() };
-    }
+    sessionCache = session
+      ? { session, timestamp: Date.now() }
+      : { session: null, timestamp: Date.now() };
     return session;
   } catch (error) {
     console.error("Failed to retrieve session in buildApiClient", error);
@@ -73,14 +70,12 @@ export const buildApiClient = async () => {
     session = await getCachedSession();
   }
 
-  const client = createClient<CombinedPaths>({
+  return createClient<CombinedPaths>({
     baseUrl,
     headers: {
       ...(session?.user?.id && { Authorization: `Bearer ${session.user.id}` }),
     },
   });
-
-  return client;
 };
 
 export default buildApiClient;

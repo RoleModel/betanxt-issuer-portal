@@ -1,6 +1,6 @@
 /**
  * Utility functions for safe type casting and data transformation
- * Used across the application for handling unknown API response data
+ * Used across the app for handling unknown API response data
  */
 
 /**
@@ -9,7 +9,9 @@
  * @returns Array or empty array if cast fails
  */
 export function asArray<T>(value: unknown): T[] {
-  if (Array.isArray(value)) return value as T[];
+  if (Array.isArray(value)) {
+    return value as T[];
+  }
   return [];
 }
 
@@ -55,7 +57,9 @@ export function getStr(
 ): string | null {
   for (const k of keys) {
     const v = asString(obj[k]);
-    if (v !== null) return v;
+    if (v !== null) {
+      return v;
+    }
   }
   return null;
 }
@@ -72,7 +76,9 @@ export function getNum(
 ): number | null {
   for (const k of keys) {
     const v = asNumber(obj[k]);
-    if (v !== null) return v;
+    if (v !== null) {
+      return v;
+    }
   }
   return null;
 }

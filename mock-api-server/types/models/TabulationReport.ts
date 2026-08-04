@@ -1,7 +1,3 @@
-import type { TabulationReportBrokerVotingInner } from "./TabulationReportBrokerVotingInner";
-import type { TabulationReportNonDtcVoteStatus } from "./TabulationReportNonDtcVoteStatus";
-import type { TabulationReportShareRangePerformanceInner } from "./TabulationReportShareRangePerformanceInner";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -33,6 +29,9 @@ import {
   TabulationReportShareRangePerformanceInnerToJSON,
   TabulationReportShareRangePerformanceInnerToJSONTyped,
 } from "./TabulationReportShareRangePerformanceInner";
+import type { TabulationReportShareRangePerformanceInner } from "./TabulationReportShareRangePerformanceInner";
+import type { TabulationReportNonDtcVoteStatus } from "./TabulationReportNonDtcVoteStatus";
+import type { TabulationReportBrokerVotingInner } from "./TabulationReportBrokerVotingInner";
 
 /**
  *

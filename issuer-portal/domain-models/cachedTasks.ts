@@ -10,7 +10,9 @@ async function fetchTasks(meetingId: string): Promise<Task[]> {
   const { data } = await api.GET("/meetings/{meetingId}/tasks", {
     params: { path: { meetingId } },
   });
-  if (!data) return [];
+  if (!data) {
+    return [];
+  }
   return data;
 }
 

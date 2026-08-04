@@ -1,5 +1,4 @@
 import type { SWRConfiguration } from "swr";
-
 import { buildApiClient } from "@/domain-models/apiClient";
 
 // Custom fetcher for API calls
@@ -8,7 +7,7 @@ export const apiFetcher = async (url: string) => {
 
   // Parse the URL to extract the path and params
   const [path, queryString] = url.split("?");
-  const params = queryString
+  const parameters = queryString
     ? Object.fromEntries(new URLSearchParams(queryString))
     : {};
 
@@ -18,9 +17,9 @@ export const apiFetcher = async (url: string) => {
   if (path === "/notifications") {
     response = await client.GET(
       "/notifications",
-      params.read !== undefined
-        ? { params: { query: { read: params.read === "true" } } }
-        : {}
+      parameters.read === undefined
+        ? {}
+        : { params: { query: { read: parameters.read === "true" } } }
     );
   } else if (path === "/clients") {
     response = await client.GET("/clients");
@@ -61,9 +60,7 @@ export const swrConfig: SWRConfiguration = {
   loadingTimeout: 3000,
 
   // Comparison function to determine if data has changed
-  compare: (a, b) => {
-    return JSON.stringify(a) === JSON.stringify(b);
-  },
+  compare: (a, b) => JSON.stringify(a) === JSON.stringify(b),
 
   // Keep previous data while revalidating
   keepPreviousData: true,
@@ -72,18 +69,18 @@ export const swrConfig: SWRConfiguration = {
 // Hook-specific configurations
 export const notificationSWRConfig: SWRConfiguration = {
   ...swrConfig,
-  refreshInterval: 60000, // Poll every 60 seconds
+  refreshInterval: 60_000, // Poll every 60 seconds
   revalidateOnMount: true,
 };
 
 export const clientsSWRConfig: SWRConfiguration = {
   ...swrConfig,
   refreshInterval: 0, // Don't poll - clients rarely change
-  dedupingInterval: 60000, // 1 minute - clients are static
+  dedupingInterval: 60_000, // 1 minute - clients are static
 };
 
 export const meetingDataSWRConfig: SWRConfiguration = {
   ...swrConfig,
-  refreshInterval: 30000, // Poll every 30 seconds for live data
-  dedupingInterval: 10000, // 10 seconds
+  refreshInterval: 30_000, // Poll every 30 seconds for live data
+  dedupingInterval: 10_000, // 10 seconds
 };

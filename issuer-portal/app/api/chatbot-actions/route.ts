@@ -1,9 +1,8 @@
+import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { NextResponse } from "next/server";
-
+import type { ChatbotAction } from "@/lib/chatbotActionsStore";
 import {
-  type ChatbotAction,
   drainChatbotActions,
   enqueueChatbotAction,
 } from "@/lib/chatbotActionsStore";

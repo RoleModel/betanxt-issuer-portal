@@ -24,14 +24,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useSession } from "next-auth/react";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import buildApiClient from "@/domain-models/apiClient";
 
 interface NewClientDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  onCreated?: () => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onCreated?: () => void;
 }
 
 const STEPS = ["Client Info", "Branding", "Initial User", "First Event"];
@@ -116,20 +116,22 @@ const EMPTY_EVENT: EventForm = {
   transferAgent: "Computershare",
 };
 
-function ColorField({
+const ColorField = ({
   label,
   value,
   onChange,
 }: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
+  readonly label: string;
+  readonly value: string;
+  readonly onChange: (v: string) => void;
+}) => {
   return (
     <TextField
       label={label}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e) => {
+        onChange(e.target.value);
+      }}
       size="small"
       fullWidth
       slotProps={{
@@ -140,9 +142,9 @@ function ColorField({
                 component="input"
                 type="color"
                 value={value}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  onChange(e.target.value)
-                }
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  onChange(e.target.value);
+                }}
                 sx={{
                   width: 28,
                   height: 28,
@@ -159,13 +161,13 @@ function ColorField({
       }}
     />
   );
-}
+};
 
-export function NewClientDrawer({
+export const NewClientDrawer = ({
   open,
   onClose,
   onCreated,
-}: NewClientDrawerProps) {
+}: NewClientDrawerProps) => {
   const { data: session, update: updateSession } = useSession();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -177,8 +179,22 @@ export function NewClientDrawer({
   const [userForm, setUserForm] = useState<UserForm>(EMPTY_USER);
   const [eventForm, setEventForm] = useState<EventForm>(EMPTY_EVENT);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const logoPreviewUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrlRef.current) {
+        URL.revokeObjectURL(logoPreviewUrlRef.current);
+        logoPreviewUrlRef.current = null;
+      }
+    };
+  }, []);
 
   const handleClose = useCallback(() => {
+    if (logoPreviewUrlRef.current) {
+      URL.revokeObjectURL(logoPreviewUrlRef.current);
+      logoPreviewUrlRef.current = null;
+    }
     setStep(0);
     setError(null);
     setDone(false);
@@ -192,10 +208,15 @@ export function NewClientDrawer({
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (logoPreviewUrlRef.current) {
+      URL.revokeObjectURL(logoPreviewUrlRef.current);
+    }
+    const previewUrl = URL.createObjectURL(file);
+    logoPreviewUrlRef.current = previewUrl;
     setBrandingForm((p) => ({
       ...p,
       logoFile: file,
-      logoPreview: URL.createObjectURL(file),
+      logoPreview: previewUrl,
     }));
   };
 
@@ -422,365 +443,43 @@ export function NewClientDrawer({
 
           {/* Scrollable content */}
           <Box sx={{ minHeight: 0, overflowY: "auto", px: 3, py: 2 }}>
-            {error && (
+            {error ? (
               <Alert
                 severity="error"
                 sx={{ mb: 2 }}
-                onClose={() => setError(null)}
+                onClose={() => {
+                  setError(null);
+                }}
               >
                 {error}
               </Alert>
-            )}
+            ) : null}
 
             {step === 0 && (
-              <Stack spacing={2}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Basic information for the new client.
-                </Typography>
-                <TextField
-                  label="Ticker Symbol *"
-                  value={clientForm.ticker}
-                  onChange={(e) =>
-                    setClientForm((p) => ({
-                      ...p,
-                      ticker: e.target.value.toUpperCase(),
-                    }))
-                  }
-                  size="small"
-                  fullWidth
-                  slotProps={{ htmlInput: { maxLength: 10 } }}
-                  helperText="e.g. WEN, PAYC"
-                />
-                <TextField
-                  label="Full Company Name *"
-                  value={clientForm.companyName}
-                  onChange={(e) =>
-                    setClientForm((p) => ({
-                      ...p,
-                      companyName: e.target.value,
-                    }))
-                  }
-                  size="small"
-                  fullWidth
-                />
-                <TextField
-                  label="Short Name *"
-                  value={clientForm.shortName}
-                  onChange={(e) =>
-                    setClientForm((p) => ({ ...p, shortName: e.target.value }))
-                  }
-                  size="small"
-                  fullWidth
-                  helperText="Display name used in the app"
-                />
-                <TextField
-                  label="Industry"
-                  value={clientForm.industry}
-                  onChange={(e) =>
-                    setClientForm((p) => ({ ...p, industry: e.target.value }))
-                  }
-                  size="small"
-                  fullWidth
-                />
-                <TextField
-                  label="Website"
-                  value={clientForm.website}
-                  onChange={(e) =>
-                    setClientForm((p) => ({ ...p, website: e.target.value }))
-                  }
-                  size="small"
-                  fullWidth
-                  placeholder="https://"
-                />
-              </Stack>
+              <ClientInfoStep
+                clientForm={clientForm}
+                setClientForm={setClientForm}
+              />
             )}
 
             {step === 1 && (
-              <Stack spacing={2}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Logo and brand colors — all optional.
-                </Typography>
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={handleLogoChange}
-                />
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 180,
-                      height: 80,
-                      border: "1px dashed",
-                      borderColor: "divider",
-                      borderRadius: 2,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
-                      bgcolor: "action.hover",
-                      flexShrink: 0,
-                      p: 3,
-                    }}
-                  >
-                    {brandingForm.logoPreview ? (
-                      <Box
-                        component="img"
-                        src={brandingForm.logoPreview}
-                        alt="Logo"
-                        sx={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                        }}
-                      />
-                    ) : (
-                      <UploadFile sx={{ color: "text.disabled" }} />
-                    )}
-                  </Box>
-                  <Stack spacing={0.5}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<UploadFile />}
-                      onClick={() => logoInputRef.current?.click()}
-                    >
-                      {brandingForm.logoFile ? "Change Logo" : "Upload Logo"}
-                    </Button>
-                    {brandingForm.logoFile && (
-                      <Typography variant="caption" color="text.secondary">
-                        {brandingForm.logoFile.name}
-                      </Typography>
-                    )}
-                  </Stack>
-                </Stack>
-                <Box
-                  sx={{
-                    height: 48,
-                    borderRadius: 2,
-                    overflow: "hidden",
-                    display: "flex",
-                    border: 1,
-                    borderColor: "divider",
-                  }}
-                >
-                  <Box sx={{ flex: 1, bgcolor: brandingForm.primaryColor }} />
-                  <Box sx={{ flex: 1, bgcolor: brandingForm.secondaryColor }} />
-                </Box>
-                <ColorField
-                  label="Primary Color"
-                  value={brandingForm.primaryColor}
-                  onChange={(v) =>
-                    setBrandingForm((p) => ({ ...p, primaryColor: v }))
-                  }
-                />
-                <ColorField
-                  label="Secondary Color"
-                  value={brandingForm.secondaryColor}
-                  onChange={(v) =>
-                    setBrandingForm((p) => ({ ...p, secondaryColor: v }))
-                  }
-                />
-              </Stack>
+              <BrandingStep
+                brandingForm={brandingForm}
+                setBrandingForm={setBrandingForm}
+                logoInputRef={logoInputRef}
+                onLogoChange={handleLogoChange}
+              />
             )}
 
             {step === 2 && (
-              <Stack spacing={2}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Initial ISSUER user for this client.
-                </Typography>
-                <Stack direction="row" spacing={2}>
-                  <TextField
-                    label="First Name *"
-                    value={userForm.firstName}
-                    onChange={(e) =>
-                      setUserForm((p) => ({ ...p, firstName: e.target.value }))
-                    }
-                    size="small"
-                    fullWidth
-                  />
-                  <TextField
-                    label="Last Name *"
-                    value={userForm.lastName}
-                    onChange={(e) =>
-                      setUserForm((p) => ({ ...p, lastName: e.target.value }))
-                    }
-                    size="small"
-                    fullWidth
-                  />
-                </Stack>
-                <TextField
-                  label="Email *"
-                  type="email"
-                  value={userForm.email}
-                  onChange={(e) =>
-                    setUserForm((p) => ({ ...p, email: e.target.value }))
-                  }
-                  size="small"
-                  fullWidth
-                />
-                <TextField
-                  label="Username *"
-                  value={userForm.username}
-                  onChange={(e) =>
-                    setUserForm((p) => ({
-                      ...p,
-                      username: e.target.value.toLowerCase(),
-                    }))
-                  }
-                  size="small"
-                  fullWidth
-                  helperText="Min. 3 characters, lowercase"
-                />
-                <TextField
-                  label="Password *"
-                  type="password"
-                  value={userForm.password}
-                  onChange={(e) =>
-                    setUserForm((p) => ({ ...p, password: e.target.value }))
-                  }
-                  size="small"
-                  fullWidth
-                  helperText="Min. 8 characters"
-                />
-                <Alert severity="info" sx={{ py: 0.5 }}>
-                  User will be created with <strong>ISSUER</strong> role.
-                </Alert>
-              </Stack>
+              <InitialUserStep userForm={userForm} setUserForm={setUserForm} />
             )}
 
             {step === 3 && (
-              <Stack spacing={2}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  First shareholder meeting for this client.
-                </Typography>
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Meeting Type</InputLabel>
-                  <Select
-                    label="Meeting Type"
-                    value={eventForm.meetingType}
-                    onChange={(e) =>
-                      setEventForm((p) => ({
-                        ...p,
-                        meetingType: e.target.value,
-                      }))
-                    }
-                  >
-                    {MEETING_TYPES.map((t) => (
-                      <MenuItem key={t} value={t}>
-                        {t}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <TextField
-                  label="CUSIP *"
-                  value={eventForm.cusip}
-                  onChange={(e) =>
-                    setEventForm((p) => ({ ...p, cusip: e.target.value }))
-                  }
-                  size="small"
-                  fullWidth
-                  slotProps={{ htmlInput: { maxLength: 9 } }}
-                />
-                <Stack direction="row" spacing={2}>
-                  <TextField
-                    label="Record Date *"
-                    type="date"
-                    value={eventForm.recordDate}
-                    onChange={(e) =>
-                      setEventForm((p) => ({
-                        ...p,
-                        recordDate: e.target.value,
-                      }))
-                    }
-                    size="small"
-                    fullWidth
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  />
-                  <TextField
-                    label="Mailing Date *"
-                    type="date"
-                    value={eventForm.mailingDate}
-                    onChange={(e) =>
-                      setEventForm((p) => ({
-                        ...p,
-                        mailingDate: e.target.value,
-                      }))
-                    }
-                    size="small"
-                    fullWidth
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  />
-                </Stack>
-                <TextField
-                  label="Meeting Date *"
-                  type="date"
-                  value={eventForm.meetingDate}
-                  onChange={(e) =>
-                    setEventForm((p) => ({ ...p, meetingDate: e.target.value }))
-                  }
-                  size="small"
-                  fullWidth
-                  slotProps={{ inputLabel: { shrink: true } }}
-                />
-                <TextField
-                  label="Total Shares Outstanding *"
-                  type="number"
-                  value={eventForm.totalSharesOutstanding}
-                  onChange={(e) =>
-                    setEventForm((p) => ({
-                      ...p,
-                      totalSharesOutstanding: e.target.value,
-                    }))
-                  }
-                  size="small"
-                  fullWidth
-                />
-                <TextField
-                  label="Quorum Requirement"
-                  type="number"
-                  value={eventForm.quorumRequirement}
-                  onChange={(e) =>
-                    setEventForm((p) => ({
-                      ...p,
-                      quorumRequirement: e.target.value,
-                    }))
-                  }
-                  size="small"
-                  fullWidth
-                  slotProps={{
-                    input: {
-                      endAdornment: (
-                        <InputAdornment position="end">%</InputAdornment>
-                      ),
-                    },
-                  }}
-                />
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Transfer Agent</InputLabel>
-                  <Select
-                    label="Transfer Agent"
-                    value={eventForm.transferAgent}
-                    onChange={(e) =>
-                      setEventForm((p) => ({
-                        ...p,
-                        transferAgent: e.target.value,
-                      }))
-                    }
-                  >
-                    {TRANSFER_AGENTS.map((t) => (
-                      <MenuItem key={t} value={t}>
-                        {t}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  <FormHelperText>
-                    Transfer agent managing shares
-                  </FormHelperText>
-                </FormControl>
-              </Stack>
+              <FirstEventStep
+                eventForm={eventForm}
+                setEventForm={setEventForm}
+              />
             )}
           </Box>
 
@@ -797,7 +496,9 @@ export function NewClientDrawer({
             }}
           >
             <Button
-              onClick={() => setStep((s) => s - 1)}
+              onClick={() => {
+                setStep((s) => s - 1);
+              }}
               disabled={step === 0 || submitting}
             >
               Back
@@ -809,7 +510,9 @@ export function NewClientDrawer({
                 <span>
                   <Button
                     variant="contained"
-                    onClick={() => setStep((s) => s + 1)}
+                    onClick={() => {
+                      setStep((s) => s + 1);
+                    }}
                     disabled={!canAdvance()}
                   >
                     Next
@@ -841,4 +544,389 @@ export function NewClientDrawer({
       )}
     </Drawer>
   );
+};
+
+interface ClientInfoStepProps {
+  readonly clientForm: ClientForm;
+  readonly setClientForm: React.Dispatch<React.SetStateAction<ClientForm>>;
 }
+
+const ClientInfoStep = ({ clientForm, setClientForm }: ClientInfoStepProps) => {
+  return (
+    <Stack spacing={2}>
+      <Typography variant="subtitle2" color="text.secondary">
+        Basic information for the new client.
+      </Typography>
+      <TextField
+        label="Ticker Symbol *"
+        value={clientForm.ticker}
+        onChange={(e) => {
+          setClientForm((p) => ({
+            ...p,
+            ticker: e.target.value.toUpperCase(),
+          }));
+        }}
+        size="small"
+        fullWidth
+        slotProps={{ htmlInput: { maxLength: 10 } }}
+        helperText="e.g. WEN, PAYC"
+      />
+      <TextField
+        label="Full Company Name *"
+        value={clientForm.companyName}
+        onChange={(e) => {
+          setClientForm((p) => ({
+            ...p,
+            companyName: e.target.value,
+          }));
+        }}
+        size="small"
+        fullWidth
+      />
+      <TextField
+        label="Short Name *"
+        value={clientForm.shortName}
+        onChange={(e) => {
+          setClientForm((p) => ({ ...p, shortName: e.target.value }));
+        }}
+        size="small"
+        fullWidth
+        helperText="Display name used in the app"
+      />
+      <TextField
+        label="Industry"
+        value={clientForm.industry}
+        onChange={(e) => {
+          setClientForm((p) => ({ ...p, industry: e.target.value }));
+        }}
+        size="small"
+        fullWidth
+      />
+      <TextField
+        label="Website"
+        value={clientForm.website}
+        onChange={(e) => {
+          setClientForm((p) => ({ ...p, website: e.target.value }));
+        }}
+        size="small"
+        fullWidth
+        placeholder="https://"
+      />
+    </Stack>
+  );
+};
+
+interface BrandingStepProps {
+  readonly brandingForm: BrandingForm;
+  readonly setBrandingForm: React.Dispatch<React.SetStateAction<BrandingForm>>;
+  readonly logoInputRef: React.RefObject<HTMLInputElement>;
+  readonly onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const BrandingStep = ({
+  brandingForm,
+  setBrandingForm,
+  logoInputRef,
+  onLogoChange,
+}: BrandingStepProps) => {
+  return (
+    <Stack spacing={2}>
+      <Typography variant="subtitle2" color="text.secondary">
+        Logo and brand colors — all optional.
+      </Typography>
+      <input
+        ref={logoInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={onLogoChange}
+      />
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Box
+          sx={{
+            width: 180,
+            height: 80,
+            border: "1px dashed",
+            borderColor: "divider",
+            borderRadius: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+            bgcolor: "action.hover",
+            flexShrink: 0,
+            p: 3,
+          }}
+        >
+          {brandingForm.logoPreview ? (
+            <Box
+              component="img"
+              src={brandingForm.logoPreview}
+              alt="Logo"
+              sx={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+              }}
+            />
+          ) : (
+            <UploadFile sx={{ color: "text.disabled" }} />
+          )}
+        </Box>
+        <Stack spacing={0.5}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<UploadFile />}
+            onClick={() => logoInputRef.current?.click()}
+          >
+            {brandingForm.logoFile ? "Change Logo" : "Upload Logo"}
+          </Button>
+          {brandingForm.logoFile ? (
+            <Typography variant="caption" color="text.secondary">
+              {brandingForm.logoFile.name}
+            </Typography>
+          ) : null}
+        </Stack>
+      </Stack>
+      <Box
+        sx={{
+          height: 48,
+          borderRadius: 2,
+          overflow: "hidden",
+          display: "flex",
+          border: 1,
+          borderColor: "divider",
+        }}
+      >
+        <Box sx={{ flex: 1, bgcolor: brandingForm.primaryColor }} />
+        <Box sx={{ flex: 1, bgcolor: brandingForm.secondaryColor }} />
+      </Box>
+      <ColorField
+        label="Primary Color"
+        value={brandingForm.primaryColor}
+        onChange={(v) => {
+          setBrandingForm((p) => ({ ...p, primaryColor: v }));
+        }}
+      />
+      <ColorField
+        label="Secondary Color"
+        value={brandingForm.secondaryColor}
+        onChange={(v) => {
+          setBrandingForm((p) => ({ ...p, secondaryColor: v }));
+        }}
+      />
+    </Stack>
+  );
+};
+
+interface InitialUserStepProps {
+  readonly userForm: UserForm;
+  readonly setUserForm: React.Dispatch<React.SetStateAction<UserForm>>;
+}
+
+const InitialUserStep = ({ userForm, setUserForm }: InitialUserStepProps) => {
+  return (
+    <Stack spacing={2}>
+      <Typography variant="subtitle2" color="text.secondary">
+        Initial ISSUER user for this client.
+      </Typography>
+      <Stack direction="row" spacing={2}>
+        <TextField
+          label="First Name *"
+          value={userForm.firstName}
+          onChange={(e) => {
+            setUserForm((p) => ({ ...p, firstName: e.target.value }));
+          }}
+          size="small"
+          fullWidth
+        />
+        <TextField
+          label="Last Name *"
+          value={userForm.lastName}
+          onChange={(e) => {
+            setUserForm((p) => ({ ...p, lastName: e.target.value }));
+          }}
+          size="small"
+          fullWidth
+        />
+      </Stack>
+      <TextField
+        label="Email *"
+        type="email"
+        value={userForm.email}
+        onChange={(e) => {
+          setUserForm((p) => ({ ...p, email: e.target.value }));
+        }}
+        size="small"
+        fullWidth
+      />
+      <TextField
+        label="Username *"
+        value={userForm.username}
+        onChange={(e) => {
+          setUserForm((p) => ({
+            ...p,
+            username: e.target.value.toLowerCase(),
+          }));
+        }}
+        size="small"
+        fullWidth
+        helperText="Min. 3 characters, lowercase"
+      />
+      <TextField
+        label="Password *"
+        type="password"
+        value={userForm.password}
+        onChange={(e) => {
+          setUserForm((p) => ({ ...p, password: e.target.value }));
+        }}
+        size="small"
+        fullWidth
+        helperText="Min. 8 characters"
+      />
+      <Alert severity="info" sx={{ py: 0.5 }}>
+        User will be created with <strong>ISSUER</strong> role.
+      </Alert>
+    </Stack>
+  );
+};
+
+interface FirstEventStepProps {
+  readonly eventForm: EventForm;
+  readonly setEventForm: React.Dispatch<React.SetStateAction<EventForm>>;
+}
+
+const FirstEventStep = ({ eventForm, setEventForm }: FirstEventStepProps) => {
+  return (
+    <Stack spacing={2}>
+      <Typography variant="subtitle2" color="text.secondary">
+        First shareholder meeting for this client.
+      </Typography>
+      <FormControl size="small" fullWidth>
+        <InputLabel>Meeting Type</InputLabel>
+        <Select
+          label="Meeting Type"
+          value={eventForm.meetingType}
+          onChange={(e) => {
+            setEventForm((p) => ({
+              ...p,
+              meetingType: e.target.value,
+            }));
+          }}
+        >
+          {MEETING_TYPES.map((t) => (
+            <MenuItem key={t} value={t}>
+              {t}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <TextField
+        label="CUSIP *"
+        value={eventForm.cusip}
+        onChange={(e) => {
+          setEventForm((p) => ({ ...p, cusip: e.target.value }));
+        }}
+        size="small"
+        fullWidth
+        slotProps={{ htmlInput: { maxLength: 9 } }}
+      />
+      <Stack direction="row" spacing={2}>
+        <TextField
+          label="Record Date *"
+          type="date"
+          value={eventForm.recordDate}
+          onChange={(e) => {
+            setEventForm((p) => ({
+              ...p,
+              recordDate: e.target.value,
+            }));
+          }}
+          size="small"
+          fullWidth
+          slotProps={{ inputLabel: { shrink: true } }}
+        />
+        <TextField
+          label="Mailing Date *"
+          type="date"
+          value={eventForm.mailingDate}
+          onChange={(e) => {
+            setEventForm((p) => ({
+              ...p,
+              mailingDate: e.target.value,
+            }));
+          }}
+          size="small"
+          fullWidth
+          slotProps={{ inputLabel: { shrink: true } }}
+        />
+      </Stack>
+      <TextField
+        label="Meeting Date *"
+        type="date"
+        value={eventForm.meetingDate}
+        onChange={(e) => {
+          setEventForm((p) => ({
+            ...p,
+            meetingDate: e.target.value,
+          }));
+        }}
+        size="small"
+        fullWidth
+        slotProps={{ inputLabel: { shrink: true } }}
+      />
+      <TextField
+        label="Total Shares Outstanding *"
+        type="number"
+        value={eventForm.totalSharesOutstanding}
+        onChange={(e) => {
+          setEventForm((p) => ({
+            ...p,
+            totalSharesOutstanding: e.target.value,
+          }));
+        }}
+        size="small"
+        fullWidth
+      />
+      <TextField
+        label="Quorum Requirement"
+        type="number"
+        value={eventForm.quorumRequirement}
+        onChange={(e) => {
+          setEventForm((p) => ({
+            ...p,
+            quorumRequirement: e.target.value,
+          }));
+        }}
+        size="small"
+        fullWidth
+        slotProps={{
+          input: {
+            endAdornment: <InputAdornment position="end">%</InputAdornment>,
+          },
+        }}
+      />
+      <FormControl size="small" fullWidth>
+        <InputLabel>Transfer Agent</InputLabel>
+        <Select
+          label="Transfer Agent"
+          value={eventForm.transferAgent}
+          onChange={(e) => {
+            setEventForm((p) => ({
+              ...p,
+              transferAgent: e.target.value,
+            }));
+          }}
+        >
+          {TRANSFER_AGENTS.map((t) => (
+            <MenuItem key={t} value={t}>
+              {t}
+            </MenuItem>
+          ))}
+        </Select>
+        <FormHelperText>Transfer agent managing shares</FormHelperText>
+      </FormControl>
+    </Stack>
+  );
+};

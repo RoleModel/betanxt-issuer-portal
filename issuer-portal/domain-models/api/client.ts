@@ -16,7 +16,9 @@ export const apiClient = createClient<paths>({ baseUrl: apiBaseUrl });
 
 // Helper for injecting bearer token at callsite without recreating client
 export function withAuth(token?: string) {
-  if (!token) return apiClient;
+  if (!token) {
+    return apiClient;
+  }
   return createClient<paths>({
     baseUrl: apiBaseUrl,
     headers: {

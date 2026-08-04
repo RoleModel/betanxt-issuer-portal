@@ -33,19 +33,21 @@ export interface UseDigitalShareholderMeetingReturn {
 const API_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
+const fetcher = async (
+  url: string
+): Promise<DigitalShareholderMeetingAttendee[]> => {
+  const response = await fetch(`${API_URL}${url}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch attendees");
+  }
+  return await (response.json() as Promise<
+    DigitalShareholderMeetingAttendee[]
+  >);
+};
+
 export function useDigitalShareholderMeeting(
   meetingId: string | undefined
 ): UseDigitalShareholderMeetingReturn {
-  const fetcher = async (
-    url: string
-  ): Promise<DigitalShareholderMeetingAttendee[]> => {
-    const response = await fetch(`${API_URL}${url}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch attendees");
-    }
-    return response.json() as Promise<DigitalShareholderMeetingAttendee[]>;
-  };
-
   const swrResult = useSWR<DigitalShareholderMeetingAttendee[]>(
     meetingId ? `/meetings/${meetingId}/digital-shareholder-meeting` : null,
     fetcher,
@@ -54,10 +56,9 @@ export function useDigitalShareholderMeeting(
       revalidateOnReconnect: false,
     }
   );
-  const data = swrResult.data;
+  const { data } = swrResult;
   const error = swrResult.error as Error | undefined;
-  const isLoading = swrResult.isLoading;
-  const mutate = swrResult.mutate;
+  const { isLoading, mutate } = swrResult;
 
   const uploadAttendees = async (attendees: UploadAttendeeData[]) => {
     if (!meetingId) {

@@ -1,11 +1,13 @@
 packages:
   - "issuer-portal"
   - "mock-api-server"
+  - "client-theming"
 
 minimumReleaseAge: 0
 
 onlyBuiltDependencies:
   - "@mui/x-telemetry"
+  - "@sentry/cli"
   - "@nestjs/core"
   - "@openapitools/openapi-generator-cli"
   - core-js
@@ -15,9 +17,23 @@ onlyBuiltDependencies:
 
 allowBuilds:
   "@mui/x-telemetry": true
+  "@sentry/cli": true
   "@nestjs/core": true
   "@openapitools/openapi-generator-cli": true
   core-js: true
   esbuild: true
   sharp: true
   unrs-resolver: true
+
+# Security overrides: force patched versions of transitive dependencies that
+# their parents still pin to vulnerable ranges. Remove an entry once the
+# parent package ships a release that depends on a patched version itself.
+overrides:
+  # GHSA WebSocket DoS / request smuggling / header injection, via @ai-sdk/provider-utils
+  undici: ">=6.27.0"
+  # Arbitrary file read + path traversal in source-map handling, via next
+  postcss: ">=8.5.18"
+  # Inherited libvips vulnerabilities, via next
+  sharp: ">=0.35.0"
+  # Missing buffer bounds check in v3/v5/v6, via @snaplet/copycat
+  uuid: ">=11.1.1"

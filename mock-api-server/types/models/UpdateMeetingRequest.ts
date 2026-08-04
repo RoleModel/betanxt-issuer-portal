@@ -1,5 +1,3 @@
-import type { MeetingStatus } from "./MeetingStatus";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -19,6 +17,7 @@ import {
   MeetingStatusToJSON,
   MeetingStatusToJSONTyped,
 } from "./MeetingStatus";
+import type { MeetingStatus } from "./MeetingStatus";
 
 /**
  *

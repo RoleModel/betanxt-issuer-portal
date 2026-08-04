@@ -3,7 +3,7 @@
 import { LinearProgress } from "@mui/material";
 import React from "react";
 
-export default function Loading() {
+const Loading = () => {
   return (
     <LinearProgress
       sx={{
@@ -11,4 +11,6 @@ export default function Loading() {
       }}
     />
   );
-}
+};
+
+export default Loading;

@@ -1132,6 +1132,66 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  /tasks:
+    get:
+      operationId: listAllTasks
+      summary: List tasks across meetings
+      description: >
+        Cross-meeting task query. Exists so callers that need task state for many meetings at once (for example, deriving which events are behind schedule on the events index) can issue a single request instead of one request per meeting. Filters are applied server-side so the response stays small.
+      tags: [Tasks]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: meetingId
+          in: query
+          description: Comma-separated list of meeting ids to restrict the query to.
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/TaskStatus"
+        - name: dueBefore
+          in: query
+          description: Only return tasks with a due date strictly before this date.
+          schema:
+            type: string
+            format: date
+        - name: openOnly
+          in: query
+          description: >
+            Exclude tasks in a completion status. The completion set is the same one phase advancement uses, so "open" here means the task is still holding its meeting up.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Task"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /tasks/{id}:
     get:
       operationId: getTaskById
@@ -2716,6 +2776,12 @@ components:
         ticker:
           type: string
           example: "WEN"
+        setKey:
+          type: string
+          nullable: true
+          description: >-
+            Broadridge set key identifying the mailing set for this event. Follows the ${TICKER}J${YEAR} convention, e.g. WENJ2026.
+          example: "WENJ2026"
         preFilingDate:
           type: string
           format: date
@@ -3709,6 +3775,10 @@ components:
           type: string
         ticker:
           type: string
+        setKey:
+          type: string
+          nullable: true
+          description: Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026).
         recordDate:
           type: string
           format: date
@@ -3772,6 +3842,10 @@ components:
           maxLength: 200
         cusip:
           type: string
+        setKey:
+          type: string
+          nullable: true
+          description: Broadridge set key, ${TICKER}J${YEAR} (e.g. WENJ2026).
         brokerSearchDate:
           type: string
           format: date

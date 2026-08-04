@@ -24,20 +24,20 @@ type DigitalShareholderMeeting =
   components["schemas"]["DigitalShareholderMeeting"];
 
 interface ExportButtonProps {
-  attendees: DigitalShareholderMeeting[];
-  sectionName?: string;
-  disabled?: boolean;
-  variant?: "contained" | "outlined" | "text";
-  size?: "small" | "medium" | "large";
+  readonly attendees: DigitalShareholderMeeting[];
+  readonly sectionName?: string;
+  readonly disabled?: boolean;
+  readonly variant?: "contained" | "outlined" | "text";
+  readonly size?: "small" | "medium" | "large";
 }
 
-export function ExportButton({
+export const ExportButton = ({
   attendees,
   sectionName = "attendees",
   disabled = false,
   variant = "outlined",
   size = "large",
-}: ExportButtonProps) {
+}: ExportButtonProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const open = Boolean(anchorEl);
@@ -114,7 +114,11 @@ export function ExportButton({
           horizontal: "right",
         }}
       >
-        <MenuItem onClick={() => handleExport("csv")}>
+        <MenuItem
+          onClick={() => {
+            handleExport("csv");
+          }}
+        >
           <ListItemIcon>
             <FileDownload fontSize="small" />
           </ListItemIcon>
@@ -123,7 +127,11 @@ export function ExportButton({
             secondary="Excel compatible, 5KB"
           />
         </MenuItem>
-        <MenuItem onClick={() => handleExport("excel")}>
+        <MenuItem
+          onClick={() => {
+            handleExport("excel");
+          }}
+        >
           <ListItemIcon>
             <TableChart fontSize="small" />
           </ListItemIcon>
@@ -132,7 +140,11 @@ export function ExportButton({
             secondary="Microsoft Excel format"
           />
         </MenuItem>
-        <MenuItem onClick={() => handleExport("pdf")}>
+        <MenuItem
+          onClick={() => {
+            handleExport("pdf");
+          }}
+        >
           <ListItemIcon>
             <PictureAsPdf fontSize="small" />
           </ListItemIcon>
@@ -144,4 +156,4 @@ export function ExportButton({
       </Menu>
     </>
   );
-}
+};

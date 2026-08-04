@@ -1,5 +1,6 @@
 "use client";
 
+import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import React, {
@@ -7,6 +8,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -31,9 +33,216 @@ interface ClientContextType {
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
-export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+const SELECTED_CLIENT_STORAGE_KEY = "selectedClient:v1";
+
+interface ClientSwitchRouter {
+  readonly replace: (href: string) => void;
+}
+
+// Pure access-control resolution extracted from ClientProvider to keep the
+// provider focused. Behavior is identical to the previous inline logic.
+const resolveClientAccess = (params: {
+  readonly user: Session["user"] | undefined;
+  readonly clients: Client[];
+  readonly bypassAuth: boolean;
+  readonly clientId: string;
+}): boolean => {
+  const { user: sessionUser, clients, bypassAuth, clientId } = params;
+
+  if (isIssuerUser(sessionUser)) {
+    const userTicker = sessionUser?.client_ticker;
+    if (!userTicker) return false;
+
+    const issuerClient = clients.find((client) => client.ticker === userTicker);
+    if (!issuerClient) return false;
+
+    return (
+      issuerClient.id === clientId ||
+      issuerClient.ticker === clientId ||
+      issuerClient.company_name === clientId ||
+      issuerClient.short_name === clientId
+    );
+  }
+
+  if (bypassAuth) {
+    return true; // Auth bypass allows access to all clients
+  }
+
+  // ADMIN, PARENT_CLIENT, SOLICITOR, and CSM users can access all clients
+  if (
+    sessionUser?.type === "ADMIN" ||
+    sessionUser?.type === "PARENT_CLIENT" ||
+    sessionUser?.type === "SOLICITOR" ||
+    sessionUser?.type === "CSM" ||
+    Boolean(sessionUser?.roles?.includes("ADMIN"))
+  ) {
+    return true;
+  }
+
+  // ISSUER users can access the client matching their client_ticker
+  const userTicker = sessionUser?.client_ticker;
+  if (userTicker) {
+    const tickerMatch = clients.find((c) => c.ticker === userTicker);
+    if (
+      tickerMatch &&
+      (tickerMatch.id === clientId || tickerMatch.ticker === clientId)
+    ) {
+      return true;
+    }
+  }
+
+  // In normal auth mode, check user's relationships or account access
+  const userAccountId = sessionUser?.account_id;
+  if (!userAccountId) return false;
+
+  // Find client that matches the clientId
+  const targetClient = clients.find(
+    (c) =>
+      c.id === clientId ||
+      c.company_name === clientId ||
+      c.short_name === clientId ||
+      c.ticker === clientId
+  );
+  if (!targetClient) return false;
+
+  // Check if user has access (simplified - could be more complex with relationships)
+  return (
+    userAccountId === targetClient.id ||
+    sessionUser?.type === "RELATIONSHIP_MANAGER"
+  );
+};
+
+// Client-switch handler extracted from ClientProvider to keep the provider
+// focused. Behavior is identical to the previous inline logic.
+const switchClientImpl = (params: {
+  readonly client: Client;
+  readonly user: Session["user"] | undefined;
+  readonly pathname: string;
+  readonly router: ClientSwitchRouter;
+  readonly canAccessClient: (clientId: string) => boolean;
+  readonly setError: React.Dispatch<React.SetStateAction<string | null>>;
+  readonly setIsUserSwitching: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly setCurrentClient: React.Dispatch<
+    React.SetStateAction<Client | null>
+  >;
+}): void => {
+  const {
+    client,
+    user,
+    pathname,
+    router,
+    canAccessClient,
+    setError,
+    setIsUserSwitching,
+    setCurrentClient,
+  } = params;
+
+  if (isIssuerUser(user)) {
+    return;
+  }
+
+  try {
+    if (!canAccessClient(client.id)) {
+      setError(`Access denied to ${client.company_name ?? client.short_name}`);
+      return;
+    }
+
+    // Set flag to prevent automatic client determination during switch
+    setIsUserSwitching(true);
+
+    // Update localStorage first
+    localStorage.setItem(
+      SELECTED_CLIENT_STORAGE_KEY,
+      JSON.stringify({
+        id: client.id,
+        name: client.company_name ?? client.short_name,
+        ticker: client.ticker,
+      })
+    );
+
+    // Update current client state immediately
+    setCurrentClient(client);
+
+    // Navigate to the equivalent page for the selected client using ticker-based routing
+    if (client.ticker) {
+      // Only navigate if on a ticker-based route
+      if (
+        pathname === "/events" ||
+        pathname.startsWith("/education") ||
+        pathname.startsWith("/products")
+      ) {
+        // Global pages: update client context only, keep the user on the current view
+        setTimeout(() => {
+          setIsUserSwitching(false);
+        }, 500);
+        return;
+      }
+
+      const pastMeetingMatch =
+        /^\/[A-Z]{2,5}\/past-meeting\/[^/]+(\/.*)?$/.exec(pathname);
+      const activeMeetingMatch = /^\/[A-Z]{2,5}\/meeting\/[^/]+(\/.*)?$/.exec(
+        pathname
+      );
+
+      // Past meetings are client-specific records, so do not carry a different client's
+      // meeting id across the switch. Land on the target client's past-meetings index.
+      if (pastMeetingMatch) {
+        router.replace(`/${client.ticker}/past-meetings`);
+        return;
+      }
+
+      // Active meeting pages can preserve the sub-page, but they must use the target
+      // client's own default meeting id rather than the previous client's meeting id.
+      if (activeMeetingMatch) {
+        if (!client.meeting_id) {
+          router.replace(`/${client.ticker}/past-meetings`);
+          return;
+        }
+
+        const subPage = activeMeetingMatch[1] ?? "";
+        router.replace(
+          `/${client.ticker}/meeting/${client.meeting_id}${subPage}`
+        );
+        return;
+      }
+
+      // For other ticker-based routes, replace the old ticker with the new ticker
+      const tickerMatch = /^\/([A-Z]{2,5})\//.exec(pathname);
+      if (tickerMatch) {
+        const oldTicker = tickerMatch[1];
+        const newPath = pathname.replace(
+          `/${oldTicker}/`,
+          `/${client.ticker}/`
+        );
+        router.replace(newPath);
+      } else {
+        // Not on a ticker-based route - navigate to client's default meeting if available
+        const defaultMeetingId = client.meeting_id;
+        if (defaultMeetingId) {
+          router.replace(`/${client.ticker}/meeting/${defaultMeetingId}`);
+        } else {
+          router.replace(`/${client.ticker}/past-meetings`);
+        }
+      }
+    }
+
+    // Reset the switching flag after navigation completes
+    setTimeout(() => {
+      setIsUserSwitching(false);
+    }, 500);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to switch client";
+    setError(errorMessage);
+    console.error("Client switch error:", error);
+    // Reset the switching flag on error
+    setIsUserSwitching(false);
+  }
+};
+
+export const ClientProvider: React.FC<{
+  readonly children: React.ReactNode;
+}> = ({ children }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
@@ -64,80 +273,14 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Check if user can access a specific client
   const canAccessClient = useCallback(
-    (clientId: string): boolean => {
-      const sessionUser = session?.user;
-      if (isIssuerUser(sessionUser)) {
-        const userTicker = sessionUser?.client_ticker;
-        if (!userTicker) return false;
-
-        const issuerClient = clients.find(
-          (client) => client.ticker === userTicker
-        );
-        if (!issuerClient) return false;
-
-        return (
-          issuerClient.id === clientId ||
-          issuerClient.ticker === clientId ||
-          issuerClient.company_name === clientId ||
-          issuerClient.short_name === clientId
-        );
-      }
-
-      if (bypassAuth) {
-        return true; // Auth bypass allows access to all clients
-      }
-
-      // ADMIN, PARENT_CLIENT, SOLICITOR, and CSM users can access all clients
-      if (
-        session?.user?.type === "ADMIN" ||
-        session?.user?.type === "PARENT_CLIENT" ||
-        session?.user?.type === "SOLICITOR" ||
-        session?.user?.type === "CSM" ||
-        Boolean(session?.user?.roles?.includes("ADMIN"))
-      ) {
-        return true;
-      }
-
-      // ISSUER users can access the client matching their client_ticker
-      const userTicker = session?.user?.client_ticker;
-      if (userTicker) {
-        const tickerMatch = clients.find((c) => c.ticker === userTicker);
-        if (
-          tickerMatch &&
-          (tickerMatch.id === clientId || tickerMatch.ticker === clientId)
-        ) {
-          return true;
-        }
-      }
-
-      // In normal auth mode, check user's relationships or account access
-      const userAccountId = session?.user?.account_id;
-      if (!userAccountId) return false;
-
-      // Find client that matches the clientId
-      const targetClient = clients.find(
-        (c) =>
-          c.id === clientId ||
-          c.company_name === clientId ||
-          c.short_name === clientId ||
-          c.ticker === clientId
-      );
-      if (!targetClient) return false;
-
-      // Check if user has access (simplified - could be more complex with relationships)
-      return (
-        userAccountId === targetClient.id ||
-        session?.user?.type === "RELATIONSHIP_MANAGER"
-      );
-    },
-    [
-      bypassAuth,
-      session?.user?.account_id,
-      session?.user?.client_ticker,
-      session?.user?.type,
-      session?.user?.roles,
-      clients,
-    ]
+    (clientId: string): boolean =>
+      resolveClientAccess({
+        user: session?.user,
+        clients,
+        bypassAuth,
+        clientId,
+      }),
+    [bypassAuth, session?.user, clients]
   );
 
   // Determine current client based on URL and user context
@@ -190,7 +333,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({
             try {
               if (typeof window !== "undefined") {
                 localStorage.setItem(
-                  "selectedClient",
+                  SELECTED_CLIENT_STORAGE_KEY,
                   JSON.stringify({ id: targetClient.id })
                 );
               }
@@ -208,7 +351,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({
           try {
             const selectedClientStr =
               typeof window !== "undefined"
-                ? localStorage.getItem("selectedClient")
+                ? localStorage.getItem(SELECTED_CLIENT_STORAGE_KEY)
                 : null;
             if (selectedClientStr) {
               const selectedClient = JSON.parse(selectedClientStr) as {
@@ -255,7 +398,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({
         // Update localStorage if in auth bypass mode
         if (targetClient && bypassAuth) {
           localStorage.setItem(
-            "selectedClient",
+            SELECTED_CLIENT_STORAGE_KEY,
             JSON.stringify({
               id: targetClient.id,
               name: targetClient.company_name ?? targetClient.short_name,
@@ -280,10 +423,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({
     clients,
     clientsLoading,
     sessionStatus,
-    session?.user?.accountId,
-    session?.user?.type,
-    session?.user?.client_ticker,
-    session?.user?.clientTickers,
+    session?.user,
     isUserSwitching,
     extractTickerFromURL,
     canAccessClient,
@@ -291,111 +431,21 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({
   ]);
 
   // Handle client switching
-  const switchClient = (client: Client) => {
-    if (isIssuerUser(session?.user)) {
-      return;
-    }
-
-    try {
-      if (!canAccessClient(client.id)) {
-        setError(
-          `Access denied to ${client.company_name ?? client.short_name}`
-        );
-        return;
-      }
-
-      // Set flag to prevent automatic client determination during switch
-      setIsUserSwitching(true);
-
-      // Update localStorage first
-      localStorage.setItem(
-        "selectedClient",
-        JSON.stringify({
-          id: client.id,
-          name: client.company_name ?? client.short_name,
-          ticker: client.ticker,
-        })
-      );
-
-      // Update current client state immediately
-      setCurrentClient(client);
-
-      // Navigate to the equivalent page for the selected client using ticker-based routing
-      if (client.ticker) {
-        // Only navigate if on a ticker-based route
-        if (
-          pathname === "/events" ||
-          pathname.startsWith("/education") ||
-          pathname.startsWith("/products")
-        ) {
-          // Global pages: update client context only, keep the user on the current view
-          setTimeout(() => {
-            setIsUserSwitching(false);
-          }, 500);
-          return;
-        }
-
-        const pastMeetingMatch =
-          /^\/[A-Z]{2,5}\/past-meeting\/[^/]+(\/.*)?$/.exec(pathname);
-        const activeMeetingMatch = /^\/[A-Z]{2,5}\/meeting\/[^/]+(\/.*)?$/.exec(
-          pathname
-        );
-
-        // Past meetings are client-specific records, so do not carry a different client's
-        // meeting id across the switch. Land on the target client's past-meetings index.
-        if (pastMeetingMatch) {
-          router.replace(`/${client.ticker}/past-meetings`);
-          return;
-        }
-
-        // Active meeting pages can preserve the sub-page, but they must use the target
-        // client's own default meeting id rather than the previous client's meeting id.
-        if (activeMeetingMatch) {
-          if (!client.meeting_id) {
-            router.replace(`/${client.ticker}/past-meetings`);
-            return;
-          }
-
-          const subPage = activeMeetingMatch[1] ?? "";
-          router.replace(
-            `/${client.ticker}/meeting/${client.meeting_id}${subPage}`
-          );
-          return;
-        }
-
-        // For other ticker-based routes, replace the old ticker with the new ticker
-        const tickerMatch = /^\/([A-Z]{2,5})\//.exec(pathname);
-        if (tickerMatch) {
-          const oldTicker = tickerMatch[1];
-          const newPath = pathname.replace(
-            `/${oldTicker}/`,
-            `/${client.ticker}/`
-          );
-          router.replace(newPath);
-        } else {
-          // Not on a ticker-based route - navigate to client's default meeting if available
-          const defaultMeetingId = client.meeting_id;
-          if (defaultMeetingId) {
-            router.replace(`/${client.ticker}/meeting/${defaultMeetingId}`);
-          } else {
-            router.replace(`/${client.ticker}/past-meetings`);
-          }
-        }
-      }
-
-      // Reset the switching flag after navigation completes
-      setTimeout(() => {
-        setIsUserSwitching(false);
-      }, 500);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to switch client";
-      setError(errorMessage);
-      console.error("Client switch error:", error);
-      // Reset the switching flag on error
-      setIsUserSwitching(false);
-    }
-  };
+  const switchClient = useCallback(
+    (client: Client): void => {
+      switchClientImpl({
+        client,
+        user: session?.user,
+        pathname,
+        router,
+        canAccessClient,
+        setError,
+        setIsUserSwitching,
+        setCurrentClient,
+      });
+    },
+    [session?.user, pathname, router, canAccessClient]
+  );
 
   // Immediately patch enabledFeatures on the current client without waiting for SWR re-fetch.
   // Called by ClientFeaturesCard after a successful PUT so tabs update in real-time.
@@ -411,19 +461,31 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({
   const isSessionLoading = !bypassAuth && sessionStatus === "loading";
   const isLoading = loading || clientsLoading || isSessionLoading;
 
+  const contextValue = useMemo<ClientContextType>(
+    () => ({
+      currentClient,
+      availableClients: clients,
+      loading: isLoading,
+      error: error ?? clientsError,
+      switchClient,
+      canAccessClient,
+      updateCurrentClientFeatures,
+      isHydrated: !isLoading && !!currentClient,
+    }),
+    [
+      currentClient,
+      clients,
+      isLoading,
+      error,
+      clientsError,
+      switchClient,
+      canAccessClient,
+      updateCurrentClientFeatures,
+    ]
+  );
+
   return (
-    <ClientContext.Provider
-      value={{
-        currentClient,
-        availableClients: clients,
-        loading: isLoading,
-        error: error ?? clientsError,
-        switchClient,
-        canAccessClient,
-        updateCurrentClientFeatures,
-        isHydrated: !isLoading && !!currentClient,
-      }}
-    >
+    <ClientContext.Provider value={contextValue}>
       {children}
     </ClientContext.Provider>
   );

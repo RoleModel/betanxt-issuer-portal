@@ -20,6 +20,50 @@ const CACHE_TTL = {
 // first load. Bypass the cache entirely outside production.
 const isProduction = process.env.NODE_ENV === "production";
 
+/**
+ * Tables the user mutates directly from the portal.
+ *
+ * Caching reads of these makes a fresh upload or edit appear to vanish: the
+ * row is written, but the follow-up list request is served from the Next.js
+ * data cache for up to {@link CACHE_TTL.short} seconds, so the UI looks like
+ * nothing was saved at all.
+ */
+const uncachedTables = new Set([
+  "document",
+  "document_history",
+  "comment",
+  "signature",
+  "task",
+  "mailing",
+  "notification",
+]);
+
+/**
+ * Normalises the several shapes `fetch` accepts into a plain URL string.
+ *
+ * @param URL - The first argument handed to `fetch`
+ * @returns The request URL as a string
+ */
+const toUrlString = (url: RequestInfo | URL): string => {
+  if (typeof url === "string") {
+    return url;
+  }
+  return url instanceof URL ? url.href : url.url;
+};
+
+/**
+ * Decides whether a PostgREST request targets a table listed in
+ * {@link uncachedTables} and must therefore bypass the data cache.
+ *
+ * @param URL - The outgoing request URL
+ * @returns True when the request reads a user-mutated table
+ */
+const isUncachedTableRequest = (url: RequestInfo | URL): boolean => {
+  const table = /\/rest\/v1\/(?<table>[^?/]+)/u.exec(toUrlString(url))?.groups
+    ?.table;
+  return table !== undefined && uncachedTables.has(table);
+};
+
 export const supabase = createClient<Database>(
   supabaseUrl,
   supabaseServiceKey,
@@ -29,18 +73,22 @@ export const supabase = createClient<Database>(
       persistSession: false,
     },
     global: {
-      fetch: (url, options = {}) => {
+      fetch: async (url, options = {}) => {
         const method = (options.method ?? "GET").toUpperCase();
         // Only cache read operations — Next.js data cache deduplicates identical
         // in-flight requests and revalidates on the given interval.
-        if (isProduction && (method === "GET" || method === "HEAD")) {
-          return fetch(url, {
+        if (
+          isProduction &&
+          (method === "GET" || method === "HEAD") &&
+          !isUncachedTableRequest(url)
+        ) {
+          return await fetch(url, {
             ...options,
             next: { revalidate: CACHE_TTL.short },
           });
         }
         // Mutations (and all dev reads) must never be served from cache.
-        return fetch(url, { ...options, cache: "no-store" });
+        return await fetch(url, { ...options, cache: "no-store" });
       },
     },
   }

@@ -153,7 +153,26 @@ const _computeParticipationMetrics = (
   };
 };
 
-export default function PastMeetingsPage() {
+const formatDate = (dateString: string): string => {
+  if (!dateString) return "";
+  try {
+    // Parse as local date to avoid timezone issues
+    const dateParts = dateString.split("-");
+    if (dateParts.length !== 3) return "Invalid Date";
+    const [year, month, day] = dateParts.map((part) => parseInt(part));
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch (error) {
+    console.warn("Error parsing date:", dateString, error);
+    return "Invalid Date";
+  }
+};
+
+const PastMeetingsPage = () => {
   const pathname = usePathname();
   const clientTicker = pathname.split("/")[1];
   const [meetings, setMeetings] = useState<PastMeetingData[]>([]);
@@ -234,25 +253,6 @@ export default function PastMeetingsPage() {
     void fetchPastMeetings();
   }, [fetchPastMeetings]);
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "";
-    try {
-      // Parse as local date to avoid timezone issues
-      const dateParts = dateString.split("-");
-      if (dateParts.length !== 3) return "Invalid Date";
-      const [year, month, day] = dateParts.map((part) => parseInt(part));
-      const date = new Date(year, month - 1, day);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch (error) {
-      console.warn("Error parsing date:", dateString, error);
-      return "Invalid Date";
-    }
-  };
-
   const handleRequestSort = (property: OrderBy) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -299,11 +299,12 @@ export default function PastMeetingsPage() {
           orderBy={orderBy}
           onRequestSort={handleRequestSort}
           meetings={sortedMeetings}
-          rawMeetingsCount={meetings.length}
           loading={loading}
           formatDate={formatDate}
         />
       </Container>
     </Box>
   );
-}
+};
+
+export default PastMeetingsPage;

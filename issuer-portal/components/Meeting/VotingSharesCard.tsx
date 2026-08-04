@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import React from "react";
 
+import GlossaryText from "@/components/ui/GlossaryText";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 
 interface MeetingAccessItem {
@@ -28,57 +29,57 @@ interface MeetingAccessItem {
 }
 
 interface MeetingRolesCardProps {
-  meetingId: string;
-  className?: string;
+  readonly meetingId: string;
+  readonly className?: string;
 }
 
 const handleConfirm = (label: string) => {
   alert(`Confirm action for ${label}`);
 };
 
+// Mock data matching the Figma design
+const accessItems: MeetingAccessItem[] = [
+  {
+    label: "Shares Listed In Proxy Statement",
+    type: "string",
+    string: "100,000,00",
+  },
+
+  {
+    label: "Shares from the Files Received",
+    type: "confirm",
+    string: "100,000,00",
+  },
+  {
+    label: "Proxy Statement Shares in Balance",
+    type: "confirm",
+  },
+  {
+    label: "Registered Shares",
+    type: "string",
+    string: "100,000,00",
+  },
+  {
+    label: "Beneficial Shares",
+    type: "string",
+    string: "100,000,00",
+  },
+  {
+    label: "Plan File 1 Shares",
+    type: "string",
+    string: "100,000,00",
+  },
+  {
+    label: "Plan File 2 Shares",
+    type: "string",
+    string: "100,000,00",
+  },
+];
+
 const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
   className,
   meetingId: _meetingId,
 }) => {
-  // Mock data matching the Figma design
-  const accessItems: MeetingAccessItem[] = [
-    {
-      label: "Shares Listed In Proxy Statement",
-      type: "string",
-      string: "100,000,00",
-    },
-
-    {
-      label: "Shares from the Files Received",
-      type: "confirm",
-      string: "100,000,00",
-    },
-    {
-      label: "Proxy Statement Shares in Balance",
-      type: "confirm",
-    },
-    {
-      label: "Registered Shares",
-      type: "string",
-      string: "100,000,00",
-    },
-    {
-      label: "Beneficial Shares",
-      type: "string",
-      string: "100,000,00",
-    },
-    {
-      label: "Plan File 1 Shares",
-      type: "string",
-      string: "100,000,00",
-    },
-    {
-      label: "Plan File 2 Shares",
-      type: "string",
-      string: "100,000,00",
-    },
-  ];
-
   return (
     <Card className={className}>
       <CardHeader title="Voting Shares" />
@@ -97,9 +98,9 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {accessItems.map((item, index) => (
+            {accessItems.map((item) => (
               <TableRow
-                key={index}
+                key={item.label}
                 sx={{
                   "&:not(:last-child)": {
                     borderBottom: "1px solid rgba(31,30,28,0.12)",
@@ -108,12 +109,14 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
               >
                 <TableCell>
                   <Box>
-                    <Typography variant="body3">{item.label}</Typography>
-                    {item.fileDescription && (
+                    <Typography variant="body3">
+                      <GlossaryText>{item.label}</GlossaryText>
+                    </Typography>
+                    {item.fileDescription ? (
                       <Typography variant="caption" color="text.secondary">
                         {item.fileFormat} {item.fileDescription}
                       </Typography>
-                    )}
+                    ) : null}
                   </Box>
                 </TableCell>
                 <TableCell align="right">
@@ -121,17 +124,19 @@ const MeetingRolesCard: React.FC<MeetingRolesCardProps> = ({
                     <Button
                       endIcon={<ArrowDropDownOutlined />}
                       variant="text"
-                      onClick={() => handleConfirm(item.label)}
+                      onClick={() => {
+                        handleConfirm(item.label);
+                      }}
                     >
                       Confirm
                     </Button>
                   )}
 
-                  {item.type === "string" && item.string && (
+                  {item.type === "string" && item.string ? (
                     <Typography variant="body3" sx={{ fontWeight: "medium" }}>
                       {item.string}
                     </Typography>
-                  )}
+                  ) : null}
                 </TableCell>
               </TableRow>
             ))}

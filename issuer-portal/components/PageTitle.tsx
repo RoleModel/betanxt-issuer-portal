@@ -5,7 +5,14 @@ import { Link as MuiLink } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function PageTitle({ children }: { children?: React.ReactNode }) {
+const toTitle = (s: string) =>
+  s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+export const PageTitle = ({
+  children,
+}: {
+  readonly children?: React.ReactNode;
+}) => {
   const pathname = usePathname();
   const segments = pathname.replace(/^\/+|\/+$/g, "").split("/");
 
@@ -24,9 +31,6 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
 
   const childSegments = isEducation || isProducts ? segments.slice(1) : [];
 
-  const toTitle = (s: string) =>
-    s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
   // Get the parent page title from the base segment
   const getParentTitle = () => {
     if (isEducation) return "Education";
@@ -36,15 +40,15 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
     return toTitle(segments[baseIndex] ?? "");
   };
 
-  // Determine the actual page title to display
-  const getPageTitle = () => {
-    // If we have child segments, use the last one as the page title
-    if (childSegments.length > 0) {
-      return toTitle(childSegments[childSegments.length - 1]);
-    }
-    // Otherwise use what was passed as children or the parent title
-    return children || getParentTitle();
-  };
+  // The page title: the last child segment when present, otherwise whatever was
+  // passed as children, falling back to the parent title.
+  // Kept as a value rather than a function — React 19 types include a Promise in
+  // ReactNode, so a function returning this trips promise-function-async, whose
+  // autofix makes this client component render a Promise.
+  const pageTitle: React.ReactNode =
+    childSegments.length > 0
+      ? toTitle(childSegments[childSegments.length - 1])
+      : children || getParentTitle();
 
   return (
     <Box
@@ -117,11 +121,11 @@ export function PageTitle({ children }: { children?: React.ReactNode }) {
         component="h1"
         variant="pageTitle"
         fontWeight={500}
-        fontFamily={"var(--font-tungsten)"}
+        fontFamily="var(--font-tungsten)"
         gutterBottom
       >
-        {getPageTitle()}
+        {pageTitle}
       </Typography>
     </Box>
   );
-}
+};

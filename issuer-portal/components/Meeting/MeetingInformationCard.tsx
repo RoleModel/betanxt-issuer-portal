@@ -15,8 +15,8 @@ import React from "react";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 
 interface MeetingInformationCardProps {
-  className?: string;
-  meeting?: {
+  readonly className?: string;
+  readonly meeting?: {
     meetingType?: string;
     cusip?: string;
     ticker?: string;
@@ -42,7 +42,7 @@ const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({
         height: "100%",
       }}
     >
-      <CardHeader title={"Meeting Information"} />
+      <CardHeader title="Meeting Information" />
       <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
         <Table>
           <SROnlyTableCaption>
@@ -58,9 +58,9 @@ const MeetingInformationCard: React.FC<MeetingInformationCardProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {meetingInfo.map((info, index) => (
+            {meetingInfo.map((info) => (
               <TableRow
-                key={index}
+                key={info.label}
                 sx={{
                   "&:not(:last-child)": {
                     borderBottom: "1px solid rgba(31,30,28,0.12)",

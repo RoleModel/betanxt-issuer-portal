@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import useSWR from "swr";
 
 import type { EventRow } from "@/utils/eventData";
-
 import buildApiClient from "@/domain-models/apiClient";
 import { clientsSWRConfig } from "@/lib/swr-config";
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
@@ -14,7 +13,9 @@ import { asNumber, asRecord, asString } from "@/utils/typeUtils";
 
 function extractClientCompanyName(client: unknown): string | null {
   const record = asRecord(client);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
   // Supabase join returns snake_case; handle both forms
   return (
     asString(record.companyName) ??
@@ -25,6 +26,18 @@ function extractClientCompanyName(client: unknown): string | null {
   );
 }
 
+function formatMeetingDate(date: string | null): string | null {
+  if (date === null) {
+    return null;
+  }
+
+  return parseLocalDate(date).toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
 function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
   const id = asString(meeting.id);
   const ticker = asString(meeting.ticker);
@@ -33,7 +46,9 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
   const status = asString(meeting.status);
   const cusip = asString(meeting.cusip) ?? "";
 
-  if (!id || !ticker || !meetingDate || !meetingType) return null;
+  if (!id || !ticker || !meetingDate || !meetingType) {
+    return null;
+  }
 
   // Prefer joined client object → brand config lookup → ticker as last resort
   const companyName =
@@ -41,11 +56,10 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     getBrandConfigByTicker(ticker)?.companyName ??
     ticker;
 
-  const eventDate = parseLocalDate(meetingDate).toLocaleDateString("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  });
+  const eventDate = formatMeetingDate(meetingDate);
+  if (eventDate === null) {
+    return null;
+  }
 
   const isAnnual = meetingType.toLowerCase().includes("annual");
   const eventType: "Annual Meeting" | "Special Meeting" = isAnnual
@@ -56,6 +70,21 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     status === "ACTIVE" ? "ACTIVE" : "COMPLETE";
 
   const mailingStatus = asString(meeting.mailingStatus) ?? null;
+  const clientRecord = asRecord(meeting.client);
+  const exchange =
+    asString(meeting.exchange) ??
+    asString(clientRecord?.exchange) ??
+    asString(clientRecord?.listingExchange) ??
+    null;
+  const brokerSearchDate = formatMeetingDate(
+    asString(meeting.brokerSearchDate ?? meeting.broker_search_date)
+  );
+  const recordDate = formatMeetingDate(
+    asString(meeting.recordDate ?? meeting.record_date)
+  );
+  const mailingDate = formatMeetingDate(
+    asString(meeting.mailingDate ?? meeting.mailing_date)
+  );
   const quorumRequirement = asNumber(
     meeting.quorumRequirement ?? meeting.quorum_requirement
   );
@@ -64,12 +93,17 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     id,
     event: companyName,
     cusip,
+    setKey: asString(meeting.setKey ?? meeting.set_key) ?? null,
     eventDate,
+    brokerSearchDate,
+    recordDate,
+    mailingDate,
     eventType,
     meetingId: id,
     clientTicker: ticker,
     meetingStatus,
     mailingStatus,
+    exchange,
     quorumRequirement,
   };
 }
@@ -82,9 +116,16 @@ interface UseEventsResult {
   revalidate: () => Promise<EventRow[] | undefined>;
 }
 
+interface EventsPage {
+  readonly events: EventRow[];
+  readonly totalCount: number;
+}
+
+const EVENTS_PAGE_SIZE = 100;
+
 export function useEvents(): UseEventsResult {
   const { data: session } = useSession();
-  const bypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
+  const isBypassAuth = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
 
   const userType = session?.user?.type;
   const isUnrestrictedRole = userType === "CSM" || userType === "ADMIN";
@@ -92,15 +133,19 @@ export function useEvents(): UseEventsResult {
   // CSM / ADMIN fetch all meetings; page-level filters apply for CSM.
   // ISSUER / PARENT_CLIENT / SOLICITOR are scoped to their ticker allow-list.
   const allowedTickers = useMemo(() => {
-    if (isUnrestrictedRole) return undefined;
+    if (isUnrestrictedRole) {
+      return;
+    }
 
     const sessionTickers = session?.user?.clientTickers;
-    if (sessionTickers && sessionTickers.length > 0) return sessionTickers;
+    if (sessionTickers && sessionTickers.length > 0) {
+      return sessionTickers;
+    }
 
     const issuerTicker = session?.user?.client_ticker;
-    if (issuerTicker) return [issuerTicker];
-
-    return undefined;
+    if (issuerTicker) {
+      return [issuerTicker];
+    }
   }, [
     isUnrestrictedRole,
     session?.user?.clientTickers,
@@ -108,44 +153,83 @@ export function useEvents(): UseEventsResult {
   ]);
 
   const eventsFetcher = async (): Promise<EventRow[]> => {
-    if (!bypassAuth && !session) return [];
+    if (!isBypassAuth && !session) {
+      return [];
+    }
 
     const api = await buildApiClient();
-    const allEvents: EventRow[] = [];
-    let page = 1;
-    // PostgREST returns 0 rows when limit is exactly 250; stay below that ceiling.
-    const PAGE_SIZE = 200;
-
-    while (true) {
+    const fetchEventsPage = async (
+      page: number
+    ): Promise<EventsPage | null> => {
       const { data, error } = await api.GET("/meetings", {
-        params: { query: { page, limit: PAGE_SIZE } },
+        params: { query: { page, limit: EVENTS_PAGE_SIZE } },
       });
 
-      if (error || !data) break;
+      if (error || !data) {
+        return null;
+      }
 
       const dataRecord = asRecord(data);
-      if (!dataRecord) break;
+      if (!dataRecord) {
+        return null;
+      }
 
       const meetings = Array.isArray(dataRecord.meetings)
         ? dataRecord.meetings
         : [];
+      const events: EventRow[] = [];
 
       for (const meeting of meetings) {
         const record = asRecord(meeting);
-        if (!record) continue;
+        if (!record) {
+          continue;
+        }
         const row = meetingToEventRow(record);
-        if (!row) continue;
-        allEvents.push(row);
+        if (!row) {
+          continue;
+        }
+        events.push(row);
       }
 
       const paginationRecord = asRecord(dataRecord.pagination);
       const totalCount =
         typeof paginationRecord?.total === "number"
           ? paginationRecord.total
-          : 0;
+          : events.length;
 
-      if (meetings.length < PAGE_SIZE || allEvents.length >= totalCount) break;
-      page++;
+      return { events, totalCount };
+    };
+
+    // The deployed mock API returns an empty page for oversized limits. Keep
+    // requests at the API's reliable 100-row page size, but load the remaining
+    // pages concurrently once the first response gives us the total.
+    const firstPage = await fetchEventsPage(1);
+    if (!firstPage) {
+      return [];
+    }
+
+    const pageCount = Math.max(
+      1,
+      Math.ceil(firstPage.totalCount / EVENTS_PAGE_SIZE)
+    );
+    const additionalPageNumbers: number[] = [];
+
+    for (let page = 2; page <= pageCount; page++) {
+      additionalPageNumbers.push(page);
+    }
+
+    const additionalPages = await Promise.all(
+      additionalPageNumbers.map(async (page) => await fetchEventsPage(page))
+    );
+    const allEvents = [...firstPage.events];
+
+    for (const additionalPage of additionalPages) {
+      if (!additionalPage) {
+        continue;
+      }
+      for (const event of additionalPage.events) {
+        allEvents.push(event);
+      }
     }
 
     return allEvents;
@@ -157,11 +241,11 @@ export function useEvents(): UseEventsResult {
     isLoading,
     mutate,
   } = useSWR(
-    session || bypassAuth ? ["/events-list", session?.user?.id] : null,
+    session || isBypassAuth ? ["/events-list", session?.user?.id] : null,
     eventsFetcher,
     {
       ...clientsSWRConfig,
-      dedupingInterval: 120000,
+      dedupingInterval: 120_000,
     }
   );
 
@@ -169,15 +253,20 @@ export function useEvents(): UseEventsResult {
   // This prevents stale cached data (fetched before clientTickers was hydrated) from leaking
   // through to restricted users.
   const events = useMemo(() => {
-    if (!rawData) return [];
-    if (!allowedTickers) return rawData;
-    return rawData.filter((row) => allowedTickers.includes(row.clientTicker));
+    if (!rawData) {
+      return [];
+    }
+    if (!allowedTickers) {
+      return rawData;
+    }
+    const allowedTickerSet = new Set<string>(allowedTickers);
+    return rawData.filter((row) => allowedTickerSet.has(row.clientTicker));
   }, [rawData, allowedTickers]);
 
   return {
     events,
     loading: isLoading,
-    error: error instanceof Error ? error.message : null,
+    error: Error.isError(error) ? error.message : null,
     revalidate: mutate,
   };
 }

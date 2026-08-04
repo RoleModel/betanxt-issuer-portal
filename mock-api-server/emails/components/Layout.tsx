@@ -4,11 +4,11 @@ import React from "react";
 import { COLORS, FONTS } from "../styles";
 
 interface LayoutProps {
-  preview: string;
-  children: React.ReactNode;
+  readonly preview: string;
+  readonly children: React.ReactNode;
 }
 
-export function Layout({ preview, children }: LayoutProps) {
+export const Layout = ({ preview, children }: LayoutProps) => {
   return (
     <Html lang="en">
       <Preview>{preview}</Preview>
@@ -24,4 +24,4 @@ export function Layout({ preview, children }: LayoutProps) {
       </Body>
     </Html>
   );
-}
+};

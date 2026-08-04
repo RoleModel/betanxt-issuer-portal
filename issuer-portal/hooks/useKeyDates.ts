@@ -19,8 +19,8 @@ interface Meeting {
   meetingDate?: string | null;
 }
 
-export const useKeyDates = (meeting: Meeting): KeyDate[] => {
-  return useMemo(() => {
+export const useKeyDates = (meeting: Meeting): KeyDate[] =>
+  useMemo(() => {
     const keyDates: KeyDate[] = [];
 
     // Add meeting-level key dates with phase numbers based on when they typically occur
@@ -80,7 +80,9 @@ export const useKeyDates = (meeting: Meeting): KeyDate[] => {
 
     // Sort by date
     return keyDates.sort((a, b) => {
-      if (!a.date || !b.date) return 0;
+      if (!a.date || !b.date) {
+        return 0;
+      }
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     });
   }, [
@@ -92,4 +94,3 @@ export const useKeyDates = (meeting: Meeting): KeyDate[] => {
     meeting.mailingDate,
     meeting.meetingDate,
   ]);
-};

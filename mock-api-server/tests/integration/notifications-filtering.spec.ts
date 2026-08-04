@@ -53,10 +53,10 @@ test.describe("Notifications API - Client Filtering", () => {
 
     // Should have different notification sets
     const wenIds = wenNotifications.map((n: { id: string }) => n.id);
-    const paycIds = paycNotifications.map((n: { id: string }) => n.id);
+    const paycIds = new Set(paycNotifications.map((n: { id: string }) => n.id));
 
     // No overlap in notification IDs between different clients
-    const overlap = wenIds.filter((id: string) => paycIds.includes(id));
+    const overlap = wenIds.filter((id: string) => paycIds.has(id));
     expect(overlap.length).toBe(0);
   });
 

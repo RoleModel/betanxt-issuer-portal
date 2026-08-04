@@ -82,8 +82,8 @@ export const VoteProgressBar = ({
               sx={(muiTheme) => ({
                 alignItems: "center",
                 background: enableUpdatedColors
-                  ? `rgba(${muiTheme.vars.palette.primary.lightChannel} / 0.5)`
-                  : `rgba(${muiTheme.vars.palette.keydate.darkChannel} / 0.1)`,
+                  ? `color-mix(in srgb, ${muiTheme.vars.palette.primary.main} 20%, transparent 20%)`
+                  : `color-mix(in srgb, ${muiTheme.vars.palette.keydate.dark} 20%, transparent 100%)`,
                 cursor: "pointer",
                 display: "flex",
                 flexGrow: 1,

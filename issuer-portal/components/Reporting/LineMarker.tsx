@@ -5,19 +5,19 @@ import type { MarkElementProps } from "@mui/x-charts";
 import React from "react";
 
 interface LineMarkerProps extends MarkElementProps {
-  size?: number;
+  readonly size?: number;
 }
 
 /**
  * Custom marker component based on LineMarker.svg
  * Used as a custom MarkElement in MUI X Charts
  */
-export default function LineMarker({
+const LineMarker = ({
   x,
   y,
   color = "#EB6333",
   size = 32,
-}: LineMarkerProps) {
+}: LineMarkerProps) => {
   // Convert x and y to numbers, with fallbacks
   const numX =
     typeof x === "number" ? x : typeof x === "string" ? parseFloat(x) : 0;
@@ -40,7 +40,7 @@ export default function LineMarker({
       >
         {/* Left line */}
         <path
-          d="M2.23438 12H7.23438"
+          d="M2.23 12H7.23"
           stroke={color}
           strokeWidth="2"
           strokeLinecap="round"
@@ -64,7 +64,9 @@ export default function LineMarker({
       </svg>
     </g>
   );
-}
+};
+
+export default LineMarker;
 
 /**
  * Factory function to create a LineMarker component compatible with MUI X Charts MarkElement slot
@@ -72,7 +74,7 @@ export default function LineMarker({
 export function createLineMarkerElement(
   options: { color?: string; size?: number } = {}
 ) {
-  return function LineMarkerElement(props: MarkElementProps) {
+  return function (props: MarkElementProps) {
     const { x, y, color: seriesColor, ...restProps } = props;
     const finalColor = options.color ?? seriesColor ?? "#EB6333";
 

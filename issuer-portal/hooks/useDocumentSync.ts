@@ -2,8 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import type { components } from "@/domain-models/generated-schema";
+import type {
+  RealtimePostgresDeletePayload,
+  RealtimePostgresInsertPayload,
+  RealtimePostgresUpdatePayload,
+} from "@supabase/supabase-js";
 
+import type { components } from "@/domain-models/generated-schema";
 import { getBrowserSupabase } from "@/lib/browserSupabase";
 
 type Document = components["schemas"]["Document"];
@@ -47,19 +52,39 @@ interface DatabaseDocument {
   display_category: string | null;
 }
 
-interface RealtimePayload {
-  new?: DatabaseDocument;
-  old?: { id: string };
-}
-
-interface RealtimeChannel {
-  on: (
-    event: string,
-    config: { event: string; schema: string; table: string; filter: string },
-    callback: (payload: RealtimePayload) => void
-  ) => RealtimeChannel;
-  subscribe: () => void;
-}
+// Transform database row to API format
+const transformDocument = (databaseDocument: DatabaseDocument): Document => ({
+  id: databaseDocument.id,
+  meetingId: databaseDocument.meeting_id ?? "",
+  taskId: databaseDocument.task_id ?? undefined,
+  title: databaseDocument.title ?? "",
+  description: databaseDocument.description ?? undefined,
+  type: databaseDocument.type ?? "",
+  filePath: databaseDocument.file_path ?? "",
+  fileType: databaseDocument.file_type ?? "",
+  fileSize: databaseDocument.file_size ?? 0,
+  status: (databaseDocument.status as Document["status"]) || "DRAFT",
+  uploadDate: databaseDocument.upload_date ?? undefined,
+  uploadedDate: databaseDocument.uploaded_date ?? undefined,
+  signedDate: databaseDocument.signed_date ?? undefined,
+  authorizedDate: databaseDocument.authorized_date ?? undefined,
+  completedDate: databaseDocument.completed_date ?? undefined,
+  inProgressDate: databaseDocument.in_progress_date ?? undefined,
+  deadline: databaseDocument.deadline ?? undefined,
+  history: databaseDocument.history as Record<string, unknown> | undefined,
+  approvedBy: databaseDocument.approved_by ?? undefined,
+  approvedAt: databaseDocument.approved_at ?? undefined,
+  createdBy: databaseDocument.created_by ?? undefined,
+  createdByFirstName: databaseDocument.created_by_first_name ?? undefined,
+  createdByLastName: databaseDocument.created_by_last_name ?? undefined,
+  updatedBy: databaseDocument.updated_by ?? undefined,
+  updatedByFirstName: databaseDocument.updated_by_first_name ?? undefined,
+  updatedByLastName: databaseDocument.updated_by_last_name ?? undefined,
+  createdAt: databaseDocument.created_at ?? undefined,
+  updatedAt: databaseDocument.updated_at ?? undefined,
+  displayCategory:
+    databaseDocument.display_category as Document["displayCategory"],
+});
 
 export function useDocumentSync({
   meetingId,
@@ -90,56 +115,20 @@ export function useDocumentSync({
 
       const data = await response.json();
       setDocuments(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load documents");
+    } catch (error_) {
+      setError(
+        Error.isError(error_) ? error_.message : "Failed to load documents"
+      );
     } finally {
       setIsLoading(false);
     }
   }, [meetingId]);
 
-  // Transform database row to API format
-  const transformDocument = (dbDoc: DatabaseDocument): Document => {
-    return {
-      id: dbDoc.id,
-      meetingId: dbDoc.meeting_id ?? "",
-      taskId: dbDoc.task_id ?? undefined,
-      title: dbDoc.title ?? "",
-      description: dbDoc.description ?? undefined,
-      type: dbDoc.type ?? "",
-      filePath: dbDoc.file_path ?? "",
-      fileType: dbDoc.file_type ?? "",
-      fileSize: dbDoc.file_size ?? 0,
-      status: (dbDoc.status as Document["status"]) || "DRAFT",
-      uploadDate: dbDoc.upload_date ?? undefined,
-      uploadedDate: dbDoc.uploaded_date ?? undefined,
-      signedDate: dbDoc.signed_date ?? undefined,
-      authorizedDate: dbDoc.authorized_date ?? undefined,
-      completedDate: dbDoc.completed_date ?? undefined,
-      inProgressDate: dbDoc.in_progress_date ?? undefined,
-      deadline: dbDoc.deadline ?? undefined,
-      history: dbDoc.history as Record<string, unknown> | undefined,
-      approvedBy: dbDoc.approved_by ?? undefined,
-      approvedAt: dbDoc.approved_at ?? undefined,
-      createdBy: dbDoc.created_by ?? undefined,
-      createdByFirstName: dbDoc.created_by_first_name ?? undefined,
-      createdByLastName: dbDoc.created_by_last_name ?? undefined,
-      updatedBy: dbDoc.updated_by ?? undefined,
-      updatedByFirstName: dbDoc.updated_by_first_name ?? undefined,
-      updatedByLastName: dbDoc.updated_by_last_name ?? undefined,
-      createdAt: dbDoc.created_at ?? undefined,
-      updatedAt: dbDoc.updated_at ?? undefined,
-      displayCategory: dbDoc.display_category as Document["displayCategory"],
-    };
-  };
-
   // Set up real-time subscription
   useEffect(() => {
     void fetchDocuments();
 
-    // Subscribe to document changes - cast to RealtimeChannel for proper typing
-    const channel = supabase.channel(
-      `documents:${meetingId}`
-    ) as unknown as RealtimeChannel;
+    const channel = supabase.channel(`documents:${meetingId}`);
 
     channel
       .on(
@@ -150,12 +139,10 @@ export function useDocumentSync({
           table: "document",
           filter: `meeting_id=eq.${meetingId}`,
         },
-        (payload: RealtimePayload) => {
-          if (payload.new) {
-            const newDocument = transformDocument(payload.new);
-            setDocuments((prev) => [...prev, newDocument]);
-            onDocumentAdded?.(newDocument);
-          }
+        (payload: RealtimePostgresInsertPayload<DatabaseDocument>) => {
+          const newDocument = transformDocument(payload.new);
+          setDocuments((previous) => [...previous, newDocument]);
+          onDocumentAdded?.(newDocument);
         }
       )
       .on(
@@ -166,16 +153,14 @@ export function useDocumentSync({
           table: "document",
           filter: `meeting_id=eq.${meetingId}`,
         },
-        (payload: RealtimePayload) => {
-          if (payload.new) {
-            const updatedDocument = transformDocument(payload.new);
-            setDocuments((prev) =>
-              prev.map((doc) =>
-                doc.id === updatedDocument.id ? updatedDocument : doc
-              )
-            );
-            onDocumentUpdated?.(updatedDocument);
-          }
+        (payload: RealtimePostgresUpdatePayload<DatabaseDocument>) => {
+          const updatedDocument = transformDocument(payload.new);
+          setDocuments((previous) =>
+            previous.map((document_) =>
+              document_.id === updatedDocument.id ? updatedDocument : document_
+            )
+          );
+          onDocumentUpdated?.(updatedDocument);
         }
       )
       .on(
@@ -186,22 +171,23 @@ export function useDocumentSync({
           table: "document",
           filter: `meeting_id=eq.${meetingId}`,
         },
-        (payload: RealtimePayload) => {
-          if (payload.old?.id) {
-            setDocuments((prev) =>
-              prev.filter((doc) => doc.id !== payload.old?.id)
-            );
-            onDocumentDeleted?.(payload.old.id);
+        (payload: RealtimePostgresDeletePayload<DatabaseDocument>) => {
+          const deletedId = payload.old.id;
+          if (deletedId === undefined) {
+            return;
           }
+
+          setDocuments((previous) =>
+            previous.filter((document_) => document_.id !== deletedId)
+          );
+          onDocumentDeleted?.(deletedId);
         }
       )
       .subscribe();
 
     // Cleanup subscription on unmount
     return () => {
-      void supabase.removeChannel(
-        channel as unknown as ReturnType<typeof supabase.channel>
-      );
+      void supabase.removeChannel(channel);
     };
   }, [
     meetingId,
@@ -220,9 +206,9 @@ export function useDocumentSync({
   // Optimistic update for uploads
   const addOptimisticDocument = useCallback(
     (document: Partial<Document>) => {
-      const optimisticDoc: Document = {
+      const optimisticDocument: Document = {
         id: `temp-${Date.now()}`,
-        meetingId: meetingId,
+        meetingId,
         title: document.title ?? "Uploading...",
         type: document.type ?? "UNKNOWN",
         filePath: "",
@@ -234,14 +220,16 @@ export function useDocumentSync({
         ...document,
       };
 
-      setDocuments((prev) => [...prev, optimisticDoc]);
-      return optimisticDoc.id;
+      setDocuments((previous) => [...previous, optimisticDocument]);
+      return optimisticDocument.id;
     },
     [meetingId]
   );
 
-  const removeOptimisticDocument = useCallback((tempId: string) => {
-    setDocuments((prev) => prev.filter((doc) => doc.id !== tempId));
+  const removeOptimisticDocument = useCallback((temporaryId: string) => {
+    setDocuments((previous) =>
+      previous.filter((document_) => document_.id !== temporaryId)
+    );
   }, []);
 
   return {

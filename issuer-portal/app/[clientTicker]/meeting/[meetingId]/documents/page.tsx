@@ -5,9 +5,11 @@ import DocumentsSection from "@/components/Documents/DocumentsSection";
 export const revalidate = 60;
 
 interface PageProps {
-  params: Promise<{ clientTicker: string; meetingId: string }>;
+  readonly params: Promise<{ clientTicker: string; meetingId: string }>;
 }
 
-export default function DocumentsPage({ params }: PageProps) {
+const DocumentsPage = ({ params }: PageProps) => {
   return <DocumentsSection params={params} />;
-}
+};
+
+export default DocumentsPage;

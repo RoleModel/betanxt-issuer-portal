@@ -23,9 +23,9 @@ import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
 
 interface NoboPositionsTableProps {
   /** NOBO positions to display; sorted and paginated client-side. */
-  positions: NoboPosition[];
+  readonly positions: NoboPosition[];
   /** Renders one page of skeleton rows while the positions fetch resolves. */
-  loading?: boolean;
+  readonly loading?: boolean;
 }
 
 const COLUMN_COUNT = 4;
@@ -41,10 +41,10 @@ const formatNumber = (value: number): string => value.toLocaleString("en-US");
  * size changes. Missing states render as an em dash, and an empty state row
  * is shown when no positions exist for the meeting.
  */
-export function NoboPositionsTable({
+export const NoboPositionsTable = ({
   positions,
   loading = false,
-}: NoboPositionsTableProps) {
+}: NoboPositionsTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -127,9 +127,12 @@ export function NoboPositionsTable({
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedPositions.map((position, index) => (
+              paginatedPositions.map((position) => (
                 <TableRow
-                  key={position.id || `${position.accountNumber}-${index}`}
+                  key={
+                    position.id ||
+                    `${position.accountNumber}-${position.holderName}-${position.shares}`
+                  }
                   sx={{ "&:hover": { backgroundColor: "action.hover" } }}
                 >
                   <NoWrapTableCell sx={{ width: 220 }}>
@@ -151,7 +154,9 @@ export function NoboPositionsTable({
         component="div"
         count={sortedPositions.length}
         page={page}
-        onPageChange={(_, newPage) => setPage(newPage)}
+        onPageChange={(_, newPage) => {
+          setPage(newPage);
+        }}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={(event) => {
           setRowsPerPage(Number.parseInt(event.target.value, 10));
@@ -161,4 +166,4 @@ export function NoboPositionsTable({
       />
     </Box>
   );
-}
+};

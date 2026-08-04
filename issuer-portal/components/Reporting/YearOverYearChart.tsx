@@ -15,8 +15,9 @@ import {
 import React from "react";
 
 import SkeletonChart from "@/components/ui/SkeletonChart";
+import { voteChartColors } from "@/utils/vote-chart-colors";
 
-import { CustomLegend } from "./index";
+import CustomLegend from "./CustomLegend";
 
 interface YearOverYearData {
   year: number;
@@ -26,10 +27,34 @@ interface YearOverYearData {
   totalShares: number;
 }
 
+interface YearOverYearLegendItem {
+  label: string;
+  color: string;
+  type: "line" | "bar";
+}
+
+const LEGEND_ITEMS: YearOverYearLegendItem[] = [
+  {
+    label: "Registered",
+    color: voteChartColors.holders.registered.color,
+    type: "bar",
+  },
+  {
+    label: "Beneficial",
+    color: voteChartColors.holders.beneficial.color,
+    type: "bar",
+  },
+  {
+    label: "Participation %",
+    color: "var(--mui-palette-info-main)",
+    type: "line",
+  },
+];
+
 interface YearOverYearChartProps {
-  data: YearOverYearData[];
-  loading?: boolean;
-  title?: string;
+  readonly data: YearOverYearData[];
+  readonly loading?: boolean;
+  readonly title?: string;
 }
 
 const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
@@ -56,24 +81,6 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
     );
   }
 
-  const legendItems = [
-    {
-      label: "Registered",
-      color: "var(--mui-palette-primary-main)",
-      type: "bar" as const,
-    },
-    {
-      label: "Beneficial",
-      color: "var(--mui-palette-secondary-main)",
-      type: "bar" as const,
-    },
-    {
-      label: "Participation %",
-      color: "var(--mui-palette-info-main)",
-      type: "line" as const,
-    },
-  ];
-
   const years = data.map((item) => String(item.year));
   const participationRates = data.map((item) => item.participationRate);
   const registeredShares = data.map((item) => item.registeredShares);
@@ -94,7 +101,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           type: "bar",
           data: registeredShares,
           label: "Registered",
-          color: "var(--mui-palette-primary-main)",
+          color: voteChartColors.holders.registered.color,
           yAxisId: "leftAxis",
           stack: "shares",
         },
@@ -103,7 +110,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
           type: "bar",
           data: beneficialShares,
           label: "Beneficial",
-          color: "var(--mui-palette-secondary-main)",
+          color: voteChartColors.holders.beneficial.color,
           yAxisId: "leftAxis",
           stack: "shares",
         },
@@ -163,7 +170,7 @@ const YearOverYearChart: React.FC<YearOverYearChartProps> = ({
         <ChartsTooltip />
       </ChartsSurface>
       <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-        <CustomLegend items={legendItems} />
+        <CustomLegend items={LEGEND_ITEMS} />
       </Box>
     </ChartsDataProvider>
   );

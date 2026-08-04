@@ -19,13 +19,14 @@ import {
 } from "@mui/material";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSWRConfig } from "swr";
 
 import type { MailingStatus } from "@/components/Meeting/MailingTimelineCard";
 import type { components } from "@/domain-models/generated-schema";
 
 import { ClientFeaturesCard } from "@/components/Meeting/ClientFeaturesCard";
+import { toMailingStatus } from "@/components/Meeting/mailingTimeline";
 import buildApiClient from "@/domain-models/apiClient";
 
 type Meeting = components["schemas"]["Meeting"];
@@ -56,6 +57,11 @@ interface EventForm {
   totalSharesOutstanding: string;
   brokerNonVote: string;
   mailingStatus: MailingStatus | "";
+}
+
+interface VotingShares {
+  totalShares: string;
+  sharesVoted: string;
 }
 
 const meetingStatuses: MeetingStatus[] = ["ACTIVE", "COMPLETE", "ADJOURNED"];
@@ -92,7 +98,7 @@ const toForm = (meeting: Meeting): EventForm => ({
     typeof meeting.brokerNonVote === "number"
       ? String(meeting.brokerNonVote)
       : "",
-  mailingStatus: (meeting.mailingStatus as MailingStatus | null) ?? "",
+  mailingStatus: toMailingStatus(meeting.mailingStatus) ?? "",
 });
 
 const optionalDate = (value: string): string | undefined =>
@@ -114,7 +120,110 @@ const isMeetingResponse = (value: unknown): value is Meeting => {
   return typeof value.id === "string";
 };
 
-export default function EditEventPage() {
+const toPositionEdit = (p: Position): PositionEdit => ({
+  id: p.id ?? "",
+  name: p.name ?? p.accountType ?? "Position",
+  voteStatus: p.voteStatus ?? "Unvoted",
+  shares: p.shares != null ? String(p.shares) : "",
+  sharesVoted: p.sharesVoted != null ? String(p.sharesVoted) : "0",
+});
+
+// Persist the entered "shares voted" total across positions.
+// Strategy: find the largest 'Voted' position and set its sharesVoted so the
+// running total across all 'Voted' positions equals the entered value.
+// If no 'Voted' positions exist, promote the largest position to 'Voted'.
+const persistVotingShares = async (
+  positions: PositionEdit[],
+  sharesVotedTotal: number
+): Promise<void> => {
+  const votedPositions = [...positions]
+    .filter((p) => p.voteStatus === "Voted")
+    .sort((a, b) => (Number(b.shares) || 0) - (Number(a.shares) || 0));
+
+  let targetId: string;
+  let newSharesVoted: number;
+  let newVoteStatus: "Voted" | "Unvoted";
+
+  if (votedPositions.length > 0) {
+    const primary = votedPositions[0];
+    const othersTotal = votedPositions
+      .slice(1)
+      .reduce((sum, p) => sum + (Number(p.sharesVoted) || 0), 0);
+    targetId = primary.id;
+    newSharesVoted = Math.max(sharesVotedTotal - othersTotal, 0);
+    newVoteStatus = newSharesVoted > 0 ? "Voted" : "Unvoted";
+  } else {
+    // No voted positions — promote the largest position
+    const largest = [...positions].sort(
+      (a, b) => (Number(b.shares) || 0) - (Number(a.shares) || 0)
+    )[0];
+    targetId = largest.id;
+    newSharesVoted = sharesVotedTotal;
+    newVoteStatus = sharesVotedTotal > 0 ? "Voted" : "Unvoted";
+  }
+
+  const api = await buildApiClient();
+  await api.PUT("/positions/{id}", {
+    params: { path: { id: targetId } },
+    body: {
+      sharesVoted: newSharesVoted,
+      voteStatus: newVoteStatus,
+    } satisfies UpdatePositionRequest,
+  });
+};
+
+const buildUpdateBody = (form: EventForm): UpdateMeetingRequest => {
+  const brokerNonVote = form.brokerNonVote.trim()
+    ? Number(form.brokerNonVote)
+    : undefined;
+
+  return {
+    title: form.title.trim(),
+    cusip: form.cusip.trim(),
+    brokerSearchDate: optionalDate(form.brokerSearchDate),
+    recordDate: form.recordDate,
+    mailingDate: form.mailingDate,
+    meetingDate: form.meetingDate,
+    cutoffDate: optionalDate(form.cutoffDate),
+    meetingType: form.meetingType,
+    status: form.status,
+    quorumRequirement: Number(form.quorumRequirement),
+    totalSharesOutstanding:
+      String(form.totalSharesOutstanding).trim() || undefined,
+    brokerNonVote: brokerNonVote ?? null,
+    mailingStatus: form.mailingStatus || null,
+  };
+};
+
+const saveMeeting = async (
+  eventId: string,
+  updateBody: UpdateMeetingRequest
+): Promise<Meeting> => {
+  const api = await buildApiClient();
+  const { data, error: updateError } = await api.PUT("/meetings/{meetingId}", {
+    params: { path: { meetingId: eventId } },
+    body: updateBody,
+  });
+
+  const rawMeeting: unknown = data;
+  if (updateError || !isMeetingResponse(rawMeeting)) {
+    throw new Error(getApiErrorMessage(updateError, "Event update failed"));
+  }
+
+  if (
+    rawMeeting.id !== eventId ||
+    rawMeeting.title !== updateBody.title ||
+    rawMeeting.meetingType !== updateBody.meetingType
+  ) {
+    throw new Error(
+      "Event update did not persist. Check the configured API server."
+    );
+  }
+
+  return rawMeeting;
+};
+
+const EditEventContent = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -126,8 +235,9 @@ export default function EditEventPage() {
     ? /\/(?:past-)?meeting\//.test(returnUrl)
     : false;
   const backLabel = isFromMeeting ? "Back to Event" : "Back to Events";
-  const handleBack = () =>
+  const handleBack = () => {
     router.push(returnUrl && isFromMeeting ? returnUrl : "/events");
+  };
 
   const [meeting, setMeeting] = useState<Meeting | null>(null);
   const [form, setForm] = useState<EventForm | null>(null);
@@ -138,11 +248,11 @@ export default function EditEventPage() {
 
   const [positions, setPositions] = useState<PositionEdit[]>([]);
   const [positionsLoading, setPositionsLoading] = useState(false);
-  const [votingShares, setVotingShares] = useState({
+  const [votingShares, setVotingShares] = useState<VotingShares>({
     totalShares: "",
     sharesVoted: "",
   });
-  const [votingSharesDirty, setVotingSharesDirty] = useState(false);
+  const votingSharesDirty = useRef(false);
 
   const authBypassed = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
   const canEdit = session?.user?.type === "CSM" || authBypassed;
@@ -154,6 +264,8 @@ export default function EditEventPage() {
       setLoading(false);
       return;
     }
+
+    let ignore = false;
 
     const loadMeeting = async () => {
       setLoading(true);
@@ -173,28 +285,28 @@ export default function EditEventPage() {
           throw new Error(getApiErrorMessage(fetchError, "Event not found"));
         }
 
+        if (ignore) return;
         setMeeting(rawMeeting);
         setForm(toForm(rawMeeting));
       } catch (err) {
+        if (ignore) return;
         setError(err instanceof Error ? err.message : "Unable to load event");
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 
     void loadMeeting();
-  }, [authBypassed, canEdit, eventId, sessionStatus]);
 
-  const toPositionEdit = (p: Position): PositionEdit => ({
-    id: p.id ?? "",
-    name: p.name ?? p.accountType ?? "Position",
-    voteStatus: p.voteStatus ?? "Unvoted",
-    shares: p.shares != null ? String(p.shares) : "",
-    sharesVoted: p.sharesVoted != null ? String(p.sharesVoted) : "0",
-  });
+    return () => {
+      ignore = true;
+    };
+  }, [authBypassed, canEdit, eventId, sessionStatus]);
 
   useEffect(() => {
     if (!canEdit || !eventId) return;
+
+    let ignore = false;
 
     const loadPositions = async () => {
       setPositionsLoading(true);
@@ -208,27 +320,34 @@ export default function EditEventPage() {
         const raw = Array.isArray(responseData)
           ? responseData
           : ((responseData as { positions?: Position[] })?.positions ?? []);
-        setPositions(raw.map(toPositionEdit));
 
-        const totalShares = raw.reduce(
-          (sum, p) => sum + (Number(p.shares) || 0),
-          0
-        );
-        const totalVoted = raw
-          .filter((p) => p.voteStatus === "Voted")
-          .reduce((sum, p) => sum + (Number(p.sharesVoted) || 0), 0);
-        setVotingShares({
-          totalShares: String(totalShares),
-          sharesVoted: String(totalVoted),
-        });
+        if (!ignore) {
+          setPositions(raw.map(toPositionEdit));
+
+          const totalShares = raw.reduce(
+            (sum, p) => sum + (Number(p.shares) || 0),
+            0
+          );
+          const totalVoted = raw
+            .filter((p) => p.voteStatus === "Voted")
+            .reduce((sum, p) => sum + (Number(p.sharesVoted) || 0), 0);
+          setVotingShares({
+            totalShares: String(totalShares),
+            sharesVoted: String(totalVoted),
+          });
+        }
       } catch {
         // Non-fatal
       } finally {
-        setPositionsLoading(false);
+        if (!ignore) setPositionsLoading(false);
       }
     };
 
     void loadPositions();
+
+    return () => {
+      ignore = true;
+    };
   }, [eventId, canEdit]);
 
   const pageTitle = useMemo(() => {
@@ -239,12 +358,24 @@ export default function EditEventPage() {
   const handleTextChange =
     (field: keyof EventForm) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = event.target.value;
+      const { value } = event.target;
       setForm((current) =>
         current ? { ...current, [field]: value } : current
       );
       setSuccess(false);
     };
+
+  const handleSharesVotedChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { value } = event.target;
+    setVotingShares((prev) => ({
+      ...prev,
+      sharesVoted: value,
+    }));
+    votingSharesDirty.current = true;
+    setSuccess(false);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -260,97 +391,16 @@ export default function EditEventPage() {
     setError(null);
     setSuccess(false);
 
-    const brokerNonVote = form.brokerNonVote.trim()
-      ? Number(form.brokerNonVote)
-      : undefined;
-
-    const updateBody: UpdateMeetingRequest = {
-      title: form.title.trim(),
-      cusip: form.cusip.trim(),
-      brokerSearchDate: optionalDate(form.brokerSearchDate),
-      recordDate: form.recordDate,
-      mailingDate: form.mailingDate,
-      meetingDate: form.meetingDate,
-      cutoffDate: optionalDate(form.cutoffDate),
-      meetingType: form.meetingType,
-      status: form.status,
-      quorumRequirement,
-      totalSharesOutstanding:
-        String(form.totalSharesOutstanding).trim() || undefined,
-      brokerNonVote: brokerNonVote ?? null,
-      mailingStatus: form.mailingStatus || null,
-    };
-
     try {
-      const api = await buildApiClient();
-      const { data, error: updateError } = await api.PUT(
-        "/meetings/{meetingId}",
-        {
-          params: { path: { meetingId: eventId } },
-          body: updateBody,
-        }
-      );
-
-      const rawMeeting: unknown = data;
-      if (updateError || !isMeetingResponse(rawMeeting)) {
-        throw new Error(getApiErrorMessage(updateError, "Event update failed"));
-      }
-
-      if (
-        rawMeeting.id !== eventId ||
-        rawMeeting.title !== updateBody.title ||
-        rawMeeting.meetingType !== updateBody.meetingType
-      ) {
-        throw new Error(
-          "Event update did not persist. Check the configured API server."
-        );
-      }
-
-      setMeeting(rawMeeting);
-      setForm(toForm(rawMeeting));
+      const updated = await saveMeeting(eventId, buildUpdateBody(form));
+      setMeeting(updated);
+      setForm(toForm(updated));
 
       // Save shares voted
-      // Strategy: find the largest 'Voted' position and set its sharesVoted so the
-      // running total across all 'Voted' positions equals the entered value.
-      // If no 'Voted' positions exist, promote the largest position to 'Voted'.
-      if (votingSharesDirty && positions.length > 0) {
+      if (votingSharesDirty.current && positions.length > 0) {
         const newTotal = Number(votingShares.sharesVoted) || 0;
-
-        const votedPositions = [...positions]
-          .filter((p) => p.voteStatus === "Voted")
-          .sort((a, b) => (Number(b.shares) || 0) - (Number(a.shares) || 0));
-
-        let targetId: string;
-        let newSharesVoted: number;
-        let newVoteStatus: "Voted" | "Unvoted";
-
-        if (votedPositions.length > 0) {
-          const primary = votedPositions[0];
-          const othersTotal = votedPositions
-            .slice(1)
-            .reduce((sum, p) => sum + (Number(p.sharesVoted) || 0), 0);
-          targetId = primary.id;
-          newSharesVoted = Math.max(newTotal - othersTotal, 0);
-          newVoteStatus = newSharesVoted > 0 ? "Voted" : "Unvoted";
-        } else {
-          // No voted positions — promote the largest position
-          const largest = [...positions].sort(
-            (a, b) => (Number(b.shares) || 0) - (Number(a.shares) || 0)
-          )[0];
-          targetId = largest.id;
-          newSharesVoted = newTotal;
-          newVoteStatus = newTotal > 0 ? "Voted" : "Unvoted";
-        }
-
-        const api2 = await buildApiClient();
-        await api2.PUT("/positions/{id}", {
-          params: { path: { id: targetId } },
-          body: {
-            sharesVoted: newSharesVoted,
-            voteStatus: newVoteStatus,
-          } satisfies UpdatePositionRequest,
-        });
-        setVotingSharesDirty(false);
+        await persistVotingShares(positions, newTotal);
+        votingSharesDirty.current = false;
       }
 
       await mutate(
@@ -407,222 +457,22 @@ export default function EditEventPage() {
               ) : error && !form ? (
                 <Alert severity="error">{error}</Alert>
               ) : form ? (
-                <Box
-                  component="form"
-                  id="edit-event-form"
+                <EditEventForm
+                  form={form}
+                  error={error}
+                  success={success}
+                  positionsLoading={positionsLoading}
+                  positions={positions}
+                  votingShares={votingShares}
                   onSubmit={handleSubmit}
-                >
-                  <Stack spacing={2}>
-                    {error && <Alert severity="error">{error}</Alert>}
-                    {success && (
-                      <Alert severity="success">Event updated.</Alert>
-                    )}
-
-                    <TextField
-                      label="Meeting Title"
-                      value={form.title}
-                      onChange={handleTextChange("title")}
-                      fullWidth
-                      required
-                      slotProps={{
-                        input: { inputProps: { maxLength: 200 } as const },
-                      }}
-                    />
-
-                    <TextField
-                      label="CUSIP"
-                      value={form.cusip}
-                      onChange={handleTextChange("cusip")}
-                      fullWidth
-                      required
-                    />
-
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                      <TextField
-                        select
-                        label="Event Type"
-                        value={form.meetingType}
-                        onChange={handleTextChange("meetingType")}
-                        fullWidth
-                        required
-                      >
-                        {meetingTypes.map((type) => (
-                          <MenuItem key={type} value={type}>
-                            {type}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-
-                      <TextField
-                        select
-                        label="Status"
-                        value={form.status}
-                        onChange={handleTextChange("status")}
-                        fullWidth
-                        required
-                      >
-                        {meetingStatuses.map((status) => (
-                          <MenuItem key={status} value={status}>
-                            {status}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </Stack>
-
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                      <TextField
-                        label="Broker Search Date"
-                        type="date"
-                        value={form.brokerSearchDate}
-                        onChange={handleTextChange("brokerSearchDate")}
-                        fullWidth
-                      />
-
-                      <TextField
-                        label="Record Date"
-                        type="date"
-                        value={form.recordDate}
-                        onChange={handleTextChange("recordDate")}
-                        fullWidth
-                        required
-                      />
-                    </Stack>
-
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                      <TextField
-                        label="Mailing Date"
-                        type="date"
-                        value={form.mailingDate}
-                        onChange={handleTextChange("mailingDate")}
-                        fullWidth
-                        required
-                      />
-
-                      <TextField
-                        label="Event Date"
-                        type="date"
-                        value={form.meetingDate}
-                        onChange={handleTextChange("meetingDate")}
-                        fullWidth
-                        required
-                      />
-                    </Stack>
-
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                      <TextField
-                        label="Cutoff Date"
-                        type="date"
-                        value={form.cutoffDate}
-                        onChange={handleTextChange("cutoffDate")}
-                        fullWidth
-                      />
-
-                      <TextField
-                        label="Quorum Requirement (%)"
-                        type="number"
-                        value={form.quorumRequirement}
-                        onChange={handleTextChange("quorumRequirement")}
-                        fullWidth
-                        required
-                      />
-                    </Stack>
-
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                      <TextField
-                        label="Total Shares Outstanding"
-                        type="number"
-                        value={form.totalSharesOutstanding}
-                        onChange={handleTextChange("totalSharesOutstanding")}
-                        fullWidth
-                        helperText="Total shares eligible to vote"
-                      />
-
-                      <TextField
-                        label="Broker Non-Vote"
-                        type="number"
-                        value={form.brokerNonVote}
-                        onChange={handleTextChange("brokerNonVote")}
-                        fullWidth
-                        helperText="Total broker non-vote shares"
-                      />
-                    </Stack>
-
-                    <TextField
-                      select
-                      id="mailing-status"
-                      label="Mailing Status"
-                      value={form.mailingStatus}
-                      onChange={handleTextChange("mailingStatus")}
-                      fullWidth
-                    >
-                      <MenuItem value="">
-                        <em>None</em>
-                      </MenuItem>
-                      {mailingStatuses.map((s) => (
-                        <MenuItem key={s} value={s}>
-                          {s}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-
-                    <Divider />
-
-                    {/* Voting Shares Section */}
-                    <Box>
-                      <Typography
-                        variant="subtitle1"
-                        fontWeight={600}
-                        gutterBottom
-                      >
-                        Voting Shares
-                      </Typography>
-
-                      {positionsLoading ? (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            py: 1,
-                          }}
-                        >
-                          <CircularProgress size={18} />
-                          <Typography variant="body2" color="text.secondary">
-                            Loading position data…
-                          </Typography>
-                        </Box>
-                      ) : positions.length === 0 ? (
-                        <Typography variant="body2" color="text.secondary">
-                          No positions found for this meeting.
-                        </Typography>
-                      ) : (
-                        <TextField
-                          label="Shares Voted"
-                          type="number"
-                          value={votingShares.sharesVoted}
-                          onChange={(e) => {
-                            setVotingShares((prev) => ({
-                              ...prev,
-                              sharesVoted: e.target.value,
-                            }));
-                            setVotingSharesDirty(true);
-                            setSuccess(false);
-                          }}
-                          helperText="Total shares voted across all positions"
-                          sx={{ width: 260 }}
-                          slotProps={{
-                            input: { inputProps: { min: 0, step: 1 } },
-                          }}
-                        />
-                      )}
-                    </Box>
-                  </Stack>
-                </Box>
+                  onTextChange={handleTextChange}
+                  onSharesVotedChange={handleSharesVotedChange}
+                />
               ) : (
                 <Typography color="text.secondary">Event not found.</Typography>
               )}
             </CardContent>
-            {form && canEdit && (
+            {form && canEdit ? (
               <CardActions sx={{ justifyContent: "flex-end", px: 2, pb: 2 }}>
                 <Button
                   type="submit"
@@ -633,16 +483,265 @@ export default function EditEventPage() {
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>
               </CardActions>
-            )}
+            ) : null}
           </Card>
         </Grid>
 
-        {meeting?.ticker && (
+        {meeting?.ticker ? (
           <Grid size={{ xs: 12, md: 12, lg: 4 }}>
-            <ClientFeaturesCard clientTicker={meeting.ticker} />
+            <ClientFeaturesCard
+              key={meeting.ticker}
+              clientTicker={meeting.ticker}
+            />
           </Grid>
-        )}
+        ) : null}
       </Grid>
     </Container>
   );
+};
+
+interface EditEventFormProps {
+  readonly form: EventForm;
+  readonly error: string | null;
+  readonly success: boolean;
+  readonly positionsLoading: boolean;
+  readonly positions: PositionEdit[];
+  readonly votingShares: VotingShares;
+  readonly onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  readonly onTextChange: (
+    field: keyof EventForm
+  ) => (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  readonly onSharesVotedChange: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
 }
+
+const EditEventForm = ({
+  form,
+  error,
+  success,
+  positionsLoading,
+  positions,
+  votingShares,
+  onSubmit,
+  onTextChange,
+  onSharesVotedChange,
+}: EditEventFormProps) => (
+  <Box component="form" id="edit-event-form" onSubmit={onSubmit}>
+    <Stack spacing={2}>
+      {error ? <Alert severity="error">{error}</Alert> : null}
+      {success ? <Alert severity="success">Event updated.</Alert> : null}
+
+      <TextField
+        label="Meeting Title"
+        value={form.title}
+        onChange={onTextChange("title")}
+        fullWidth
+        required
+        slotProps={{
+          input: { inputProps: { maxLength: 200 } as const },
+        }}
+      />
+
+      <TextField
+        label="CUSIP"
+        value={form.cusip}
+        onChange={onTextChange("cusip")}
+        fullWidth
+        required
+      />
+
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+        <TextField
+          select
+          label="Event Type"
+          value={form.meetingType}
+          onChange={onTextChange("meetingType")}
+          fullWidth
+          required
+        >
+          {meetingTypes.map((type) => (
+            <MenuItem key={type} value={type}>
+              {type}
+            </MenuItem>
+          ))}
+        </TextField>
+
+        <TextField
+          select
+          label="Status"
+          value={form.status}
+          onChange={onTextChange("status")}
+          fullWidth
+          required
+        >
+          {meetingStatuses.map((status) => (
+            <MenuItem key={status} value={status}>
+              {status}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Stack>
+
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+        <TextField
+          label="Broker Search Date"
+          type="date"
+          value={form.brokerSearchDate}
+          onChange={onTextChange("brokerSearchDate")}
+          fullWidth
+        />
+
+        <TextField
+          label="Record Date"
+          type="date"
+          value={form.recordDate}
+          onChange={onTextChange("recordDate")}
+          fullWidth
+          required
+        />
+      </Stack>
+
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+        <TextField
+          label="Mailing Date"
+          type="date"
+          value={form.mailingDate}
+          onChange={onTextChange("mailingDate")}
+          fullWidth
+          required
+        />
+
+        <TextField
+          label="Event Date"
+          type="date"
+          value={form.meetingDate}
+          onChange={onTextChange("meetingDate")}
+          fullWidth
+          required
+        />
+      </Stack>
+
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+        <TextField
+          label="Cutoff Date"
+          type="date"
+          value={form.cutoffDate}
+          onChange={onTextChange("cutoffDate")}
+          fullWidth
+        />
+
+        <TextField
+          label="Quorum Requirement (%)"
+          type="number"
+          value={form.quorumRequirement}
+          onChange={onTextChange("quorumRequirement")}
+          fullWidth
+          required
+        />
+      </Stack>
+
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+        <TextField
+          label="Total Shares Outstanding"
+          type="number"
+          value={form.totalSharesOutstanding}
+          onChange={onTextChange("totalSharesOutstanding")}
+          fullWidth
+          helperText="Total shares eligible to vote"
+        />
+
+        <TextField
+          label="Broker Non-Vote"
+          type="number"
+          value={form.brokerNonVote}
+          onChange={onTextChange("brokerNonVote")}
+          fullWidth
+          helperText="Total broker non-vote shares"
+        />
+      </Stack>
+
+      <TextField
+        select
+        id="mailing-status"
+        label="Mailing Status"
+        value={form.mailingStatus}
+        onChange={onTextChange("mailingStatus")}
+        fullWidth
+      >
+        <MenuItem value="">
+          <em>None</em>
+        </MenuItem>
+        {mailingStatuses.map((s) => (
+          <MenuItem key={s} value={s}>
+            {s}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      <Divider />
+
+      {/* Voting Shares Section */}
+      <Box>
+        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+          Voting Shares
+        </Typography>
+
+        {positionsLoading ? (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              py: 1,
+            }}
+          >
+            <CircularProgress size={18} />
+            <Typography variant="body2" color="text.secondary">
+              Loading position data…
+            </Typography>
+          </Box>
+        ) : positions.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No positions found for this meeting.
+          </Typography>
+        ) : (
+          <TextField
+            label="Shares Voted"
+            type="number"
+            value={votingShares.sharesVoted}
+            onChange={onSharesVotedChange}
+            helperText="Total shares voted across all positions"
+            sx={{ width: 260 }}
+            slotProps={{
+              input: { inputProps: { min: 0, step: 1 } },
+            }}
+          />
+        )}
+      </Box>
+    </Stack>
+  </Box>
+);
+
+const EditEventPage = () => (
+  <Suspense
+    fallback={
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 } }}>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight={240}
+        >
+          <CircularProgress />
+        </Box>
+      </Container>
+    }
+  >
+    <EditEventContent />
+  </Suspense>
+);
+
+export default EditEventPage;

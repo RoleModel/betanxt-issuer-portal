@@ -16,10 +16,14 @@ interface NormalizedPosition {
 
 // Normalize position data to ensure consistent fields
 function normalizePosition(position: unknown): NormalizedPosition | null {
-  if (!position) return null;
+  if (!position) {
+    return null;
+  }
 
   const record = asRecord(position);
-  if (!record) return null;
+  if (!record) {
+    return null;
+  }
 
   return {
     id: asString(record.id) || "",
@@ -69,7 +73,9 @@ export const useMeetingTabulation = (
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!meetingId) return;
+    if (!meetingId) {
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -168,17 +174,20 @@ export const useMeetingTabulation = (
         ).map((phase) => asRecord(phase));
 
         // Find the next phase date
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date().toISOString().split("T", 1)[0];
         const upcomingPhases = phases
-          .filter((phase): phase is Record<string, unknown> => Boolean(phase))
-          .map((phase) => ({
-            targetDate:
-              asString(phase.targetDate) ?? asString(phase.target_date) ?? null,
-          }))
-          .filter((phase) => phase.targetDate && phase.targetDate > today)
-          .sort((a, b) =>
-            (a.targetDate ?? "").localeCompare(b.targetDate ?? "")
-          );
+          .flatMap((phase): { targetDate: string }[] => {
+            if (!phase) {
+              return [];
+            }
+            const targetDate =
+              asString(phase.targetDate) ?? asString(phase.target_date) ?? null;
+            if (!targetDate || !(targetDate > today)) {
+              return [];
+            }
+            return [{ targetDate }];
+          })
+          .sort((a, b) => a.targetDate.localeCompare(b.targetDate));
 
         if (upcomingPhases.length > 0) {
           setNextPhaseDate(upcomingPhases[0].targetDate || null);
@@ -189,9 +198,11 @@ export const useMeetingTabulation = (
           setVoteCutoffDate(meetingDate);
         }
       }
-    } catch (err) {
+    } catch (error_) {
       setError(
-        err instanceof Error ? err.message : "Failed to fetch tabulation data"
+        Error.isError(error_)
+          ? error_.message
+          : "Failed to fetch tabulation data"
       );
     } finally {
       setLoading(false);

@@ -129,13 +129,13 @@ const columnWidths = {
 };
 
 interface BrokerBreakoutDocumentProps {
-  companyName: string;
-  clientTicker?: string;
-  meetingType?: string;
-  meetingDate?: string;
-  rows: BrokerBreakoutRow[];
-  clientLogoUrl?: string;
-  betanxtLogoUrl?: string;
+  readonly companyName: string;
+  readonly clientTicker?: string;
+  readonly meetingType?: string;
+  readonly meetingDate?: string;
+  readonly rows: BrokerBreakoutRow[];
+  readonly clientLogoUrl?: string;
+  readonly betanxtLogoUrl?: string;
 }
 
 /**
@@ -144,9 +144,7 @@ interface BrokerBreakoutDocumentProps {
  * an empty-state row when no broker voting data exists, and a footnote
  * disclosing that held/position figures are estimates.
  */
-export const BrokerBreakoutPDFDocument: React.FC<
-  BrokerBreakoutDocumentProps
-> = ({
+const BrokerBreakoutPDFDocument: React.FC<BrokerBreakoutDocumentProps> = ({
   companyName,
   clientTicker,
   meetingType,

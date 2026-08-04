@@ -65,7 +65,7 @@ const videoTutorials: VideoTutorial[] = [
   },
 ];
 
-export default function VideoTutorialsPage() {
+const VideoTutorialsPage = () => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const currentVideo = videoTutorials[currentVideoIndex];
 
@@ -112,4 +112,6 @@ export default function VideoTutorialsPage() {
       </Card>
     </Container>
   );
-}
+};
+
+export default VideoTutorialsPage;

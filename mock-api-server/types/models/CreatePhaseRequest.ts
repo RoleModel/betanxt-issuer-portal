@@ -1,5 +1,3 @@
-import type { CreatePhaseRequestKeyDates } from "./CreatePhaseRequestKeyDates";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -19,6 +17,7 @@ import {
   CreatePhaseRequestKeyDatesToJSON,
   CreatePhaseRequestKeyDatesToJSONTyped,
 } from "./CreatePhaseRequestKeyDates";
+import type { CreatePhaseRequestKeyDates } from "./CreatePhaseRequestKeyDates";
 
 /**
  *

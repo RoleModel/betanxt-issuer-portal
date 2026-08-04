@@ -1,11 +1,10 @@
-import { expect, test } from "@playwright/test";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { createClient } from "@supabase/supabase-js";
-import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
+import { expect, test } from "@playwright/test";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
 
 test.describe("Database Schema Validation", () => {
   const SUPABASE_URL = process.env.SUPABASE_URL ?? "http://127.0.0.1:54321";
@@ -26,7 +25,7 @@ test.describe("Database Schema Validation", () => {
   test("should have valid OpenAPI schema", () => {
     expect(fs.existsSync(contractsPath)).toBe(true);
 
-    const schemaContent = fs.readFileSync(contractsPath, "utf8");
+    const schemaContent = fs.readFileSync(contractsPath, "utf-8");
 
     // Check for required OpenAPI structure
     expect(schemaContent).toContain("openapi: 3.0.3");
@@ -36,7 +35,7 @@ test.describe("Database Schema Validation", () => {
   });
 
   test("should have all required API endpoints", () => {
-    const schemaContent = fs.readFileSync(contractsPath, "utf8");
+    const schemaContent = fs.readFileSync(contractsPath, "utf-8");
 
     const endpointVariants: string[][] = [
       ["/meetings", "/meeting"],
@@ -48,12 +47,12 @@ test.describe("Database Schema Validation", () => {
       ["/auth/login"],
     ];
 
-    endpointVariants.forEach((variants) => {
-      const found = variants.some((endpoint) =>
+    for (const variants of endpointVariants) {
+      const isFound = variants.some((endpoint) =>
         schemaContent.includes(endpoint)
       );
-      expect(found).toBe(true);
-    });
+      expect(isFound).toBe(true);
+    }
   });
 
   test("should validate database schema against API schema", async () => {
@@ -127,9 +126,9 @@ test.describe("Database Schema Validation", () => {
 
     if (meetings && meetings.length > 0) {
       const validStatuses = ["DRAFT", "ACTIVE", "COMPLETE", "ADJOURNED"];
-      meetings.forEach((meeting) => {
+      for (const meeting of meetings) {
         expect(validStatuses).toContain(meeting.status);
-      });
+      }
     }
 
     // Test task status enum
@@ -148,9 +147,9 @@ test.describe("Database Schema Validation", () => {
         "NEEDS_AUTHORIZATION",
         "AUTHORIZED",
       ];
-      tasks.forEach((task) => {
+      for (const task of tasks) {
         expect(validTaskStatuses).toContain(task.status);
-      });
+      }
     }
   });
 });

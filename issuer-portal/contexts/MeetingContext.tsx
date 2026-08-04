@@ -40,15 +40,169 @@ interface MeetingContextType {
 
 const MeetingContext = createContext<MeetingContextType | undefined>(undefined);
 
-interface MeetingProviderProps {
-  children: React.ReactNode;
-  initialMeeting?: Meeting | null;
+// Derive the list of key dates from a meeting. Pure helper kept at module scope
+// so the provider component stays focused and readable.
+function extractKeyDates(currentMeeting: Meeting | null): KeyDate[] {
+  if (!currentMeeting) {
+    return [];
+  }
+
+  const extractedKeyDates: KeyDate[] = [];
+
+  if (currentMeeting.preFilingDate) {
+    extractedKeyDates.push({
+      id: "pre-filing-date",
+      title: "Pre Filing Date",
+      date: currentMeeting.preFilingDate,
+      phaseNumber: 1,
+    });
+  }
+
+  if (currentMeeting.filingDate) {
+    extractedKeyDates.push({
+      id: "filing-date",
+      title: "Filing Date",
+      date: currentMeeting.filingDate,
+      phaseNumber: 1,
+    });
+  }
+
+  if (currentMeeting.brokerSearchDate) {
+    extractedKeyDates.push({
+      id: "broker-search-date",
+      title: "Broker Search Date",
+      date: currentMeeting.brokerSearchDate,
+      phaseNumber: 2,
+    });
+  }
+
+  if (currentMeeting.recordDate) {
+    extractedKeyDates.push({
+      id: "record-date",
+      title: "Record Date",
+      date: currentMeeting.recordDate,
+      phaseNumber: 3,
+    });
+  }
+
+  if (currentMeeting.mailingDate) {
+    extractedKeyDates.push({
+      id: "mailing-date",
+      title: "Mailing Date",
+      date: currentMeeting.mailingDate,
+      phaseNumber: 4,
+    });
+  }
+
+  if (currentMeeting.meetingDate) {
+    extractedKeyDates.push({
+      id: "meeting-date",
+      title: "Meeting Date",
+      date: currentMeeting.meetingDate,
+      phaseNumber: 7,
+    });
+  }
+
+  return extractedKeyDates;
 }
 
-export function MeetingProvider({
-  children,
-  initialMeeting = null,
-}: MeetingProviderProps) {
+// Normalize a raw meetings API record into a typed Meeting object.
+function normalizeMeetingRecord(record: Record<string, unknown>): Meeting {
+  return {
+    id: asString(record.id) || "",
+    title: asString(record.title) || "",
+    ticker: asString(record.ticker) || "",
+    cusip: asString(record.cusip) || undefined,
+    meetingType: asString(record.meetingType) || undefined,
+    meetingYear:
+      typeof record.meetingYear === "number" ? record.meetingYear : undefined,
+    status: asString(record.status) as Meeting["status"],
+    meetingDate: asString(record.meetingDate) || undefined,
+    recordDate: asString(record.recordDate) || undefined,
+    cutoffDate: asString(record.cutoffDate) || undefined,
+    currentPhase: asString(record.currentPhase) || undefined,
+    overallCompletion:
+      typeof record.overallCompletion === "number"
+        ? record.overallCompletion
+        : undefined,
+    preFilingDate: asString(record.preFilingDate) || undefined,
+    filingDate: asString(record.filingDate) || undefined,
+    brokerSearchDate: asString(record.brokerSearchDate) || undefined,
+    mailingDate: asString(record.mailingDate) || undefined,
+    distributionType: asString(record.distributionType) || undefined,
+    transferAgent: asString(record.transferAgent) || undefined,
+    transferAgentConfirmed:
+      typeof record.transferAgentConfirmed === "boolean"
+        ? record.transferAgentConfirmed
+        : null,
+    employeeStockPlans: asString(record.employeeStockPlans) || undefined,
+    planAdministrator: asString(record.planAdministrator) || undefined,
+    planAdministratorContact:
+      asString(record.planAdministratorContact) || undefined,
+    planAdministratorContactEmail:
+      asString(record.planAdministratorContactEmail) || undefined,
+    solicitor: asString(record.solicitor) || undefined,
+    solicitorEmail: asString(record.solicitorEmail) || undefined,
+    inspector: asString(record.inspector) || undefined,
+    ivrDialInNumber: asString(record.ivrDialInNumber) || undefined,
+    mailingStatus: asString(record.mailingStatus) || undefined,
+    quorumRequirement:
+      asNumber(record.quorumRequirement) ??
+      asNumber(record.quorum_requirement) ??
+      undefined,
+    clientId: asString(record.clientId) || undefined,
+    createdAt: asString(record.createdAt) || undefined,
+    updatedAt: asString(record.updatedAt) || undefined,
+  };
+}
+
+// Normalize a raw positions API record into a typed Position object.
+function normalizePositionRecord(record: Record<string, unknown>): Position {
+  return {
+    id: asString(record.id) || "",
+    meetingId: asString(record.meetingId) || asString(record.meeting_id) || "",
+    cusip: asString(record.cusip) || undefined,
+    accountType:
+      asString(record.accountType) ||
+      asString(record.account_type) ||
+      undefined,
+    setKey: asString(record.setKey) || asString(record.set_key) || undefined,
+    name: asString(record.name) || undefined,
+    accountNumber:
+      asString(record.accountNumber) ||
+      asString(record.account_number) ||
+      undefined,
+    controlNumber:
+      asString(record.controlNumber) ||
+      asString(record.control_number) ||
+      undefined,
+    voteStatus: (asString(record.voteStatus) ||
+      asString(record.vote_status)) as Position["voteStatus"],
+    shares: typeof record.shares === "number" ? record.shares : undefined,
+    sharesVoted:
+      typeof record.sharesVoted === "number"
+        ? record.sharesVoted
+        : typeof record.shares_voted === "number"
+          ? record.shares_voted
+          : undefined,
+    source: record.source as Position["source"],
+    createdAt:
+      asString(record.createdAt) || asString(record.created_at) || undefined,
+    updatedAt:
+      asString(record.updatedAt) || asString(record.updated_at) || undefined,
+  };
+}
+
+interface MeetingProviderProps {
+  readonly children: React.ReactNode;
+  readonly initialMeeting?: Meeting | null;
+}
+
+// All provider state, data fetching, and effects live in this custom hook so the
+// MeetingProvider component itself stays small and focused on rendering.
+function useMeetingContextValue(
+  initialMeeting: Meeting | null
+): MeetingContextType {
   const pathname = usePathname();
   const router = useRouter();
   const [currentMeeting, setCurrentMeeting] = useState<Meeting | null>(
@@ -56,7 +210,6 @@ export function MeetingProvider({
   );
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
-  const [keyDates, setKeyDates] = useState<KeyDate[]>([]);
   const [isLoading, setIsLoading] = useState(!initialMeeting); // Start loading if no initial data
   const [positionsLoading, setPositionsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,71 +218,11 @@ export function MeetingProvider({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [tasksLoading, setTasksLoading] = useState(false);
 
-  // Extract key dates from current meeting
-  useEffect(() => {
-    if (!currentMeeting) {
-      setKeyDates([]);
-      return;
-    }
-
-    const extractedKeyDates: KeyDate[] = [];
-
-    if (currentMeeting.preFilingDate) {
-      extractedKeyDates.push({
-        id: "pre-filing-date",
-        title: "Pre Filing Date",
-        date: currentMeeting.preFilingDate,
-        phaseNumber: 1,
-      });
-    }
-
-    if (currentMeeting.filingDate) {
-      extractedKeyDates.push({
-        id: "filing-date",
-        title: "Filing Date",
-        date: currentMeeting.filingDate,
-        phaseNumber: 1,
-      });
-    }
-
-    if (currentMeeting.brokerSearchDate) {
-      extractedKeyDates.push({
-        id: "broker-search-date",
-        title: "Broker Search Date",
-        date: currentMeeting.brokerSearchDate,
-        phaseNumber: 2,
-      });
-    }
-
-    if (currentMeeting.recordDate) {
-      extractedKeyDates.push({
-        id: "record-date",
-        title: "Record Date",
-        date: currentMeeting.recordDate,
-        phaseNumber: 3,
-      });
-    }
-
-    if (currentMeeting.mailingDate) {
-      extractedKeyDates.push({
-        id: "mailing-date",
-        title: "Mailing Date",
-        date: currentMeeting.mailingDate,
-        phaseNumber: 4,
-      });
-    }
-
-    if (currentMeeting.meetingDate) {
-      extractedKeyDates.push({
-        id: "meeting-date",
-        title: "Meeting Date",
-        date: currentMeeting.meetingDate,
-        phaseNumber: 7,
-      });
-    }
-
-    setKeyDates(extractedKeyDates);
-  }, [currentMeeting]);
+  // Derive key dates from the current meeting during render (no effect chain).
+  const keyDates: KeyDate[] = useMemo(
+    () => extractKeyDates(currentMeeting),
+    [currentMeeting]
+  );
 
   // Extract ticker from URL
   const getTickerFromURL = useCallback((): string | undefined => {
@@ -188,57 +281,7 @@ export function MeetingProvider({
           const record = asRecord(item);
           if (!record) continue;
 
-          const meeting: Meeting = {
-            id: asString(record.id) || "",
-            title: asString(record.title) || "",
-            ticker: asString(record.ticker) || "",
-            cusip: asString(record.cusip) || undefined,
-            meetingType: asString(record.meetingType) || undefined,
-            meetingYear:
-              typeof record.meetingYear === "number"
-                ? record.meetingYear
-                : undefined,
-            status: asString(record.status) as Meeting["status"],
-            meetingDate: asString(record.meetingDate) || undefined,
-            recordDate: asString(record.recordDate) || undefined,
-            cutoffDate: asString(record.cutoffDate) || undefined,
-            currentPhase: asString(record.currentPhase) || undefined,
-            overallCompletion:
-              typeof record.overallCompletion === "number"
-                ? record.overallCompletion
-                : undefined,
-            preFilingDate: asString(record.preFilingDate) || undefined,
-            filingDate: asString(record.filingDate) || undefined,
-            brokerSearchDate: asString(record.brokerSearchDate) || undefined,
-            mailingDate: asString(record.mailingDate) || undefined,
-            distributionType: asString(record.distributionType) || undefined,
-            transferAgent: asString(record.transferAgent) || undefined,
-            transferAgentConfirmed:
-              typeof record.transferAgentConfirmed === "boolean"
-                ? record.transferAgentConfirmed
-                : null,
-            employeeStockPlans:
-              asString(record.employeeStockPlans) || undefined,
-            planAdministrator: asString(record.planAdministrator) || undefined,
-            planAdministratorContact:
-              asString(record.planAdministratorContact) || undefined,
-            planAdministratorContactEmail:
-              asString(record.planAdministratorContactEmail) || undefined,
-            solicitor: asString(record.solicitor) || undefined,
-            solicitorEmail: asString(record.solicitorEmail) || undefined,
-            inspector: asString(record.inspector) || undefined,
-            ivrDialInNumber: asString(record.ivrDialInNumber) || undefined,
-            mailingStatus: asString(record.mailingStatus) || undefined,
-            quorumRequirement:
-              asNumber(record.quorumRequirement) ??
-              asNumber(record.quorum_requirement) ??
-              undefined,
-            clientId: asString(record.clientId) || undefined,
-            createdAt: asString(record.createdAt) || undefined,
-            updatedAt: asString(record.updatedAt) || undefined,
-          };
-
-          normalizedMeetings.push(meeting);
+          normalizedMeetings.push(normalizeMeetingRecord(record));
         }
 
         setMeetings(normalizedMeetings);
@@ -344,48 +387,7 @@ export function MeetingProvider({
           const record = asRecord(item);
           if (!record) continue;
 
-          const position: Position = {
-            id: asString(record.id) || "",
-            meetingId:
-              asString(record.meetingId) || asString(record.meeting_id) || "",
-            cusip: asString(record.cusip) || undefined,
-            accountType:
-              asString(record.accountType) ||
-              asString(record.account_type) ||
-              undefined,
-            setKey:
-              asString(record.setKey) || asString(record.set_key) || undefined,
-            name: asString(record.name) || undefined,
-            accountNumber:
-              asString(record.accountNumber) ||
-              asString(record.account_number) ||
-              undefined,
-            controlNumber:
-              asString(record.controlNumber) ||
-              asString(record.control_number) ||
-              undefined,
-            voteStatus: (asString(record.voteStatus) ||
-              asString(record.vote_status)) as Position["voteStatus"],
-            shares:
-              typeof record.shares === "number" ? record.shares : undefined,
-            sharesVoted:
-              typeof record.sharesVoted === "number"
-                ? record.sharesVoted
-                : typeof record.shares_voted === "number"
-                  ? record.shares_voted
-                  : undefined,
-            source: record.source as Position["source"],
-            createdAt:
-              asString(record.createdAt) ||
-              asString(record.created_at) ||
-              undefined,
-            updatedAt:
-              asString(record.updatedAt) ||
-              asString(record.updated_at) ||
-              undefined,
-          };
-
-          positionData.push(position);
+          positionData.push(normalizePositionRecord(record));
         }
       }
       setPositions(positionData);
@@ -426,6 +428,9 @@ export function MeetingProvider({
 
   // Auto-set current meeting when URL changes
   useEffect(() => {
+    // Guard against overlapping re-runs resolving out of order and writing
+    // stale state after the async fetch below.
+    let ignore = false;
     const meetingIdFromURL = getMeetingIdFromURL();
     if (meetingIdFromURL && meetings.length > 0) {
       const targetMeeting = meetings.find((m) => m.id === meetingIdFromURL);
@@ -449,25 +454,32 @@ export function MeetingProvider({
             const { data } = await api.GET("/meetings/{meetingId}", {
               params: { path: { meetingId: meetingIdFromURL } },
             });
-            if (data) {
-              const meetingData = data as Meeting;
-              if (redirectToMeetingTicker(meetingData)) {
-                return;
-              }
-              setCurrentMeeting((prev) => {
-                if (!prev || prev.id !== meetingData.id) {
-                  return meetingData;
+            if (!ignore) {
+              if (data) {
+                const meetingData = data as Meeting;
+                if (redirectToMeetingTicker(meetingData)) {
+                  return;
                 }
-                return prev;
-              });
+                setCurrentMeeting((prev) => {
+                  if (!prev || prev.id !== meetingData.id) {
+                    return meetingData;
+                  }
+                  return prev;
+                });
+              }
             }
           } catch (error) {
-            console.error("Error fetching past meeting:", error);
+            if (!ignore) {
+              console.error("Error fetching past meeting:", error);
+            }
           }
         };
         void fetchPastMeeting();
       }
     }
+    return () => {
+      ignore = true;
+    };
   }, [meetings, getMeetingIdFromURL, redirectToMeetingTicker]);
 
   // Fetch meeting data when current meeting changes
@@ -478,28 +490,53 @@ export function MeetingProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMeeting?.id]);
 
+  const contextValue: MeetingContextType = useMemo(
+    () => ({
+      currentMeeting,
+      meetings,
+      tasks,
+      positions,
+      keyDates,
+      isLoading,
+      tasksLoading,
+      positionsLoading,
+      error,
+      setCurrentMeeting,
+      refreshMeetings,
+      refreshMeetingData,
+      getMeetingById,
+    }),
+    [
+      currentMeeting,
+      meetings,
+      tasks,
+      positions,
+      keyDates,
+      isLoading,
+      tasksLoading,
+      positionsLoading,
+      error,
+      refreshMeetings,
+      refreshMeetingData,
+      getMeetingById,
+    ]
+  );
+
+  return contextValue;
+}
+
+export const MeetingProvider = ({
+  children,
+  initialMeeting = null,
+}: MeetingProviderProps) => {
+  const contextValue = useMeetingContextValue(initialMeeting);
+
   return (
-    <MeetingContext.Provider
-      value={{
-        currentMeeting,
-        meetings,
-        tasks,
-        positions,
-        keyDates,
-        isLoading,
-        tasksLoading,
-        positionsLoading,
-        error,
-        setCurrentMeeting,
-        refreshMeetings,
-        refreshMeetingData,
-        getMeetingById,
-      }}
-    >
+    <MeetingContext.Provider value={contextValue}>
       {children}
     </MeetingContext.Provider>
   );
-}
+};
 
 export const useMeeting = () => {
   const context = useContext(MeetingContext);
@@ -509,13 +546,11 @@ export const useMeeting = () => {
   return context;
 };
 
-export const useMeetingSafe = () => {
-  const context = useContext(MeetingContext);
-  // Return the context if available, otherwise return a safe default
-  return useMemo(
-    () => context || { meetings: [] as { id?: string; status?: string }[] },
-    [context]
-  );
-};
+// Non-throwing variant for optional consumers (e.g. EventTabs, which renders on
+// pages outside a MeetingProvider). Calls the hook unconditionally per the Rules
+// of Hooks and returns undefined when no provider is present, so callers get the
+// full context type rather than a narrowed stand-in object.
+export const useMeetingSafe = (): MeetingContextType | undefined =>
+  useContext(MeetingContext);
 
 export default MeetingContext;

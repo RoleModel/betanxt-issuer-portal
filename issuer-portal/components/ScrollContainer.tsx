@@ -4,12 +4,12 @@ import { Box, styled } from "@mui/material";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface ScrollContainerProps {
-  children: React.ReactNode;
-  direction?: "horizontal" | "vertical" | "both";
-  height?: string | number;
-  width?: string | number;
-  className?: string;
-  sx?: object;
+  readonly children: React.ReactNode;
+  readonly direction?: "horizontal" | "vertical" | "both";
+  readonly height?: string | number;
+  readonly width?: string | number;
+  readonly className?: string;
+  readonly sx?: object;
 }
 
 const StyledScrollContainer = styled(Box, {

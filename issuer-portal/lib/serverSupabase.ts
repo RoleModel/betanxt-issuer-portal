@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 // Server-side Supabase client using service role key (never expose this client to the browser!)
 // Falls back to anon key if service role not configured so local dev doesn't hard fail.
-// This allows us to tighten storage & RLS policies later without changing application code.
+// This allows us to tighten storage & RLS policies later without changing app code.
 
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";

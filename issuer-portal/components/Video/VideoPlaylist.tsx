@@ -16,18 +16,18 @@ export interface VideoItem {
 }
 
 interface VideoPlaylistProps {
-  videos: VideoItem[];
-  activeVideoId?: string;
-  playingVideoId?: string;
-  onVideoSelect: (video: VideoItem) => void;
+  readonly videos: VideoItem[];
+  readonly activeVideoId?: string;
+  readonly playingVideoId?: string;
+  readonly onVideoSelect: (video: VideoItem) => void;
 }
 
-export default function VideoPlaylist({
+const VideoPlaylist = ({
   videos,
   activeVideoId,
   playingVideoId,
   onVideoSelect,
-}: VideoPlaylistProps) {
+}: VideoPlaylistProps) => {
   return (
     <Box
       sx={{
@@ -63,7 +63,9 @@ export default function VideoPlaylist({
               seriesNumber={video.seriesNumber}
               thumbnail={video.thumbnail}
               duration={video.duration}
-              onClick={() => onVideoSelect(video)}
+              onClick={() => {
+                onVideoSelect(video);
+              }}
               isActive={video.id === activeVideoId}
               isPlaying={video.id === playingVideoId}
             />
@@ -72,4 +74,6 @@ export default function VideoPlaylist({
       </Box>
     </Box>
   );
-}
+};
+
+export default VideoPlaylist;

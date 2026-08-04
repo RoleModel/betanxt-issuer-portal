@@ -1,5 +1,3 @@
-import type { UserType } from "./UserType";
-
 /* eslint-disable */
 /**
  * BetaNXT Issuer Portal API
@@ -19,6 +17,7 @@ import {
   UserTypeToJSON,
   UserTypeToJSONTyped,
 } from "./UserType";
+import type { UserType } from "./UserType";
 
 /**
  *

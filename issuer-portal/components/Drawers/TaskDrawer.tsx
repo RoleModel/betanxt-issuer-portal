@@ -15,7 +15,12 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-import type { SignatureArea } from "@/components/Drawers/shared/hooks/useDrawerDocuments";
+import type { FileRejection } from "react-dropzone";
+
+import type {
+  SignatureArea,
+  UploadFile,
+} from "@/components/Drawers/shared/hooks/useDrawerDocuments";
 import type { components } from "@/domain-models/generated-schema";
 import type { TaskLink } from "@/utils/taskLinks";
 
@@ -64,6 +69,7 @@ import {
 } from "@/utils/transferAgentRequestForm";
 
 type Task = components["schemas"]["Task"];
+type Document = components["schemas"]["Document"];
 
 // Task status type for local use
 type _TaskStatus = "COMPLETE" | "INCOMPLETE" | "NEEDS_AUTHORIZATION";
@@ -75,10 +81,10 @@ interface TaskLinkWithSignature extends TaskLink {
 }
 
 interface TaskDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  task: DbTask | null;
-  onTaskUpdate?: (updatedTask: DbTask) => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly task: DbTask | null;
+  readonly onTaskUpdate?: (updatedTask: DbTask) => void;
 }
 
 const TaskDrawer: React.FC<TaskDrawerProps> = ({
@@ -169,7 +175,6 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
   const [contextMenuPosition, setContextMenuPosition] =
     useState<ContextMenuPosition | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [taskPhaseNumber, setTaskPhaseNumber] = useState<number>(1);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<DbTask | null>(null);
   const [dtccAuthorized, setDtccAuthorized] = useState(false);
@@ -220,6 +225,13 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
 
   // Set task links from task data when task changes
   useEffect(() => {
+    // Ignore stale async results if the effect re-runs or unmounts before the
+    // signed-document lookup resolves.
+    let ignore = false;
+    const cleanup = () => {
+      ignore = true;
+    };
+
     const taskToUse = currentTask || task;
     if (open && taskToUse) {
       try {
@@ -246,22 +258,26 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
               meetingDocuments
             );
 
-            setHasSignedDocument(!!signedDoc);
-            setCheckingSignedDocument(false);
-          } else {
+            if (!ignore) {
+              setHasSignedDocument(!!signedDoc);
+              setCheckingSignedDocument(false);
+            }
+          } else if (!ignore) {
             setCheckingSignedDocument(false);
           }
         };
         void checkSignedDocument().catch(() => {
           // Error handled silently - we just want to check if signed document exists
-          setCheckingSignedDocument(false);
+          if (!ignore) {
+            setCheckingSignedDocument(false);
+          }
         });
 
         // Check for signature type tasks first
         if (taskToUse?.type === "signature") {
           // Don't close the drawer - let the user interact with both
           // The DocumentViewer will handle the signature task via the task prop
-          return;
+          return cleanup;
         }
 
         // Signature actions are handled by link clicks within the drawer
@@ -277,13 +293,10 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
               setApprovalDrawerOpen(true);
               // Close the task drawer since we're opening approval drawer
               onClose();
-              return;
+              return cleanup;
             }
           }
         }
-
-        // Set phase number directly from task
-        setTaskPhaseNumber(taskToUse.phaseNumber || 1);
       } catch (err) {
         console.error("Failed to initialize task drawer", err);
       }
@@ -291,6 +304,8 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
       setTaskLinks([]);
       setCheckingSignedDocument(false);
     }
+
+    return cleanup;
   }, [
     open,
     task,
@@ -341,7 +356,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
             await handleFormDownload(clientData);
           }
         } else if (link.url) {
-          window.open(link.url, "_blank");
+          window.open(link.url, "_blank", "noopener");
         }
         break;
 
@@ -391,7 +406,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
       case "external":
       default:
         if (link.url) {
-          window.open(link.url, "_blank");
+          window.open(link.url, "_blank", "noopener");
         }
         break;
     }
@@ -614,49 +629,53 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
     const taskToUse = currentTask || task;
     if (!taskToUse) return;
 
-    const uploadResults = [];
+    // Upload each file to Supabase storage concurrently
+    const uploadResults = await Promise.all(
+      files.map(async (file) => {
+        const fileName = `${taskToUse.id}-${Date.now()}-${file.name}`;
+        const filePath = `documents/${fileName}`;
 
-    // Upload each file to Supabase storage
-    for (const file of files) {
-      const fileName = `${taskToUse.id}-${Date.now()}-${file.name}`;
-      const filePath = `documents/${fileName}`;
+        const supabase = getBrowserSupabase();
+        const { data, error } = await supabase.storage
+          .from("documents")
+          .upload(filePath, file, {
+            contentType: file.type,
+            upsert: false,
+          });
 
-      const supabase = getBrowserSupabase();
-      const { data, error } = await supabase.storage
-        .from("documents")
-        .upload(filePath, file, {
-          contentType: file.type,
-          upsert: false,
-        });
+        if (error) {
+          throw new Error(`Failed to upload ${file.name}: ${error.message}`);
+        }
 
-      if (error) {
-        throw new Error(`Failed to upload ${file.name}: ${error.message}`);
-      }
+        // Get public URL for the uploaded file
+        const { data: urlData } = supabase.storage
+          .from("documents")
+          .getPublicUrl(filePath);
 
-      // Get public URL for the uploaded file
-      const { data: urlData } = supabase.storage
-        .from("documents")
-        .getPublicUrl(filePath);
-
-      uploadResults.push({
-        fileName: file.name,
-        filePath: data.path,
-        publicUrl: urlData.publicUrl,
-        originalFile: file,
-      });
-    }
+        return {
+          fileName: file.name,
+          filePath: data.path,
+          publicUrl: urlData.publicUrl,
+          originalFile: file,
+        };
+      })
+    );
 
     // Create document records for uploaded files if meeting exists
-    if (taskToUse.meetingId) {
-      for (const result of uploadResults) {
-        await createNewDocument(taskToUse.meetingId, {
-          title: result.fileName,
-          description: `Document uploaded for task: ${taskToUse.title}`,
-          type: "supporting-document",
-          file: result.filePath,
-          taskId: taskToUse.id,
-        });
-      }
+    const { meetingId, id: taskId, title: taskTitle } = taskToUse;
+    if (meetingId) {
+      await Promise.all(
+        uploadResults.map(
+          async (result) =>
+            await createNewDocument(meetingId, {
+              title: result.fileName,
+              description: `Document uploaded for task: ${taskTitle}`,
+              type: "supporting-document",
+              file: result.filePath,
+              taskId,
+            })
+        )
+      );
     }
 
     return uploadResults;
@@ -727,7 +746,7 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
   const handleDtccAuthorizationChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const checked = event.target.checked;
+    const { checked } = event.target;
     setDtccAuthorized(checked);
 
     // Update task status in backend
@@ -762,6 +781,12 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
 
   const isMobile = useMediaQuery("(max-width: 500px)");
 
+  // Derived directly from the task rather than mirrored into state.
+  const taskPhaseNumber = (currentTask ?? task)?.phaseNumber || 1;
+
+  // Hoisted so the null check narrows the value that is actually converted.
+  const dbTaskForEdit = currentTask ?? task ?? null;
+
   return (
     <Drawer
       variant="temporary"
@@ -793,178 +818,31 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
       }}
     >
       {currentTask || task ? (
-        <Stack sx={{ height: "100vh", width: { xs: "100vw", md: 550 } }}>
-          {/* Header */}
-          <DrawerHeader
-            title={(currentTask ?? task)?.title ?? "Task Details"}
-            onClose={onClose}
-          />
-
-          {/* Content */}
-          <Box sx={{ p: 3 }}>
-            <Stack spacing={2}>
-              {/* Task Details Card */}
-              <Card
-                onContextMenu={handleTaskContextMenu}
-                sx={(theme) => {
-                  const taskToUse = currentTask || task;
-                  const isComplete = taskToUse?.status === "COMPLETE";
-                  const phaseColor = `var(--mui-palette-phase-${taskPhaseNumber - 1}-main)`;
-                  const borderColor = isComplete
-                    ? theme.vars.palette.complete
-                    : getStatusBorderColor(
-                        taskToUse?.status,
-                        phaseColor,
-                        theme
-                      );
-
-                  return {
-                    p: 2,
-                    background: theme.vars.palette.tableCellRow.fill,
-                    borderLeft: `5px solid ${borderColor}`,
-                    boxShadow: `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
-                  };
-                }}
-              >
-                <Typography
-                  variant="body3"
-                  fontWeight={500}
-                  sx={{ lineHeight: 1.2, mb: 0.5 }}
-                >
-                  {(currentTask ?? task)?.title ?? "Task"}
-                </Typography>
-
-                <Typography
-                  color="text.secondary"
-                  variant="body3"
-                  sx={{ display: "block", mb: 1 }}
-                >
-                  {(currentTask ?? task)?.description ?? ""}
-                </Typography>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mb: taskLinks.length > 0 ? 1 : 0,
-                  }}
-                >
-                  <StatusChip
-                    status={(currentTask ?? task)?.status ?? "INCOMPLETE"}
-                    size="small"
-                  />
-                </Box>
-
-                {/* Action buttons for tasks with links */}
-                <TaskActions
-                  task={currentTask || task || {}}
-                  taskLinks={taskLinks}
-                  hasSignedDocument={hasSignedDocument}
-                  checkingSignedDocument={checkingSignedDocument}
-                  dtccAuthorized={dtccAuthorized}
-                  onLinkClick={handleLinkClick}
-                  onDtccAuthorizationChange={handleDtccAuthorizationChange}
-                  getDocumentsByMeeting={getDocumentsByMeeting}
-                  setDocumentUrl={setDocumentUrl}
-                  setCurrentDocumentId={setCurrentDocumentId}
-                  setSignatureAreas={setSignatureAreas}
-                  setDocumentViewerOpen={setDocumentViewerOpen}
-                />
-              </Card>
-
-              {/* Upload Area - Show when task has upload or download action links */}
-              {(() => {
-                const hasUpload = taskLinks.some(
-                  (link) => link.action === "upload"
-                );
-                const hasDownload = taskLinks.some(
-                  (link) => link.action === "download"
-                );
-                const isNotClientOwned =
-                  ["BetaNXT", "DFIN"].includes(
-                    (currentTask ?? task)?.owner ?? ""
-                  ) || isDTCCAuthorizationTask(currentTask ?? task);
-                return hasUpload || (hasDownload && isNotClientOwned);
-              })() && (
-                <Box>
-                  <BNFileDropzone
-                    onFilesSelected={handleFilesSelected}
-                    onFileRejections={handleFileRejections}
-                    maxFiles={5}
-                    maxSize={25 * 1024 * 1024} // 25MB to match API limit
-                    acceptedFileTypes={[".docx", ".doc", ".xlsx", ".pdf"]}
-                    multiple={true}
-                    linkText={`Browse files for ${(currentTask || task)?.title}`}
-                    hasUnsupportedFiles={hasUnsupportedFiles}
-                  />
-
-                  {/* File Previews */}
-                  {uploadFiles.length > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      <Stack spacing={1}>
-                        {uploadFiles.map((uploadFile) => (
-                          <BNFilePreview
-                            key={uploadFile.id}
-                            file={{
-                              id: uploadFile.id,
-                              file: uploadFile.file,
-                              status: uploadFile.status,
-                              progress: uploadFile.progress,
-                              error: uploadFile.error,
-                            }}
-                            onRemove={handleFileRemove}
-                          />
-                        ))}
-                      </Stack>
-                    </Box>
-                  )}
-                </Box>
-              )}
-            </Stack>
-          </Box>
-
-          {/* Footer with Send Button - Show when task has upload or download action links */}
-          {(() => {
-            const hasUpload = taskLinks.some(
-              (link) => link.action === "upload"
-            );
-            const hasDownload = taskLinks.some(
-              (link) => link.action === "download"
-            );
-            const isNotClientOwned = ["BetaNXT", "DFIN"].includes(
-              (currentTask ?? task)?.owner ?? ""
-            );
-            return hasUpload || (hasDownload && isNotClientOwned);
-          })() && (
-            <Box
-              sx={{
-                pt: 2,
-                px: 3,
-                display: "flex",
-                justifyContent: "flex-end",
-                borderTop: "1px solid rgba(31, 30, 28, 0.12)",
-              }}
-            >
-              <Button
-                variant="outlined"
-                size="large"
-                disabled={
-                  (uploadFiles.length === 0 &&
-                    currentTask?.type !== "signature") ||
-                  isSubmittingTask
-                }
-                onClick={handleTaskSubmit}
-              >
-                {isSubmittingTask
-                  ? "Submitting..."
-                  : currentTask?.type === "signature"
-                    ? "Submit Signed Document"
-                    : `Submit ${uploadFiles.length > 0 ? `(${uploadFiles.length})` : ""}`}
-              </Button>
-            </Box>
-          )}
-        </Stack>
+        <TaskDrawerBody
+          currentTask={currentTask}
+          task={task}
+          onClose={onClose}
+          taskPhaseNumber={taskPhaseNumber}
+          taskLinks={taskLinks}
+          hasSignedDocument={hasSignedDocument}
+          checkingSignedDocument={checkingSignedDocument}
+          dtccAuthorized={dtccAuthorized}
+          isSubmittingTask={isSubmittingTask}
+          hasUnsupportedFiles={hasUnsupportedFiles}
+          uploadFiles={uploadFiles}
+          onContextMenu={handleTaskContextMenu}
+          onLinkClick={handleLinkClick}
+          onDtccAuthorizationChange={handleDtccAuthorizationChange}
+          getDocumentsByMeeting={getDocumentsByMeeting}
+          setDocumentUrl={setDocumentUrl}
+          setCurrentDocumentId={setCurrentDocumentId}
+          setSignatureAreas={setSignatureAreas}
+          setDocumentViewerOpen={setDocumentViewerOpen}
+          onFilesSelected={handleFilesSelected}
+          onFileRejections={handleFileRejections}
+          onFileRemove={handleFileRemove}
+          onSubmit={handleTaskSubmit}
+        />
       ) : null}
 
       {/* Document Viewer Modal */}
@@ -1211,42 +1089,269 @@ const TaskDrawer: React.FC<TaskDrawerProps> = ({
       <TaskEditDialog
         open={editModalOpen}
         onClose={handleEditModalClose}
-        task={
-          currentTask || task
-            ? convertDbTaskToTask((currentTask || task)!)
-            : null
-        }
+        task={dbTaskForEdit ? convertDbTaskToTask(dbTaskForEdit) : null}
         onTaskUpdated={handleTaskUpdated}
         enableLinkEditing={true}
       />
 
       {/* Phase Completion Success Alert */}
-      <Snackbar
-        open={phaseCompleteAlert.open}
-        autoHideDuration={6000}
-        onClose={() =>
-          setPhaseCompleteAlert((prev) => ({ ...prev, open: false }))
-        }
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Alert
-          onClose={() =>
-            setPhaseCompleteAlert((prev) => ({ ...prev, open: false }))
-          }
-          severity="success"
+      <PhaseCompleteSnackbar
+        alert={phaseCompleteAlert}
+        onClose={() => {
+          setPhaseCompleteAlert((prev) => ({ ...prev, open: false }));
+        }}
+      />
+    </Drawer>
+  );
+};
+
+interface PhaseCompleteAlertState {
+  readonly open: boolean;
+  readonly title: string;
+  readonly message: string;
+}
+
+interface PhaseCompleteSnackbarProps {
+  readonly alert: PhaseCompleteAlertState;
+  readonly onClose: () => void;
+}
+
+const PhaseCompleteSnackbar: React.FC<PhaseCompleteSnackbarProps> = ({
+  alert,
+  onClose,
+}) => (
+  <Snackbar
+    open={alert.open}
+    autoHideDuration={6000}
+    onClose={onClose}
+    anchorOrigin={{ vertical: "top", horizontal: "right" }}
+  >
+    <Alert
+      onClose={onClose}
+      severity="success"
+      sx={{
+        width: "100%",
+        maxWidth: "600px",
+        boxShadow: 3,
+      }}
+    >
+      <Typography variant="h6" gutterBottom>
+        {alert.title}
+      </Typography>
+      <Typography variant="body3">{alert.message}</Typography>
+    </Alert>
+  </Snackbar>
+);
+
+interface TaskDrawerBodyProps {
+  readonly currentTask: DbTask | null;
+  readonly task: DbTask | null;
+  readonly onClose: () => void;
+  readonly taskPhaseNumber: number;
+  readonly taskLinks: TaskLink[];
+  readonly hasSignedDocument: boolean;
+  readonly checkingSignedDocument: boolean;
+  readonly dtccAuthorized: boolean;
+  readonly isSubmittingTask: boolean;
+  readonly hasUnsupportedFiles: boolean;
+  readonly uploadFiles: UploadFile[];
+  readonly onContextMenu: (event: React.MouseEvent) => void;
+  readonly onLinkClick: (link: TaskLink) => void;
+  readonly onDtccAuthorizationChange: (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => void;
+  readonly getDocumentsByMeeting: (meetingId: string) => Promise<Document[]>;
+  readonly setDocumentUrl: (url: string) => void;
+  readonly setCurrentDocumentId: (id: string) => void;
+  readonly setSignatureAreas: (areas: SignatureArea[]) => void;
+  readonly setDocumentViewerOpen: (open: boolean) => void;
+  readonly onFilesSelected: (files: File[]) => void;
+  readonly onFileRejections: (rejections: FileRejection[]) => void;
+  readonly onFileRemove: (fileId: string) => void;
+  readonly onSubmit: () => void;
+}
+
+const TaskDrawerBody: React.FC<TaskDrawerBodyProps> = ({
+  currentTask,
+  task,
+  onClose,
+  taskPhaseNumber,
+  taskLinks,
+  hasSignedDocument,
+  checkingSignedDocument,
+  dtccAuthorized,
+  isSubmittingTask,
+  hasUnsupportedFiles,
+  uploadFiles,
+  onContextMenu,
+  onLinkClick,
+  onDtccAuthorizationChange,
+  getDocumentsByMeeting,
+  setDocumentUrl,
+  setCurrentDocumentId,
+  setSignatureAreas,
+  setDocumentViewerOpen,
+  onFilesSelected,
+  onFileRejections,
+  onFileRemove,
+  onSubmit,
+}) => {
+  const hasUpload = taskLinks.some((link) => link.action === "upload");
+  const hasDownload = taskLinks.some((link) => link.action === "download");
+  const isBetaOrDfinOwned = ["BetaNXT", "DFIN"].includes(
+    (currentTask ?? task)?.owner ?? ""
+  );
+  const showUploadArea =
+    hasUpload ||
+    (hasDownload &&
+      (isBetaOrDfinOwned || isDTCCAuthorizationTask(currentTask ?? task)));
+  const showFooter = hasUpload || (hasDownload && isBetaOrDfinOwned);
+
+  return (
+    <Stack sx={{ height: "100vh", width: { xs: "100vw", md: 550 } }}>
+      {/* Header */}
+      <DrawerHeader
+        title={(currentTask ?? task)?.title ?? "Task Details"}
+        onClose={onClose}
+      />
+
+      {/* Content */}
+      <Box sx={{ p: 3 }}>
+        <Stack spacing={2}>
+          {/* Task Details Card */}
+          <Card
+            onContextMenu={onContextMenu}
+            sx={(theme) => {
+              const taskToUse = currentTask || task;
+              const isComplete = taskToUse?.status === "COMPLETE";
+              const phaseColor = `var(--mui-palette-phase-${taskPhaseNumber - 1}-main)`;
+              const borderColor = isComplete
+                ? theme.vars.palette.complete
+                : getStatusBorderColor(taskToUse?.status, phaseColor, theme);
+
+              return {
+                p: 2,
+                background: theme.vars.palette.tableCellRow.fill,
+                borderLeft: `5px solid ${borderColor}`,
+                boxShadow: `inset 0px 0px 0px 1px ${theme.vars.palette.divider}`,
+              };
+            }}
+          >
+            <Typography
+              variant="body3"
+              fontWeight={500}
+              sx={{ lineHeight: 1.2, mb: 0.5 }}
+            >
+              {(currentTask ?? task)?.title ?? "Task"}
+            </Typography>
+
+            <Typography
+              color="text.secondary"
+              variant="body3"
+              sx={{ display: "block", mb: 1 }}
+            >
+              {(currentTask ?? task)?.description ?? ""}
+            </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                mb: taskLinks.length > 0 ? 1 : 0,
+              }}
+            >
+              <StatusChip
+                status={(currentTask ?? task)?.status ?? "INCOMPLETE"}
+                size="small"
+              />
+            </Box>
+
+            {/* Action buttons for tasks with links */}
+            <TaskActions
+              task={currentTask || task || {}}
+              taskLinks={taskLinks}
+              hasSignedDocument={hasSignedDocument}
+              checkingSignedDocument={checkingSignedDocument}
+              dtccAuthorized={dtccAuthorized}
+              onLinkClick={onLinkClick}
+              onDtccAuthorizationChange={onDtccAuthorizationChange}
+              getDocumentsByMeeting={getDocumentsByMeeting}
+              setDocumentUrl={setDocumentUrl}
+              setCurrentDocumentId={setCurrentDocumentId}
+              setSignatureAreas={setSignatureAreas}
+              setDocumentViewerOpen={setDocumentViewerOpen}
+            />
+          </Card>
+
+          {/* Upload Area - Show when task has upload or download action links */}
+          {showUploadArea ? (
+            <Box>
+              <BNFileDropzone
+                onFilesSelected={onFilesSelected}
+                onFileRejections={onFileRejections}
+                maxFiles={5}
+                maxSize={25 * 1024 * 1024} // 25MB to match API limit
+                acceptedFileTypes={[".docx", ".doc", ".xlsx", ".pdf"]}
+                multiple={true}
+                linkText={`Browse files for ${(currentTask || task)?.title}`}
+                hasUnsupportedFiles={hasUnsupportedFiles}
+              />
+
+              {/* File Previews */}
+              {uploadFiles.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Stack spacing={1}>
+                    {uploadFiles.map((uploadFile) => (
+                      <BNFilePreview
+                        key={uploadFile.id}
+                        file={{
+                          id: uploadFile.id,
+                          file: uploadFile.file,
+                          status: uploadFile.status,
+                          progress: uploadFile.progress,
+                          error: uploadFile.error,
+                        }}
+                        onRemove={onFileRemove}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+            </Box>
+          ) : null}
+        </Stack>
+      </Box>
+
+      {/* Footer with Send Button - Show when task has upload or download action links */}
+      {showFooter ? (
+        <Box
           sx={{
-            width: "100%",
-            maxWidth: "600px",
-            boxShadow: 3,
+            pt: 2,
+            px: 3,
+            display: "flex",
+            justifyContent: "flex-end",
+            borderTop: "1px solid rgba(31, 30, 28, 0.12)",
           }}
         >
-          <Typography variant="h6" gutterBottom>
-            {phaseCompleteAlert.title}
-          </Typography>
-          <Typography variant="body3">{phaseCompleteAlert.message}</Typography>
-        </Alert>
-      </Snackbar>
-    </Drawer>
+          <Button
+            variant="outlined"
+            size="large"
+            disabled={
+              (uploadFiles.length === 0 && currentTask?.type !== "signature") ||
+              isSubmittingTask
+            }
+            onClick={onSubmit}
+          >
+            {isSubmittingTask
+              ? "Submitting..."
+              : currentTask?.type === "signature"
+                ? "Submit Signed Document"
+                : `Submit ${uploadFiles.length > 0 ? `(${uploadFiles.length})` : ""}`}
+          </Button>
+        </Box>
+      ) : null}
+    </Stack>
   );
 };
 

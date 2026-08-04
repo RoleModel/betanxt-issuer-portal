@@ -18,14 +18,14 @@ import {
   Typography,
 } from "@mui/material";
 import NextLink from "next/link";
-import React from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
 import CusipValue from "@/components/ui/CusipValue";
+import { CustomTooltip } from "@/components/ui/CustomToolTip";
 import SkeletonTable from "@/components/ui/SkeletonTable";
 import SROnlyTableCaption from "@/components/ui/SROnlyTableCaption";
-import { truncateNumber } from "@/utils/numberUtils";
+import { truncateNumber } from "@/utils/number-utilities";
 
 type Meeting = components["schemas"]["Meeting"];
 
@@ -38,29 +38,27 @@ export interface PastMeetingData extends Meeting {
 type Order = "asc" | "desc";
 
 interface PastMeetingsTableProps {
-  clientTicker: string;
-  order?: Order;
-  orderBy?: keyof PastMeetingData;
-  onRequestSort?: (property: keyof PastMeetingData) => void;
-  meetings: PastMeetingData[];
-  rawMeetingsCount?: number;
-  loading: boolean;
-  formatDate: (dateString: string) => string;
-  error?: string | null;
-  onRetry?: () => void;
+  readonly clientTicker: string;
+  readonly order?: Order;
+  readonly orderBy?: keyof PastMeetingData;
+  readonly onRequestSort?: (property: keyof PastMeetingData) => void;
+  readonly meetings: PastMeetingData[];
+  readonly loading: boolean;
+  readonly formatDate: (dateString: string) => string;
+  readonly error?: string | null;
+  readonly onRetry?: () => void;
   // Display options
-  showSorting?: boolean;
-  showHeader?: boolean;
-  maxHeight?: number | string;
+  readonly showSorting?: boolean;
+  readonly showHeader?: boolean;
+  readonly maxHeight?: number | string;
 }
 
-export default function PastMeetingsTable({
+const PastMeetingsTable = ({
   clientTicker,
   order = "desc",
   orderBy = "meetingDate",
   onRequestSort,
   meetings,
-  rawMeetingsCount: _rawMeetingsCount = meetings.length,
   loading,
   formatDate,
   error,
@@ -68,7 +66,7 @@ export default function PastMeetingsTable({
   showSorting = true,
   showHeader = true,
   maxHeight,
-}: PastMeetingsTableProps) {
+}: PastMeetingsTableProps) => {
   const handleSort = (property: keyof PastMeetingData) => {
     if (onRequestSort) {
       onRequestSort(property);
@@ -89,7 +87,9 @@ export default function PastMeetingsTable({
         <TableSortLabel
           active={orderBy === property}
           direction={orderBy === property ? order : "asc"}
-          onClick={() => handleSort(property)}
+          onClick={() => {
+            handleSort(property);
+          }}
         >
           {label}
         </TableSortLabel>
@@ -100,7 +100,7 @@ export default function PastMeetingsTable({
   if (loading) {
     return (
       <Card>
-        {showHeader && <CardHeader title="Past Meetings" />}
+        {showHeader ? <CardHeader title="Past Meetings" /> : null}
         <CardContent sx={{ p: 0 }}>
           <SkeletonTable columns={5} rows={6} />
         </CardContent>
@@ -108,19 +108,19 @@ export default function PastMeetingsTable({
     );
   }
 
-  if (error) {
+  if (error != null) {
     return (
       <Card>
-        {showHeader && <CardHeader title="Past Meetings" />}
+        {showHeader ? <CardHeader title="Past Meetings" /> : null}
         <CardContent sx={{ p: 3 }}>
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
-          {onRetry && (
+          {onRetry ? (
             <Button onClick={onRetry} variant="outlined">
               Retry
             </Button>
-          )}
+          ) : null}
         </CardContent>
       </Card>
     );
@@ -128,7 +128,7 @@ export default function PastMeetingsTable({
 
   return (
     <Card>
-      {showHeader && <CardHeader title="Past Meetings" />}
+      {showHeader ? <CardHeader title="Past Meetings" /> : null}
       <CardContent sx={{ p: 0 }}>
         <TableContainer sx={{ maxHeight }}>
           <Table stickyHeader>
@@ -173,7 +173,7 @@ export default function PastMeetingsTable({
                     </TableCell>
                     <TableCell size="small">
                       <Typography variant="body3">
-                        {meeting.meetingDate
+                        {meeting.meetingDate != null
                           ? formatDate(meeting.meetingDate)
                           : "TBD"}
                       </Typography>
@@ -190,15 +190,17 @@ export default function PastMeetingsTable({
                               mb: 0.5,
                             }}
                           >
-                            <Typography
-                              variant="body3"
-                              sx={{ fontWeight: 600 }}
+                            <CustomTooltip
+                              title={truncateNumber(meeting.votingShares)}
+                              placement="top"
                             >
-                              {meeting.participationPercent}%
-                            </Typography>
-                            <Typography variant="body3" color="text.secondary">
-                              {truncateNumber(meeting.votingShares)}
-                            </Typography>
+                              <Typography
+                                variant="body3"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {meeting.participationPercent}%
+                              </Typography>
+                            </CustomTooltip>
                           </Box>
                           <LinearProgress
                             variant="determinate"
@@ -241,7 +243,9 @@ export default function PastMeetingsTable({
       </CardContent>
     </Card>
   );
-}
+};
+
+export default PastMeetingsTable;
 
 // Export types for external use
 export type { Order };

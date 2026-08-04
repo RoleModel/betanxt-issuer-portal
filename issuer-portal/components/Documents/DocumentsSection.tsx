@@ -35,7 +35,7 @@ import EmptyState from "@/components/EmptyState";
 import SkeletonTable from "@/components/ui/SkeletonTable";
 import { useDocuments } from "@/contexts/DocumentContext";
 import { useMeeting } from "@/contexts/MeetingContext";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import {
   DOCUMENT_STATUS_VALUES,
   getDocumentStatusLabel,
@@ -47,35 +47,35 @@ type Document = Omit<components["schemas"]["Document"], "status"> & {
 
 // Dynamic imports for heavy document components to enable route-based code splitting
 const ApprovalDrawer = dynamic(
-  () => import("@/components/Drawers/ApprovalDrawer"),
+  async () => await import("@/components/Drawers/ApprovalDrawer"),
   {
     ssr: false,
   }
 );
 
 const DocumentViewer = dynamic(
-  () => import("@/components/Documents/DocumentViewer"),
+  async () => await import("@/components/Documents/DocumentViewer"),
   {
     ssr: false,
   }
 );
 
 const FileUploadDialog = dynamic(
-  () => import("@/components/FileUpload/FileUploadDialog"),
+  async () => await import("@/components/FileUpload/FileUploadDialog"),
   {
     ssr: false,
   }
 );
 
 const VideoPlayerDialog = dynamic(
-  () => import("@/components/Video/VideoPlayerDialog"),
+  async () => await import("@/components/Video/VideoPlayerDialog"),
   {
     ssr: false,
   }
 );
 
 interface DocumentsPageProps {
-  params: Promise<{
+  readonly params: Promise<{
     meetingId: string;
   }>;
 }
@@ -91,7 +91,370 @@ interface ParsedProposal {
 
 type ExcelRow = Record<string, string | number | boolean | Date | undefined>;
 
-export default function DocumentsPage({ params }: DocumentsPageProps) {
+// Parse Excel/CSV file for agenda proposals
+const parseAgendaFile = async (file: File): Promise<ParsedProposal[]> => {
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData: ExcelRow[] = XLSX.utils.sheet_to_json(firstSheet);
+
+        if (jsonData.length === 0) {
+          reject(new Error("The file is empty or has no data rows"));
+          return;
+        }
+
+        // Map the data to our format
+        const mappedData = jsonData
+          .map((row: ExcelRow) => {
+            const proposalNumber = row["Proposal Number"] ?? row.Number ?? "";
+            const proposalTitle = row["Proposal Title"] ?? row.Title ?? "";
+            const proposalType = row["Proposal Type"] ?? row.Type ?? "";
+            const proposalSubtype =
+              row["Proposal Subtype"] ?? row.Subtype ?? "";
+            const directorName = row["Director Name"] ?? row.Director ?? "";
+            const recommendation = row.Recommendation ?? "";
+
+            // Skip rows without required fields
+            if (!proposalNumber || !proposalTitle) {
+              return null;
+            }
+
+            const parsedProposal: ParsedProposal = {
+              proposalNumber:
+                typeof proposalNumber === "number"
+                  ? proposalNumber
+                  : parseFloat(proposalNumber as string) || 0,
+              proposalTitle: String(proposalTitle),
+              proposalType: String(proposalType),
+              recommendation: String(recommendation),
+            };
+
+            if (proposalSubtype) {
+              parsedProposal.proposalSubtype = String(proposalSubtype);
+            }
+
+            if (directorName) {
+              parsedProposal.directorName = String(directorName);
+            }
+
+            return parsedProposal;
+          })
+          .filter((item): item is ParsedProposal => item !== null);
+
+        if (mappedData.length === 0) {
+          reject(new Error("No valid proposal data found in file"));
+          return;
+        }
+
+        resolve(mappedData);
+      } catch (error) {
+        reject(error instanceof Error ? error : new Error(String(error)));
+      }
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Failed to read file"));
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+};
+
+// Stable no-op subscription for useSyncExternalStore-based client detection.
+const emptySubscribe = (): (() => void) => () => {};
+
+interface MainDocumentsCardProps {
+  readonly documents: components["schemas"]["Document"][];
+  readonly loading: boolean;
+  readonly isClientReady: boolean;
+  readonly activeMeetingId: string;
+  readonly onUpload: () => void;
+  readonly onWatchTutorial: () => void;
+  readonly onOpenDocument: (doc: Document) => void;
+}
+
+// Primary documents card: header, search/filter bar, and paginated table.
+const MainDocumentsCard = ({
+  documents,
+  loading,
+  isClientReady,
+  activeMeetingId,
+  onUpload,
+  onWatchTutorial,
+  onOpenDocument,
+}: MainDocumentsCardProps) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Helper to normalize raw status values from API / placeholders.
+  const normalizeStatus = React.useCallback(
+    (raw: unknown): ExtendedDocumentStatus | "UNKNOWN" => {
+      if (!raw || typeof raw !== "string") return "NOT_UPLOADED";
+      if ((DOCUMENT_STATUS_VALUES as readonly string[]).includes(raw))
+        return raw as ExtendedDocumentStatus;
+      if (raw === "NOT_UPLOADED") return "NOT_UPLOADED";
+      return "UNKNOWN";
+    },
+    []
+  );
+
+  // Derive unique normalized statuses present in the dataset.
+  const availableStatuses = React.useMemo(() => {
+    const set = new Set<string>();
+    documents.forEach((doc) => {
+      set.add(normalizeStatus(doc.status));
+    });
+    // Ensure NOT_UPLOADED present if there are documents with no status
+    if (documents.some((d) => !d.status)) set.add("NOT_UPLOADED");
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [documents, normalizeStatus]);
+
+  // Filter documents based on search and selected (normalized) status
+  const filteredDocuments = documents.filter((doc) => {
+    const matchesSearch =
+      doc.title?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
+    const normalized = normalizeStatus(doc.status);
+    const matchesStatus = statusFilter === "All" || normalized === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Avoid a layout jump when reaching the last page with empty rows.
+  const emptyRows =
+    page > 0
+      ? Math.max(0, (1 + page) * rowsPerPage - filteredDocuments.length)
+      : 0;
+
+  const handleChangePage = (
+    _event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setPage(newPage);
+  };
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  return (
+    <Card>
+      <CardHeader
+        title="Documents"
+        action={
+          <Button
+            variant="contained"
+            startIcon={<FileUploadOutlinedIcon />}
+            onClick={onUpload}
+            onMouseDown={onUpload}
+            disabled={!isClientReady || !activeMeetingId}
+          >
+            Upload
+          </Button>
+        }
+        avatar={
+          <IconButton
+            onClick={onWatchTutorial}
+            aria-label="Watch tutorial"
+            sx={{
+              "&:hover": {
+                backgroundColor: (theme) => theme.vars.palette.action.hover,
+              },
+            }}
+          >
+            <SmartDisplayOutlined />
+          </IconButton>
+        }
+      />
+
+      <CardContent sx={{ p: 0 }}>
+        {/* Search and Filter Bar */}
+
+        {loading ? (
+          <SkeletonTable rows={5} columns={4} />
+        ) : filteredDocuments.length === 0 ? (
+          <EmptyState
+            title="No documents"
+            description={
+              searchQuery || statusFilter !== "All"
+                ? "No documents match your search criteria."
+                : "Upload documents to get started."
+            }
+            minHeight={300}
+            icon={<DocumentEditIcon sx={{ fontSize: 40 }} />}
+          />
+        ) : (
+          <>
+            <Box sx={{ mb: 2, px: 2 }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <TextField
+                  placeholder="Search Documents"
+                  size="small"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                  }}
+                  sx={{ minWidth: 250 }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                  <Select
+                    value={statusFilter}
+                    aria-label="Status Filter"
+                    onChange={(e) => {
+                      setStatusFilter(e.target.value);
+                    }}
+                    displayEmpty
+                  >
+                    <MenuItem value="All">All</MenuItem>
+                    {availableStatuses.map((status) => {
+                      const label =
+                        status === "UNKNOWN"
+                          ? "Unknown"
+                          : getDocumentStatusLabel(
+                              (status as ExtendedDocumentStatus) ||
+                                "NOT_UPLOADED"
+                            );
+                      return (
+                        <MenuItem key={status} value={status}>
+                          {label}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+              </Stack>
+            </Box>
+            <DocumentsTable
+              documents={filteredDocuments}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              emptyRows={emptyRows}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              onOpenDocument={onOpenDocument}
+            />
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+interface DsmSectionProps {
+  readonly dsmDocuments: Document[];
+  readonly loading: boolean;
+  readonly onUpload: () => void;
+  readonly onOpenDocument: (doc: Document) => void;
+  readonly onOpenUploadFor: (doc: Document) => void;
+}
+
+// Digital Shareholder Meeting document list with its own pagination + progress.
+const DsmSection = ({
+  dsmDocuments,
+  loading,
+  onUpload,
+  onOpenDocument,
+  onOpenUploadFor,
+}: DsmSectionProps) => {
+  const [dsmPage, setDsmPage] = useState(0);
+  const [dsmRowsPerPage, setDsmRowsPerPage] = useState(6);
+
+  // Calculate DSM progress
+  const dsmProgress = React.useMemo(() => {
+    // Count documents that have been uploaded (have filePath)
+    const uploadedDsm = dsmDocuments.filter((doc) => doc.filePath).length;
+    const totalRequired = 6; // Number of placeholders defined below
+    return {
+      uploaded: uploadedDsm,
+      totalRequired,
+      percentage: totalRequired > 0 ? (uploadedDsm / totalRequired) * 100 : 0,
+    };
+  }, [dsmDocuments]);
+
+  // DSM pagination empty rows
+  const dsmEmptyRows =
+    dsmPage > 0
+      ? Math.max(0, (1 + dsmPage) * dsmRowsPerPage - dsmDocuments.length)
+      : 0;
+
+  const handleDsmChangePage = (
+    _event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setDsmPage(newPage);
+  };
+
+  const handleDsmChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setDsmRowsPerPage(parseInt(event.target.value, 10));
+    setDsmPage(0);
+  };
+
+  if (loading) {
+    return <SkeletonTable rows={5} columns={4} />;
+  }
+
+  return (
+    <DSMDocuments
+      dsmDocuments={dsmDocuments}
+      dsmPage={dsmPage}
+      dsmRowsPerPage={dsmRowsPerPage}
+      dsmEmptyRows={dsmEmptyRows}
+      dsmProgress={dsmProgress}
+      onUpload={onUpload}
+      onPageChange={handleDsmChangePage}
+      onRowsPerPageChange={handleDsmChangeRowsPerPage}
+      onOpenDocument={onOpenDocument}
+      onOpenUploadFor={onOpenUploadFor}
+      placeholders={[
+        {
+          id: "placeholder-static-agenda",
+          title: "Agenda",
+        },
+        {
+          id: "placeholder-static-slide",
+          title: "Static Slide or Presentation",
+        },
+        {
+          id: "placeholder-documents-display",
+          title: "Documents to Display",
+        },
+        { id: "placeholder-speaker-list", title: "Speaker List" },
+        {
+          id: "placeholder-guest-registration",
+          title: "Guest Link Registration",
+        },
+        {
+          id: "placeholder-rules",
+          title: "2025 Virtual Annual Meeting Rules of Conduct",
+        },
+        {
+          id: "placeholder-forward-looking",
+          title: "Forward Looking Statements",
+        },
+      ]}
+    />
+  );
+};
+
+const DocumentsPage = ({ params }: DocumentsPageProps) => {
   const routeParams = React.use(params);
   const routeMeetingId = routeParams.meetingId;
   const { currentMeeting } = useMeeting();
@@ -106,24 +469,13 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   } = useDocuments();
   const { uploadProposals } = useVotingTabulation(activeMeetingId);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [dsmPage, setDsmPage] = useState(0);
-  const [dsmRowsPerPage, setDsmRowsPerPage] = useState(6);
-  const [isClientReady, setIsClientReady] = useState(false);
+  // Render-safe client detection avoids a post-paint flash on hydration.
+  const isClientReady = React.useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
   const previousMeetingIdRef = React.useRef<string | null>(null);
-
-  // Calculate DSM progress
-  const dsmProgress = React.useMemo(() => {
-    // Count documents that have been uploaded (have filePath)
-    const uploadedDsm = dsmDocuments.filter((doc) => doc.filePath).length;
-    const totalRequired = 6; // Number of placeholders defined below
-    return {
-      uploaded: uploadedDsm,
-      totalRequired,
-      percentage: totalRequired > 0 ? (uploadedDsm / totalRequired) * 100 : 0,
-    };
-  }, [dsmDocuments]);
 
   // ApprovalDrawer state
   const [approvalDrawerOpen, setApprovalDrawerOpen] = useState(false);
@@ -135,21 +487,13 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedDsmDocument, setSelectedDsmDocument] =
     useState<Document | null>(null);
-  const [uploadSource, setUploadSource] = useState<"regular" | "dsm">(
-    "regular"
-  );
+  const uploadSourceRef = React.useRef<"regular" | "dsm">("regular");
 
   // DocumentViewer state for fullscreen view
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
 
   // VideoPlayerDialog state
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
-
-  // Set active meeting based on URL parameter
-  // Meeting is set by layout - no need to set it again here
-  useEffect(() => {
-    setIsClientReady(true);
-  }, []);
 
   // Fetch documents from API when meeting changes
   useEffect(() => {
@@ -201,169 +545,20 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     };
   }, [activeMeetingId, refreshDocuments]);
 
-  // Helper to normalize raw status values from API / placeholders.
-  const normalizeStatus = React.useCallback(
-    (raw: unknown): ExtendedDocumentStatus | "UNKNOWN" => {
-      if (!raw || typeof raw !== "string") return "NOT_UPLOADED";
-      if ((DOCUMENT_STATUS_VALUES as readonly string[]).includes(raw))
-        return raw as ExtendedDocumentStatus;
-      if (raw === "NOT_UPLOADED") return "NOT_UPLOADED";
-      return "UNKNOWN";
-    },
-    []
-  );
-
-  // Derive unique normalized statuses present in the dataset.
-  const availableStatuses = React.useMemo(() => {
-    const set = new Set<string>();
-    regularDocuments.forEach((doc) => {
-      set.add(normalizeStatus(doc.status));
-    });
-    // Ensure NOT_UPLOADED present if there are documents with no status
-    if (regularDocuments.some((d) => !d.status)) set.add("NOT_UPLOADED");
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [regularDocuments, normalizeStatus]);
-
-  // Filter documents based on search and selected (normalized) status
-  const filteredDocuments = regularDocuments.filter((doc) => {
-    const matchesSearch =
-      doc.title?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-    const normalized = normalizeStatus(doc.status);
-    const matchesStatus = statusFilter === "All" || normalized === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows =
-    page > 0
-      ? Math.max(0, (1 + page) * rowsPerPage - filteredDocuments.length)
-      : 0;
-
-  // DSM pagination empty rows
-  const dsmEmptyRows =
-    dsmPage > 0
-      ? Math.max(0, (1 + dsmPage) * dsmRowsPerPage - dsmDocuments.length)
-      : 0;
-
-  const handleChangePage = (
-    _event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => {
-    setPage(newPage);
-  };
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  // DSM Pagination handlers
-  const handleDsmChangePage = (
-    _event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => {
-    setDsmPage(newPage);
-  };
-
-  const handleDsmChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setDsmRowsPerPage(parseInt(event.target.value, 10));
-    setDsmPage(0);
-  };
-
   const handleUpload = () => {
-    setUploadSource("regular");
+    uploadSourceRef.current = "regular";
     setUploadDialogOpen(true);
   };
 
   const handleDsmUpload = () => {
-    setUploadSource("dsm");
+    uploadSourceRef.current = "dsm";
     setUploadDialogOpen(true);
   };
 
   const handleUploadDialogClose = () => {
     setUploadDialogOpen(false);
     setSelectedDsmDocument(null); // Clear selected document when closing
-    setUploadSource("regular"); // Reset to default
-  };
-
-  // Parse Excel/CSV file for agenda proposals
-  const parseAgendaFile = async (file: File): Promise<ParsedProposal[]> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = (e) => {
-        try {
-          const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: "binary" });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData: ExcelRow[] = XLSX.utils.sheet_to_json(firstSheet);
-
-          if (jsonData.length === 0) {
-            reject(new Error("The file is empty or has no data rows"));
-            return;
-          }
-
-          // Map the data to our format
-          const mappedData = jsonData
-            .map((row: ExcelRow) => {
-              const proposalNumber = row["Proposal Number"] ?? row.Number ?? "";
-              const proposalTitle = row["Proposal Title"] ?? row.Title ?? "";
-              const proposalType = row["Proposal Type"] ?? row.Type ?? "";
-              const proposalSubtype =
-                row["Proposal Subtype"] ?? row.Subtype ?? "";
-              const directorName = row["Director Name"] ?? row.Director ?? "";
-              const recommendation = row.Recommendation ?? "";
-
-              // Skip rows without required fields
-              if (!proposalNumber || !proposalTitle) {
-                return null;
-              }
-
-              const parsedProposal: ParsedProposal = {
-                proposalNumber:
-                  typeof proposalNumber === "number"
-                    ? proposalNumber
-                    : parseFloat(proposalNumber as string) || 0,
-                proposalTitle: String(proposalTitle),
-                proposalType: String(proposalType),
-                recommendation: String(recommendation),
-              };
-
-              if (proposalSubtype) {
-                parsedProposal.proposalSubtype = String(proposalSubtype);
-              }
-
-              if (directorName) {
-                parsedProposal.directorName = String(directorName);
-              }
-
-              return parsedProposal;
-            })
-            .filter((item): item is ParsedProposal => item !== null);
-
-          if (mappedData.length === 0) {
-            reject(new Error("No valid proposal data found in file"));
-            return;
-          }
-
-          resolve(mappedData);
-        } catch (error) {
-          reject(error instanceof Error ? error : new Error(String(error)));
-        }
-      };
-
-      reader.onerror = () => {
-        reject(new Error("Failed to read file"));
-      };
-
-      reader.readAsArrayBuffer(file);
-    });
+    uploadSourceRef.current = "regular"; // Reset to default
   };
 
   const handleFilesUpload = async (
@@ -395,7 +590,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
     } else {
       // Determine document type based on upload source
       const documentType =
-        uploadSource === "dsm" ? "dsm-document" : "general-document";
+        uploadSourceRef.current === "dsm" ? "dsm-document" : "general-document";
       // Upload as document
       await uploadDocument(activeMeetingId, files, documentType, associations);
     }
@@ -473,161 +668,31 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
             sx={{ p: { xs: 1, sm: 3 } }}
           >
             {/* Main Documents Section */}
-            <Card>
-              <CardHeader
-                title="Documents"
-                action={
-                  <Button
-                    variant="contained"
-                    startIcon={<FileUploadOutlinedIcon />}
-                    onClick={handleUpload}
-                    onMouseDown={handleUpload}
-                    disabled={!isClientReady || !activeMeetingId}
-                  >
-                    Upload
-                  </Button>
-                }
-                avatar={
-                  <IconButton
-                    onClick={() => setVideoDialogOpen(true)}
-                    aria-label="Watch tutorial"
-                    sx={{
-                      "&:hover": {
-                        backgroundColor: (theme) =>
-                          theme.vars.palette.action.hover,
-                      },
-                    }}
-                  >
-                    <SmartDisplayOutlined />
-                  </IconButton>
-                }
-              />
-
-              <CardContent sx={{ p: 0 }}>
-                {/* Search and Filter Bar */}
-
-                {loading ? (
-                  <SkeletonTable rows={5} columns={4} />
-                ) : filteredDocuments.length === 0 ? (
-                  <EmptyState
-                    title="No documents"
-                    description={
-                      searchQuery || statusFilter !== "All"
-                        ? "No documents match your search criteria."
-                        : "Upload documents to get started."
-                    }
-                    minHeight={300}
-                    icon={<DocumentEditIcon sx={{ fontSize: 40 }} />}
-                  />
-                ) : (
-                  <>
-                    <Box sx={{ mb: 2, px: 2 }}>
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <TextField
-                          placeholder="Search Documents"
-                          size="small"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          sx={{ minWidth: 250 }}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <SearchIcon fontSize="small" />
-                                </InputAdornment>
-                              ),
-                            },
-                          }}
-                        />
-                        <FormControl size="small" sx={{ minWidth: 150 }}>
-                          <Select
-                            value={statusFilter}
-                            aria-label="Status Filter"
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            displayEmpty
-                          >
-                            <MenuItem value="All">All</MenuItem>
-                            {availableStatuses.map((status) => {
-                              const label =
-                                status === "UNKNOWN"
-                                  ? "Unknown"
-                                  : getDocumentStatusLabel(
-                                      (status as ExtendedDocumentStatus) ||
-                                        "NOT_UPLOADED"
-                                    );
-                              return (
-                                <MenuItem key={status} value={status}>
-                                  {label}
-                                </MenuItem>
-                              );
-                            })}
-                          </Select>
-                        </FormControl>
-                      </Stack>
-                    </Box>
-                    <DocumentsTable
-                      documents={filteredDocuments}
-                      page={page}
-                      rowsPerPage={rowsPerPage}
-                      emptyRows={emptyRows}
-                      onPageChange={handleChangePage}
-                      onRowsPerPageChange={handleChangeRowsPerPage}
-                      onOpenDocument={handleDocumentAction}
-                    />
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <MainDocumentsCard
+              documents={regularDocuments}
+              loading={loading}
+              isClientReady={isClientReady}
+              activeMeetingId={activeMeetingId}
+              onUpload={handleUpload}
+              onWatchTutorial={() => {
+                setVideoDialogOpen(true);
+              }}
+              onOpenDocument={handleDocumentAction}
+            />
 
             <Grid container spacing={{ xs: 2, md: 3 }}>
               <Grid size={{ xs: 12, md: 8 }}>
-                {loading ? (
-                  <SkeletonTable rows={5} columns={4} />
-                ) : (
-                  <DSMDocuments
-                    dsmDocuments={dsmDocuments}
-                    dsmPage={dsmPage}
-                    dsmRowsPerPage={dsmRowsPerPage}
-                    dsmEmptyRows={dsmEmptyRows}
-                    dsmProgress={dsmProgress}
-                    onUpload={handleDsmUpload}
-                    onPageChange={handleDsmChangePage}
-                    onRowsPerPageChange={handleDsmChangeRowsPerPage}
-                    onOpenDocument={handleDocumentAction}
-                    onOpenUploadFor={(doc) => {
-                      setSelectedDsmDocument(doc);
-                      setUploadSource("dsm");
-                      setUploadDialogOpen(true);
-                    }}
-                    placeholders={[
-                      {
-                        id: "placeholder-static-agenda",
-                        title: "Agenda",
-                      },
-                      {
-                        id: "placeholder-static-slide",
-                        title: "Static Slide or Presentation",
-                      },
-                      {
-                        id: "placeholder-documents-display",
-                        title: "Documents to Display",
-                      },
-                      { id: "placeholder-speaker-list", title: "Speaker List" },
-                      {
-                        id: "placeholder-guest-registration",
-                        title: "Guest Link Registration",
-                      },
-                      {
-                        id: "placeholder-rules",
-                        title: "2025 Virtual Annual Meeting Rules of Conduct",
-                      },
-                      {
-                        id: "placeholder-forward-looking",
-                        title: "Forward Looking Statements",
-                      },
-                    ]}
-                  />
-                )}
+                <DsmSection
+                  dsmDocuments={dsmDocuments}
+                  loading={loading}
+                  onUpload={handleDsmUpload}
+                  onOpenDocument={handleDocumentAction}
+                  onOpenUploadFor={(doc) => {
+                    setSelectedDsmDocument(doc);
+                    uploadSourceRef.current = "dsm";
+                    setUploadDialogOpen(true);
+                  }}
+                />
               </Grid>
               <Grid size={{ xs: 12, md: 4 }}>
                 <DocumentSiteCard />
@@ -636,7 +701,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           </Box>
         </Container>
       </Suspense>
-      {selectedDocument && (
+      {selectedDocument ? (
         <ApprovalDrawer
           open={approvalDrawerOpen}
           onClose={handleApprovalDrawerClose}
@@ -650,7 +715,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
             // Comment functionality not implemented yet
           }}
         />
-      )}
+      ) : null}
 
       {/* FileUploadDialog for uploading documents */}
       <FileUploadDialog
@@ -665,7 +730,7 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
       {/* Hosting site UI moved to DocumentSiteCard */}
 
       {/* DocumentViewer for fullscreen document view */}
-      {selectedDocument && (
+      {selectedDocument ? (
         <DocumentViewer
           open={documentViewerOpen}
           onClose={handleDocumentViewerClose}
@@ -673,16 +738,20 @@ export default function DocumentsPage({ params }: DocumentsPageProps) {
           title={selectedDocument.title ?? "Document"}
           documentId={selectedDocument.id}
         />
-      )}
+      ) : null}
 
       {/* VideoPlayerDialog for tutorial */}
       <VideoPlayerDialog
         open={videoDialogOpen}
-        onClose={() => setVideoDialogOpen(false)}
+        onClose={() => {
+          setVideoDialogOpen(false);
+        }}
         title="Uploading and Managing Documents"
         description="Learn how to manage and upload documents for your meeting"
         seriesNumber="#3"
       />
     </>
   );
-}
+};
+
+export default DocumentsPage;

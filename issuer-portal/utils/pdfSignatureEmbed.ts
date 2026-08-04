@@ -27,16 +27,18 @@ export async function embedSignaturesIntoPDF({
 }: EmbedSignaturesOptions): Promise<Uint8Array> {
   try {
     // Load the existing PDF
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const pages = pdfDoc.getPages();
+    const pdfDocument = await PDFDocument.load(pdfBytes);
+    const pages = pdfDocument.getPages();
 
     // Embed standard font for text fields
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaFont = await pdfDocument.embedFont(StandardFonts.Helvetica);
 
     // Process each signature area
     for (const area of signatureAreas) {
       const pageIndex = (area.page || 1) - 1;
-      if (pageIndex < 0 || pageIndex >= pages.length) continue;
+      if (pageIndex < 0 || pageIndex >= pages.length) {
+        continue;
+      }
 
       const page = pages[pageIndex];
       const { width: pageWidth, height: pageHeight } = page.getSize();
@@ -58,7 +60,7 @@ export async function embedSignaturesIntoPDF({
         if (signatureData?.startsWith("data:image")) {
           try {
             // Extract the base64 image data
-            const base64Data = signatureData.split(",")[1];
+            const base64Data = signatureData.split(",", 2)[1];
             const imageBytes = Uint8Array.from(atob(base64Data), (c) =>
               c.charCodeAt(0)
             );
@@ -66,12 +68,12 @@ export async function embedSignaturesIntoPDF({
             // Embed the image
             let image;
             if (signatureData.includes("image/png")) {
-              image = await pdfDoc.embedPng(imageBytes);
+              image = await pdfDocument.embedPng(imageBytes);
             } else if (
               signatureData.includes("image/jpeg") ||
               signatureData.includes("image/jpg")
             ) {
-              image = await pdfDoc.embedJpg(imageBytes);
+              image = await pdfDocument.embedJpg(imageBytes);
             } else {
               console.warn("Unsupported image format for signature:", area.id);
               continue;
@@ -115,8 +117,7 @@ export async function embedSignaturesIntoPDF({
     }
 
     // Save the modified PDF
-    const pdfBytesModified = await pdfDoc.save();
-    return pdfBytesModified;
+    return await pdfDocument.save();
   } catch (error) {
     console.error("Error embedding signatures into PDF:", error);
     throw error;
@@ -128,7 +129,6 @@ export function convertDataUriToPdfBytes(dataUri: string): Uint8Array {
     throw new Error("Invalid PDF data URI");
   }
 
-  const base64Data = dataUri.split(",")[1];
-  const pdfBytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
-  return pdfBytes;
+  const base64Data = dataUri.split(",", 2)[1];
+  return Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 }

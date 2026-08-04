@@ -5,8 +5,9 @@ import { LineChart } from "@mui/x-charts";
 import React from "react";
 
 import SkeletonChart from "@/components/ui/SkeletonChart";
+import { voteChartColors } from "@/utils/vote-chart-colors";
 
-import { CustomLegend } from "./index";
+import CustomLegend from "./CustomLegend";
 
 interface DirectorVotingData {
   year: number;
@@ -16,10 +17,28 @@ interface DirectorVotingData {
 }
 
 interface IndividualDirectorChartProps {
-  directorName: string;
-  data: DirectorVotingData[];
-  loading?: boolean;
+  readonly directorName: string;
+  readonly data: DirectorVotingData[];
+  readonly loading?: boolean;
 }
+
+const LEGEND_ITEMS = [
+  {
+    label: "For",
+    color: voteChartColors.outcomes.for.color,
+    type: "line" as const,
+  },
+  {
+    label: "Against",
+    color: voteChartColors.outcomes.against.color,
+    type: "line" as const,
+  },
+  {
+    label: "Abstain",
+    color: voteChartColors.outcomes.abstain.color,
+    type: "line" as const,
+  },
+];
 
 const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
   directorName,
@@ -52,24 +71,6 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
   const againstVotes = sortedData.map((d) => d.againstPercentage);
   const abstainVotes = sortedData.map((d) => d.abstainPercentage);
 
-  const legendItems = [
-    {
-      label: "For",
-      color: "var(--mui-palette-chartSeries-1-main)",
-      type: "line" as const,
-    },
-    {
-      label: "Against",
-      color: "var(--mui-palette-chartSeries-5-main)",
-      type: "line" as const,
-    },
-    {
-      label: "Abstain",
-      color: "var(--mui-palette-chartSeries-2-main)",
-      type: "line" as const,
-    },
-  ];
-
   return (
     <Box>
       <LineChart
@@ -78,21 +79,21 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
           {
             data: forVotes,
             label: "For",
-            color: "var(--mui-palette-chartSeries-1-main)",
+            color: voteChartColors.outcomes.for.color,
             curve: "catmullRom",
             showMark: false,
           },
           {
             data: againstVotes,
             label: "Against",
-            color: "var(--mui-palette-chartSeries-5-main)",
+            color: voteChartColors.outcomes.against.color,
             curve: "catmullRom",
             showMark: false,
           },
           {
             data: abstainVotes,
             label: "Abstain",
-            color: "var(--mui-palette-chartSeries-2-main)",
+            color: voteChartColors.outcomes.abstain.color,
             curve: "catmullRom",
             showMark: false,
           },
@@ -118,7 +119,7 @@ const IndividualDirectorChart: React.FC<IndividualDirectorChartProps> = ({
           legend: () => null,
         }}
       />
-      <CustomLegend items={legendItems} />
+      <CustomLegend items={LEGEND_ITEMS} />
     </Box>
   );
 };

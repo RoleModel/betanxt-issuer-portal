@@ -3,7 +3,6 @@
 import useSWR from "swr";
 
 import type { components } from "@/domain-models/generated-schema";
-
 import buildApiClient from "@/domain-models/apiClient";
 
 type Meeting = components["schemas"]["Meeting"];
@@ -198,16 +197,17 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
   // OPTIMIZATION 2: Parallel fetch of proposals and positions for completed meetings only
   const meetingIds = completedMeetings.slice(0, 20).map((m) => m.id); // Limit to most recent 20 meetings
 
-  const proposalPromises = meetingIds.map((id) =>
-    apiClient
-      .GET("/meetings/{meetingId}/proposals", {
-        params: { path: { meetingId: id ?? "" } },
-      })
-      .catch(() => ({ data: [] }))
+  const proposalPromises = meetingIds.map(
+    async (id) =>
+      await apiClient
+        .GET("/meetings/{meetingId}/proposals", {
+          params: { path: { meetingId: id ?? "" } },
+        })
+        .catch(() => ({ data: [] }))
   );
   const positionPromises = meetingIds.map(async (id) => {
     try {
-      const result = await apiClient.GET("/positions", {
+      return await apiClient.GET("/positions", {
         params: {
           query: {
             meetingId: `${id}`,
@@ -215,8 +215,6 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
           },
         },
       });
-
-      return result;
     } catch {
       return { data: [] as Position[] };
     }
@@ -227,14 +225,16 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
     Promise.all(positionPromises),
   ]);
 
-  const allProposals = proposalResults.flatMap((res, idx) => {
-    const mid = meetingIds[idx];
+  const allProposals = proposalResults.flatMap((res, index) => {
+    const mid = meetingIds[index];
     const data = (res as unknown as { data?: unknown }).data as
       | (Proposal & { meetingId?: string })[]
       | { proposals?: (Proposal & { meetingId?: string })[] }
       | undefined;
     let list: (Proposal & { meetingId?: string })[] = [];
-    if (Array.isArray(data)) list = data;
+    if (Array.isArray(data)) {
+      list = data;
+    }
     if (!Array.isArray(data) && data && Array.isArray(data.proposals)) {
       list = data.proposals || [];
     }
@@ -243,7 +243,9 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
   const allPositions: Position[] = positionResults.flatMap((res) => {
     const data = (res as unknown as { data?: unknown }).data as
       Position[] | { positions?: Position[] } | undefined;
-    if (Array.isArray(data)) return data;
+    if (Array.isArray(data)) {
+      return data;
+    }
     if (data && Array.isArray(data.positions)) {
       return data.positions;
     }
@@ -325,7 +327,7 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
       (m.meetingDate ? new Date(m.meetingDate).getFullYear() : null),
   }));
 
-  const result = {
+  return {
     meetings: completedMeetings,
     proposals: allProposals,
     positions: allPositions,
@@ -344,14 +346,12 @@ const fetcher = async (clientTicker: string): Promise<ReportingData> => {
     availableDirectors,
     availableMeetings,
   };
-
-  return result;
 };
 
 export function useReporting(clientTicker: string) {
   const { data, error, isLoading } = useSWR(
     clientTicker ? ["reporting", clientTicker] : null,
-    ([, ticker]) => fetcher(ticker),
+    async ([, ticker]) => await fetcher(ticker),
     {
       dedupingInterval: 60_000,
       revalidateOnFocus: false,
@@ -379,11 +379,13 @@ function calculateDirectorPerformance(
 
   const directorMap = new Map<string, DirectorPerformanceData>();
 
-  directorProposals.forEach((proposal) => {
+  for (const proposal of directorProposals) {
     const directorName =
       proposal.directorName ||
       extractDirectorNameFromTitle(proposal.proposalTitle ?? "");
-    if (!directorName) return;
+    if (!directorName) {
+      continue;
+    }
 
     const existing = directorMap.get(directorName) || {
       directorName,
@@ -400,9 +402,9 @@ function calculateDirectorPerformance(
       existing.forVotes + existing.againstVotes + existing.abstainVotes;
 
     directorMap.set(directorName, existing);
-  });
+  }
 
-  return Array.from(directorMap.values());
+  return [...directorMap.values()];
 }
 
 function extractDirectorNameFromTitle(title: string): string | null {
@@ -415,7 +417,9 @@ function extractDirectorNameFromTitle(title: string): string | null {
 
   for (const pattern of patterns) {
     const match = title.match(pattern);
-    if (match) return match[1].trim();
+    if (match) {
+      return match[1].trim();
+    }
   }
 
   return null;
@@ -429,16 +433,16 @@ function extractDirectorNameFromTitle(title: string): string | null {
  * @returns Per-channel vote counts and the overall total
  */
 function calculateParticipationData(positions: Position[]): ParticipationData {
-  const votingMethods = positions.reduce(
-    (acc, position) => {
+  const votingMethods = positions.reduce<Record<string, number>>(
+    (accumulator, position) => {
       const method =
         (position as { votingSource?: "WEB" | "PRINT" | "IVR" }).votingSource ??
         position.source ??
         "WEB";
-      acc[method] = (acc[method] ?? 0) + 1;
-      return acc;
+      accumulator[method] = (accumulator[method] ?? 0) + 1;
+      return accumulator;
     },
-    {} as Record<string, number>
+    {}
   );
 
   const totalVotes = positions.length;
@@ -463,13 +467,17 @@ function calculateYearOverYearData(
     (m) => !(m.meetingType ?? "Annual").toLowerCase().includes("special")
   );
 
-  annualMeetings.forEach((meeting) => {
-    if (!meeting.meetingDate) return;
+  for (const meeting of annualMeetings) {
+    if (!meeting.meetingDate) {
+      continue;
+    }
 
     const year = new Date(meeting.meetingDate).getFullYear();
 
     // Skip if we already have data for this year (take first annual meeting)
-    if (yearMap.has(year)) return;
+    if (yearMap.has(year)) {
+      continue;
+    }
 
     // Get positions for this meeting
     const meetingPositions = positions.filter(
@@ -489,13 +497,13 @@ function calculateYearOverYearData(
 
     const totalShares = registeredShares + beneficialShares;
 
-    const totalSharesOutstandingNum = Number.parseInt(
+    const totalSharesOutstandingNumber = Number.parseInt(
       meeting.totalSharesOutstanding ?? "0",
       10
     );
     const participationRate =
-      totalSharesOutstandingNum > 0
-        ? (totalShares / totalSharesOutstandingNum) * 100
+      totalSharesOutstandingNumber > 0
+        ? (totalShares / totalSharesOutstandingNumber) * 100
         : 0;
 
     yearMap.set(year, {
@@ -505,9 +513,9 @@ function calculateYearOverYearData(
       beneficialShares,
       totalShares,
     });
-  });
+  }
 
-  return Array.from(yearMap.values()).sort((a, b) => a.year - b.year);
+  return [...yearMap.values()].sort((a, b) => a.year - b.year);
 }
 
 function calculateEventSummaryData(
@@ -552,7 +560,7 @@ function calculateEventSummaryData(
     return fr === "FAILED";
   }).length;
 
-  const totalSharesOutstandingNum = Number.parseInt(
+  const totalSharesOutstandingNumber = Number.parseInt(
     latestMeeting.totalSharesOutstanding ?? "0",
     10
   );
@@ -561,8 +569,8 @@ function calculateEventSummaryData(
     0
   );
   const participationRate =
-    totalSharesOutstandingNum > 0
-      ? (actualShares / totalSharesOutstandingNum) * 100
+    totalSharesOutstandingNumber > 0
+      ? (actualShares / totalSharesOutstandingNumber) * 100
       : 0;
 
   return {
@@ -574,7 +582,7 @@ function calculateEventSummaryData(
       participationRate >= (latestMeeting.quorumRequirement ?? 50),
     materials: {
       sent: meetingPositions.length,
-      total: totalSharesOutstandingNum || meetingPositions.length,
+      total: totalSharesOutstandingNumber || meetingPositions.length,
       sentDate: (latestMeeting.mailingDate || latestMeeting.meetingDate) ?? "",
     },
   };
@@ -593,9 +601,15 @@ function calculateAuditComplianceData(
     );
     const issues: string[] = [];
 
-    if (!meeting.mailingDate) issues.push("Materials sent date not recorded");
-    if (meetingProposals.length === 0) issues.push("No proposals recorded");
-    if (!meeting.quorumRequirement) issues.push("Quorum requirement not set");
+    if (!meeting.mailingDate) {
+      issues.push("Materials sent date not recorded");
+    }
+    if (meetingProposals.length === 0) {
+      issues.push("No proposals recorded");
+    }
+    if (!meeting.quorumRequirement) {
+      issues.push("Quorum requirement not set");
+    }
 
     const complianceScore = Math.max(0, 100 - issues.length * 25);
 
@@ -622,27 +636,29 @@ function calculateQuorumData(
       0
     );
 
-    const totalSharesOutstandingNum = Number.parseInt(
+    const totalSharesOutstandingNumber = Number.parseInt(
       meeting.totalSharesOutstanding ?? "0",
       10
     );
     const requiredShares =
-      totalSharesOutstandingNum * ((meeting.quorumRequirement ?? 50) / 100);
-    const participationRate = totalSharesOutstandingNum
-      ? (actualShares / totalSharesOutstandingNum) * 100
+      totalSharesOutstandingNumber * ((meeting.quorumRequirement ?? 50) / 100);
+    const participationRate = totalSharesOutstandingNumber
+      ? (actualShares / totalSharesOutstandingNumber) * 100
       : 0;
 
     // Quorum achievement date based on cumulative sharesVoted by date
     const datedVotes = meetingPositions
-      .filter((p) => !!p.dateVoted && (p.sharesVoted ?? 0) > 0)
-      .map((p) => {
+      .flatMap((p: Position): { date: Date; shares: number }[] => {
+        if (!p.dateVoted || (p.sharesVoted ?? 0) <= 0) {
+          return [];
+        }
         // Parse the date format "MM/DD/YYYY HH:MMAM/PM"
-        const dateStr = p.dateVoted!;
+        const dateString = p.dateVoted;
         let parsedDate: Date;
 
         // Parse MM/DD/YYYY HH:MMAM format manually
         // Format is like "11/25/2024 12:00AM"
-        const match = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(dateStr);
+        const match = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(dateString);
         if (match) {
           const [_, month, day, year] = match;
           // Create date with just the date components (ignore time)
@@ -653,13 +669,13 @@ function calculateQuorumData(
           );
         } else {
           // Try direct parsing as fallback
-          parsedDate = new Date(dateStr);
+          parsedDate = new Date(dateString);
           if (isNaN(parsedDate.getTime())) {
             parsedDate = new Date(); // Last resort fallback
           }
         }
 
-        return { date: parsedDate, shares: p.sharesVoted ?? 0 };
+        return [{ date: parsedDate, shares: p.sharesVoted ?? 0 }];
       })
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -723,8 +739,7 @@ function transformEventSummaryData(
         mailingDate: (meetingRecord.mailingDate as string) ?? "",
         mailingMethod: (meetingRecord.distributionType as string) ?? "",
         votingCutoff: (meetingRecord.cutoffDate as string) ?? "",
-        meetingYear:
-          typeof year === "number" ? year : parseInt(year.toString(), 10) || 0,
+        meetingYear: typeof year === "number" ? year : parseInt(year, 10) || 0,
       };
 
       results.push(result);
@@ -751,40 +766,41 @@ function transformYearOverYearData(
 function transformProposalPerformanceData(
   proposals: Proposal[]
 ): MappedProposalPerformanceData[] {
-  if (!proposals) return [];
+  if (!proposals) {
+    return [];
+  }
 
   // Group proposals by type and calculate performance metrics
-  const proposalsByType = proposals.reduce(
-    (acc, proposal) => {
-      const rawType = proposal.proposalType ?? "Unknown";
-      const type =
-        rawType === "DIRECTOR_ELECTION" || /director/i.test(rawType)
-          ? "Director Election"
-          : rawType === "SAY_ON_PAY" || /say.*pay/i.test(rawType)
-            ? "Say on Pay"
-            : /auditor/i.test(rawType)
-              ? "Auditor"
-              : rawType;
-      if (!acc[type]) {
-        acc[type] = { total: 0, passed: 0, support: [] };
-      }
-      acc[type].total++;
-      if (proposal.finalResult === "PASSED") {
-        acc[type].passed++;
-      }
-      // Add vote percentages if available using correct field names
-      const forVotes = proposal.totalVotesFor ?? 0;
-      const againstVotes = proposal.totalVotesAgainst ?? 0;
-      const abstainVotes = proposal.totalVotesAbstain ?? 0;
-      const totalVotes = forVotes + againstVotes + abstainVotes;
+  const proposalsByType = proposals.reduce<
+    Record<string, { total: number; passed: number; support: number[] }>
+  >((accumulator, proposal) => {
+    const rawType = proposal.proposalType ?? "Unknown";
+    const type =
+      rawType === "DIRECTOR_ELECTION" || /director/i.test(rawType)
+        ? "Director Election"
+        : rawType === "SAY_ON_PAY" || /say.*pay/i.test(rawType)
+          ? "Say on Pay"
+          : /auditor/i.test(rawType)
+            ? "Auditor"
+            : rawType;
+    if (!accumulator[type]) {
+      accumulator[type] = { total: 0, passed: 0, support: [] };
+    }
+    accumulator[type].total++;
+    if (proposal.finalResult === "PASSED") {
+      accumulator[type].passed++;
+    }
+    // Add vote percentages if available using correct field names
+    const forVotes = proposal.totalVotesFor ?? 0;
+    const againstVotes = proposal.totalVotesAgainst ?? 0;
+    const abstainVotes = proposal.totalVotesAbstain ?? 0;
+    const totalVotes = forVotes + againstVotes + abstainVotes;
 
-      if (totalVotes > 0) {
-        acc[type].support.push((forVotes / totalVotes) * 100);
-      }
-      return acc;
-    },
-    {} as Record<string, { total: number; passed: number; support: number[] }>
-  );
+    if (totalVotes > 0) {
+      accumulator[type].support.push((forVotes / totalVotes) * 100);
+    }
+    return accumulator;
+  }, {});
 
   return Object.entries(proposalsByType).map(([type, data]) => {
     const averageSupport =

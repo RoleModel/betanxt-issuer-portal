@@ -1,7 +1,6 @@
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
 
+import type { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { getServerSupabase } from "@/lib/serverSupabase";
 
@@ -16,26 +15,30 @@ export async function POST(request: NextRequest) {
     const file = formData.get("logo") as File;
     const ticker = formData.get("ticker") as string;
 
-    if (!file)
+    if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
-    if (!ticker)
+    }
+    if (!ticker) {
       return NextResponse.json(
         { error: "No ticker provided" },
         { status: 400 }
       );
-    if (!file.type.startsWith("image/"))
+    }
+    if (!file.type.startsWith("image/")) {
       return NextResponse.json(
         { error: "File must be an image" },
         { status: 400 }
       );
-    if (file.size > 5 * 1024 * 1024)
+    }
+    if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
         { error: "File size must be less than 5MB" },
         { status: 400 }
       );
+    }
 
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${ticker.toLowerCase()}-${Date.now()}.${fileExt}`;
+    const fileExtension = file.name.split(".").pop();
+    const fileName = `${ticker.toLowerCase()}-${Date.now()}.${fileExtension}`;
 
     const supabase = getServerSupabase();
 
@@ -52,11 +55,12 @@ export async function POST(request: NextRequest) {
         upsert: true,
       });
 
-    if (error)
+    if (error) {
       return NextResponse.json(
         { error: "Failed to upload file" },
         { status: 500 }
       );
+    }
 
     const { data: publicUrlData } = supabase.storage
       .from("client-logos")

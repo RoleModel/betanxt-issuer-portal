@@ -1,3 +1,5 @@
+/* eslint-disable func-style */
+
 /**
  * Brand configuration for event companies.
  * headerLogoPath / headerIconPath: dark-theme assets from Brandfetch (light logos on primary headers).
@@ -19,16 +21,16 @@ export interface BrandConfig {
 export const brandConfigs: Record<string, BrandConfig> = {
   "J.P. Morgan Real Estate Income Trust, Inc.": {
     companyName: "J.P. Morgan",
-    ticker: "JPMR",
     domain: "jpmorgan.com",
-    logoPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo.svg",
     iconPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_icon.png",
     headerLogoPath:
       "/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo-dark.svg",
     headerIconPath:
       "/logos/brands/j-p-morgan-real-estate-income-trust-inc_icon-dark.png",
+    logoPath: "/logos/brands/j-p-morgan-real-estate-income-trust-inc_logo.svg",
     primaryColor: "#936845",
     secondaryColor: "#31373D",
+    ticker: "JPMR",
   },
   "E2open Parent Holdings Inc.": {
     companyName: "e2open",
@@ -116,8 +118,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
   "Contineum Therapeutics, Inc.": {
     companyName: "Contineum Therapeutics",
     ticker: "CTNM",
-    domain: "contineum.com",
-    logoPath: "/logos/brands/contineum-therapeutics-inc_logo.png",
+    domain: "contineum-tx.com",
+    logoPath: "/logos/brands/contineum-therapeutics-inc_logo.svg",
     iconPath: "/logos/brands/contineum-therapeutics-inc_icon.png",
     primaryColor: "#2c5282",
     secondaryColor: "#1a365d",
@@ -142,7 +144,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     headerLogoPath: "/logos/brands/lineage-cell-therapeutics-inc_logo-dark.svg",
     headerIconPath: "/logos/brands/lineage-cell-therapeutics-inc_icon-dark.png",
     primaryColor: "#339ef0",
-    secondaryColor: "#000a2b",
+    secondaryColor: "#3465CC",
   },
   "Inozyme Pharma, Inc.": {
     companyName: "Inozyme Pharma",
@@ -241,7 +243,7 @@ export const brandConfigs: Record<string, BrandConfig> = {
     headerLogoPath: "/logos/brands/calcimedica-inc_logo-dark.png",
     headerIconPath: "/logos/brands/calcimedica-inc_icon-dark.png",
     primaryColor: "#472f91",
-    secondaryColor: "#070101",
+    secondaryColor: "#F25B28",
   },
   "Artiva Biotherapeutics, Inc.": {
     companyName: "ArtivaBio",
@@ -284,8 +286,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     iconPath: "/logos/brands/boundless-big-inc_icon.png",
     headerLogoPath: "/logos/brands/boundless-big-inc_logo-dark.png",
     headerIconPath: "/logos/brands/boundless-big-inc_icon-dark.png",
-    primaryColor: "#ff4d29",
-    secondaryColor: "#ff4d29",
+    primaryColor: "#FA4D28",
+    secondaryColor: "#FA4D28",
   },
   "Lithium Americas Corp.": {
     companyName: "Lithium Americas",
@@ -545,9 +547,9 @@ export const brandConfigs: Record<string, BrandConfig> = {
   EnerSa: {
     companyName: "EnerSa",
     ticker: "ENRS",
-    domain: "enersa.com",
-    logoPath: "",
-    iconPath: "",
+    domain: "enersa.com.ar",
+    logoPath: "/logos/brands/enersa_logo.png",
+    iconPath: "/logos/brands/enersa_icon.png",
     primaryColor: "#1a6b3c",
     secondaryColor: "#0d4025",
   },
@@ -555,8 +557,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     companyName: "Enhabit",
     ticker: "EHAB",
     domain: "enhabit.com",
-    logoPath: "",
-    iconPath: "",
+    logoPath: "/logos/ehab_logo.svg",
+    iconPath: "/logos/ehab_icon.png",
     headerLogoPath: "/logos/ehab_logo-dark.svg",
     headerIconPath: "/logos/ehab_icon-dark.png",
     primaryColor: "#005eb8",
@@ -566,8 +568,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     companyName: "Vivani Medical",
     ticker: "VANI",
     domain: "vivani.com",
-    logoPath: "",
-    iconPath: "",
+    logoPath: "/logos/vani_logo.png",
+    iconPath: "/logos/vani_icon.png",
     headerLogoPath: "/logos/vani_logo-dark.png",
     headerIconPath: "/logos/vani_icon-dark.png",
     primaryColor: "#00a3e0",
@@ -577,8 +579,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     companyName: "Madrigal Pharmaceuticals",
     ticker: "MDGL",
     domain: "madrigalpharma.com",
-    logoPath: "",
-    iconPath: "",
+    logoPath: "/logos/mdgl_logo.svg",
+    iconPath: "/logos/mdgl_icon.png",
     headerLogoPath: "/logos/mdgl_logo-dark.png",
     headerIconPath: "/logos/mdgl_icon-dark.png",
     primaryColor: "#7b2d8b",
@@ -588,8 +590,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     companyName: "Chain Bridge Bancorp",
     ticker: "CBNA",
     domain: "chainbridgebank.com",
-    logoPath: "",
-    iconPath: "",
+    logoPath: "/logos/cbna_logo.svg",
+    iconPath: "/logos/cbna_icon.png",
     headerLogoPath: "/logos/cbna_logo-dark.svg",
     headerIconPath: "/logos/cbna_icon-dark.png",
     primaryColor: "#1a3a6b",
@@ -608,8 +610,8 @@ export const brandConfigs: Record<string, BrandConfig> = {
     companyName: "Vapotherm",
     ticker: "VAPO",
     domain: "vapotherm.com",
-    logoPath: "",
-    iconPath: "",
+    logoPath: "/logos/vapo_logo.svg",
+    iconPath: "/logos/vapo_icon.png",
     headerLogoPath: "/logos/vapo_logo-dark.svg",
     headerIconPath: "/logos/vapo_icon-dark.png",
     primaryColor: "#0085c3",
@@ -637,19 +639,19 @@ export const brandConfigs: Record<string, BrandConfig> = {
     companyName: "MindMed",
     ticker: "MNMD",
     domain: "mindmed.com",
-    logoPath: "",
-    iconPath: "",
-    headerLogoPath: "/logos/mnmd_logo-dark.png",
-    headerIconPath: "/logos/mnmd_icon-dark.png",
-    primaryColor: "#7c3aed",
-    secondaryColor: "#4c1d95",
+    logoPath: "/logos/mnmd_logo-full.svg",
+    iconPath: "/logos/mnmd_logo-dark.svg",
+    headerLogoPath: "/logos/mnmd_logo-full.svg",
+    headerIconPath: "/logos/mnmd_icon-full.svg",
+    primaryColor: "#6A994E",
+    secondaryColor: "#3A3A3A",
   },
   "Adaptive Biotechnologies Corporation": {
     companyName: "Adaptive Biotechnologies",
     ticker: "ADPT",
     domain: "adaptivebiotech.com",
-    logoPath: "",
-    iconPath: "",
+    logoPath: "/logos/adpt_logo.svg",
+    iconPath: "/logos/adpt_icon.png",
     headerLogoPath: "/logos/adpt_logo-dark.svg",
     headerIconPath: "/logos/adpt_icon-dark.png",
     primaryColor: "#e53e3e",
@@ -662,15 +664,15 @@ export const brandConfigs: Record<string, BrandConfig> = {
  * Use this when you have a ticker but not a company name — avoids
  * brittle exact-string key matching on company names.
  */
-export const brandConfigsByTicker: Record<string, BrandConfig> = Object.values(
-  brandConfigs
-).reduce(
-  (acc, config) => {
-    if (config.ticker) acc[config.ticker] = config;
-    return acc;
-  },
-  {} as Record<string, BrandConfig>
-);
+export const brandConfigsByTicker: Record<string, BrandConfig> = (() => {
+  const result: Record<string, BrandConfig> = {};
+  for (const config of Object.values(brandConfigs)) {
+    if (config.ticker !== undefined && config.ticker !== "") {
+      result[config.ticker] = config;
+    }
+  }
+  return result;
+})();
 
 /** Look up brand config by event/company name */
 export function getBrandConfig(companyName: string): BrandConfig | null {

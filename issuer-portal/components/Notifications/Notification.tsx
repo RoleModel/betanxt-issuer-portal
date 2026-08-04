@@ -35,15 +35,15 @@ const getLinkText = (link: string, title: string): string => {
 };
 
 interface NotificationProps {
-  user: string;
-  title: string;
-  date: string;
-  message: string;
-  link: string;
-  variant: "read" | "unread";
-  avatar?: string;
-  isSystemNotification?: boolean;
-  onClick?: () => void;
+  readonly user: string;
+  readonly title: string;
+  readonly date: string;
+  readonly message: string;
+  readonly link: string;
+  readonly variant: "read" | "unread";
+  readonly avatar?: string;
+  readonly isSystemNotification?: boolean;
+  readonly onClick?: () => void;
 }
 
 const Notification = ({
@@ -171,7 +171,7 @@ const Notification = ({
             {message}
           </Typography>
 
-          {link && (
+          {link ? (
             <Link
               component="button"
               variant="body3"
@@ -197,7 +197,7 @@ const Notification = ({
             >
               {getLinkText(link, title)}
             </Link>
-          )}
+          ) : null}
         </Stack>
       </Box>
     </Paper>

@@ -14,6 +14,8 @@ if (process.env.NEXT_PUBLIC_MUI_X_LICENSE) {
  * module side effect. Mounted once in the root layout so importing it is all
  * that is required to license MUI X Pro charts app-wide.
  */
-export default function MuiXLicense(): null {
+const MuiXLicense = (): null => {
   return null;
-}
+};
+
+export default MuiXLicense;

@@ -1,5 +1,9 @@
-// Workspace-specific ESLint overrides for mock-api-server
-// Inherits from root eslint.config.mjs
+// Workspace-specific ESLint overrides for mock-api-server Inherits from the monorepo root eslint.config.mjs.
+// The relative path is deliberate: the bare specifier "issuer-portal/..." that
+// import-x/no-relative-packages would autofix this to resolves through
+// node_modules/issuer-portal -> ../issuer-portal (the workspace, not the repo
+// root), where no eslint.config.mjs exists.
+// eslint-disable-next-line import-x/no-relative-packages
 import baseConfig from "../eslint.config.mjs";
 
 const nextPlugin = baseConfig.find((config) => config.plugins?.["@next/next"])

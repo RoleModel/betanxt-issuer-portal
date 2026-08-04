@@ -1,9 +1,8 @@
 // AUTO-GENERATED FROM OPENAPI SPEC - DO NOT EDIT MANUALLY
 // Generated on 2025-11-20T14:13:02.939Z
 // Source: openapi-schema/openapi.yaml
-import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import type { components } from "@/types/api";
 
@@ -22,10 +21,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const limit = searchParams.get("limit")
       ? parseInt(searchParams.get("limit")!, 10)
       : undefined;
-    const statusParam = searchParams.get("status") || undefined;
+    const statusParameter = searchParams.get("status") || undefined;
     const status: "ACTIVE" | "COMPLETE" | "ADJOURNED" | undefined =
-      statusParam && ["ACTIVE", "COMPLETE", "ADJOURNED"].includes(statusParam)
-        ? (statusParam as "ACTIVE" | "COMPLETE" | "ADJOURNED")
+      statusParameter &&
+      ["ACTIVE", "COMPLETE", "ADJOURNED"].includes(statusParameter)
+        ? (statusParameter as "ACTIVE" | "COMPLETE" | "ADJOURNED")
         : undefined;
     const clientId = searchParams.get("clientId") || undefined;
     const meetingYear = searchParams.get("meetingYear")
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "listMeetings",
         },
         { status: 500 }
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       NextResponse.json(
         {
           error: "Internal server error",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: Error.isError(error) ? error.message : "Unknown error",
           operationId: "createMeeting",
         },
         { status: 500 }

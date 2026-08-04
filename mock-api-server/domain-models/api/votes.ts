@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import type { components } from "@/types/api";
 import type { Database } from "@/utils/supabase/database.types";
 
@@ -23,7 +25,9 @@ function nullToUndefined<T>(value: T | null): T | undefined {
 }
 
 function normalizeFilterValue(value?: string): string | undefined {
-  if (!value) return undefined;
+  if (!value) {
+    return undefined;
+  }
   return value.trim();
 }
 
@@ -42,7 +46,9 @@ function parseInFilter(value?: string): string[] | null {
 }
 
 function parseEqFilter(value?: string): string | undefined {
-  if (!value) return undefined;
+  if (!value) {
+    return undefined;
+  }
   return value.startsWith("eq.") ? value.slice(3) : value;
 }
 
@@ -57,7 +63,7 @@ function transformPositionVote(row: PositionVoteRow): PositionVote {
   };
 }
 
-export async function listPositionVotes(opts?: {
+export async function listPositionVotes(options?: {
   meetingId?: string;
   positionId?: string;
   proposalId?: string;
@@ -69,12 +75,12 @@ export async function listPositionVotes(opts?: {
   try {
     let query = supabase.from("position_vote").select("*");
 
-    if (opts?.meetingId) {
+    if (options?.meetingId) {
       const { data: meetingPositions, error: meetingPositionsError } =
         await supabase
           .from("position")
           .select("id")
-          .eq("meeting_id", opts.meetingId)
+          .eq("meeting_id", options.meetingId)
           .limit(5000);
 
       if (meetingPositionsError) {
@@ -105,45 +111,33 @@ export async function listPositionVotes(opts?: {
       query = query.in("position_id", meetingPositionIds);
     }
 
-    const positionId = normalizeFilterValue(opts?.positionId);
-    const proposalId = normalizeFilterValue(opts?.proposalId);
-    const vote = normalizeFilterValue(opts?.vote);
+    const positionId = normalizeFilterValue(options?.positionId);
+    const proposalId = normalizeFilterValue(options?.proposalId);
+    const vote = normalizeFilterValue(options?.vote);
 
     if (positionId) {
       const positionIds = parseInFilter(positionId);
-      if (positionIds) {
-        query = query.in("position_id", positionIds);
-      } else {
-        query = query.eq(
-          "position_id",
-          parseEqFilter(positionId) || positionId
-        );
-      }
+      query = positionIds
+        ? query.in("position_id", positionIds)
+        : query.eq("position_id", parseEqFilter(positionId) || positionId);
     }
 
     if (proposalId) {
       const proposalIds = parseInFilter(proposalId);
-      if (proposalIds) {
-        query = query.in("proposal_id", proposalIds);
-      } else {
-        query = query.eq(
-          "proposal_id",
-          parseEqFilter(proposalId) || proposalId
-        );
-      }
+      query = proposalIds
+        ? query.in("proposal_id", proposalIds)
+        : query.eq("proposal_id", parseEqFilter(proposalId) || proposalId);
     }
 
     if (vote) {
       const votes = parseInFilter(vote);
-      if (votes) {
-        query = query.in("vote", votes);
-      } else {
-        query = query.eq("vote", parseEqFilter(vote) || vote);
-      }
+      query = votes
+        ? query.in("vote", votes)
+        : query.eq("vote", parseEqFilter(vote) || vote);
     }
 
-    if (opts?.order) {
-      const [column, direction] = opts.order.split(".");
+    if (options?.order) {
+      const [column, direction] = options.order.split(".");
       const normalizedColumn =
         column === "createdAt"
           ? "created_at"
@@ -162,13 +156,12 @@ export async function listPositionVotes(opts?: {
       query = query.order("created_at", { ascending: false });
     }
 
-    if (opts?.limit) {
-      const offset = opts.offset ?? 0;
-      if (offset > 0) {
-        query = query.range(offset, offset + opts.limit - 1);
-      } else {
-        query = query.limit(opts.limit);
-      }
+    if (options?.limit) {
+      const offset = options.offset ?? 0;
+      query =
+        offset > 0
+          ? query.range(offset, offset + options.limit - 1)
+          : query.limit(options.limit);
     } else {
       query = query.limit(1000);
     }
@@ -195,10 +188,9 @@ export async function listPositionVotes(opts?: {
     return {
       data: undefined,
       error: {
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch position votes",
+        message: Error.isError(error)
+          ? error.message
+          : "Failed to fetch position votes",
         statusCode: 500,
       },
       response: new Response(null, { status: 500 }),
@@ -206,26 +198,74 @@ export async function listPositionVotes(opts?: {
   }
 }
 
+/**
+ * Pulls `positionId` off an unvalidated request body.
+ *
+ * The OpenAPI `CastVoteRequest` omits `positionId`, but `position_vote`
+ * requires it to attach the vote to a holding, so it is read defensively from
+ * the raw body rather than through the generated type.
+ *
+ * @param body - Parsed JSON request body of unknown shape
+ * @returns The position id, or null when absent or not a non-empty string
+ */
+function readPositionId(body: unknown): string | null {
+  if (typeof body !== "object" || body === null) {
+    return null;
+  }
+  const { positionId } = body as { positionId?: unknown };
+  return typeof positionId === "string" && positionId.length > 0
+    ? positionId
+    : null;
+}
+
+/**
+ * Records a vote cast by a position against a proposal.
+ *
+ * @param body - A `CastVoteRequest` plus the `positionId` the vote belongs to
+ * @returns The stored vote, or a 400 error when `positionId` is missing or the insert fails
+ */
 export async function createPositionVote(
   body: unknown
 ): Promise<ApiResponse<PositionVote>> {
-  const { data, error, response } = await apiClient.POST("/position_votes", {
-    body: body as CastVoteRequest,
-  });
+  const request = body as CastVoteRequest;
+  const positionId = readPositionId(body);
+
+  if (positionId === null) {
+    return {
+      data: undefined,
+      error: { message: "positionId is required", statusCode: 400 },
+      response: new Response(null, { status: 400 }),
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("position_vote")
+    .insert({
+      id: randomUUID(),
+      position_id: positionId,
+      proposal_id: request.proposalId,
+      vote: request.vote,
+      shares_voting: request.sharesVoting,
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  const response = new Response(null, { status: error ? 400 : 201 });
 
   if (error) {
     return {
       data: undefined,
       error: {
         message: error.message ?? "Failed to create position vote",
-        statusCode: response.status,
+        statusCode: 400,
       },
       response,
     };
   }
 
   return {
-    data,
+    data: transformPositionVote(data),
     error: undefined,
     response,
   };

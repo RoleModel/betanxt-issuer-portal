@@ -1,5 +1,7 @@
 export const normalizeCusips = (value?: string | string[] | null): string[] => {
-  if (!value) return [];
+  if (!value) {
+    return [];
+  }
 
   const parts = Array.isArray(value)
     ? value
@@ -13,6 +15,5 @@ export const normalizeCusips = (value?: string | string[] | null): string[] => {
 
 export const getCusipLabel = (
   value?: string | string[] | null
-): "CUSIP" | "CUSIPs" => {
-  return normalizeCusips(value).length > 1 ? "CUSIPs" : "CUSIP";
-};
+): "CUSIP" | "CUSIPs" =>
+  normalizeCusips(value).length > 1 ? "CUSIPs" : "CUSIP";

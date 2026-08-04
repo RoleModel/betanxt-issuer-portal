@@ -1,14 +1,20 @@
+/* eslint-disable @typescript-eslint/strict-void-return */
+/* eslint-disable @typescript-eslint/no-misused-promises */
+
+/* eslint-disable react-doctor/js-tosorted-immutable */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+/* eslint-disable react-doctor/rerender-state-only-in-handlers */
 "use client";
 
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
 import { useClient } from "@/contexts/ClientContext";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
 import {
   formatQuorumRequirementPercentLabel,
@@ -17,7 +23,7 @@ import {
 
 import FeatureTile from "../FeatureTile";
 
-export default function TabulationReportCard() {
+const TabulationReportCard = () => {
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
   const { proposals: votingProposals } = useVotingTabulation(
@@ -28,21 +34,27 @@ export default function TabulationReportCard() {
   >([]);
 
   useEffect(() => {
+    let ignore = false;
+
     const fetchProposals = async () => {
-      if (!currentMeeting?.id) return;
+      if (currentMeeting?.id == null) return;
 
       const apiClient = await buildApiClient();
       const { data } = await apiClient.GET("/meetings/{meetingId}/proposals", {
         params: { path: { meetingId: currentMeeting.id } },
       });
 
-      if (data) {
+      if (data && !ignore) {
         const proposals = Array.isArray(data) ? data : [];
         setRawProposals(proposals);
       }
     };
 
     void fetchProposals();
+
+    return () => {
+      ignore = true;
+    };
   }, [currentMeeting?.id]);
 
   const handleDownload = async () => {
@@ -171,4 +183,6 @@ export default function TabulationReportCard() {
       onClick={isDataReady ? handleDownload : undefined}
     />
   );
-}
+};
+
+export default TabulationReportCard;

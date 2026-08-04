@@ -20,14 +20,14 @@ import type { Meeting } from "@/types/api-exports";
 import DigitalShareholderMeetingCard from "@/components/Meeting/DigitalShareholderMeetingCard";
 import ScheduleDialog from "@/components/Meeting/ScheduleDialog";
 import buildApiClient from "@/domain-models/apiClient";
-import { useVotingTabulation } from "@/hooks/useVotingTabulation";
+import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 
 import TabulationReportCard from "../Tabulation/TabulationReportCard";
 import KeyDatesCard from "./KeyDatesCard";
 
 // Dynamic imports for heavy components
 const VotingTabulationTable = dynamic(
-  () => import("@/components/Meeting/VotingTabulationTable"),
+  async () => await import("@/components/Meeting/VotingTabulationTable"),
   {
     loading: () => <Skeleton variant="rectangular" height={400} />,
     ssr: false,
@@ -35,7 +35,7 @@ const VotingTabulationTable = dynamic(
 );
 
 const MeetingRolesCard = dynamic(
-  () => import("@/components/Meeting/MeetingRolesCard"),
+  async () => await import("@/components/Meeting/MeetingRolesCard"),
   {
     loading: () => <Skeleton variant="rectangular" height={300} />,
     ssr: false,
@@ -43,20 +43,23 @@ const MeetingRolesCard = dynamic(
 );
 
 const PreviewLinksCard = dynamic(
-  () => import("@/components/Meeting/PreviewLinksCard"),
+  async () => await import("@/components/Meeting/PreviewLinksCard"),
   {
     loading: () => <Skeleton variant="rectangular" height={300} />,
     ssr: false,
   }
 );
 
-const FeatureTile = dynamic(() => import("@/components/FeatureTile"), {
-  loading: () => <Skeleton variant="rectangular" height={300} />,
-  ssr: false,
-});
+const FeatureTile = dynamic(
+  async () => await import("@/components/FeatureTile"),
+  {
+    loading: () => <Skeleton variant="rectangular" height={300} />,
+    ssr: false,
+  }
+);
 
 const SharesVotedChart = dynamic(
-  () => import("@/components/Meeting/SharesVotedChart"),
+  async () => await import("@/components/Meeting/SharesVotedChart"),
   {
     loading: () => <Skeleton variant="rectangular" height={300} />,
     ssr: false,
@@ -64,14 +67,11 @@ const SharesVotedChart = dynamic(
 );
 
 interface Phase7LayoutProps {
-  meetingId?: string;
-  meeting?: Meeting;
+  readonly meetingId?: string;
+  readonly meeting?: Meeting;
 }
 
-export default React.memo(function Phase7Layout({
-  meetingId,
-  meeting,
-}: Phase7LayoutProps) {
+export default React.memo(({ meetingId, meeting }: Phase7LayoutProps) => {
   const router = useRouter();
   const { proposals, loading: votingLoading } = useVotingTabulation(meetingId);
   const [scheduledLogistics, setScheduledLogistics] = useState(false);
@@ -82,6 +82,7 @@ export default React.memo(function Phase7Layout({
   );
 
   useEffect(() => {
+    let ignore = false;
     const fetchDSMConfig = async () => {
       if (!meetingId) return;
 
@@ -94,7 +95,7 @@ export default React.memo(function Phase7Layout({
           }
         );
 
-        if (!error && data) {
+        if (!ignore && !error && data) {
           setScheduledLogistics(
             (data as { logisticsCallScheduled?: boolean })
               .logisticsCallScheduled || false
@@ -109,6 +110,9 @@ export default React.memo(function Phase7Layout({
     };
 
     void fetchDSMConfig();
+    return () => {
+      ignore = true;
+    };
   }, [meetingId]);
 
   const handleOpenDialog = (type: "logistics" | "dryrun") => {
@@ -225,7 +229,9 @@ export default React.memo(function Phase7Layout({
               onClick={
                 scheduledLogistics
                   ? undefined
-                  : () => handleOpenDialog("logistics")
+                  : () => {
+                      handleOpenDialog("logistics");
+                    }
               }
             />
             <FeatureTile
@@ -240,7 +246,11 @@ export default React.memo(function Phase7Layout({
               icon={<PresentationBoardIcon fontSize="3xl" />}
               variant="default"
               onClick={
-                scheduledDryRun ? undefined : () => handleOpenDialog("dryrun")
+                scheduledDryRun
+                  ? undefined
+                  : () => {
+                      handleOpenDialog("dryrun");
+                    }
               }
             />
           </Box>
@@ -318,7 +328,9 @@ export default React.memo(function Phase7Layout({
 
       <ScheduleDialog
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        onClose={() => {
+          setDialogOpen(false);
+        }}
         onSchedule={handleSchedule}
         title={
           dialogType === "logistics"

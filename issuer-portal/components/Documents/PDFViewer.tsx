@@ -4,122 +4,67 @@ import { Box, CircularProgress } from "@mui/material";
 import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
 
+import { pdfWorkerSource } from "@/lib/pdf-worker";
+
 const Document = dynamic(
-  () =>
-    import("react-pdf").then((mod) => {
-      mod.pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${mod.pdfjs.version}/build/pdf.worker.min.mjs`;
+  async () =>
+    await import("react-pdf").then((mod) => {
+      mod.pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSource;
       return mod.Document;
     }),
   { ssr: false, loading: () => null }
 );
 
-const Page = dynamic(() => import("react-pdf").then((mod) => mod.Page), {
-  ssr: false,
-});
+const Page = dynamic(
+  async () => await import("react-pdf").then((mod) => mod.Page),
+  {
+    ssr: false,
+  }
+);
 
 interface PDFViewerProps {
-  file: string;
-  pageNumber: number;
-  width?: number;
-  className?: string;
-  onLoadSuccess?: (pdf: { numPages: number }) => void;
-  onLoadError?: (error: Error) => void;
+  readonly file: string;
+  readonly pageNumber: number;
+  readonly width?: number;
+  readonly className?: string;
+  readonly onLoadSuccess?: (pdf: { numPages: number }) => void;
+  readonly onLoadError?: (error: Error) => void;
 }
 
-const PDFViewer: React.FC<PDFViewerProps> = ({
+interface PDFDocumentViewProps {
+  readonly file: string;
+  readonly pageNumber: number;
+  readonly width: number;
+  readonly className?: string;
+  readonly onLoadSuccess?: (pdf: { numPages: number }) => void;
+  readonly onLoadError?: (error: Error) => void;
+}
+
+// Owns the load state for a single file. PDFViewer remounts this via a `key`
+// on the file prop, so the load state resets automatically without an effect.
+const PDFDocumentView: React.FC<PDFDocumentViewProps> = ({
   file,
   pageNumber,
-  width = 400,
+  width,
   className,
   onLoadSuccess,
   onLoadError,
 }) => {
   const [isPdfLoaded, setIsPdfLoaded] = useState(false);
-  const [actualWidth, setActualWidth] = useState<number | null>(null);
 
-  const isPdfFile =
-    file?.toLowerCase().endsWith(".pdf") ||
-    file?.includes("/test-pdf") ||
-    file?.startsWith("data:application/pdf");
-
-  useEffect(() => {
-    setActualWidth(width);
-  }, [width]);
-
-  useEffect(() => {
-    if (!isPdfFile && onLoadError) {
-      onLoadError(new Error(`PDFViewer: File is not a PDF (${file})`));
-    }
-  }, [isPdfFile, file, onLoadError]);
-
-  useEffect(() => {
-    setIsPdfLoaded(false);
-  }, [file]);
-
-  if (!isPdfFile) {
-    return (
-      <Box sx={{ p: 2, textAlign: "center" }}>
-        <div>Cannot display non-PDF file in PDF viewer</div>
-      </Box>
-    );
-  }
-
-  const handleLoadSuccess = (pdf: { numPages: number }) => {
+  const handleLoadSuccess = (pdf: { numPages: number }): void => {
     setIsPdfLoaded(true);
     if (onLoadSuccess) {
       onLoadSuccess(pdf);
     }
   };
 
-  const handleLoadError = (error: Error) => {
+  const handleLoadError = (error: Error): void => {
     setIsPdfLoaded(false);
     if (onLoadError) {
       onLoadError(error);
     }
   };
-
-  const isValidFile = file && typeof file === "string" && file.trim() !== "";
-
-  if (!isValidFile) {
-    return (
-      <Box
-        sx={{
-          width: width,
-          minHeight: width * 1.294,
-          backgroundColor: "var(--mui-palette-background-paper)",
-          borderRadius: "4px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: 2,
-        }}
-      >
-        <div>No PDF file specified</div>
-      </Box>
-    );
-  }
-
-  if (actualWidth === null) {
-    const defaultWidth = width;
-    return (
-      <Box
-        sx={{
-          position: "relative",
-          width: defaultWidth,
-          minHeight: defaultWidth * 1.294,
-          maxHeight: "90vh",
-          backgroundColor: "var(--mui-palette-background-paper)",
-          borderRadius: "4px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: 2,
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ position: "relative" }}>
@@ -171,7 +116,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         >
           <Page
             pageNumber={pageNumber}
-            width={actualWidth}
+            width={width}
             renderTextLayer={false}
             renderAnnotationLayer={false}
             error={
@@ -188,6 +133,67 @@ const PDFViewer: React.FC<PDFViewerProps> = ({
         </Document>
       </Box>
     </Box>
+  );
+};
+
+const PDFViewer: React.FC<PDFViewerProps> = ({
+  file,
+  pageNumber,
+  width = 400,
+  className,
+  onLoadSuccess,
+  onLoadError,
+}) => {
+  const isPdfFile =
+    file?.toLowerCase().endsWith(".pdf") ||
+    file?.includes("/test-pdf") ||
+    file?.startsWith("data:application/pdf");
+
+  useEffect(() => {
+    if (!isPdfFile && onLoadError) {
+      onLoadError(new Error(`PDFViewer: File is not a PDF (${file})`));
+    }
+  }, [isPdfFile, file, onLoadError]);
+
+  if (!isPdfFile) {
+    return (
+      <Box sx={{ p: 2, textAlign: "center" }}>
+        <div>Cannot display non-PDF file in PDF viewer</div>
+      </Box>
+    );
+  }
+
+  const isValidFile = file && typeof file === "string" && file.trim() !== "";
+
+  if (!isValidFile) {
+    return (
+      <Box
+        sx={{
+          width: width,
+          minHeight: width * 1.294,
+          backgroundColor: "var(--mui-palette-background-paper)",
+          borderRadius: "4px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 2,
+        }}
+      >
+        <div>No PDF file specified</div>
+      </Box>
+    );
+  }
+
+  return (
+    <PDFDocumentView
+      key={file}
+      file={file}
+      pageNumber={pageNumber}
+      width={width}
+      className={className}
+      onLoadSuccess={onLoadSuccess}
+      onLoadError={onLoadError}
+    />
   );
 };
 

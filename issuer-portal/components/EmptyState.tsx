@@ -4,30 +4,31 @@ import { Box, Paper, Stack, Typography } from "@mui/material";
 import HandTouchIcon from "@rolemodel/betanxt-design-system/components/icons/brand/HandTouchIcon";
 import React from "react";
 
+const defaultEmptyStateIcon = <HandTouchIcon />;
+
 interface EmptyStateProps {
-  icon?: React.ReactNode;
-  title: string;
-  minHeight?: number | string;
-  description?: string | React.ReactNode;
-  action?: React.ReactNode;
-  children?: React.ReactNode;
-  dangerouslySetInnerHTML?: boolean;
+  readonly icon?: React.ReactNode;
+  readonly title: string;
+  readonly minHeight?: number | string;
+  readonly description?: string | React.ReactNode;
+  readonly action?: React.ReactNode;
+  readonly children?: React.ReactNode;
 }
 
-export function EmptyState({
-  icon = <HandTouchIcon />,
+export const EmptyState = ({
+  icon = defaultEmptyStateIcon,
   title,
   minHeight = 400,
   description,
   action,
   children,
-}: EmptyStateProps) {
+}: EmptyStateProps) => {
   return (
-    <Box sx={{ p: 1 }}>
+    <Box sx={{ p: 1, width: "100%", height: "100%" }}>
       <Paper
         elevation={0}
-        sx={(theme) => ({
-          background: theme.vars.palette.tableCellRow.fill,
+        sx={{
+          background: "var(--mui-palette-tableCellRow-fill)",
           border: "1px solid",
           borderColor: "divider",
           borderRadius: 1,
@@ -36,8 +37,9 @@ export function EmptyState({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          minHeight: minHeight || 400,
-        })}
+          minHeight,
+          height: "100%",
+        }}
       >
         <Stack
           spacing={1}
@@ -88,12 +90,14 @@ export function EmptyState({
             {description}
           </Typography>
           {children}
-          {action && <Box sx={{ mt: 3 }}>{action}</Box>}
+          {action === undefined || action === null ? null : (
+            <Box sx={{ mt: 3 }}>{action}</Box>
+          )}
         </Stack>
       </Paper>
     </Box>
   );
-}
+};
 
 // Export types for external use
 export type { EmptyStateProps };

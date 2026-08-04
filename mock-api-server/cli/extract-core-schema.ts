@@ -1,10 +1,8 @@
-#!/usr/bin/env tsx
-import { readFileSync, readdirSync, unlinkSync, writeFileSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
 
 /**
  * Extract only core data model tables from the generated PostgreSQL schema
@@ -50,12 +48,12 @@ function extractCoreSchema() {
 
   // Clean up old generated files
   const existingFiles = readdirSync(migrationsDir);
-  existingFiles.forEach((file) => {
+  for (const file of existingFiles) {
     // Remove old initial schema migrations
-    if (/^\d{14}_initial_schema\.sql$/.exec(file)) {
+    if (/^\d{14}_initial_schema\.sql$/.test(file)) {
       unlinkSync(join(migrationsDir, file));
     }
-  });
+  }
 
   // Generate timestamp for migration filename (YYYYMMDDHHMMSS format)
   const now = new Date();
@@ -83,7 +81,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 `;
 
   // Extract enum definitions first
-  const SKIP_TYPES: string[] = [];
+  const SKIP_TYPES = new Set<string>();
 
   const enumMatches = fullSchema.match(/CREATE TYPE[^;]+;/g) || [];
   enumMatches.forEach((enumDef) => {
@@ -93,20 +91,20 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       const typeName = typeNameMatch[1];
 
       // Skip types that are managed by other migrations
-      if (SKIP_TYPES.includes(typeName)) {
+      if (SKIP_TYPES.has(typeName)) {
         return;
       }
 
       // Add DROP IF EXISTS with CASCADE for types that might have dependencies
       coreSchema += `DROP TYPE IF EXISTS ${typeName} CASCADE;\n`;
     }
-    coreSchema += enumDef + "\n\n";
+    coreSchema += `${enumDef}\n\n`;
   });
 
   // Extract core table definitions and their comments
   const _usedComments = new Set();
 
-  CORE_TABLES.forEach((tableName) => {
+  for (const tableName of CORE_TABLES) {
     // Look for the table definition including its full structure
     // Updated regex to handle the actual format: "-- Table 'name' generated from model...\n--\nCREATE TABLE..."
     const tableStartRegex = new RegExp(
@@ -122,15 +120,14 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       // This ensures clean migrations that always recreate tables
       tableSection = tableSection.replace(
         /CREATE TABLE IF NOT EXISTS (public\.)?("?\w+"?)/,
-        (match, schema, tableName) => {
-          return `DROP TABLE IF EXISTS ${schema ?? ""}${tableName} CASCADE;\nCREATE TABLE ${schema ?? ""}${tableName}`;
-        }
+        (match, schema, tableName) =>
+          `DROP TABLE IF EXISTS ${schema ?? ""}${tableName} CASCADE;\nCREATE TABLE ${schema ?? ""}${tableName}`
       );
 
-      coreSchema += tableSection + "\n";
+      coreSchema += `${tableSection}\n`;
 
       // Add COMMENT statements for this table only (exact matches only)
-      const escapedTableName = tableName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const escapedTableName = RegExp.escape(tableName);
       const tableCommentRegex = new RegExp(
         `COMMENT ON TABLE (?:public\\.)?(?:")?${escapedTableName}(?:")?\\b[^;]*?;`,
         "g"
@@ -145,25 +142,24 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       columnCommentRegex.lastIndex = 0;
 
       // Function to sanitize COMMENT statements
-      const _sanitizeComment = (_comment: string): string => {
-        return _comment
-          .replace(/&#x60;/g, "") // Remove HTML encoded backticks entirely
-          .replace(/&#x27;/g, "'") // Replace HTML encoded single quotes (hex format)
-          .replace(/&#39;/g, "'") // Replace HTML encoded single quotes (decimal format)
-          .replace(/&quot;/g, '"') // Replace HTML entities for double quotes
-          .replace(/&amp;/g, "&") // Replace HTML entities for ampersands
-          .replace(/&lt;/g, "<") // Replace HTML entities for less than
-          .replace(/&gt;/g, ">") // Replace HTML entities for greater than
-          .replace(/`/g, "") // Remove any remaining backticks to avoid SQL syntax issues
-          .replace(/\r\n/g, " ") // Replace Windows line endings
-          .replace(/\n/g, " ") // Replace Unix line endings
-          .replace(/\r/g, " ") // Replace Mac line endings
-          .replace(/\s+/g, " ") // Collapse multiple spaces
+      const _sanitizeComment = (_comment: string): string =>
+        _comment
+          .replaceAll("&#x60;", "") // Remove HTML encoded backticks entirely
+          .replaceAll("&#x27;", "'") // Replace HTML encoded single quotes (hex format)
+          .replaceAll("&#39;", "'") // Replace HTML encoded single quotes (decimal format)
+          .replaceAll("&quot;", '"') // Replace HTML entities for double quotes
+          .replaceAll("&amp;", "&") // Replace HTML entities for ampersands
+          .replaceAll("&lt;", "<") // Replace HTML entities for less than
+          .replaceAll("&gt;", ">") // Replace HTML entities for greater than
+          .replaceAll("`", "") // Remove any remaining backticks to avoid SQL syntax issues
+          .replaceAll("\r\n", " ") // Replace Windows line endings
+          .replaceAll("\n", " ") // Replace Unix line endings
+          .replaceAll("\r", " ") // Replace Mac line endings
+          .replaceAll(/\s+/g, " ") // Collapse multiple spaces
           .replace(/\.\s*\.\s*/, ". ") // Fix double periods
           .replace(/\s+;$/, ";") // Ensure proper semicolon at end
           .trim()
           .replace(/([^;])$/, "$1;"); // Add semicolon if missing
-      };
 
       // Extract and sanitize COMMENT statements to fix HTML entities
       let tableMatch;
@@ -176,7 +172,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
           comment.trim().endsWith(";")
         ) {
           const sanitizedComment = _sanitizeComment(comment);
-          coreSchema += sanitizedComment + "\n";
+          coreSchema += `${sanitizedComment}\n`;
           _usedComments.add(comment);
         }
       }
@@ -191,13 +187,13 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
           comment.trim().endsWith(";")
         ) {
           const sanitizedComment = _sanitizeComment(comment);
-          coreSchema += sanitizedComment + "\n";
+          coreSchema += `${sanitizedComment}\n`;
           _usedComments.add(comment);
         }
       }
       coreSchema += "\n";
     }
-  });
+  }
 
   // Write the clean schema
   writeFileSync(migrationPath, coreSchema);

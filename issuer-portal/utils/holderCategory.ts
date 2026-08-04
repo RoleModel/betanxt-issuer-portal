@@ -17,7 +17,9 @@ const LEGACY_REGISTERED_ACCOUNT_TYPE = "DTC/CDS";
  * HolderCategory, or null when absent/unrecognized.
  */
 export function normalizeHolderCategory(value: unknown): HolderCategory | null {
-  if (typeof value !== "string") return null;
+  if (typeof value !== "string") {
+    return null;
+  }
 
   const upper = value.trim().toUpperCase();
   const match = HOLDER_CATEGORIES.find((category) => category === upper);
@@ -33,7 +35,9 @@ export function isRegisteredOnlyHolder(
   holderCategory: HolderCategory | null,
   accountType: string
 ): boolean {
-  if (holderCategory) return holderCategory === "REGISTERED";
+  if (holderCategory) {
+    return holderCategory === "REGISTERED";
+  }
   return accountType === LEGACY_REGISTERED_ACCOUNT_TYPE;
 }
 

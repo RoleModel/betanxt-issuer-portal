@@ -1,47 +1,66 @@
 import type { Page } from "@playwright/test";
 
+/** Mock users defined in `issuer-portal/auth.ts`. All share the password below. */
+export const MOCK_PASSWORD = "password";
+
+export const MOCK_USERS = {
+  mike: { username: "mike", ticker: "WEN", type: "ISSUER" },
+  lisa: { username: "lisa", ticker: "PAYC", type: "ISSUER" },
+  david: { username: "david", ticker: "WWD", type: "ISSUER" },
+  jenny: { username: "jenny", ticker: "ELVN", type: "ISSUER" },
+  csm: { username: "csm.user", ticker: null, type: "CSM" },
+} as const;
+
+export type MockUserKey = keyof typeof MOCK_USERS;
+
+/** Cookie names NextAuth may use for the session, mirroring `proxy.ts`. */
+const SESSION_COOKIES = new Set([
+  "authjs.session-token",
+  "__Secure-authjs.session-token",
+  "next-auth.session-token",
+  "__Secure-next-auth.session-token",
+]);
+
 /**
- * Helper function to log in as a specific user
- * @param page - Playwright page object
- * @param user - User to log in as ('mike' | 'lisa' | 'david' | 'jenny')
+ * Signs in through the real login form.
+ *
+ * An earlier version of this helper clicked per-user "Login as …" buttons that
+ * the login page no longer has, and no spec imported it, so it rotted unnoticed.
+ * `login.spec.ts` exercises it now so that cannot happen again silently.
+ *
+ * @param page - Playwright page
+ * @param user - Key into {@link MOCK_USERS}
  */
 export async function loginAs(
   page: Page,
-  user: "mike" | "lisa" | "david" | "jenny" = "mike"
-) {
+  user: MockUserKey = "mike"
+): Promise<void> {
   await page.goto("/login");
+  await page.locator("#login-username").fill(MOCK_USERS[user].username);
+  await page.locator("#login-password").fill(MOCK_PASSWORD);
+  await page.getByRole("button", { name: "Sign In" }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"), {
+    timeout: 30_000,
+  });
+}
 
-  const userButtons = {
-    mike: "Login as Mike (Wendy's)",
-    lisa: "Login as Lisa (Paycom)",
-    david: "Login as David (Woodward)",
-    jenny: "Login as Jenny (Enliven)",
-  };
-
-  // Click the appropriate login button
-  await page.getByRole("button", { name: userButtons[user] }).click();
-
-  // Wait for navigation to dashboard
-  await page.waitForURL("**/dashboard");
-
-  // Wait for the app to be fully loaded
-  await page.waitForSelector('[data-testid="app-bar"]', { timeout: 10000 });
+/** True once the browser holds a NextAuth session cookie. */
+export async function hasSessionCookie(page: Page): Promise<boolean> {
+  const cookies = await page.context().cookies();
+  return cookies.some((cookie) => SESSION_COOKIES.has(cookie.name));
 }
 
 /**
- * Helper function to log out
- * @param page - Playwright page object
+ * Whether route protection is currently disabled by
+ * `NEXT_PUBLIC_BYPASS_AUTH=true` (set in `issuer-portal/.env`). The proxy reads
+ * it server-side, so it cannot be toggled per test — specs that need real
+ * protection have to skip while it is on.
  */
-export async function logout(page: Page) {
-  // Click on the user menu (avatar button)
-  const avatarButton = page
-    .locator("button")
-    .filter({ has: page.locator(".MuiAvatar-root") });
-  await avatarButton.click();
-
-  // Click logout in the menu
-  await page.getByRole("menuitem", { name: "Logout" }).click();
-
-  // Wait for redirect to login page
-  await page.waitForURL("**/login");
+export async function isAuthBypassed(page: Page): Promise<boolean> {
+  const response = await page.request.get(
+    "/WEN/meeting/wen-annual-meeting-2025",
+    { maxRedirects: 0 }
+  );
+  const location = response.headers().location ?? "";
+  return !location.includes("/login");
 }

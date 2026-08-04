@@ -4,14 +4,14 @@ import { Box, Typography } from "@mui/material";
 import React from "react";
 
 interface FormattedMessageProps {
-  content: string;
-  variant?: "body1" | "body2";
+  readonly content: string;
+  readonly variant?: "body1" | "body2";
 }
 
-export function FormattedMessage({
+export const FormattedMessage = ({
   content,
   variant = "body2",
-}: FormattedMessageProps) {
+}: FormattedMessageProps) => {
   const sanitizedContent = content.replaceAll("**", "").replaceAll("##", "");
   const paragraphs = sanitizedContent
     .split(/\n\s*\n/)
@@ -60,7 +60,7 @@ export function FormattedMessage({
       {(paragraphs.length > 0 ? paragraphs : [sanitizedContent]).map(
         (paragraph, index) => (
           <Box
-            key={`${paragraph}-${index}`}
+            key={paragraph}
             sx={{ mb: index === paragraphs.length - 1 ? 0 : 1.5 }}
           >
             {renderParagraph(paragraph)}
@@ -69,4 +69,4 @@ export function FormattedMessage({
       )}
     </Box>
   );
-}
+};
