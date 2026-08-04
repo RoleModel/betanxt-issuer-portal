@@ -27,36 +27,41 @@ interface SessionCacheEntry {
   timestamp: number;
 }
 
-let sessionCache: SessionCacheEntry | null = null;
+// Held in a const container so callers mutate `.current` rather than reassigning
+// a module-level `let` (which the lint rules disallow from inside functions).
+const sessionCacheStore: { current: SessionCacheEntry | null } = {
+  current: null,
+};
 const SESSION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes - longer cache to reduce API calls
 const EMPTY_SESSION_CACHE_TTL = 1000; // 1 second - avoids pinning a pre-login null session
 
 const getCachedSession = async (): Promise<Session | null> => {
   // Check if we have a valid cached session
+  const cached = sessionCacheStore.current;
   if (
-    sessionCache &&
-    Date.now() - sessionCache.timestamp <
-      (sessionCache.session ? SESSION_CACHE_TTL : EMPTY_SESSION_CACHE_TTL)
+    cached &&
+    Date.now() - cached.timestamp <
+      (cached.session ? SESSION_CACHE_TTL : EMPTY_SESSION_CACHE_TTL)
   ) {
-    return sessionCache.session;
+    return cached.session;
   }
 
-  // Fetch fresh session
+  // Fetch fresh session (only the fallible call lives in the try block)
+  let session: Session | null = null;
   try {
-    const session = await getSession();
-    sessionCache = session
-      ? { session, timestamp: Date.now() }
-      : { session: null, timestamp: Date.now() };
-    return session;
+    session = await getSession();
   } catch (error) {
     console.error("Failed to retrieve session in buildApiClient", error);
     return null;
   }
+
+  sessionCacheStore.current = { session, timestamp: Date.now() };
+  return session;
 };
 
 // Function to clear session cache (useful for logout or session changes)
 export const clearSessionCache = () => {
-  sessionCache = null;
+  sessionCacheStore.current = null;
 };
 
 export const buildApiClient = async () => {

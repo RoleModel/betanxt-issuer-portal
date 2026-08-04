@@ -17,7 +17,7 @@ import { useDevMode } from "@/components/DevOverlay/useDevMode";
 import { useClient } from "@/contexts/ClientContext";
 import MeetingContext from "@/contexts/MeetingContext";
 import { useNotificationsSafe } from "@/contexts/NotificationContext";
-import createApiClient from "@/domain-models/apiClient";
+import { buildApiClient } from "@/domain-models/apiClient";
 import { useClients } from "@/hooks/useClients";
 import { useEvents } from "@/hooks/useEvents";
 import { getBrandConfigByTicker, getBrandLogoPath } from "@/utils/brandConfig";
@@ -96,7 +96,7 @@ const fetchRouteMeetingStatus = async (
     return { date: null, status: "COMPLETE" };
   }
 
-  const api = await createApiClient();
+  const api = await buildApiClient();
   const { data } = await api.GET("/meetings/{meetingId}", {
     params: { path: { meetingId } },
   });
@@ -153,6 +153,13 @@ const requestSignOut = async (): Promise<void> => {
 
 // The internal developer account (bypass/test login). The dev overlay toggle is
 // scoped to this user so it never surfaces for real clients, CSMs, or admins.
+//
+// Detection is keyed off `username` rather than `email`: every custom session
+// field (username, type, ...) is explicitly threaded through the NextAuth
+// jwt/session callbacks, but `email` is not, so `session.user.email` is not
+// reliably populated. The dev account signs in as `devuser` (bypass/legacy) or
+// `dev.user` (test login); `dev@example.com` is kept as a defensive fallback.
+const developmentUserUsernames = new Set(["devuser", "dev.user"]);
 const developmentUserEmail = "dev@example.com";
 
 interface UseAppBarParameters {
@@ -225,7 +232,11 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
     userType !== undefined && multiClientUserTypes.has(userType);
   const isCSM = userType === "CSM";
   // Only the internal Dev User sees the overlay toggle, regardless of env flag.
-  const isDevelopmentUser = session?.user.email === developmentUserEmail;
+  const sessionUsername = session?.user.username;
+  const isDevelopmentUser =
+    (sessionUsername !== undefined &&
+      developmentUserUsernames.has(sessionUsername)) ||
+    session?.user.email === developmentUserEmail;
 
   // --- Notification state ---
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -382,7 +393,7 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
         return second.eventDate.localeCompare(first.eventDate);
       });
 
-    if (clientEvent === undefined) {
+    if (clientEvent == undefined) {
       return null;
     }
     const routePrefix =
