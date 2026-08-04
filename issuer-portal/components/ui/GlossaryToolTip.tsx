@@ -103,7 +103,7 @@ export const GlossaryTooltip = ({
             verticalAlign: "baseline",
             "&:hover": {
               borderBottomStyle: "solid",
-              color: "primary.main",
+              color: "inherit",
             },
             "&:focus-visible": {
               borderRadius: 1,

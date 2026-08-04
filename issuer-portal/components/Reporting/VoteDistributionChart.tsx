@@ -22,6 +22,7 @@ import type {
   VoteStatusId,
 } from "./vote-distribution-chart-data";
 
+import ConfiguredPieChart from "./ConfiguredPieChart";
 import {
   accountTypes,
   buildSliceId,
@@ -29,7 +30,6 @@ import {
   voteStatuses,
 } from "./vote-distribution-chart-data";
 import { VoteDistributionLegend } from "./VoteDistributionLegend";
-import ConfiguredPieChart from "./ConfiguredPieChart";
 
 interface VoteDistributionChartProps {
   readonly data: VoteDistributionData[];
@@ -38,9 +38,9 @@ interface VoteDistributionChartProps {
 
 // Ring geometry. The inner ring is a filled circle of account types; the outer
 // ring splits each of those into voted / not voted.
-const accountRingOuterRadius = 92;
-const statusRingInnerRadius = 92;
-const statusRingOuterRadius = 126;
+const accountRingOuterRadius = 100;
+const statusRingInnerRadius = 100;
+const statusRingOuterRadius = 128;
 
 const toggle = <T,>(previous: ReadonlySet<T>, value: T): ReadonlySet<T> => {
   const next = new Set(previous);
@@ -265,6 +265,7 @@ const VoteDistributionChart = ({
             margin={tabulationDonutChartMargin}
             rings={[
               {
+                cornerRadius: 3,
                 cy: tabulationDonutCenterY,
                 data: accountRingData,
                 highlightScope: { fade: "global", highlight: "item" },
@@ -274,6 +275,7 @@ const VoteDistributionChart = ({
                   formatDonutValue(String(item.id), item.value),
               },
               {
+                cornerRadius: 2,
                 cy: tabulationDonutCenterY,
                 data: statusRingData,
                 highlightScope: { fade: "global", highlight: "item" },
