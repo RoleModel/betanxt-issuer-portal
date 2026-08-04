@@ -65,6 +65,8 @@ export interface VoteMatrixRow {
 export interface VoteMatrixProposal {
   readonly proposalId: string;
   readonly proposalLabel: string;
+  /** Numeric agenda ordering used by proposal selectors. */
+  readonly proposalNumber: number;
   readonly rows: readonly VoteMatrixRow[];
 }
 
@@ -951,6 +953,7 @@ export function useTabulationInsights(
       matricesByProposalId.set(proposal.proposalId, {
         proposalId: proposal.proposalId,
         proposalLabel: `Proposal ${proposal.proposalNumber}: ${proposal.proposalTitle}`,
+        proposalNumber: proposal.proposalNumber,
         rows: createVoteMatrixRows(),
       });
     }
@@ -1009,7 +1012,9 @@ export function useTabulationInsights(
       }
     }
 
-    return [...matricesByProposalId.values()];
+    return [...matricesByProposalId.values()].toSorted(
+      (left, right) => left.proposalNumber - right.proposalNumber
+    );
   }, [filteredPositions, positionVotes, proposalsForDisplay]);
 
   return {

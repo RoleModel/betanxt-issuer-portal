@@ -1,6 +1,6 @@
-import type { VoteMatrixRow } from "@/hooks/useTabulationInsights";
-
 import { voteChartColors } from "@/utils/vote-chart-colors";
+
+import type { VoteMatrixRow } from "@/hooks/useTabulationInsights";
 
 export type VoteOutcomeKey = keyof Pick<
   VoteMatrixRow,
@@ -130,6 +130,7 @@ export const holderStyles: Record<
   },
 };
 
+/** Minimum proportional arc allocated to a nonzero vote outcome. */
 export const minimumOutcomeShare = 0.035;
 
 export const sumRowOutcomes = (row: VoteMatrixRow): number =>

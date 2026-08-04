@@ -73,9 +73,10 @@ export interface HolderOutcomeChartCardProps {
  * Legend toggles never change the donut's geometry: a deselected holder or
  * outcome keeps its arc and turns grey, so every remaining arc holds its share
  * of the proposal's original vote total and only the centre metric narrows.
- * Abstain and Withhold share a single arc — see `pieVoteOutcomes`. The centre
- * overlay uses the paired contrast token for the inner slice painted at the
- * chart centre.
+ * Tiny nonzero outcomes receive a minimum visible arc so they remain
+ * discoverable. Tooltips continue to report the recorded shares. Abstain and
+ * Withhold share a single arc — see `pieVoteOutcomes`. The centre overlay uses
+ * the paired contrast token for the inner slice painted at the chart centre.
  */
 const HolderOutcomeChartCard = ({
   hiddenHolderTypes,
