@@ -449,6 +449,12 @@ export const termsDefinitions = {
     definition:
       "An automated telephone information system that speaks to the caller with a combination of fixed voice menus and information extracted from databases in real time.",
   },
+  fullset: {
+    category: "Communications & Delivery",
+    term: "Full Set",
+    definition:
+      "A mailing method in which the complete package of printed proxy materials — proxy statement, annual report, and proxy card or voting instruction form — is delivered to a shareholder, as opposed to the Notice and Access model that mails only a notice pointing to materials posted online.",
+  },
   ncoa: {
     category: "Communications & Delivery",
     term: "National Change of Address (NCOA aka NCOALink®)",

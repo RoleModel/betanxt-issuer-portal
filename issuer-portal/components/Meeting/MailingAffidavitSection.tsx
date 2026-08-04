@@ -51,46 +51,61 @@ const formatDateTime = (dateString: string | undefined): string | null => {
   });
 };
 
-const MailingAffidavitSection = ({ isCSM, meetingId }: MailingAffidavitSectionProps) => {
+const MailingAffidavitSection = ({
+  isCSM,
+  meetingId,
+}: MailingAffidavitSectionProps) => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [localAffidavitDoc, setLocalAffidavitDoc] = useState<Document | null | undefined>(
-    undefined,
-  );
+  const [localAffidavitDoc, setLocalAffidavitDoc] = useState<
+    Document | null | undefined
+  >(undefined);
 
-  const { data: affidavitDoc, isLoading: affidavitLoading } = useSWR<Document | null>(
-    hasNonEmptyString(meetingId) ? `/meetings/${meetingId}/affidavit-of-mailing` : null,
-    async () => {
-      if (!hasNonEmptyString(meetingId)) return null;
+  const { data: affidavitDoc, isLoading: affidavitLoading } =
+    useSWR<Document | null>(
+      hasNonEmptyString(meetingId)
+        ? `/meetings/${meetingId}/affidavit-of-mailing`
+        : null,
+      async () => {
+        if (!hasNonEmptyString(meetingId)) return null;
 
-      const apiClient = await buildApiClient();
-      const { data } = await apiClient.GET("/meetings/{meetingId}/documents", {
-        params: {
-          path: { meetingId },
-          query: { type: "affidavit-of-mailing" },
-        },
-      });
-      const documents = (data as unknown as Document[]) ?? [];
+        const apiClient = await buildApiClient();
+        const { data } = await apiClient.GET(
+          "/meetings/{meetingId}/documents",
+          {
+            params: {
+              path: { meetingId },
+              query: { type: "affidavit-of-mailing" },
+            },
+          }
+        );
+        const documents = (data as unknown as Document[]) ?? [];
 
-      return documents.at(0) ?? null;
-    },
-    { revalidateOnFocus: false },
-  );
+        return documents.at(0) ?? null;
+      },
+      { revalidateOnFocus: false }
+    );
 
-  const displayDoc = localAffidavitDoc === undefined ? affidavitDoc : localAffidavitDoc;
+  const displayDoc =
+    localAffidavitDoc === undefined ? affidavitDoc : localAffidavitDoc;
   const hasAffidavit = Boolean(displayDoc);
-  const isAffidavitLoading = localAffidavitDoc === undefined && affidavitLoading;
-  const hasCompletedFiles = uploadFiles.some((file) => file.status === "complete");
+  const isAffidavitLoading =
+    localAffidavitDoc === undefined && affidavitLoading;
+  const hasCompletedFiles = uploadFiles.some(
+    (file) => file.status === "complete"
+  );
 
   const handleFileStateChange = (files: UploadFile[]) => {
     setUploadFiles(files);
   };
 
   const handleUploadSubmit = async () => {
-    const completedFiles = uploadFiles.filter((file) => file.status === "complete");
+    const completedFiles = uploadFiles.filter(
+      (file) => file.status === "complete"
+    );
     if (completedFiles.length === 0 || !hasNonEmptyString(meetingId)) return;
 
     setIsUploading(true);
@@ -121,7 +136,7 @@ const MailingAffidavitSection = ({ isCSM, meetingId }: MailingAffidavitSectionPr
             type: "affidavit-of-mailing",
             file: base64Data,
           },
-        },
+        }
       );
 
       if (createError) {
@@ -168,13 +183,16 @@ const MailingAffidavitSection = ({ isCSM, meetingId }: MailingAffidavitSectionPr
     const documentId = displayDoc?.id;
     if (!hasNonEmptyString(documentId) || !hasNonEmptyString(meetingId)) return;
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
     const downloadUrl = `${baseUrl}/documents/${documentId}/download`;
     const documentTitle = displayDoc?.title;
     const link = document.createElement("a");
 
     link.href = downloadUrl;
-    link.download = hasNonEmptyString(documentTitle) ? documentTitle : "affidavit-of-mailing.pdf";
+    link.download = hasNonEmptyString(documentTitle)
+      ? documentTitle
+      : "affidavit-of-mailing.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -221,7 +239,11 @@ const MailingAffidavitSection = ({ isCSM, meetingId }: MailingAffidavitSectionPr
         <Card variant="outlined" sx={{ mt: 2 }}>
           <CardActions>
             <CheckCircleIcon color="success" />
-            <Typography variant="body3" color="text.secondary" sx={{ flexGrow: 1 }}>
+            <Typography
+              variant="body3"
+              color="text.secondary"
+              sx={{ flexGrow: 1 }}
+            >
               Mailing Affidavit Uploaded
             </Typography>
             <IconButton
@@ -290,8 +312,8 @@ const MailingAffidavitSection = ({ isCSM, meetingId }: MailingAffidavitSectionPr
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete the Mailing Affidavit? You can upload a new version
-            after deletion.
+            Are you sure you want to delete the Mailing Affidavit? You can
+            upload a new version after deletion.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
@@ -303,7 +325,12 @@ const MailingAffidavitSection = ({ isCSM, meetingId }: MailingAffidavitSectionPr
           >
             Cancel
           </Button>
-          <Button variant="contained" color="error" disabled={isDeleting} onClick={handleDelete}>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={isDeleting}
+            onClick={handleDelete}
+          >
             {isDeleting ? "Deleting..." : "Delete"}
           </Button>
         </DialogActions>
