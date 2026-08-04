@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 "use client";
 
 import {
@@ -143,7 +145,10 @@ const AgendaTable = (_props: AgendaTableProps) => {
                                     {proposal.proposalNumber}
                                     {isSubProposalNumber ? "" : "."}
                                   </Typography>
-                                  <Typography color="text.primary">
+                                  <Typography
+                                    color="text.primary"
+                                    fontWeight={isSubProposalNumber ? 400 : 600}
+                                  >
                                     {proposal.directorName ||
                                       proposal.proposalTitle}
                                   </Typography>

@@ -250,7 +250,9 @@
       "Bash(./node_modules/.bin/oxlint issuer-portal/components/Tabulation/VotingSourceChartCard.tsx issuer-portal/components/Tabulation/vote-breakdown-chart-data.ts)",
       "Bash(grep -rn '\"\\\\.\" \\\\|}\\\\.\\\\`\\\\|proposalNumber}\\\\.\\\\|proposal_number}\\\\.\\\\|\\\\${.*[Nn]umber}\\\\.' issuer-portal --include=\"*.tsx\" --include=\"*.ts\")",
       "Bash(./node_modules/.bin/oxlint issuer-portal/components/Agenda/AgendaTable.tsx issuer-portal/components/Meeting/VotingTabulationTable.tsx)",
-      "Bash(./node_modules/.bin/oxlint issuer-portal/hooks/useTabulationInsights.ts issuer-portal/tsconfig.json)"
+      "Bash(./node_modules/.bin/oxlint issuer-portal/hooks/useTabulationInsights.ts issuer-portal/tsconfig.json)",
+      "Bash(git commit -m ' *)",
+      "Bash(git fetch *)"
     ],
     "additionalDirectories": [
       "/Users/dallas/Development/betanxt/betanxt-issuer-portal/issuer-portal/components/Meeting",

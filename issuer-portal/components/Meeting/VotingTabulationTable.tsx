@@ -216,7 +216,7 @@ const VotingTabulationTable = ({
             lineHeight: 1.35,
             minWidth: 0,
             overflowWrap: "anywhere",
-            fontWeight: parameters.row.isGroupHeader ? 600 : undefined,
+            fontWeight: parameters.row.isSubProposal ? 400 : 600,
             pl: parameters.row.isSubProposal ? 3 : 0,
             py: 1,
             whiteSpace: "normal",
