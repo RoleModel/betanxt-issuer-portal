@@ -12,6 +12,11 @@
 
 import type { CodeLanguage } from "@/components/Specs/highlight";
 
+import {
+  GLOSSARY_TEXT_SOURCE,
+  GLOSSARY_TOOLTIP_SOURCE,
+} from "@/app/specs/ui-enhancements/glossary-markup-source";
+
 export interface CodeSample {
   /** True when this is code that already ships, not a proposal. */
   readonly asBuilt?: boolean;
@@ -696,6 +701,24 @@ export const CODE_SAMPLES: readonly CodeSample[] = [
     satisfies: ["GLO-01", "TIP-05"],
     sectionId: "glossary-formatting",
     title: "The glossary that ships today (abridged)",
+  },
+  {
+    asBuilt: true,
+    code: GLOSSARY_TOOLTIP_SOURCE,
+    filename: "components/ui/GlossaryToolTip.tsx",
+    language: "tsx",
+    satisfies: ["TIP-01", "TIP-03", "TIP-06", "TIP-07"],
+    sectionId: "tooltips-glossary-navigation",
+    title: "The marker itself — hover for the definition, click for the drawer",
+  },
+  {
+    asBuilt: true,
+    code: GLOSSARY_TEXT_SOURCE,
+    filename: "components/ui/GlossaryText.tsx",
+    language: "tsx",
+    satisfies: ["TIP-01", "TIP-02", "TIP-08"],
+    sectionId: "tooltips-glossary-navigation",
+    title: "Finding the terms inside ordinary copy",
   },
   {
     code: PERSISTED_DISPLAY_MODE,
