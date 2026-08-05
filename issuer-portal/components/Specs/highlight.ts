@@ -5,9 +5,9 @@
  * The portal ships no highlighter (no Prism, Shiki, or highlight.js in
  * `package.json`), and pulling one in for a single internal documentation route
  * would add a runtime dependency plus a theme stylesheet to every bundle that
- * touches it. The spec page only ever renders TypeScript/TSX, JSON, Markdown,
- * and Gherkin, so a small hand-rolled tokenizer covers the whole surface and
- * keeps the page a pure MUI component styled from `theme.vars`.
+ * touches it. The spec page only ever renders TypeScript, TSX, JSON, and
+ * Markdown, so a small hand-rolled tokenizer covers the whole surface and keeps
+ * the page a pure MUI component styled from `theme.vars`.
  *
  * The tokenizer is deliberately single-pass: one alternation per language,
  * ordered so the greediest rules (comments, strings) win before identifier
@@ -16,8 +16,7 @@
  */
 
 /** Languages the viewer knows how to colour. */
-export type CodeLanguage =
-  "gherkin" | "json" | "markdown" | "text" | "tsx" | "typescript";
+export type CodeLanguage = "json" | "markdown" | "text" | "tsx" | "typescript";
 
 /** Semantic slot a token maps to, resolved to a colour by the viewer. */
 export type TokenKind =
@@ -40,7 +39,7 @@ export interface CodeToken {
   readonly value: string;
 }
 
-const TS_KEYWORDS = new Set([
+const TS_KEYWORDS = [
   "abstract",
   "as",
   "async",
@@ -96,9 +95,9 @@ const TS_KEYWORDS = new Set([
   "void",
   "while",
   "yield",
-]);
+];
 
-const TS_TYPES = new Set([
+const TS_TYPES = [
   "Array",
   "Boolean",
   "Map",
@@ -117,7 +116,7 @@ const TS_TYPES = new Set([
   "object",
   "string",
   "unknown",
-]);
+];
 
 /**
  * One pattern per token class, ordered longest-context-first.
@@ -166,18 +165,6 @@ const JSON_PATTERN = new RegExp(
   "giu"
 );
 
-const GHERKIN_PATTERN = new RegExp(
-  [
-    String.raw`(?<keyword>^\s*(?:Feature|Background|Scenario Outline|Scenario|Rule|Examples):)`,
-    String.raw`(?<tag>^\s*(?:Given|When|Then|And|But)\b)`,
-    String.raw`(?<comment>^\s*#[^\n]*$)`,
-    String.raw`(?<string>"[^"\n]*"|<[^>\n]+>)`,
-    String.raw`(?<attribute>^\s*@[\w-]+)`,
-    String.raw`(?<number>\b\d[\d_]*(?:\.\d+)?%?\b)`,
-  ].join("|"),
-  "gmu"
-);
-
 /**
  * Which named group matched, and what it means.
  *
@@ -207,11 +194,11 @@ const firstGroup = (
  * @returns The token kind the viewer should colour it with.
  */
 const classifyWord = (word: string): TokenKind => {
-  if (TS_KEYWORDS.has(word)) {
+  if (TS_KEYWORDS.includes(word)) {
     return "keyword";
   }
 
-  if (TS_TYPES.has(word)) {
+  if (TS_TYPES.includes(word)) {
     return "type";
   }
 
@@ -250,9 +237,7 @@ export const tokenize = (
       ? MARKDOWN_PATTERN
       : language === "json"
         ? JSON_PATTERN
-        : language === "gherkin"
-          ? GHERKIN_PATTERN
-          : TS_PATTERN;
+        : TS_PATTERN;
 
   const tokens: CodeToken[] = [];
   let lastIndex = 0;

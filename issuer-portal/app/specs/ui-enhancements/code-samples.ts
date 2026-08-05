@@ -1,44 +1,100 @@
 /**
- * Reference implementations attached to the requirements.
+ * Reference code attached to the requirements.
  *
  * @remarks
- * These are specification artefacts, not live code — they are stored as strings
- * so the page can render and download them without the build compiling them.
- * They exist because the requirements above make claims that are cheap to write
- * and expensive to interpret ("persist the selection", "deep link every term"),
- * and an engineer estimating the work should not have to guess at the shape.
+ * Stored as strings so the page can show and download them without the build
+ * compiling them. They exist because requirements like "the choice sticks" and
+ * "shareable links" are quick to write and slow to interpret.
  *
- * Each sample is deliberately complete enough to paste and compile against the
- * portal's existing helpers, and deliberately narrow enough that reviewing one
- * is a five-minute job rather than a design exercise.
+ * The first sample is existing code, included so the spec shows what is already
+ * there. The rest are proposed.
  */
 
 import type { CodeLanguage } from "@/components/Specs/highlight";
 
 export interface CodeSample {
+  /** True when this is code that already ships, not a proposal. */
+  readonly asBuilt?: boolean;
   readonly code: string;
   readonly filename: string;
   readonly language: CodeLanguage;
-  /** Requirement ids this sample satisfies, for traceability. */
+  /** Requirement ids this covers. */
   readonly satisfies: readonly string[];
-  /** Which spec section the sample belongs under. */
   readonly sectionId: string;
   readonly title: string;
 }
+
+const GLOSSARY_AS_BUILT = `// ABRIDGED — the shape of the glossary that ships today.
+// Full source: components/InfoDialog.tsx (~380 lines) and components/SpeedDial.tsx
+
+// 1. The floating support menu, fixed to the bottom-right of every page.
+//    "Glossary of Terms" is one of its three actions.
+<IssuerSpeedDial
+  onAssistantClick={openAssistant}
+  onContactsClick={openContacts}
+  onGlossaryClick={() => { openGlossary(); }}
+/>
+
+// 2. One drawer for the whole app, mounted by GlossaryProvider. Any term
+//    marker anywhere names a term; this is the single thing that opens.
+<Drawer
+  anchor="bottom"
+  aria-labelledby="glossary-drawer-title"
+  open={open}
+  onClose={onClose}
+  slotProps={{ paper: { sx: { height: "75dvh", overflow: "hidden" } } }}
+>
+  <Typography component="h2" id="glossary-drawer-title" variant="h6">
+    Terms and Definitions
+  </Typography>
+  <Typography color="text.secondary" variant="body3">
+    Browse by category, then select a term to view its definition.
+  </Typography>
+
+  {/* Two panes side by side, stacked on narrow screens. */}
+  <Box
+    sx={{
+      display: "grid",
+      gridTemplateColumns: { md: "minmax(260px, 0.32fr) minmax(0, 1fr)", xs: "1fr" },
+      gridTemplateRows: { md: "minmax(0, 1fr)", xs: "minmax(180px, 0.35fr) minmax(0, 1fr)" },
+    }}
+  >
+    {/* Left: search box + expandable category tree. */}
+    <GlossaryNav
+      expandedItems={expandedItems}
+      filteredTreeItems={filteredTreeItems}
+      onSearchQueryChange={setSearchQuery}
+      searchQuery={searchQuery}
+      selectedTermId={selectedTermId}
+    />
+
+    {/* Right: the selected definition, with copy and prev/next. */}
+    <GlossaryDefinitionPanel
+      displayedDefinition={displayedDefinition}
+      nextTerm={nextTerm}
+      onCopy={handleCopyToClipboard}
+      previousTerm={previousTerm}
+      selectedTerm={selectedTerm}
+    />
+  </Box>
+</Drawer>
+
+// 3. Today's search. This is the piece GLO-02 changes: it compares the query
+//    against category and term LABELS only, so a word that appears inside a
+//    definition, or a short form like "NOBO", finds nothing.
+const matchingTerms = categoryMatches
+  ? category.children
+  : category.children?.filter((termItem) =>
+      termItem.label.toLocaleLowerCase().includes(normalizedQuery)
+    );
+`;
 
 const PERSISTED_DISPLAY_MODE = `"use client";
 
 import type { PropsWithChildren } from "react";
 
 import { useSearchParams } from "next/navigation";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type TabulationDisplayMode = "numbers" | "percentages";
 
@@ -50,22 +106,20 @@ interface TabulationDisplayContextValue {
   readonly setDisplayMode: (mode: TabulationDisplayMode) => void;
 }
 
-const TabulationDisplayContext =
-  createContext<TabulationDisplayContextValue | null>(null);
+const TabulationDisplayContext = createContext<TabulationDisplayContextValue | null>(null);
 
 const isDisplayMode = (value: unknown): value is TabulationDisplayMode =>
   value === "numbers" || value === "percentages";
 
 /**
- * Reads the stored preference, tolerating every way storage can be unavailable.
+ * Reads the saved choice, tolerating browsers that block storage.
  *
- * @returns The saved mode, or the default when nothing usable is stored.
+ * @returns The saved format, or the default when nothing usable is stored.
  *
  * @remarks
- * Private browsing and blocked-cookie configurations make \`localStorage\` throw
- * on access rather than return null, so the read is guarded rather than
- * null-checked. A corrupt value is treated as absent instead of trusted, which
- * matters because the value is written by an older build in the upgrade case.
+ * Private browsing makes \`localStorage\` throw on access rather than return
+ * null, so this is wrapped rather than null-checked. An unrecognised value is
+ * treated as missing, which matters when an older build wrote it.
  */
 const readStoredMode = (): TabulationDisplayMode => {
   try {
@@ -77,18 +131,16 @@ const readStoredMode = (): TabulationDisplayMode => {
 };
 
 /**
- * Owns the display mode for every tabulation figure in the tree.
+ * Holds the chosen format for every figure below it.
  *
  * @remarks
- * Three inputs feed one value, in ascending precedence: the default, the user's
- * stored preference, and a \`?display=\` query parameter. The query parameter is
- * deliberately *not* written back to storage — it exists so a link can show a
- * colleague a specific reading without silently changing how their portal
- * behaves afterwards.
+ * Three inputs, in increasing priority: the default, the user's saved choice,
+ * and a \`?display=\` link. The link is deliberately not saved — it lets someone
+ * show a colleague one reading without changing how their portal behaves after.
  *
- * Hydration is the reason the stored value is read in an effect rather than in
- * the initial state: the server render has no access to \`localStorage\`, and
- * seeding state from it directly produces a hydration mismatch on every load.
+ * The saved value is read in an effect rather than in the initial state because
+ * the server render cannot see \`localStorage\`, and seeding state from it there
+ * causes a hydration mismatch on every load.
  */
 export const TabulationDisplayProvider = ({ children }: PropsWithChildren) => {
   const searchParameters = useSearchParams();
@@ -104,7 +156,7 @@ export const TabulationDisplayProvider = ({ children }: PropsWithChildren) => {
     try {
       globalThis.localStorage?.setItem(STORAGE_KEY, mode);
     } catch {
-      // A user who blocks storage still gets the toggle for this session.
+      // Someone who blocks storage still gets the toggle for this session.
     }
   }, []);
 
@@ -124,18 +176,16 @@ export const TabulationDisplayProvider = ({ children }: PropsWithChildren) => {
 };
 
 /**
- * Reads the current display mode.
+ * Reads the chosen format.
  *
- * @returns The mode and its setter.
- * @throws When called outside {@link TabulationDisplayProvider}.
+ * @returns The format and its setter.
+ * @throws When used outside {@link TabulationDisplayProvider}.
  */
 export const useTabulationDisplay = (): TabulationDisplayContextValue => {
   const context = useContext(TabulationDisplayContext);
 
   if (context === null) {
-    throw new Error(
-      "useTabulationDisplay must be used within a TabulationDisplayProvider"
-    );
+    throw new Error("useTabulationDisplay must be used within a TabulationDisplayProvider");
   }
 
   return context;
@@ -144,10 +194,9 @@ export const useTabulationDisplay = (): TabulationDisplayContextValue => {
 
 const METRIC_FORMATTER = `import type { TabulationDisplayMode } from "@/contexts/TabulationDisplayContext";
 
-/** Every denominator a tabulation percentage is allowed to use. */
-export type DenominatorKind =
-  | "brokerTotal"
-  | "holderTypeTotal"
+/** Every base a percentage is allowed to use. */
+export type MetricBase =
+  | "brokerVotes"
   | "mailingPositions"
   | "proposalVotedShares"
   | "sharesOutstanding"
@@ -155,16 +204,15 @@ export type DenominatorKind =
   | "votedShares";
 
 /**
- * Human-readable label for each denominator, shown in percentage tooltips.
+ * What to call each base in a tooltip.
  *
  * @remarks
  * PCT-03 requires the base to be visible wherever a percentage is. Keeping the
- * labels beside the type means a new denominator cannot be added without also
+ * wording next to the type means a new base cannot be added without someone
  * deciding what to call it in front of an issuer.
  */
-export const DENOMINATOR_LABELS: Record<DenominatorKind, string> = {
-  brokerTotal: "of this broker's votes",
-  holderTypeTotal: "of this holder type's votes",
+export const BASE_LABELS: Record<MetricBase, string> = {
+  brokerVotes: "of this broker's votes",
   mailingPositions: "of mailing positions",
   proposalVotedShares: "of shares voted on this proposal",
   sharesOutstanding: "of shares outstanding",
@@ -173,43 +221,39 @@ export const DENOMINATOR_LABELS: Record<DenominatorKind, string> = {
 };
 
 export interface TabulationMetric {
-  /** The reading the user did not choose, for the tooltip. */
+  /** The reading the user did not pick, for the tooltip. */
   readonly alternate: string;
-  /** The reading matching the current display mode. */
+  /** The reading matching the chosen format. */
   readonly display: string;
-  /** Fully-formed tooltip text, denominator included. */
+  /** Ready-made tooltip text, base included. */
   readonly tooltip: string;
 }
 
-const numberFormatter = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 2,
-});
+const numberFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 
 /**
- * Formats one figure for both readings and builds its tooltip.
+ * Formats one figure both ways and builds its tooltip.
  *
- * @param value - The count. Always the raw quantity, never a pre-scaled one.
- * @param total - The denominator, chosen from {@link DenominatorKind}.
- * @param displayMode - Which reading the user has selected.
- * @param denominator - Names the base, so the tooltip can state it.
- * @returns The display string, the alternate string, and the tooltip.
+ * @param value - The count. Always the true quantity.
+ * @param total - The base, chosen from {@link MetricBase}.
+ * @param displayMode - Which reading the user picked.
+ * @param base - Names the base so the tooltip can state it.
+ * @returns Both readings and the tooltip.
  *
  * @remarks
- * A zero total yields \`0.00%\` rather than \`NaN\` or a thrown error: an empty
- * meeting is a normal state early in a proxy cycle, not an exceptional one, and
- * a dashboard that errors before any votes arrive is worse than one that reads
- * zero.
+ * A zero total gives \`0.00%\` rather than \`NaN\`. An empty meeting is normal
+ * early in a proxy cycle, and a dashboard that breaks before any votes arrive
+ * is worse than one reading zero.
  *
- * Callers must pass the true underlying value even when a chart inflates small
- * slices for legibility (PCT-10) — the geometry and the label are different
- * concerns and reading the label off the geometry is how percentages stop
- * summing to 100.
+ * Callers pass the true value even where a chart enlarges a small slice to keep
+ * it visible (PCT-10). Reading a label off the drawn size is how percentages
+ * stop adding up to 100.
  */
 export const formatTabulationMetric = (
   value: number,
   total: number,
   displayMode: TabulationDisplayMode,
-  denominator: DenominatorKind = "sharesOutstanding"
+  base: MetricBase = "sharesOutstanding"
 ): TabulationMetric => {
   const percentage = total > 0 ? (value / total) * 100 : 0;
   const percentageText = \`\${percentage.toFixed(2)}%\`;
@@ -219,66 +263,126 @@ export const formatTabulationMetric = (
   return {
     alternate: isNumbers ? percentageText : countText,
     display: isNumbers ? countText : percentageText,
-    tooltip: \`\${countText} of \${numberFormatter.format(total)} — \${percentageText} \${DENOMINATOR_LABELS[denominator]}\`,
+    tooltip: \`\${countText} of \${numberFormatter.format(total)} — \${percentageText} \${BASE_LABELS[base]}\`,
   };
 };
 `;
 
-const GLOSSARY_ROUTE = `import type { Metadata } from "next";
+const GLOSSARY_DEEP_LINK = `"use client";
 
-import { notFound } from "next/navigation";
+import type { PropsWithChildren } from "react";
 
-import { GlossaryBrowser } from "@/components/Glossary/GlossaryBrowser";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { createContext, useCallback, useContext, useMemo } from "react";
+
+import { InfoDialog } from "@/components/InfoDialog";
 import { termsDefinitions } from "@/lib/termsDefinitions";
 
-interface GlossaryPageProps {
-  readonly params: Promise<{ readonly termId?: readonly string[] }>;
+export type GlossaryTermId = keyof typeof termsDefinitions;
+
+/** Query key that opens the drawer, e.g. /WEN/meeting/123?glossary=quorum */
+const GLOSSARY_PARAM = "glossary";
+
+interface GlossaryContextValue {
+  readonly closeGlossary: () => void;
+  readonly isOpen: boolean;
+  /** Absolute link that reopens the drawer on this term. */
+  readonly linkToTerm: (termId: GlossaryTermId) => string;
+  readonly openGlossary: (termId?: GlossaryTermId) => void;
 }
 
+const GlossaryContext = createContext<GlossaryContextValue | null>(null);
+
 /**
- * Pre-renders one path per term so every deep link is a static route.
- *
- * @returns One params object per glossary entry, plus the index route.
+ * Owns the one glossary drawer and the term it is showing.
  *
  * @remarks
- * The vocabulary is a compile-time constant of about a hundred entries, so
- * generating them all costs nothing and buys an instant response for the link
- * someone pasted into an email — which is the whole point of TIP-04.
+ * The open term lives in the URL rather than in component state, which is what
+ * makes a definition shareable (TIP-04) without adding a glossary page. The
+ * drawer still opens over whatever page the reader was on, so they keep their
+ * place (TIP-05) — the address simply describes what is on screen.
+ *
+ * \`replace\` rather than \`push\` when closing, so dismissing the drawer does not
+ * leave an extra entry the Back button has to walk through.
  */
-export const generateStaticParams = (): { termId: string[] }[] => [
-  { termId: [] },
-  ...Object.keys(termsDefinitions).map((id) => ({ termId: [id] })),
-];
+export const GlossaryProvider = ({ children }: PropsWithChildren) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParameters = useSearchParams();
+
+  const requestedTerm = searchParameters.get(GLOSSARY_PARAM);
+  // An unknown term is a stale link, not a crash: open at the top instead.
+  const openTermId =
+    requestedTerm !== null && requestedTerm in termsDefinitions
+      ? (requestedTerm as GlossaryTermId)
+      : null;
+  const isOpen = requestedTerm !== null;
+
+  const buildHref = useCallback(
+    (termId?: GlossaryTermId): string => {
+      const next = new URLSearchParams(searchParameters.toString());
+
+      if (termId === undefined) {
+        next.set(GLOSSARY_PARAM, "");
+      } else {
+        next.set(GLOSSARY_PARAM, termId);
+      }
+
+      return \`\${pathname}?\${next.toString()}\`;
+    },
+    [pathname, searchParameters]
+  );
+
+  const value = useMemo<GlossaryContextValue>(() => {
+    const closeGlossary = (): void => {
+      const next = new URLSearchParams(searchParameters.toString());
+      next.delete(GLOSSARY_PARAM);
+      const query = next.toString();
+      router.replace(query.length > 0 ? \`\${pathname}?\${query}\` : pathname, {
+        scroll: false,
+      });
+    };
+
+    return {
+      closeGlossary,
+      isOpen,
+      linkToTerm: (termId) => new URL(buildHref(termId), globalThis.location.origin).toString(),
+      openGlossary: (termId) => {
+        router.push(buildHref(termId), { scroll: false });
+      },
+    };
+  }, [buildHref, isOpen, pathname, router, searchParameters]);
+
+  const entry = openTermId === null ? undefined : termsDefinitions[openTermId];
+
+  return (
+    <GlossaryContext.Provider value={value}>
+      {children}
+      <InfoDialog
+        definition={entry?.definition ?? ""}
+        onClose={value.closeGlossary}
+        open={isOpen}
+        term={entry?.term ?? ""}
+      />
+    </GlossaryContext.Provider>
+  );
+};
 
 /**
- * Titles the tab with the term itself, so a bookmark is self-describing.
+ * Reads the glossary controls.
+ *
+ * @returns Open, close, and link helpers.
+ * @throws When used outside {@link GlossaryProvider}.
  */
-export const generateMetadata = async ({
-  params,
-}: GlossaryPageProps): Promise<Metadata> => {
-  const { termId } = await params;
-  const entry = termId?.[0] === undefined ? undefined : termsDefinitions[termId[0]];
+export const useGlossary = (): GlossaryContextValue => {
+  const context = useContext(GlossaryContext);
 
-  return {
-    description: entry?.definition ?? "Definitions of proxy and shareholder meeting terms.",
-    title: entry === undefined ? "Glossary of Terms" : \`\${entry.term} — Glossary\`,
-  };
-};
-
-const GlossaryPage = async ({ params }: GlossaryPageProps) => {
-  const { termId } = await params;
-  const selectedId = termId?.[0];
-
-  // An unknown id is a broken bookmark, not a server error — but it must not
-  // render the index silently, or the reader thinks the term was removed.
-  if (selectedId !== undefined && termsDefinitions[selectedId] === undefined) {
-    notFound();
+  if (context === null) {
+    throw new Error("useGlossary must be used within a GlossaryProvider");
   }
 
-  return <GlossaryBrowser selectedTermId={selectedId} />;
+  return context;
 };
-
-export default GlossaryPage;
 `;
 
 const GLOSSARY_SEARCH = `import { useDeferredValue, useMemo } from "react";
@@ -291,28 +395,28 @@ export interface GlossaryMatch {
   readonly category: string;
   readonly definition: string;
   readonly id: GlossaryTermId;
-  /** Where the query matched, so the UI can highlight it. */
-  readonly matchedIn: "alias" | "definition" | "term";
+  /** Where it matched, so results can be ordered and highlighted. */
+  readonly matchedIn: "definition" | "shortForm" | "term";
   readonly term: string;
 }
 
 /**
- * Every spelling a reader might type for one entry.
+ * Every spelling someone might type for one entry.
  *
- * @param term - The entry's display term, parentheticals included.
- * @returns Lower-cased searchable spellings.
+ * @param term - The entry's title, brackets included.
+ * @returns Lower-cased spellings.
  *
  * @remarks
- * Mirrors the alias derivation in \`GlossaryText\` on purpose: a term the
- * tooltip engine can find in prose must also be findable in search, or the two
- * surfaces disagree about what the glossary contains.
+ * Mirrors how \`GlossaryText\` finds terms in page copy on purpose. A word the
+ * tooltips can find in a sentence should also be findable in search, or the two
+ * disagree about what the glossary contains.
  */
-const searchableSpellings = (term: string): readonly string[] => {
+const spellingsFor = (term: string): readonly string[] => {
   const spellings = new Set<string>([term.toLowerCase()]);
-  const withoutParentheticals = term.replaceAll(/\\s*\\([^)]*\\)/gu, "").trim();
+  const withoutBrackets = term.replaceAll(/\\s*\\([^)]*\\)/gu, "").trim();
 
-  if (withoutParentheticals.length > 0) {
-    spellings.add(withoutParentheticals.toLowerCase());
+  if (withoutBrackets.length > 0) {
+    spellings.add(withoutBrackets.toLowerCase());
   }
 
   for (const [, inside] of term.matchAll(/\\(([^)]+)\\)/gu)) {
@@ -328,32 +432,31 @@ const searchableSpellings = (term: string): readonly string[] => {
   return [...spellings];
 };
 
-/** Built once — the vocabulary is a module constant, not state. */
+/** Built once — the vocabulary is a constant, not state. */
 const searchIndex = Object.entries(termsDefinitions).map(([id, entry]) => ({
   category: entry.category,
   definition: entry.definition,
   definitionText: entry.definition.toLowerCase(),
   id: id as GlossaryTermId,
-  spellings: searchableSpellings(entry.term),
+  spellings: spellingsFor(entry.term),
   term: entry.term,
 }));
 
 /**
- * Filters the glossary by free text and category.
+ * Filters the glossary by text and category.
  *
- * @param query - Raw text from the search field. Empty returns everything.
- * @param categories - Selected category filters. Empty means no restriction.
- * @returns Matches ordered term-first, then alias, then definition-body.
+ * @param query - What the user typed. Empty returns everything.
+ * @param categories - Selected groups. Empty means no restriction.
+ * @returns Matches, closest first.
  *
  * @remarks
- * \`useDeferredValue\` keeps typing responsive without a debounce timer: React
- * renders the stale list while the new one computes, so there is no interval
- * during which the field feels frozen and no timeout to tune. At roughly a
- * hundred entries the filter itself is trivial; it is re-rendering the cards
- * that costs, which is exactly what deferring addresses (GLO-10).
+ * \`useDeferredValue\` keeps typing smooth without a debounce timer: React shows
+ * the previous list while the next one is built, so there is no delay to tune
+ * and no moment where the box feels stuck. Filtering a hundred entries is free;
+ * redrawing the results is what costs, which is what deferring covers (GLO-09).
  *
- * Ordering encodes intent — someone typing "proxy" wants the Proxy entry, not
- * the twenty definitions that mention proxies.
+ * Order matters: someone typing "proxy" wants the Proxy entry, not the twenty
+ * definitions that happen to mention proxies.
  */
 export const useGlossarySearch = (
   query: string,
@@ -365,7 +468,6 @@ export const useGlossarySearch = (
     const needle = deferredQuery.trim().toLowerCase();
     const inCategory = (category: string): boolean =>
       categories.length === 0 || categories.includes(category);
-
     const matches: GlossaryMatch[] = [];
 
     for (const entry of searchIndex) {
@@ -377,7 +479,7 @@ export const useGlossarySearch = (
         needle.length === 0 || entry.spellings.some((s) => s.startsWith(needle))
           ? "term"
           : entry.spellings.some((s) => s.includes(needle))
-            ? "alias"
+            ? "shortForm"
             : entry.definitionText.includes(needle)
               ? "definition"
               : null;
@@ -393,7 +495,7 @@ export const useGlossarySearch = (
       }
     }
 
-    const rank = { alias: 1, definition: 2, term: 0 };
+    const rank = { definition: 2, shortForm: 1, term: 0 };
 
     return matches.sort(
       (first, second) =>
@@ -404,150 +506,204 @@ export const useGlossarySearch = (
 };
 `;
 
-const ACCEPTANCE_FEATURE = `Feature: Percentage and Count display mode
-  As an issuer reviewing tabulation results
-  I want to switch every figure between percentages and counts
-  So that I can read the summary at a glance and reconcile the detail on demand
+const DISPLAY_MODE_SPEC = `import { expect, test } from "@playwright/test";
 
-  Background:
-    Given I am signed in as an issuer contact
-    And meeting "WEN Annual Meeting 2025" has 2,664,000 shares outstanding
-    And 1,204,336 shares have been voted
+const TABULATION = "/WEN/meeting/wen-special-meeting-2026/tabulation";
 
-  Scenario: Percentage is the default for a new user
-    Given I have never used the display control
-    When I open the meeting dashboard
-    Then the display control shows "Percentage" as selected
-    And "Shares Voted" reads "45.21%"
+const displayControl = (page: import("@playwright/test").Page) =>
+  page.getByRole("group", { name: "Tabulation display format" });
 
-  Scenario: Every convertible figure follows the control
-    Given I am on the meeting dashboard
-    When I select "Count"
-    Then "Shares Voted" reads "1,204,336"
-    And "Total Positions" reads a count
-    And "Positions Voted" reads a count
-    And the vote progress bar labels read counts
+test("percentage is the default for a new user", async ({ page }) => {
+  await page.goto(TABULATION);
 
-  Scenario: The selection survives a reload
-    Given I have selected "Count"
-    When I reload the page
-    Then the display control shows "Count" as selected
+  await expect(
+    displayControl(page).getByRole("button", { name: "Percentage" })
+  ).toHaveAttribute("aria-pressed", "true", { timeout: 30_000 });
+});
 
-  Scenario: The selection carries across meetings
-    Given I have selected "Count" on meeting "WEN Annual Meeting 2025"
-    When I open meeting "WEN Special Meeting 2026"
-    Then the display control shows "Count" as selected
+test("switching to count changes every figure on the page", async ({ page }) => {
+  await page.goto(TABULATION);
+  await expect(page.getByTestId("vote-matrix-total-web")).toBeVisible({
+    timeout: 30_000,
+  });
 
-  Scenario: A shared link overrides without overwriting
-    Given my stored preference is "Count"
-    When I open a link ending in "?display=percentages"
-    Then figures read as percentages
-    And my stored preference is still "Count"
+  await displayControl(page).getByRole("button", { name: "Count" }).click();
 
-  Scenario: Non-convertible figures are unaffected
-    Given I am on the meeting dashboard
-    When I switch between "Percentage" and "Count"
-    Then "Record Date" is unchanged
-    And "Days to Meeting" is unchanged
-    And the quorum status chip is unchanged
+  // A percentage-formatted total would still contain "%".
+  await expect(page.getByTestId("vote-matrix-total-web")).not.toContainText("%");
+  await expect(page.getByTestId("tracker-total-positions")).not.toContainText("%");
+});
 
-  Scenario: Both readings are always reachable
-    Given the display control shows "Percentage"
-    When I hover "Shares Voted"
-    Then a tooltip reads "1,204,336 of 2,664,000 — 45.21% of shares outstanding"
+test("the choice survives a reload", async ({ page }) => {
+  await page.goto(TABULATION);
+  await displayControl(page).getByRole("button", { name: "Count" }).click();
 
-  Scenario Outline: Percentages sum correctly despite minimum-arc floors
-    Given proposal 1 has a slice smaller than the minimum arc
-    When I select "Percentage"
-    Then the "<chart>" slice labels sum to 100.00% within 0.02%
+  await page.reload();
 
-    Examples:
-      | chart                    |
-      | Shares Voted             |
-      | Vote Distribution        |
-      | Beneficial vs Registered |
+  await expect(
+    displayControl(page).getByRole("button", { name: "Count" })
+  ).toHaveAttribute("aria-pressed", "true", { timeout: 30_000 });
+});
 
-  Scenario: Exports ignore the display mode
-    Given the display control shows "Percentage"
-    When I export positions to Excel
-    Then the "Shares Voted" column contains raw counts
+test("the choice carries to another meeting", async ({ page }) => {
+  await page.goto(TABULATION);
+  await displayControl(page).getByRole("button", { name: "Count" }).click();
+
+  await page.goto("/WEN/meeting/wen-annual-meeting-2025/tabulation");
+
+  await expect(
+    displayControl(page).getByRole("button", { name: "Count" })
+  ).toHaveAttribute("aria-pressed", "true", { timeout: 30_000 });
+});
+
+test("a shared link overrides without changing the saved choice", async ({ page }) => {
+  await page.goto(TABULATION);
+  await displayControl(page).getByRole("button", { name: "Count" }).click();
+
+  await page.goto(\`\${TABULATION}?display=percentages\`);
+  await expect(
+    displayControl(page).getByRole("button", { name: "Percentage" })
+  ).toHaveAttribute("aria-pressed", "true", { timeout: 30_000 });
+
+  // The link is a view, not a preference change.
+  await page.goto(TABULATION);
+  await expect(
+    displayControl(page).getByRole("button", { name: "Count" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("dates and statuses are unaffected by the format", async ({ page }) => {
+  await page.goto("/WEN/meeting/wen-special-meeting-2026/dashboard");
+  const recordDate = page.getByTestId("key-date-recorddate");
+  await expect(recordDate).toBeVisible({ timeout: 30_000 });
+
+  const before = await recordDate.textContent();
+  await displayControl(page).getByRole("button", { name: "Count" }).click();
+
+  await expect(recordDate).toHaveText(before ?? "");
+});
+
+test("percentage mode never shows a figure divided by itself", async ({ page }) => {
+  await page.goto(TABULATION);
+  const centre = page.getByTestId("shares-voted-centre");
+  await expect(centre).toBeVisible({ timeout: 30_000 });
+
+  await expect(centre).not.toHaveText("100.00%");
+});
 `;
 
-const GLOSSARY_ACCEPTANCE = `Feature: Glossary navigation and deep linking
-  As someone reading the portal mid-task
-  I want to look up a term without losing my place
-  So that I can keep working and share the definition with a colleague
+const GLOSSARY_SPEC = `import { expect, test } from "@playwright/test";
 
-  Scenario: Hover explains, click navigates
-    Given I am on the tabulation page
-    When I hover the term "Quorum"
-    Then its definition appears in a tooltip
-    When I click the term "Quorum"
-    Then the glossary opens focused on "Quorum"
-    And the address bar reads "/glossary/quorum"
+const MEETING = "/WEN/meeting/wen-special-meeting-2026/tabulation";
 
-  Scenario: Context is preserved on desktop
-    Given I am on a viewport of 1440 pixels
-    When I click a glossary term
-    Then a side panel opens beside the page
-    And the page behind it is still rendered
-    When I press Escape
-    Then the panel closes
-    And focus returns to the term I clicked
+const drawer = (page: import("@playwright/test").Page) =>
+  page.getByRole("dialog", { name: "Terms and Definitions" });
 
-  Scenario: A deep link lands on the entry
-    When I open "/glossary/brokernonvote" directly
-    Then the "Broker Non-vote" entry is scrolled into view
-    And it is briefly highlighted
+test("the support menu opens the glossary drawer", async ({ page }) => {
+  await page.goto(MEETING);
 
-  Scenario: A retired term fails clearly
-    When I open "/glossary/not-a-real-term"
-    Then I see a not-found message with a link to the glossary index
-    And I do not see a server error
+  await page.getByRole("button", { name: "Issuer Support Tools" }).click();
+  await page.getByRole("menuitem", { name: "Glossary of Terms" }).click();
 
-  Scenario: Search finds the shorthand the interface uses
-    Given I am on the glossary page
-    When I search for "nobo"
-    Then "Non-Objecting Beneficial Owner (NOBO)" is the first result
-    When I search for "cede & co."
-    Then "Cede and Company" appears in the results
+  await expect(drawer(page)).toBeVisible({ timeout: 30_000 });
+});
 
-  Scenario: Filters compose with search and survive sharing
-    Given I am on the glossary page
-    When I select the "Proxy & Voting" category
-    And I search for "vote"
-    Then only "Proxy & Voting" entries containing "vote" are listed
-    And a result count is shown
-    When I copy the URL and open it in a new tab
-    Then the same filter and query are applied
+test("clicking a term opens the drawer on that term", async ({ page }) => {
+  await page.goto(MEETING);
 
-  Scenario: Terms inside a control keep hover only
-    Given a chart legend labelled "Beneficial"
-    When I click the legend item
-    Then the legend series toggles
-    And the glossary does not open
+  await page.getByRole("button", { name: /^Quorum/ }).first().click();
 
-  Scenario: Keyboard and screen reader access
-    Given I am navigating with a keyboard
-    When I Tab to a glossary term marker
-    Then the definition is shown
-    And the focus ring is visible
-    And the marker is announced as "Quorum — open glossary definition"
+  await expect(drawer(page)).toBeVisible({ timeout: 30_000 });
+  await expect(drawer(page).getByRole("heading", { name: "Quorum" })).toBeVisible();
+  await expect(page).toHaveURL(/glossary=quorum/);
+});
 
-  Scenario: Mobile deep link is not hidden behind the search field
-    Given I am on a viewport of 375 pixels
-    When I open "/glossary/recorddate" directly
-    Then the "Record Date" entry is visible below the pinned search field
+test("the drawer keeps the page behind it", async ({ page }) => {
+  await page.goto(MEETING);
+  await page.getByRole("button", { name: /^Quorum/ }).first().click();
+  await expect(drawer(page)).toBeVisible({ timeout: 30_000 });
+
+  await expect(page.getByRole("heading", { name: "Voting Activity" })).toBeVisible();
+});
+
+test("escape closes the drawer and returns focus to the term", async ({ page }) => {
+  await page.goto(MEETING);
+  const term = page.getByRole("button", { name: /^Quorum/ }).first();
+  await term.click();
+  await expect(drawer(page)).toBeVisible({ timeout: 30_000 });
+
+  await page.keyboard.press("Escape");
+
+  await expect(drawer(page)).toBeHidden();
+  await expect(term).toBeFocused();
+  await expect(page).not.toHaveURL(/glossary=/);
+});
+
+test("a shared link opens straight to the term", async ({ page }) => {
+  await page.goto(\`\${MEETING}?glossary=brokernonvote\`);
+
+  await expect(
+    drawer(page).getByRole("heading", { name: "Broker Non-vote" })
+  ).toBeVisible({ timeout: 30_000 });
+});
+
+test("a stale link opens the glossary rather than erroring", async ({ page }) => {
+  await page.goto(\`\${MEETING}?glossary=not-a-real-term\`);
+
+  await expect(drawer(page)).toBeVisible({ timeout: 30_000 });
+  await expect(drawer(page)).toContainText(/not found|choose a term/i);
+});
+
+test("search matches short forms and definition text", async ({ page }) => {
+  await page.goto(\`\${MEETING}?glossary=quorum\`);
+  const search = drawer(page).getByRole("searchbox");
+
+  await search.fill("nobo");
+  await expect(
+    drawer(page).getByRole("treeitem", { name: /Non-Objecting Beneficial Owner/ })
+  ).toBeVisible();
+
+  await search.fill("cede & co.");
+  await expect(
+    drawer(page).getByRole("treeitem", { name: /Cede and Company/ })
+  ).toBeVisible();
+});
+
+test("terms inside a definition link to their own entry", async ({ page }) => {
+  await page.goto(\`\${MEETING}?glossary=brokernonvote\`);
+
+  await drawer(page).getByRole("button", { name: /^Routine Proposal/ }).click();
+
+  await expect(
+    drawer(page).getByRole("heading", { name: "Routine Proposal" })
+  ).toBeVisible();
+});
+
+test("a term inside a chart legend does not open the glossary", async ({ page }) => {
+  await page.goto(MEETING);
+  await page.getByTestId("outcome-holder-legend-beneficial").click();
+
+  await expect(drawer(page)).toBeHidden();
+});
 `;
 
 export const CODE_SAMPLES: readonly CodeSample[] = [
+  {
+    asBuilt: true,
+    code: GLOSSARY_AS_BUILT,
+    filename: "components/InfoDialog.tsx",
+    language: "tsx",
+    satisfies: ["GLO-01", "TIP-05"],
+    sectionId: "glossary-formatting",
+    title: "The glossary that ships today (abridged)",
+  },
   {
     code: PERSISTED_DISPLAY_MODE,
     filename: "contexts/TabulationDisplayContext.tsx",
     language: "tsx",
     satisfies: ["PCT-01", "PCT-04", "PCT-05"],
     sectionId: "percentage-count-toggle",
-    title: "Persisted display mode with query-parameter override",
+    title: "Remembering the chosen format",
   },
   {
     code: METRIC_FORMATTER,
@@ -555,38 +711,38 @@ export const CODE_SAMPLES: readonly CodeSample[] = [
     language: "typescript",
     satisfies: ["PCT-03", "PCT-07", "PCT-08", "PCT-11"],
     sectionId: "percentage-count-toggle",
-    title: "Metric formatter with a declared denominator",
+    title: "Formatting a figure with a named base",
   },
   {
-    code: ACCEPTANCE_FEATURE,
-    filename: "tests/display-mode.feature",
-    language: "gherkin",
-    satisfies: ["PCT-04", "PCT-05", "PCT-06", "PCT-10", "PCT-12"],
+    code: DISPLAY_MODE_SPEC,
+    filename: "tests/e2e/display-mode.spec.ts",
+    language: "typescript",
+    satisfies: ["PCT-04", "PCT-05", "PCT-06", "PCT-08"],
     sectionId: "percentage-count-toggle",
-    title: "Acceptance criteria as executable scenarios",
+    title: "Playwright coverage",
   },
   {
-    code: GLOSSARY_ROUTE,
-    filename: "app/glossary/[[...termId]]/page.tsx",
+    code: GLOSSARY_DEEP_LINK,
+    filename: "contexts/GlossaryContext.tsx",
     language: "tsx",
-    satisfies: ["TIP-04", "TIP-05", "TIP-08"],
+    satisfies: ["TIP-04", "TIP-05", "GLO-06"],
     sectionId: "tooltips-glossary-navigation",
-    title: "Deep-linkable glossary route",
+    title: "Shareable links, still the same drawer",
   },
   {
-    code: GLOSSARY_ACCEPTANCE,
-    filename: "tests/glossary-navigation.feature",
-    language: "gherkin",
-    satisfies: ["TIP-03", "TIP-04", "TIP-05", "TIP-06", "TIP-07"],
+    code: GLOSSARY_SPEC,
+    filename: "tests/e2e/glossary.spec.ts",
+    language: "typescript",
+    satisfies: ["TIP-03", "TIP-04", "TIP-05", "GLO-02", "GLO-04"],
     sectionId: "tooltips-glossary-navigation",
-    title: "Acceptance criteria as executable scenarios",
+    title: "Playwright coverage",
   },
   {
     code: GLOSSARY_SEARCH,
     filename: "hooks/useGlossarySearch.ts",
     language: "typescript",
-    satisfies: ["GLO-03", "GLO-04", "GLO-10"],
+    satisfies: ["GLO-02", "GLO-03", "GLO-09"],
     sectionId: "glossary-formatting",
-    title: "Alias-aware glossary search",
+    title: "Search that also looks inside definitions",
   },
 ];

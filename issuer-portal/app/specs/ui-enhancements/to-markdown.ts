@@ -1,6 +1,5 @@
 import type {
   Requirement,
-  RequirementStatus,
   SpecTable,
 } from "@/app/specs/ui-enhancements/requirements";
 
@@ -19,12 +18,6 @@ import {
  * is the entire reason the requirements live in a module instead of in JSX.
  */
 
-const statusLabel: Record<RequirementStatus, string> = {
-  confirmed: "Confirmed",
-  "decision-needed": "Decision needed",
-  proposed: "Proposed",
-};
-
 /**
  * Renders one requirement as a Markdown block.
  *
@@ -34,8 +27,6 @@ const statusLabel: Record<RequirementStatus, string> = {
 const requirementToMarkdown = (requirement: Requirement): string => {
   const lines = [
     `#### ${requirement.id} — ${requirement.title}`,
-    "",
-    `**Status:** ${statusLabel[requirement.status]}`,
     "",
     requirement.statement,
     "",
@@ -55,7 +46,7 @@ const requirementToMarkdown = (requirement: Requirement): string => {
 
   if (requirement.evidence !== undefined && requirement.evidence.length > 0) {
     lines.push(
-      `**Current behaviour established in:** ${requirement.evidence
+      `**In the code:** ${requirement.evidence
         .map((path) => `\`${path}\``)
         .join(", ")}`,
       ""
@@ -110,7 +101,7 @@ export const buildSpecMarkdown = (generatedOn: string): string => {
     `| Repository | ${SPEC_META.repository} |`,
     `| Generated | ${generatedOn} |`,
     "",
-    "Requirements for three UI enhancements: a percentage/count display toggle, tooltip and glossary navigation, and glossary formatting. Every statement about current behaviour was verified against the source files named under each requirement.",
+    "Requirements for three UI enhancements: a percentage/count display toggle, tooltip and glossary navigation, and glossary formatting.",
     "",
     "## Contents",
     "",
@@ -129,6 +120,20 @@ export const buildSpecMarkdown = (generatedOn: string): string => {
       lines.push(paragraph, "");
     }
 
+    if (section.topics !== undefined) {
+      lines.push("### Scope", "");
+
+      for (const topic of section.topics) {
+        lines.push(`**${topic.question}**`, "");
+
+        for (const paragraph of topic.answer) {
+          lines.push(paragraph, "");
+        }
+
+        lines.push(`_See ${topic.requirementIds.join(", ")}._`, "");
+      }
+    }
+
     lines.push("### Requirements", "");
 
     for (const requirement of section.requirements) {
@@ -141,23 +146,6 @@ export const buildSpecMarkdown = (generatedOn: string): string => {
       for (const table of section.tables) {
         lines.push(tableToMarkdown(table));
       }
-    }
-
-    if (section.openQuestions !== undefined) {
-      lines.push(
-        "### Open questions",
-        "",
-        "| Question | Owner | Recommendation |",
-        "| --- | --- | --- |"
-      );
-
-      for (const item of section.openQuestions) {
-        lines.push(
-          `| ${item.question} | ${item.owner} | ${item.recommendation} |`
-        );
-      }
-
-      lines.push("");
     }
 
     const samples = CODE_SAMPLES.filter(
@@ -173,7 +161,7 @@ export const buildSpecMarkdown = (generatedOn: string): string => {
           "",
           `Satisfies ${sample.satisfies.join(", ")}.`,
           "",
-          `\`\`\`${sample.language}`,
+          "```" + sample.language,
           sample.code.trimEnd(),
           "```",
           ""

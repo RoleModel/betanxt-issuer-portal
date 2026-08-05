@@ -11,7 +11,7 @@ import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 
 import type { CodeLanguage, TokenKind } from "@/components/Specs/highlight";
 
@@ -70,8 +70,7 @@ export interface SpecCodeViewerProps {
  * The spec page is meant to be handed to engineers for estimation, so every
  * snippet has to be extractable without selecting text out of a rendered page —
  * hence a download button per block rather than only a bundle download at the
- * top. Highlighting is computed with `useMemo` keyed on the source because the
- * page renders a dozen blocks at once and none of them ever change after mount.
+ * top.
  *
  * @example
  * ```tsx
@@ -91,35 +90,39 @@ export const SpecCodeViewer = ({
   title,
 }: SpecCodeViewerProps) => {
   const [copied, setCopied] = useState(false);
-  const lines = useMemo(() => code.replace(/\n$/u, "").split("\n"), [code]);
-  const tokensByLine = useMemo(
-    () => lines.map((line) => tokenize(line, language)),
-    [language, lines]
-  );
+  const lines = code.replace(/\n$/u, "").split("\n");
+  const tokensByLine = lines.map((line) => tokenize(line, language));
 
-  const handleCopy = useCallback((): void => {
+  const handleCopy = (): void => {
     void navigator.clipboard.writeText(code).then(() => {
       setCopied(true);
       globalThis.setTimeout(() => {
         setCopied(false);
       }, 2000);
     });
-  }, [code]);
+  };
 
-  const handleDownload = useCallback((): void => {
+  const handleDownload = (): void => {
     downloadTextFile(filename.split("/").pop() ?? filename, code);
-  }, [code, filename]);
+  };
 
   const gutterWidth = `${String(lines.length).length + 1}ch`;
 
   return (
     <Box
+      // The theme sets `colorSchemeSelector: "class"`, so this class flips the
+      // MUI colour variables for this subtree only. Code reads better dark, and
+      // pinning it means a snippet looks the same however the reader has the
+      // rest of the portal set — everything inside still uses theme tokens, so
+      // client theming is preserved rather than overridden with fixed colours.
+      className="dark"
       sx={[
         {
-          bgcolor: "background.default",
+          bgcolor: "background.paper",
           border: "1px solid",
           borderColor: "divider",
           borderRadius: 1,
+          colorScheme: "dark",
           overflow: "hidden",
         },
         ...(Array.isArray(sx) ? sx : [sx]),
@@ -147,6 +150,7 @@ export const SpecCodeViewer = ({
           <Typography
             component="span"
             variant="body2"
+            color="text.primary"
             sx={{
               fontFamily: "monospace",
               fontWeight: 600,
@@ -217,11 +221,11 @@ export const SpecCodeViewer = ({
           {tokensByLine.map((tokens, lineIndex) => (
             <Box
               component="span"
-
+              // eslint-disable-next-line react/no-array-index-key -- Lines are static after mount and have no stable id.
               key={lineIndex}
               sx={{ display: "block", whiteSpace: "pre" }}
             >
-              {showLineNumbers ? (
+              {showLineNumbers && (
                 <Box
                   aria-hidden
                   component="span"
@@ -236,11 +240,11 @@ export const SpecCodeViewer = ({
                 >
                   {lineIndex + 1}
                 </Box>
-              ) : null}
+              )}
               {tokens.map((token, tokenIndex) => (
                 <Box
                   component="span"
-
+                  // eslint-disable-next-line react/no-array-index-key -- Tokens are derived from static source in source order.
                   key={tokenIndex}
                   sx={(theme) => ({
                     color: tokenColor(theme)[token.kind],
