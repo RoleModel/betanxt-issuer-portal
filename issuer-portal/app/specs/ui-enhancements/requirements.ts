@@ -77,7 +77,7 @@ const percentageToggle: SpecSection = {
   id: "percentage-count-toggle",
   title: "1. Percentage vs. Count Toggle Feature",
   summary:
-    "Requirements for the proposed ability to toggle between Percentage and Count views within the Meeting Dashboard, the Tabulation Dashboard, and Tabulation Detail Views (if applicable). Specifically, we'd like to understand:",
+    "Requirements for the proposed ability to toggle between Percentage and Count views within the Meeting Dashboard, the Tabulation Dashboard, and Tabulation Detail Views (if applicable).",
   background: [
     "A single control, labelled `Display as: Percentage | Count`, sits in the page header and governs every figure on screen. Switching it changes share quantities and position counts everywhere at once; dates, statuses and names are untouched.",
     "Each figure that can be shown as a percentage has one agreed base it divides by, listed in the bases table. The base is named in the figure's tooltip, so a reader can always tell what a percentage is a percentage of.",
@@ -152,7 +152,7 @@ const percentageToggle: SpecSection = {
       statement:
         "A single display setting drives the format of every convertible figure on the page. No widget carries its own percentage/count switch.",
       rationale:
-        "A chart and the table beside it must never disagree about which format they are in.",
+        "A chart and the table beside it must always display the same format.",
       evidence: [
         "contexts/TabulationDisplayContext.tsx",
         "utils/tabulation-display.ts",
