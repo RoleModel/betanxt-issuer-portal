@@ -39,7 +39,7 @@ import {
   sumPieOutcome,
   type HolderType,
   type VoteOutcomeKey,
-} from "@/components/Charts/data/vote-breakdown-chart-data";
+} from "@/components/Charts/series/vote-breakdown-chart-data";
 
 /**
  * `proposalLabel` arrives as `Proposal 1.01: Arthur B. Winkleblack`. The select

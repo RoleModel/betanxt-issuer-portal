@@ -13,7 +13,7 @@ import {
   sumRowOutcomes,
   type VoteOutcomeKey,
   type VoteSourceId,
-} from "@/components/Charts/data/vote-breakdown-chart-data";
+} from "@/components/Charts/series/vote-breakdown-chart-data";
 
 interface VoteMatrixChartCardProps {
   readonly loading: boolean;

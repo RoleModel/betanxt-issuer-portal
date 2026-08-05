@@ -1097,7 +1097,7 @@ const chartStructure: SpecSection = {
           "Colours, legends, axes, empty and loading states",
         ],
         [
-          "components/Charts/data/",
+          "components/Charts/series/",
           "Builders turning positions and votes into series",
         ],
         [

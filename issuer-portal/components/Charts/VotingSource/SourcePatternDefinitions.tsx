@@ -11,7 +11,7 @@ import {
   getSourcePatternId,
   patternTileSize,
   voteSources,
-} from "@/components/Charts/data/vote-breakdown-chart-data";
+} from "@/components/Charts/series/vote-breakdown-chart-data";
 
 /**
  * SVG `<pattern>` definitions for every voting source.

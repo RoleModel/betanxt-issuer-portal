@@ -26,7 +26,7 @@ import {
   type VoteSourceId,
   voteSources,
   votingSourceChartHeight,
-} from "@/components/Charts/data/vote-breakdown-chart-data";
+} from "@/components/Charts/series/vote-breakdown-chart-data";
 import { VotingSourceLegend } from "@/components/Charts/VotingSource/VotingSourceLegend";
 
 export interface VotingSourceChartCardProps {

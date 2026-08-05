@@ -7,7 +7,7 @@ import {
   formatTabulationMetric,
   type TabulationDisplayMode,
 } from "@/utils/tabulation-display";
-import { barLabelInset } from "@/components/Charts/data/vote-breakdown-chart-data";
+import { barLabelInset } from "@/components/Charts/series/vote-breakdown-chart-data";
 
 export interface HolderTotalsBarLabelsProps {
   readonly displayMode: TabulationDisplayMode;

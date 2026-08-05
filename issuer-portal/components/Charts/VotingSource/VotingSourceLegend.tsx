@@ -11,7 +11,7 @@ import {
   type VoteSource,
   type VoteSourceId,
   voteSources,
-} from "@/components/Charts/data/vote-breakdown-chart-data";
+} from "@/components/Charts/series/vote-breakdown-chart-data";
 
 /** A source's texture, rendered as a standalone swatch for the legend. */
 const SourceLegendSwatch = ({ source }: { readonly source: VoteSource }) => {
