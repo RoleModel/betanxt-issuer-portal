@@ -111,9 +111,9 @@ export const collectAffectedSources = async (): Promise<CollectedSources> => {
  * @returns Markdown describing the archive's layout.
  *
  * @remarks
- * States the misses plainly. An archive that quietly omits a third of the
- * components reads as complete, and someone estimating from it would be
- * estimating from a subset without knowing.
+ * States the misses plainly, and says outright that `current/` is a sample.
+ * An archive that quietly omits files reads as complete, and someone
+ * estimating from it would be estimating from a subset without knowing.
  */
 export const buildManifest = (
   missing: CollectedSources["missing"],
@@ -123,12 +123,15 @@ export const buildManifest = (
     "# What is in this archive",
     "",
     "- `REQUIREMENTS.md` — the full requirements document.",
-    "- `current/` — the app's source as it is today, grouped by what it does.",
+    "- `current/` — a sample of the app's source as it is today, grouped by",
+    "  what it does. One file per idea rather than every file the work touches:",
+    "  the rest follow the same patterns and are named under each requirement's",
+    "  \"In the code\" on the spec page.",
     "- `proposed/` — the reference code from the spec page.",
     "",
     "Paths under `current/` mirror `issuer-portal/`, so a file at",
-    "`current/charts/components/Reporting/YearOverYearChart.tsx` lives at",
-    "`issuer-portal/components/Reporting/YearOverYearChart.tsx`.",
+    "`current/glossary/components/ui/GlossaryText.tsx` lives at",
+    "`issuer-portal/components/ui/GlossaryText.tsx`.",
     "",
     `${proposedCount} proposed files are included.`,
     "",

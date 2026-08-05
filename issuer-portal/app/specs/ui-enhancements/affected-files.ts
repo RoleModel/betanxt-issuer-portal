@@ -1,15 +1,20 @@
 /**
- * The real files each part of this work touches.
+ * The files worth reading before starting this work.
  *
  * @remarks
- * Listed so the download can include the actual components an engineer has to
- * change, not just the proposed code. Paths are repo-relative from
- * `issuer-portal/` and are fetched at download time from `/api/dev/source`,
- * which already serves this app's own source to the developer overlay — the
- * page needs no filesystem access and no second copy of the tree.
+ * A sample, not an inventory. The earlier list named all 74 files the work
+ * touches — every chart, every table — which made the archive a second copy of
+ * the repo and buried the handful of files that actually explain how the
+ * features work. What is left is one file per idea: the context that holds the
+ * display mode, the formatter every figure goes through, one table that
+ * reformats, one card that deliberately does not, the two exports that must
+ * stay counts, and the glossary in full because it is the part being changed.
  *
- * Keep this list accurate. It is what the zip contains and what the estimate is
- * counted from.
+ * The rest follow the same patterns as these and are named under each
+ * requirement's "In the code", so nothing is hidden — it just is not shipped in
+ * the zip. Paths are repo-relative from `issuer-portal/` and are fetched at
+ * download time from `/api/dev/source`, the route that already serves this
+ * app's source to the developer overlay.
  */
 
 export interface AffectedGroup {
@@ -30,93 +35,34 @@ export const AFFECTED_GROUPS: readonly AffectedGroup[] = [
     paths: [
       "contexts/TabulationDisplayContext.tsx",
       "utils/tabulation-display.ts",
-      "components/Navigation/EventTabs/MeetingNavigationBar.tsx",
-      "components/Navigation/EventTabs/use-meeting-navigation.ts",
-      "app/[clientTicker]/meeting/layout.tsx",
-      "app/[clientTicker]/reporting/layout.tsx",
     ],
   },
   {
     folder: "current/charts",
-    label: "Charts and their config",
-    sectionId: "chart-consolidation",
+    label: "Shared chart configuration",
+    sectionId: "chart-structure",
     paths: [
-      "components/Charts/BeneficialVsRegistered/BeneficialVsRegisteredCard.tsx",
-      "components/Charts/BrokerVoting/BrokerVotingChart.tsx",
-      "components/Charts/ConsolidatedVote/ConsolidatedVoteChart.tsx",
-      "components/Charts/ConsolidatedVote/useVoteBreakdown.ts",
-      "components/Charts/DirectorPerformance/DirectorPerformanceChart.tsx",
-      "components/Charts/DirectorPerformance/IndividualDirectorChart.tsx",
-      "components/Charts/GeoHeatmap/GeoHeatmapCard.tsx",
-      "components/Charts/HolderOutcome/HolderOutcomeChartCard.tsx",
-      "components/Charts/HolderOutcome/HolderTotalsBarLabels.tsx",
-      "components/Charts/Participation/ParticipationChart.tsx",
-      "components/Charts/PositionsVoted/PositionsVotedChart.tsx",
-      "components/Charts/QuorumGauge/QuorumGaugeCard.tsx",
-      "components/Charts/QuorumTimeline/QuorumTimelineChart.tsx",
-      "components/Charts/QuorumTimeline/useQuorumTimeline.ts",
-      "components/Charts/ResponseRateTimeline/ResponseRateTimeline.tsx",
-      "components/Charts/SharesVoted/SharesVotedChart.tsx",
-      "components/Charts/VoteDistribution/VoteDistributionChart.tsx",
-      "components/Charts/VoteDistribution/VoteDistributionLegend.tsx",
-      "components/Charts/VoteDistribution/vote-distribution-chart-data.ts",
-      "components/Charts/VoteMatrix/VoteMatrixChartCard.tsx",
-      "components/Charts/VotingActivity/VotingActivityCard.tsx",
-      "components/Charts/VotingPerformance/VotingPerformanceChart.tsx",
-      "components/Charts/VotingSource/SourcePatternDefinitions.tsx",
-      "components/Charts/VotingSource/VotingSourceChartCard.tsx",
-      "components/Charts/VotingSource/VotingSourceLegend.tsx",
-      "components/Charts/YearOverYear/YearOverYearChart.tsx",
+      "components/Charts/index.ts",
       "components/Charts/config/ChartDataContext.tsx",
       "components/Charts/config/ChartToggle.tsx",
-      "components/Charts/config/ConfiguredPieChart.tsx",
-      "components/Charts/config/CustomLegend.tsx",
-      "components/Charts/config/GaugeCenterLabel.tsx",
-      "components/Charts/config/LegendToggle.tsx",
-      "components/Charts/config/LineMarker.tsx",
-      "components/Charts/config/PieChartCenterLabel.tsx",
-      "components/Charts/config/SkeletonChart.tsx",
-      "components/Charts/data/vote-breakdown-chart-data.ts",
-      "components/Charts/index.ts",
-      "utils/quorum.ts",
     ],
   },
   {
     folder: "current/tables-and-cards",
-    label: "Tables and cards showing figures",
+    label: "Figures on screen — one of each kind",
     sectionId: "percentage-count-toggle",
     paths: [
       "components/Meeting/TabulationTracker.tsx",
-      "components/Meeting/tabulation-tracker/useTabulationTrackerData.ts",
-      "components/Meeting/tabulation-tracker/VoteProgressBar.tsx",
-      "components/Meeting/tabulation-tracker/HistoricalShareCard.tsx",
       "components/Meeting/VotingTabulationTable.tsx",
-      "components/Meeting/MailingDataCard.tsx",
-      "components/Meeting/AdditionalMailingSummaryCard.tsx",
-      "components/Meeting/PastMeetingsTable.tsx",
       // Cited by PCT-06 as the example of figures the toggle must leave alone.
       "components/Meeting/KeyDatesCard.tsx",
-      "components/Tabulation/PositionsTable.tsx",
-      "components/Tabulation/DetailedTabulationTable.tsx",
-      "components/Reporting/ProposalPerformanceTable.tsx",
-      "components/Reporting/QuorumPerformanceTable.tsx",
-      "components/Reporting/VoteStatusSummaryTable.tsx",
-      "components/Reporting/EventSummaryTable.tsx",
-      "hooks/useReporting.ts",
-      "hooks/useTabulationInsights.ts",
     ],
   },
   {
     folder: "current/exports",
     label: "Exports — must stay counts",
     sectionId: "percentage-count-toggle",
-    paths: [
-      "utils/exportTabulationPdf.tsx",
-      "utils/exportPositionsPdf.tsx",
-      "utils/exportPositionsXlsx.ts",
-      "utils/brokerBreakoutReport.tsx",
-      "components/Reporting/DownloadReportsTable.tsx",
-    ],
+    paths: ["utils/exportTabulationPdf.tsx", "utils/exportPositionsXlsx.ts"],
   },
   {
     folder: "current/glossary",

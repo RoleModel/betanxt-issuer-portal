@@ -1,6 +1,9 @@
 "use client";
 
 import type {
+  CodeSample,
+} from "@/app/specs/ui-enhancements/code-samples";
+import type {
   Requirement,
   SpecSection,
 } from "@/app/specs/ui-enhancements/requirements";
@@ -8,15 +11,14 @@ import type {
 import CheckIcon from "@mui/icons-material/Check";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DownloadIcon from "@mui/icons-material/Download";
-import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
-import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
@@ -27,9 +29,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
-import { TreeItem } from "@mui/x-tree-view/TreeItem";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   AFFECTED_GROUPS,
@@ -56,50 +56,14 @@ const AFFECTED_COUNT = AFFECTED_GROUPS.reduce(
   0
 );
 
-/** Node id for one of a section's groups. */
-const groupId = (sectionId: string, group: string): string =>
-  `${sectionId}::${group}`;
-
-const CODE_NODE_ID = "code";
-
-/** Every id in the tree, for expand-all. */
-const ALL_NODE_IDS: readonly string[] = [
-  ...SPEC_SECTIONS.flatMap((section) => [
-    section.id,
-    groupId(section.id, "scope"),
-    groupId(section.id, "requirements"),
-    groupId(section.id, "tables"),
-  ]),
-  CODE_NODE_ID,
-];
-
-/** Sections and their scope open, detail closed, code open. */
-const DEFAULT_EXPANDED: readonly string[] = [
-  ...SPEC_SECTIONS.flatMap((section) =>
-    section.isAppendix === true
-      ? []
-      : [section.id, groupId(section.id, "scope")]
-  ),
-  CODE_NODE_ID,
-];
-
 /**
- * Which branches must be open for a requirement to be on screen.
+ * The code that belongs to one section.
  *
- * @param requirementId - The requirement being linked to.
- * @returns Node ids to expand, or an empty list when the id is unknown.
+ * @param sectionId - The section being rendered.
+ * @returns Its samples, in the order they are declared.
  */
-const ancestorsOf = (requirementId: string): readonly string[] => {
-  const section = SPEC_SECTIONS.find((candidate) =>
-    candidate.requirements.some(
-      (requirement) => requirement.id === requirementId
-    )
-  );
-
-  return section === undefined
-    ? []
-    : [section.id, groupId(section.id, "requirements")];
-};
+const samplesFor = (sectionId: string): readonly CodeSample[] =>
+  CODE_SAMPLES.filter((sample) => sample.sectionId === sectionId);
 
 /**
  * The screens a scope answer covers.
@@ -108,8 +72,8 @@ const ancestorsOf = (requirementId: string): readonly string[] => {
  * @returns Their screens, deduplicated by address and label.
  *
  * @remarks
- * Derived rather than hand-authored so a scope card can never claim a screen
- * its own requirements do not mention.
+ * Derived rather than hand-authored so an answer can never claim a screen its
+ * own requirements do not mention.
  */
 const screensFor = (requirementIds: readonly string[]) => {
   const seen = new Map<string, { href: string; label: string }>();
@@ -167,6 +131,42 @@ const SourceChip = ({ path }: { readonly path: string }) => {
   );
 };
 
+/** Links to the screens where something is visible. */
+const ScreenButtons = ({
+  screens,
+}: {
+  readonly screens: readonly { href: string; label: string }[];
+}) => {
+  if (screens.length === 0) {
+    return null;
+  }
+
+  return (
+    <Stack
+      direction="row"
+      spacing={1}
+      sx={{ alignItems: "center", flexWrap: "wrap", mt: 2, rowGap: 1 }}
+    >
+      <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+        Where you&apos;ll see it:
+      </Typography>
+      {screens.map((screen) => (
+        <Button
+          endIcon={<OpenInNewIcon />}
+          href={screen.href}
+          key={`${screen.href}${screen.label}`}
+          rel="noopener"
+          size="small"
+          target="_blank"
+          variant="outlined"
+        >
+          {screen.label}
+        </Button>
+      ))}
+    </Stack>
+  );
+};
+
 /**
  * Copies one requirement as a ready-to-paste Jira ticket.
  *
@@ -217,15 +217,7 @@ const CopyRequirementButton = ({
   );
 };
 
-/**
- * One requirement, as a card.
- *
- * @remarks
- * Cards rather than nested tree items: a requirement is read whole — statement,
- * reasoning, acceptance criteria — so collapsing them individually would hide
- * the thing the reader opened the branch for. The branch opens; the cards are
- * all there.
- */
+/** One requirement, as a card. */
 const RequirementCard = ({
   requirement,
   sectionTitle,
@@ -233,7 +225,7 @@ const RequirementCard = ({
   readonly requirement: Requirement;
   readonly sectionTitle: string;
 }) => (
-  <Card id={requirement.id} variant="outlined" sx={{ scrollMarginTop: 96 }}>
+  <Card id={requirement.id} variant="outlined" sx={{ scrollMarginTop: 24 }}>
     <CardContent>
       <Stack
         direction="row"
@@ -297,28 +289,7 @@ const RequirementCard = ({
         ))}
       </Stack>
 
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{ alignItems: "center", flexWrap: "wrap", mt: 2, rowGap: 1 }}
-      >
-        <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
-          Where you&apos;ll see it:
-        </Typography>
-        {requirement.screens.map((screen) => (
-          <Button
-            endIcon={<OpenInNewIcon />}
-            href={screen.href}
-            key={`${screen.href}${screen.label}`}
-            rel="noopener"
-            size="small"
-            target="_blank"
-            variant="outlined"
-          >
-            {screen.label}
-          </Button>
-        ))}
-      </Stack>
+      <ScreenButtons screens={requirement.screens} />
 
       {requirement.evidence !== undefined && (
         <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", mt: 1.5 }}>
@@ -340,7 +311,7 @@ const SpecTableBlock = ({
 }: {
   readonly table: NonNullable<SpecSection["tables"]>[number];
 }) => (
-  <Box sx={{ pb: 3, pl: 1 }}>
+  <Box sx={{ mb: 3 }}>
     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
       {table.title}
     </Typography>
@@ -384,42 +355,219 @@ const SpecTableBlock = ({
   </Box>
 );
 
+/** One code sample, with the screens it appears on and what it covers. */
+const CodeBlock = ({ sample }: { readonly sample: CodeSample }) => (
+  <Box sx={{ mb: 3 }}>
+    <SpecCodeViewer
+      code={sample.code}
+      filename={sample.filename}
+      language={sample.language}
+      title={sample.title}
+    />
+    <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", mt: 1 }}>
+      {(SCREEN_LINKS[sample.filename] ?? []).map((screen) => (
+        <Chip
+          clickable
+          component="a"
+          href={screen.href}
+          key={screen.href}
+          label={`Used on: ${screen.label}`}
+          size="small"
+          variant="outlined"
+        />
+      ))}
+      <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+        Covers:
+      </Typography>
+      {sample.satisfies.map((id) => (
+        <Chip
+          clickable
+          component="a"
+          href={`#${id}`}
+          key={id}
+          label={id}
+          size="small"
+          sx={{ fontFamily: "monospace", fontSize: 11 }}
+          variant="outlined"
+        />
+      ))}
+    </Stack>
+  </Box>
+);
+
+/** A heading for one of the groups inside a section. */
+const GroupHeading = ({ children }: { readonly children: string }) => (
+  <Typography
+    component="h3"
+    variant="h6"
+    sx={{ fontWeight: 700, mb: 2, mt: 4 }}
+  >
+    {children}
+  </Typography>
+);
+
 /**
- * Requirements package, as a collapsible tree.
+ * One section, read top to bottom.
  *
  * @remarks
- * A tree because the document is read in pieces: one reader wants the scope,
- * another wants a single requirement to turn into a ticket, a third wants the
- * widget tables. Everything opens from a heading rather than through a scroll.
+ * The same shape three times: the request, the questions it asked with their
+ * answers, the requirements those answers commit to, the reference tables, and
+ * the related code last. A reader who scrolls a section from its heading to the
+ * next one has read the whole of it.
+ */
+const SpecSectionBlock = ({ section }: { readonly section: SpecSection }) => {
+  const samples = samplesFor(section.id);
+
+  return (
+    <Box component="section" id={section.id} sx={{ scrollMarginTop: 24 }}>
+      <Typography
+        component="h2"
+        variant="h5"
+        sx={{ fontWeight: 700, mb: 1.5 }}
+      >
+        {section.title}
+      </Typography>
+
+      <Typography variant="body1" sx={{ maxWidth: "72ch" }}>
+        {section.summary}
+      </Typography>
+
+      {section.topics !== undefined && (
+        <Stack component="ul" spacing={0.5} sx={{ mb: 3, mt: 1.5, pl: 3 }}>
+          {section.topics.map((topic) => (
+            <Typography
+              component="li"
+              key={topic.question}
+              variant="body1"
+              sx={{ maxWidth: "72ch" }}
+            >
+              {topic.question}
+            </Typography>
+          ))}
+        </Stack>
+      )}
+
+      <Box sx={{ mb: 2, mt: section.topics === undefined ? 2 : 0 }}>
+        {section.background.map((paragraph) => (
+          <Typography
+            key={paragraph.slice(0, 40)}
+            variant="body1"
+            color="text.secondary"
+            sx={{ mb: 1, maxWidth: "72ch" }}
+          >
+            {paragraph}
+          </Typography>
+        ))}
+      </Box>
+
+      {section.topics !== undefined && (
+        <>
+          <GroupHeading>Answers</GroupHeading>
+          <Stack spacing={2}>
+            {section.topics.map((topic) => (
+              <Box key={topic.question}>
+                {topic.lead !== undefined && (
+                  <Typography
+                    variant="body1"
+                    sx={{ maxWidth: "72ch", mb: 2, mt: 1 }}
+                  >
+                    {topic.lead}
+                  </Typography>
+                )}
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography
+                      component="h4"
+                      variant="subtitle1"
+                      sx={{ fontWeight: 600, maxWidth: "72ch" }}
+                    >
+                      {topic.question}
+                    </Typography>
+                    {topic.answer.map((paragraph) => (
+                      <Typography
+                        key={paragraph.slice(0, 40)}
+                        variant="body2"
+                        sx={{ maxWidth: "72ch", mt: 1 }}
+                      >
+                        {paragraph}
+                      </Typography>
+                    ))}
+
+                    <ScreenButtons
+                      screens={screensFor(topic.requirementIds)}
+                    />
+
+                    <Stack
+                      direction="row"
+                      spacing={0.5}
+                      sx={{ flexWrap: "wrap", mt: 1.5 }}
+                    >
+                      {topic.requirementIds.map((id) => (
+                        <Chip
+                          clickable
+                          component="a"
+                          href={`#${id}`}
+                          key={id}
+                          label={id}
+                          size="small"
+                          sx={{ fontFamily: "monospace", fontSize: 11 }}
+                          variant="outlined"
+                        />
+                      ))}
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Box>
+            ))}
+          </Stack>
+        </>
+      )}
+
+      <GroupHeading>Requirements</GroupHeading>
+      <Stack spacing={2}>
+        {section.requirements.map((requirement) => (
+          <RequirementCard
+            key={requirement.id}
+            requirement={requirement}
+            sectionTitle={section.title}
+          />
+        ))}
+      </Stack>
+
+      {section.tables !== undefined && (
+        <>
+          <GroupHeading>Tables</GroupHeading>
+          {section.tables.map((table) => (
+            <SpecTableBlock key={table.title} table={table} />
+          ))}
+        </>
+      )}
+
+      {samples.length > 0 && (
+        <>
+          <GroupHeading>Code</GroupHeading>
+          {samples.map((sample) => (
+            <CodeBlock key={sample.filename} sample={sample} />
+          ))}
+        </>
+      )}
+    </Box>
+  );
+};
+
+/**
+ * Requirements package for the three requested UI enhancements.
  *
- * Sections and their scope start open, detail starts closed, and the code
- * branch at the end starts open with every block visible.
+ * @remarks
+ * A plain document rather than a tree. Every reader of this page wants a
+ * different part of it — the scope, one requirement to turn into a ticket, the
+ * widget tables — and hiding those behind branches meant finding a heading
+ * before you could read anything. It scrolls; browser search finds everything.
  */
 const UiEnhancementSpecPage = () => {
   const [downloaded, setDownloaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [missingCount, setMissingCount] = useState(0);
-  const [expandedItems, setExpandedItems] = useState<string[]>([
-    ...DEFAULT_EXPANDED,
-  ]);
-
-  // A link ending `#PCT-05` has to open its branches before the browser can
-  // scroll to it — the node is not in the DOM while collapsed.
-  useEffect(() => {
-    const requirementId = globalThis.location.hash.replace("#", "");
-    const ancestors = ancestorsOf(requirementId);
-
-    if (ancestors.length === 0) {
-      return;
-    }
-
-    setExpandedItems((current) => [...new Set([...current, ...ancestors])]);
-    globalThis.setTimeout(() => {
-      document
-        .querySelector(`#${CSS.escape(requirementId)}`)
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
-  }, []);
 
   const handleDownloadComponents = (): void => {
     setBusy(true);
@@ -461,7 +609,7 @@ const UiEnhancementSpecPage = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 2, md: 4 }, py: 4 }}>
+    <Box sx={{ maxWidth: 1100, mx: "auto", px: { xs: 2, md: 4 }, py: 4 }}>
       <Stack
         direction={{ xs: "column", md: "row" }}
         alignItems={{ md: "flex-start" }}
@@ -475,13 +623,6 @@ const UiEnhancementSpecPage = () => {
           </Typography>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
             {SPEC_META.title}
-          </Typography>
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            sx={{ maxWidth: "60ch", mt: 1 }}
-          >
-            Open a heading to read it.
           </Typography>
         </Box>
 
@@ -518,277 +659,33 @@ const UiEnhancementSpecPage = () => {
         </Stack>
       </Stack>
 
-      <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-        <Button
-          onClick={() => {
-            setExpandedItems([...ALL_NODE_IDS]);
-          }}
-          size="small"
-          startIcon={<UnfoldMoreIcon />}
-        >
-          Expand all
-        </Button>
-        <Button
-          onClick={() => {
-            setExpandedItems([]);
-          }}
-          size="small"
-          startIcon={<UnfoldLessIcon />}
-        >
-          Collapse all
-        </Button>
-      </Stack>
-
-      <SimpleTreeView
-        expandedItems={expandedItems}
-        onExpandedItemsChange={(_event, itemIds) => {
-          setExpandedItems(itemIds);
-        }}
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ flexWrap: "wrap", mb: 4, rowGap: 1 }}
       >
         {SPEC_SECTIONS.map((section) => (
-          <TreeItem
-            itemId={section.id}
+          <Chip
+            clickable
+            component="a"
+            href={`#${section.id}`}
             key={section.id}
-            label={
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                alignItems={{ sm: "baseline" }}
-                spacing={{ xs: 0, sm: 1.5 }}
-                sx={{ py: 1 }}
-              >
-                <Typography
-                  variant="h6"
-                  component="span"
-                  sx={{ fontWeight: 700 }}
-                >
-                  {section.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {section.summary}
-                </Typography>
-              </Stack>
-            }
-          >
-            <Box sx={{ pb: 2, pl: 1 }}>
-              {section.background.map((paragraph) => (
-                <Typography
-                  key={paragraph.slice(0, 40)}
-                  variant="body1"
-                  sx={{ mb: 1, maxWidth: "72ch" }}
-                >
-                  {paragraph}
-                </Typography>
-              ))}
-            </Box>
-
-            {section.topics !== undefined && (
-              <TreeItem
-                itemId={groupId(section.id, "scope")}
-                label={
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: 600, py: 0.5 }}
-                  >
-                    Scope ({section.topics.length})
-                  </Typography>
-                }
-              >
-                <Stack spacing={2} sx={{ pb: 2, pl: 1, pr: 1 }}>
-                  {section.topics.map((topic) => (
-                    <Box key={topic.question}>
-                      {topic.lead !== undefined && (
-                        <Typography
-                          variant="body1"
-                          sx={{ maxWidth: "72ch", mb: 2, mt: 1 }}
-                        >
-                          {topic.lead}
-                        </Typography>
-                      )}
-                      <Card variant="outlined">
-                        <CardContent>
-                          <Typography
-                            component="h4"
-                            variant="subtitle1"
-                            sx={{ fontWeight: 600, maxWidth: "72ch" }}
-                          >
-                            {topic.question}
-                          </Typography>
-                          {topic.answer.map((paragraph) => (
-                            <Typography
-                              key={paragraph.slice(0, 40)}
-                              variant="body2"
-                              sx={{ maxWidth: "72ch", mt: 1 }}
-                            >
-                              {paragraph}
-                            </Typography>
-                          ))}
-                          <Stack
-                            direction="row"
-                            spacing={1}
-                            sx={{
-                              alignItems: "center",
-                              flexWrap: "wrap",
-                              mt: 1.5,
-                              rowGap: 1,
-                            }}
-                          >
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                              sx={{ mr: 0.5 }}
-                            >
-                              Where you&apos;ll see it:
-                            </Typography>
-                            {screensFor(topic.requirementIds).map((screen) => (
-                              <Button
-                                endIcon={<OpenInNewIcon />}
-                                href={screen.href}
-                                key={`${screen.href}${screen.label}`}
-                                rel="noopener"
-                                size="small"
-                                target="_blank"
-                                variant="outlined"
-                              >
-                                {screen.label}
-                              </Button>
-                            ))}
-                          </Stack>
-
-                          <Stack
-                            direction="row"
-                            spacing={0.5}
-                            sx={{ flexWrap: "wrap", mt: 1.5 }}
-                          >
-                            {topic.requirementIds.map((id) => (
-                              <Chip
-                                clickable
-                                component="a"
-                                href={`#${id}`}
-                                key={id}
-                                label={id}
-                                onClick={() => {
-                                  setExpandedItems((current) => [
-                                    ...new Set([
-                                      ...current,
-                                      ...ancestorsOf(id),
-                                    ]),
-                                  ]);
-                                }}
-                                size="small"
-                                sx={{ fontFamily: "monospace", fontSize: 11 }}
-                                variant="outlined"
-                              />
-                            ))}
-                          </Stack>
-                        </CardContent>
-                      </Card>
-                    </Box>
-                  ))}
-                </Stack>
-              </TreeItem>
-            )}
-
-            <TreeItem
-              itemId={groupId(section.id, "requirements")}
-              label={
-                <Typography
-                  variant="subtitle1"
-                  sx={{ fontWeight: 600, py: 0.5 }}
-                >
-                  Requirements ({section.requirements.length})
-                </Typography>
-              }
-            >
-              <Stack spacing={2} sx={{ pb: 2, pl: 1, pr: 1 }}>
-                {section.requirements.map((requirement) => (
-                  <RequirementCard
-                    key={requirement.id}
-                    requirement={requirement}
-                    sectionTitle={section.title}
-                  />
-                ))}
-              </Stack>
-            </TreeItem>
-
-            {section.tables !== undefined && (
-              <TreeItem
-                itemId={groupId(section.id, "tables")}
-                label={
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: 600, py: 0.5 }}
-                  >
-                    Tables ({section.tables.length})
-                  </Typography>
-                }
-              >
-                {section.tables.map((table) => (
-                  <SpecTableBlock key={table.title} table={table} />
-                ))}
-              </TreeItem>
-            )}
-          </TreeItem>
+            label={section.title}
+            size="small"
+            variant="outlined"
+          />
         ))}
+      </Stack>
 
-        <TreeItem
-          itemId={CODE_NODE_ID}
-          label={
-            <Typography
-              variant="h6"
-              component="span"
-              sx={{ fontWeight: 700, py: 1 }}
-            >
-              Code ({CODE_SAMPLES.length})
-            </Typography>
-          }
-        >
-          <Stack spacing={3} sx={{ pb: 2, pl: 1 }}>
-            {CODE_SAMPLES.map((sample) => (
-              <Box key={sample.filename}>
-                <SpecCodeViewer
-                  code={sample.code}
-                  filename={sample.filename}
-                  language={sample.language}
-                  title={sample.title}
-                />
-                <Stack
-                  direction="row"
-                  spacing={0.5}
-                  sx={{ flexWrap: "wrap", mt: 1 }}
-                >
-                  {(SCREEN_LINKS[sample.filename] ?? []).map((screen) => (
-                    <Chip
-                      clickable
-                      component="a"
-                      href={screen.href}
-                      key={screen.href}
-                      label={`Used on: ${screen.label}`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  ))}
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ mr: 0.5 }}
-                  >
-                    Covers:
-                  </Typography>
-                  {sample.satisfies.map((id) => (
-                    <Chip
-                      key={id}
-                      label={id}
-                      size="small"
-                      sx={{ fontFamily: "monospace", fontSize: 11 }}
-                      variant="outlined"
-                    />
-                  ))}
-                </Stack>
-              </Box>
-            ))}
-          </Stack>
-        </TreeItem>
-      </SimpleTreeView>
+      <Stack
+        divider={<Divider sx={{ my: 5 }} />}
+        spacing={0}
+        sx={{ "& > section": { minWidth: 0 } }}
+      >
+        {SPEC_SECTIONS.map((section) => (
+          <SpecSectionBlock key={section.id} section={section} />
+        ))}
+      </Stack>
     </Box>
   );
 };
