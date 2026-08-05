@@ -10,25 +10,19 @@ type RegistrantType = NonNullable<
   DigitalShareholderMeetingRow["registrant_type"]
 >;
 
-const registrantTypes = new Set<RegistrantType>([
-  "Guest",
-  "Other",
-  "Proxy",
-  "Shareholder",
-]);
+const registrantTypes = ["Guest", "Other", "Proxy", "Shareholder"] as const;
+const isRegistrantType = (value: string): value is RegistrantType =>
+  (registrantTypes as readonly string[]).includes(value);
 
-function toRegistrantType(value: string | undefined): RegistrantType {
-  return value !== undefined && registrantTypes.has(value as RegistrantType)
-    ? (value as RegistrantType)
-    : "Shareholder";
-}
+const toRegistrantType = (value: string | undefined): RegistrantType =>
+  value !== undefined && isRegistrantType(value) ? value : "Shareholder";
 
-function serializeRegistrationQuestions(value: unknown): string | null {
+const serializeRegistrationQuestions = (value: unknown): string | null => {
   if (value === undefined || value === null) {
     return null;
   }
   return typeof value === "string" ? value : JSON.stringify(value);
-}
+};
 
 // API response type
 export interface DigitalShareholderMeetingResponse {
@@ -55,45 +49,41 @@ export interface DigitalShareholderMeetingRequest {
 }
 
 // Transform database row (snake_case) to API response (camelCase)
-export function transformDigitalShareholderMeetingRow(
+export const transformDigitalShareholderMeetingRow = (
   row: DigitalShareholderMeetingRow
-): DigitalShareholderMeetingResponse {
-  return {
-    id: row.id ?? "",
-    meetingId: row.meeting_id ?? "",
-    registrantType: row.registrant_type,
-    firstName: row.first_name,
-    lastName: row.last_name,
-    emailAddress: row.email_address,
-    registrationQuestions: row.registration_questions,
-    minutesAttendedMeeting: row.minutes_attended_meeting,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
+): DigitalShareholderMeetingResponse => ({
+  id: row.id ?? "",
+  meetingId: row.meeting_id ?? "",
+  registrantType: row.registrant_type,
+  firstName: row.first_name,
+  lastName: row.last_name,
+  emailAddress: row.email_address,
+  registrationQuestions: row.registration_questions,
+  minutesAttendedMeeting: row.minutes_attended_meeting,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
 
 // Transform API request (camelCase) to database insert (snake_case)
-export function transformToDigitalShareholderMeetingInsert(
+export const transformToDigitalShareholderMeetingInsert = (
   data: DigitalShareholderMeetingRequest,
   meetingId: string
-): DigitalShareholderMeetingInsert {
-  return {
-    meeting_id: meetingId,
-    registrant_type: toRegistrantType(data.registrantType),
-    first_name: data.firstName,
-    last_name: data.lastName,
-    email_address: data.emailAddress,
-    registration_questions: serializeRegistrationQuestions(
-      data.registrationQuestions
-    ),
-    minutes_attended_meeting: data.minutesAttendedMeeting || null,
-  };
-}
+): DigitalShareholderMeetingInsert => ({
+  meeting_id: meetingId,
+  registrant_type: toRegistrantType(data.registrantType),
+  first_name: data.firstName,
+  last_name: data.lastName,
+  email_address: data.emailAddress,
+  registration_questions: serializeRegistrationQuestions(
+    data.registrationQuestions
+  ),
+  minutes_attended_meeting: data.minutesAttendedMeeting ?? null,
+});
 
 // Transform API request (camelCase) to database update (snake_case)
-export function transformToDigitalShareholderMeetingUpdate(
+export const transformToDigitalShareholderMeetingUpdate = (
   data: Partial<DigitalShareholderMeetingRequest>
-): DigitalShareholderMeetingUpdate {
+): DigitalShareholderMeetingUpdate => {
   const update: DigitalShareholderMeetingUpdate = {};
 
   if (data.registrantType !== undefined) {
@@ -118,4 +108,4 @@ export function transformToDigitalShareholderMeetingUpdate(
   }
 
   return update;
-}
+};

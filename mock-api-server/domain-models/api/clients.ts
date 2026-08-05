@@ -21,26 +21,20 @@ interface ApiResponse<T> {
 }
 
 // Row shape returned by Supabase (snake_case)
-interface ClientRow {
-  id: string;
-  ticker: string;
-  company_name?: string | null;
-  short_name?: string | null;
-  industry?: string | null;
-  description?: string | null;
-  website?: string | null;
-  primary_contact?: string | null;
-  primary_contact_email?: string | null;
-  is_active?: boolean | null;
-  branding_id?: number | null;
-  logo_url?: string | null;
-  primary_color?: string | null;
-  secondary_color?: string | null;
-  created_by?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-  enabled_features?: unknown;
-}
+type ClientRow = Database["public"]["Tables"]["clients"]["Row"];
+
+export const clientFeatures = [
+  "documents",
+  "mailing",
+  "tabulation",
+  "reports",
+  "fileTransfer",
+  "agenda",
+  "nobo",
+] as const;
+export type ClientFeature = (typeof clientFeatures)[number];
+const isClientFeature = (value: unknown): value is ClientFeature =>
+  (clientFeatures as readonly unknown[]).includes(value);
 
 /**
  * Transforms a snake_case `clients` row into the camelCase OpenAPI `Clients`
@@ -51,40 +45,35 @@ interface ClientRow {
  * @param row - Raw Supabase client row
  * @returns The API-shaped client
  */
-function transformClient(row: ClientRow): Client {
-  return {
-    id: row.id,
-    ticker: row.ticker,
-    companyName: row.company_name ?? undefined,
-    shortName: row.short_name ?? undefined,
-    industry: row.industry ?? undefined,
-    description: row.description ?? undefined,
-    website: row.website ?? undefined,
-    primaryContact: row.primary_contact ?? undefined,
-    primaryContactEmail: row.primary_contact_email ?? undefined,
-    isActive: row.is_active ?? false,
-    brandingId: row.branding_id ?? undefined,
-    logoUrl: row.logo_url ?? undefined,
-    primaryColor: row.primary_color ?? undefined,
-    secondaryColor: row.secondary_color ?? undefined,
-    createdBy: row.created_by ?? undefined,
-    createdAt: row.created_at ?? undefined,
-    updatedAt: row.updated_at ?? undefined,
-    enabledFeatures: Array.isArray(row.enabled_features)
-      ? (row.enabled_features as (
-          | "documents"
-          | "mailing"
-          | "tabulation"
-          | "reports"
-          | "fileTransfer"
-          | "agenda"
-          | "nobo"
-        )[])
-      : undefined,
-  };
-}
+const transformClient = (row: ClientRow): Client => ({
+  id: row.id ?? undefined,
+  ticker: row.ticker ?? undefined,
+  companyName: row.company_name ?? undefined,
+  shortName: row.short_name ?? undefined,
+  industry: row.industry ?? undefined,
+  description: row.description ?? undefined,
+  website: row.website ?? undefined,
+  primaryContact: row.primary_contact ?? undefined,
+  primaryContactEmail: row.primary_contact_email ?? undefined,
+  isActive: row.is_active ?? false,
+  brandingId: row.branding_id ?? undefined,
+  logoUrl: row.logo_url ?? undefined,
+  primaryColor: row.primary_color ?? undefined,
+  secondaryColor: row.secondary_color ?? undefined,
+  createdBy: row.created_by ?? undefined,
+  createdAt: row.created_at ?? undefined,
+  updatedAt: row.updated_at ?? undefined,
+  enabledFeatures: Array.isArray(row.enabled_features)
+    ? row.enabled_features.filter(isClientFeature)
+    : undefined,
+});
 
-export async function listClients(
+// Pagination is not yet implemented; `page` is kept as a positional
+// parameter to match the OpenAPI-generated call site's shape.
+export const listClients = async (
+  // sonarjs/no-unused-function-argument wants the `_` prefix here;
+  // naming-convention forbids it — the two rules directly conflict.
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   _page?: number,
   limit?: number,
   ticker?: string
@@ -93,29 +82,47 @@ export async function listClients(
     clients?: Client[];
     pagination?: components["schemas"]["Pagination"];
   }>
-> {
+> => {
   let query = supabase.from("clients").select("*");
 
-  if (ticker) {
+  if (ticker !== undefined) {
     query = query.eq("ticker", ticker);
   }
-  if (limit) {
+  if (limit !== undefined) {
     query = query.limit(limit);
   }
 
   const { data, error } = await query;
 
-  if (error) {
+  if (error !== null) {
     return { error: { message: error.message } };
   }
 
-  const clients = (data as ClientRow[]).map(transformClient);
+  const clients = data.map(transformClient);
   return { data: { clients } };
-}
+};
 
-export async function createClient(
+// True when the insert failed because an optional column doesn't exist yet
+// (migration not applied) — those columns should be dropped and retried.
+const isMissingOptionalColumnError = (
+  error: { message: string } | null,
+  insert: ClientInsert
+): boolean => {
+  if (!error?.message.includes("column")) {
+    return false;
+  }
+  const optionalValues = [
+    insert.logo_url,
+    insert.primary_color,
+    insert.secondary_color,
+    insert.created_by,
+  ];
+  return optionalValues.some((value) => value !== undefined);
+};
+
+export const createClient = async (
   clientData: CreateClientRequest
-): Promise<ApiResponse<Client>> {
+): Promise<ApiResponse<Client>> => {
   const databaseInsert: ClientInsert = { id: randomUUID() };
   if (clientData.ticker !== undefined) {
     databaseInsert.ticker = clientData.ticker;
@@ -167,13 +174,7 @@ export async function createClient(
     .single();
 
   // If new optional columns don't exist yet (migration not applied), retry without them
-  if (
-    error?.message?.includes("column") &&
-    (databaseInsert.logo_url !== undefined ||
-      databaseInsert.primary_color !== undefined ||
-      databaseInsert.secondary_color !== undefined ||
-      databaseInsert.created_by !== undefined)
-  ) {
+  if (isMissingOptionalColumnError(error, databaseInsert)) {
     delete databaseInsert.logo_url;
     delete databaseInsert.primary_color;
     delete databaseInsert.secondary_color;
@@ -183,39 +184,39 @@ export async function createClient(
       .insert(databaseInsert)
       .select()
       .single();
-    if (error2) {
+    if (error2 !== null) {
       return { error: { message: error2.message } };
     }
-    return { data: transformClient(data2 as ClientRow) };
+    return { data: transformClient(data2) };
   }
 
-  if (error) {
+  if (error !== null) {
     return { error: { message: error.message } };
   }
 
-  return { data: transformClient(data as ClientRow) };
-}
+  return { data: transformClient(data) };
+};
 
-export async function getClientByTicker(
+export const getClientByTicker = async (
   ticker: string
-): Promise<ApiResponse<Client>> {
+): Promise<ApiResponse<Client>> => {
   const { data, error } = await supabase
     .from("clients")
     .select("*")
     .eq("ticker", ticker)
     .single();
 
-  if (error) {
+  if (error !== null) {
     return { error: { message: error.message, statusCode: 404 } };
   }
 
-  return { data: transformClient(data as ClientRow) };
-}
+  return { data: transformClient(data) };
+};
 
-export async function updateClient(
+export const updateClient = async (
   ticker: string,
   clientData: UpdateClientRequest
-): Promise<ApiResponse<Client>> {
+): Promise<ApiResponse<Client>> => {
   const databaseUpdate: ClientUpdate = {};
   if (clientData.companyName !== undefined) {
     databaseUpdate.company_name = clientData.companyName;
@@ -261,22 +262,24 @@ export async function updateClient(
     .select()
     .single();
 
-  if (error) {
+  if (error !== null) {
     return { error: { message: error.message } };
   }
 
-  return { data: transformClient(data as ClientRow) };
-}
+  return { data: transformClient(data) };
+};
 
-export async function deleteClient(ticker: string): Promise<ApiResponse<void>> {
+export const deleteClient = async (
+  ticker: string
+): Promise<ApiResponse<void>> => {
   const { error } = await supabase
     .from("clients")
     .delete()
     .eq("ticker", ticker);
 
-  if (error) {
+  if (error !== null) {
     return { error: { message: error.message } };
   }
 
-  return { data: undefined };
-}
+  return {};
+};
