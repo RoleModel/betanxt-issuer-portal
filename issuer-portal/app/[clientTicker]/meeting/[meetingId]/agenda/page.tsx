@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+
 "use client";
 
 import { FileUploadOutlined } from "@mui/icons-material";
@@ -14,6 +14,9 @@ import FileUploadDialog from "@/components/FileUpload/FileUploadDialog";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 
+// Keys match the literal column headers a proxy-agenda spreadsheet upload
+// uses, not code identifiers — they can't be renamed to camelCase.
+/* eslint-disable @typescript-eslint/naming-convention */
 interface ExcelRow {
   "Proposal Number"?: string | number;
   Number?: string | number;
@@ -27,6 +30,7 @@ interface ExcelRow {
   Director?: string;
   Recommendation?: string;
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 interface ParsedProposal {
   proposalNumber: number;
@@ -75,17 +79,17 @@ const parseAgendaFile = async (file: File): Promise<ParsedProposal[]> => {
                 typeof proposalNumber === "number"
                   ? proposalNumber
                   : parseFloat(proposalNumber) || 0,
-              proposalTitle: String(proposalTitle),
-              proposalType: String(proposalType),
-              recommendation: String(recommendation),
+              proposalTitle,
+              proposalType,
+              recommendation,
             };
 
             if (proposalSubtype) {
-              parsedProposal.proposalSubtype = String(proposalSubtype);
+              parsedProposal.proposalSubtype = proposalSubtype;
             }
 
             if (directorName) {
-              parsedProposal.directorName = String(directorName);
+              parsedProposal.directorName = directorName;
             }
 
             return parsedProposal;
@@ -128,10 +132,10 @@ const AgendaPage = () => {
     if (files.length === 0 || !currentMeeting?.id) return;
 
     try {
-      const file = files[0];
+      const [file] = files;
       // Parse and upload as proposals
-      const proposals = await parseAgendaFile(file);
-      await uploadProposals(proposals);
+      const parsedProposals = await parseAgendaFile(file);
+      await uploadProposals(parsedProposals);
       setUploadDialogOpen(false);
     } catch (error) {
       console.error("Failed to upload agenda:", error);
@@ -164,7 +168,7 @@ const AgendaPage = () => {
           }
         />
       ) : (
-        <AgendaTable onUploadClick={handleUploadClick} />
+        <AgendaTable />
       )}
       <FileUploadDialog
         open={uploadDialogOpen}

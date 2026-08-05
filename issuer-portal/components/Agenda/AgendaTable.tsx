@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 "use client";
 
@@ -23,11 +22,7 @@ import { getVotingOptionsDisplay } from "@/utils/votingOptions";
 
 import GlossaryText from "@/components/ui/GlossaryText";
 
-interface AgendaTableProps {
-  onUploadClick?: () => void;
-}
-
-const AgendaTable = (_props: AgendaTableProps) => {
+const AgendaTable = () => {
   const { currentMeeting } = useMeeting();
   const { proposals } = useVotingTabulation(currentMeeting?.id);
 
