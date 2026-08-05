@@ -595,81 +595,94 @@ const UiEnhancementSpecPage = () => {
               >
                 <Stack spacing={2} sx={{ pb: 2, pl: 1, pr: 1 }}>
                   {section.topics.map((topic) => (
-                    <Card key={topic.question} variant="outlined">
-                      <CardContent>
+                    <Box key={topic.question}>
+                      {topic.lead !== undefined && (
                         <Typography
-                          component="h4"
-                          variant="subtitle1"
-                          sx={{ fontWeight: 600, maxWidth: "72ch" }}
+                          variant="body1"
+                          sx={{ maxWidth: "72ch", mb: 2, mt: 1 }}
                         >
-                          {topic.question}
+                          {topic.lead}
                         </Typography>
-                        {topic.answer.map((paragraph) => (
+                      )}
+                      <Card variant="outlined">
+                        <CardContent>
                           <Typography
-                            key={paragraph.slice(0, 40)}
-                            variant="body2"
-                            sx={{ maxWidth: "72ch", mt: 1 }}
+                            component="h4"
+                            variant="subtitle1"
+                            sx={{ fontWeight: 600, maxWidth: "72ch" }}
                           >
-                            {paragraph}
+                            {topic.question}
                           </Typography>
-                        ))}
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          sx={{
-                            alignItems: "center",
-                            flexWrap: "wrap",
-                            mt: 1.5,
-                            rowGap: 1,
-                          }}
-                        >
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ mr: 0.5 }}
-                          >
-                            Where you&apos;ll see it:
-                          </Typography>
-                          {screensFor(topic.requirementIds).map((screen) => (
-                            <Button
-                              endIcon={<OpenInNewIcon />}
-                              href={screen.href}
-                              key={`${screen.href}${screen.label}`}
-                              rel="noopener"
-                              size="small"
-                              target="_blank"
-                              variant="outlined"
+                          {topic.answer.map((paragraph) => (
+                            <Typography
+                              key={paragraph.slice(0, 40)}
+                              variant="body2"
+                              sx={{ maxWidth: "72ch", mt: 1 }}
                             >
-                              {screen.label}
-                            </Button>
+                              {paragraph}
+                            </Typography>
                           ))}
-                        </Stack>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{
+                              alignItems: "center",
+                              flexWrap: "wrap",
+                              mt: 1.5,
+                              rowGap: 1,
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{ mr: 0.5 }}
+                            >
+                              Where you&apos;ll see it:
+                            </Typography>
+                            {screensFor(topic.requirementIds).map((screen) => (
+                              <Button
+                                endIcon={<OpenInNewIcon />}
+                                href={screen.href}
+                                key={`${screen.href}${screen.label}`}
+                                rel="noopener"
+                                size="small"
+                                target="_blank"
+                                variant="outlined"
+                              >
+                                {screen.label}
+                              </Button>
+                            ))}
+                          </Stack>
 
-                        <Stack
-                          direction="row"
-                          spacing={0.5}
-                          sx={{ flexWrap: "wrap", mt: 1.5 }}
-                        >
-                          {topic.requirementIds.map((id) => (
-                            <Chip
-                              clickable
-                              component="a"
-                              href={`#${id}`}
-                              key={id}
-                              label={id}
-                              onClick={() => {
-                                setExpandedItems((current) => [
-                                  ...new Set([...current, ...ancestorsOf(id)]),
-                                ]);
-                              }}
-                              size="small"
-                              sx={{ fontFamily: "monospace", fontSize: 11 }}
-                              variant="outlined"
-                            />
-                          ))}
-                        </Stack>
-                      </CardContent>
-                    </Card>
+                          <Stack
+                            direction="row"
+                            spacing={0.5}
+                            sx={{ flexWrap: "wrap", mt: 1.5 }}
+                          >
+                            {topic.requirementIds.map((id) => (
+                              <Chip
+                                clickable
+                                component="a"
+                                href={`#${id}`}
+                                key={id}
+                                label={id}
+                                onClick={() => {
+                                  setExpandedItems((current) => [
+                                    ...new Set([
+                                      ...current,
+                                      ...ancestorsOf(id),
+                                    ]),
+                                  ]);
+                                }}
+                                size="small"
+                                sx={{ fontFamily: "monospace", fontSize: 11 }}
+                                variant="outlined"
+                              />
+                            ))}
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    </Box>
                   ))}
                 </Stack>
               </TreeItem>

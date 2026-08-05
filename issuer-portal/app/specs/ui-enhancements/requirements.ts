@@ -29,6 +29,16 @@ export interface Requirement {
 /** A scope question and its short answer. */
 export interface Topic {
   readonly answer: readonly string[];
+  /**
+   * Introduces the run of questions this one starts, when it starts one.
+   *
+   * @remarks
+   * Section 2 was asked as two requests — the tooltip experience, then
+   * click-through to the glossary — so its questions need two introductions
+   * rather than one. Sections asked as a single request leave this unset and
+   * use the section summary.
+   */
+  readonly lead?: string;
   readonly question: string;
   readonly requirementIds: readonly string[];
 }
@@ -67,7 +77,7 @@ const percentageToggle: SpecSection = {
   id: "percentage-count-toggle",
   title: "1. Percentage vs. Count Toggle Feature",
   summary:
-    "Switch every figure between Percentage and Count on the Meeting Dashboard, Tabulation Dashboard, and Tabulation detail views.",
+    "Requirements for the proposed ability to toggle between Percentage and Count views within the Meeting Dashboard, the Tabulation Dashboard, and Tabulation Detail Views (if applicable). Specifically, we'd like to understand:",
   background: [
     "A single control, labelled `Display as: Percentage | Count`, sits in the page header and governs every figure on screen. Switching it changes share quantities and position counts everywhere at once; dates, statuses and names are untouched.",
     "Each figure that can be shown as a percentage has one agreed base it divides by, listed in the bases table. The base is named in the figure's tooltip, so a reader can always tell what a percentage is a percentage of.",
@@ -76,14 +86,14 @@ const percentageToggle: SpecSection = {
   topics: [
     {
       question:
-        "Which widgets, charts, tables, and metrics support the toggle.",
+        "Which widgets, charts, tables, and metrics should support the toggle functionality.",
       answer: [
         "Every figure that is a share quantity or a position count, across all three areas. The tables list them one by one with the base each uses.",
       ],
       requirementIds: ["PCT-01", "PCT-02"],
     },
     {
-      question: "The underlying values and calculations in each view.",
+      question: "The underlying values and calculations included in each view.",
       answer: [
         "Count shows the raw quantity with thousands separators. Percentage is the value divided by its base, to two decimal places.",
         "Charts that enlarge small slices so they stay visible still label them with the true value, so percentages add up to 100.",
@@ -91,7 +101,8 @@ const percentageToggle: SpecSection = {
       requirementIds: ["PCT-03", "PCT-07", "PCT-08"],
     },
     {
-      question: "Metrics that stay the same in both views.",
+      question:
+        "Any metrics that should remain unchanged regardless of the selected display option.",
       answer: [
         "Dates, statuses, names, ID numbers, ratios, counts of documents, and number fields in forms.",
         "Named examples: Record Date, Broker Search, Meeting Date, Days to Meeting, Vote Status, Management Recommendation, the quorum chip, CUSIP, and the share multiplier.",
@@ -99,14 +110,15 @@ const percentageToggle: SpecSection = {
       requirementIds: ["PCT-05"],
     },
     {
-      question: "Default state.",
+      question: "Expected default state (Percentage or Count).",
       answer: [
         "Percentage. It answers the question people open the portal with: are we at quorum.",
       ],
       requirementIds: ["PCT-04"],
     },
     {
-      question: "Persistence across sessions and navigation.",
+      question:
+        "Whether the user's selection should persist across sessions or page navigation.",
       answer: [
         "Both. The choice is remembered per user and survives moving between pages, reloading, and returning in a new session.",
         "A link ending `?display=count` shows that format without changing the reader's own saved choice.",
@@ -114,7 +126,8 @@ const percentageToggle: SpecSection = {
       requirementIds: ["PCT-06"],
     },
     {
-      question: "Reporting, export, and downstream impacts.",
+      question:
+        "Any reporting, export, or downstream impacts associated with this feature.",
       answer: [
         "Exports contain raw counts whatever the screen shows, because they are archived and reconciled. Templates carrying percentage columns state their base.",
         "Affected: the tabulation PDF, positions PDF and Excel, the broker breakout report, and the meeting reports list.",
@@ -477,7 +490,7 @@ const tooltipsAndNavigation: SpecSection = {
   id: "tooltips-glossary-navigation",
   title: "2. Tooltip and Glossary Navigation Enhancements",
   summary:
-    "Tooltips for key terms throughout the portal, and clicking a term to reach its glossary entry.",
+    "Requirements for updating the current tooltip experience for key terms and definitions throughout the portal. Specifically:",
   background: [
     "Glossary terms appearing in page text are underlined automatically. Hovering one shows its definition; clicking one opens the glossary at that term, over the page the reader was on.",
     "There are two kinds of marker. A dashed underline opens the glossary. A dotted underline explains on hover only, for terms inside a button, tab, or legend that already does something when clicked.",
@@ -485,7 +498,7 @@ const tooltipsAndNavigation: SpecSection = {
   ],
   topics: [
     {
-      question: "Which terms display tooltips.",
+      question: "Which terms should display tooltips.",
       answer: [
         "All 107 terms in the glossary, marked wherever they appear in page text — prose, card titles, chart legends, column headers, and empty states. Only the first mention in any one piece of text is marked.",
       ],
@@ -499,7 +512,7 @@ const tooltipsAndNavigation: SpecSection = {
       requirementIds: ["TIP-01"],
     },
     {
-      question: "Hover, click, or both.",
+      question: "Whether definitions should appear on hover, click, or both.",
       answer: [
         "Both, with different jobs. Hover or keyboard focus shows the definition; clicking opens the glossary at that term.",
         "Terms inside a control show on hover only, so the control keeps its click.",
@@ -507,7 +520,7 @@ const tooltipsAndNavigation: SpecSection = {
       requirementIds: ["TIP-03"],
     },
     {
-      question: "Accessibility and mobile.",
+      question: "Accessibility and mobile experience considerations.",
       answer: [
         "Markers are buttons, reachable by keyboard, with a visible focus outline. No definition is reachable by hover alone.",
         "On touch, one tap shows the definition, and targets are at least 44 by 44 pixels.",
@@ -515,14 +528,16 @@ const tooltipsAndNavigation: SpecSection = {
       requirementIds: ["TIP-06", "TIP-07"],
     },
     {
-      question: "Consistent terminology across the application.",
+      question:
+        "Any requirements for maintaining consistent terminology across the application.",
       answer: [
         "Consistency comes from the single definitions file rather than from review. A build check flags screen wording that uses a version of a term the file does not recognise.",
       ],
       requirementIds: ["TIP-01", "TIP-08"],
     },
     {
-      question: "Navigation behaviour.",
+      lead: "Additionally, we would like requirements for enabling users to click a term and be redirected directly to the corresponding entry within the Glossary of Terms. Please include:",
+      question: "Expected navigation behavior.",
       answer: [
         "Clicking a term opens the glossary over the current page, on that term. The page behind stays put.",
         "Closing returns focus to the word that was clicked, and Back returns the reader to where they were.",
@@ -530,7 +545,8 @@ const tooltipsAndNavigation: SpecSection = {
       requirementIds: ["TIP-05"],
     },
     {
-      question: "Deep linking and bookmarking.",
+      question:
+        "Whether glossary entries should support deep linking/bookmarking.",
       answer: [
         "Every term has an address that can be bookmarked or shared, and opening one goes straight to that definition.",
         "An address for a term that no longer exists explains itself rather than showing an error.",
@@ -538,7 +554,7 @@ const tooltipsAndNavigation: SpecSection = {
       requirementIds: ["TIP-04"],
     },
     {
-      question: "Permissions and user roles.",
+      question: "Any permissions or user-role considerations.",
       answer: [
         "None. Every signed-in role sees the same glossary, since definitions are reference material rather than client data.",
         "A signed-out visitor opening a term link lands on that term after logging in.",
@@ -764,7 +780,7 @@ const glossaryFormatting: SpecSection = {
   id: "glossary-formatting",
   title: "3. Glossary of Terms Formatting Updates",
   summary:
-    "How the glossary is laid out, grouped, searched, and read — on desktop and on a phone.",
+    "Requirements for the planned enhancements to the formatting and presentation of the Glossary of Terms. Areas of interest include:",
   background: [
     "The glossary is a drawer that rises from the bottom of the screen, three quarters of the height, opened either from **Glossary of Terms** in the support menu at the bottom right or by clicking any underlined term.",
     "It is a two-pane browser: a search box and category list on the left, the selected definition on the right, with buttons to copy the definition, copy a link to it, and step to the previous or next term.",
@@ -772,7 +788,7 @@ const glossaryFormatting: SpecSection = {
   ],
   topics: [
     {
-      question: "Layout and organisation of entries.",
+      question: "Desired layout and organization of glossary entries.",
       answer: [
         "A bottom drawer with the category list on the left and the selected definition on the right, plus copy and previous/next buttons.",
         "Each entry shows the term, its short forms, its group, and the definition.",
@@ -780,7 +796,7 @@ const glossaryFormatting: SpecSection = {
       requirementIds: ["GLO-01", "GLO-02"],
     },
     {
-      question: "Categorisation, grouping, and filtering.",
+      question: "Categorization, grouping, or filtering requirements.",
       answer: [
         "Terms are grouped into the 12 categories, sorted alphabetically within each.",
         "Filtering by category composes with search, and the category shown on an entry is itself a filter.",
@@ -788,28 +804,29 @@ const glossaryFormatting: SpecSection = {
       requirementIds: ["GLO-02", "GLO-03"],
     },
     {
-      question: "Search.",
+      question: "Search capabilities.",
       answer: [
         "Search matches the term, its short forms such as NOBO or Cede & Co., and the words inside definitions, with matched text highlighted.",
       ],
       requirementIds: ["GLO-04", "GLO-05"],
     },
     {
-      question: "UX and UI.",
+      question: "UX/UI design expectations.",
       answer: [
         "Matched text highlighted in results, terms inside a definition clickable, copy-text and copy-link buttons on each entry, and previous/next to step through.",
       ],
       requirementIds: ["GLO-01", "GLO-05", "GLO-06", "GLO-07"],
     },
     {
-      question: "Mobile responsiveness.",
+      question: "Mobile responsiveness considerations.",
       answer: [
         "On narrow screens the category list becomes a scrollable row of chips, the search box stays visible while scrolling, and the panes stack.",
       ],
       requirementIds: ["GLO-08"],
     },
     {
-      question: "Readability and navigation.",
+      question:
+        "Any visual updates intended to improve readability and navigation.",
       answer: [
         "Definitions are capped to a comfortable line length, the term is visibly heavier than its definition, and contrast passes in both light and dark themes.",
       ],

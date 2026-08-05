@@ -124,6 +124,10 @@ export const buildSpecMarkdown = (generatedOn: string): string => {
       lines.push("### Scope", "");
 
       for (const topic of section.topics) {
+        if (topic.lead !== undefined) {
+          lines.push(topic.lead, "");
+        }
+
         lines.push(`**${topic.question}**`, "");
 
         for (const paragraph of topic.answer) {
