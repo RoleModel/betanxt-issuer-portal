@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { components } from "@/domain-models/generated-schema";
 import { useMeeting } from "@/contexts/MeetingContext";
 import buildApiClient from "@/domain-models/apiClient";
+import { asArray, asRecord } from "@/utils/typeUtils";
 
 type ApiClient = Awaited<ReturnType<typeof buildApiClient>>;
 type Meeting = components["schemas"]["Meeting"];
@@ -35,7 +36,7 @@ interface HistoricalTabulationPoint {
   isCurrentMeeting: boolean;
 }
 
-export interface TabulationTrackerProps {
+export interface TabulationTrackerProperties {
   readonly meetingId?: string;
   readonly phase?: string;
 }
@@ -73,76 +74,85 @@ const createEmptySummary = (meeting: MeetingSummarySource): TabulationData => ({
   status: meeting.status ?? "",
 });
 
-const buildSummaryFromReport = (
+interface VoteCounts {
+  totalPositions: number;
+  votedPositions: number;
+  totalShares: number;
+  votedShares: number;
+  webVotes: number;
+  paperVotes: number;
+  phoneVotes: number;
+}
+
+const buildTabulationData = (
   meeting: MeetingSummarySource,
-  report: TabulationReport
+  counts: VoteCounts
 ): TabulationData => {
-  const { positionsVoted } = report;
-  const totalPositions =
-    (positionsVoted?.voted ?? 0) + (positionsVoted?.unvoted ?? 0);
-  const votedPositions = positionsVoted?.voted ?? 0;
-  const totalShares = positionsVoted?.totalShares ?? 0;
-  const votedShares = positionsVoted?.votedShares ?? 0;
+  const { totalShares, votedShares } = counts;
   const votePercentage =
     totalShares > 0 ? (votedShares / totalShares) * 100 : 0;
-
-  const nonDtc = report.nonDtcVoteStatus;
 
   return {
     meeting_id: meeting.id ?? "",
     meeting_title: meeting.title ?? "",
     meeting_date: meeting.meetingDate ?? "",
-    total_positions: totalPositions,
-    positions_voted: votedPositions,
+    total_positions: counts.totalPositions,
+    positions_voted: counts.votedPositions,
     total_shares: totalShares.toString(),
     shares_voted: votedShares.toString(),
     shares_unvoted: Math.max(totalShares - votedShares, 0).toString(),
     vote_percentage: votePercentage.toFixed(2),
-    web_votes: nonDtc?.webShareholders ?? 0,
-    paper_votes: nonDtc?.printShareholders ?? 0,
-    phone_votes: nonDtc?.ivrShareholders ?? 0,
+    web_votes: counts.webVotes,
+    paper_votes: counts.paperVotes,
+    phone_votes: counts.phoneVotes,
     status: meeting.status ?? "",
   };
+};
+
+const buildSummaryFromReport = (
+  meeting: MeetingSummarySource,
+  report: TabulationReport
+): TabulationData => {
+  const { positionsVoted, nonDtcVoteStatus } = report;
+
+  return buildTabulationData(meeting, {
+    totalPositions:
+      (positionsVoted?.voted ?? 0) + (positionsVoted?.unvoted ?? 0),
+    votedPositions: positionsVoted?.voted ?? 0,
+    totalShares: positionsVoted?.totalShares ?? 0,
+    votedShares: positionsVoted?.votedShares ?? 0,
+    webVotes: nonDtcVoteStatus?.webShareholders ?? 0,
+    paperVotes: nonDtcVoteStatus?.printShareholders ?? 0,
+    phoneVotes: nonDtcVoteStatus?.ivrShareholders ?? 0,
+  });
 };
 
 const buildSummaryFromPositions = (
   meeting: MeetingSummarySource,
   positions: Position[]
 ): TabulationData => {
-  const totalPositions = positions.length;
-  const votedPositions = positions.filter(
+  const votedPositionList = positions.filter(
     (position) => position.voteStatus === "Voted"
-  ).length;
-  const totalShares = positions.reduce(
-    (sum, position) => sum + (position.shares ?? 0),
+  );
+  const votedShares = votedPositionList.reduce(
+    (sum, position) => sum + (position.sharesVoted ?? position.shares ?? 0),
     0
   );
-  const votedShares = positions
-    .filter((position) => position.voteStatus === "Voted")
-    .reduce(
-      (sum, position) => sum + (position.sharesVoted ?? position.shares ?? 0),
-      0
-    );
-  const votePercentage =
-    totalShares > 0 ? (votedShares / totalShares) * 100 : 0;
 
-  return {
-    meeting_id: meeting.id ?? "",
-    meeting_title: meeting.title ?? "",
-    meeting_date: meeting.meetingDate ?? "",
-    total_positions: totalPositions,
-    positions_voted: votedPositions,
-    total_shares: totalShares.toString(),
-    shares_voted: votedShares.toString(),
-    shares_unvoted: Math.max(totalShares - votedShares, 0).toString(),
-    vote_percentage: votePercentage.toFixed(2),
-    web_votes: positions.filter((position) => position.source === "WEB").length,
-    paper_votes: positions.filter((position) => position.source === "PRINT")
+  return buildTabulationData(meeting, {
+    totalPositions: positions.length,
+    votedPositions: votedPositionList.length,
+    totalShares: positions.reduce(
+      (sum, position) => sum + (position.shares ?? 0),
+      0
+    ),
+    votedShares,
+    webVotes: positions.filter((position) => position.source === "WEB").length,
+    paperVotes: positions.filter((position) => position.source === "PRINT")
       .length,
-    phone_votes: positions.filter((position) => position.source === "IVR")
+    phoneVotes: positions.filter((position) => position.source === "IVR")
       .length,
-    status: meeting.status ?? "",
-  };
+  });
 };
 
 const fetchMeetingSummary = async (
@@ -153,33 +163,33 @@ const fetchMeetingSummary = async (
     return createEmptySummary(meeting);
   }
 
-  const tabulationResult = (await apiClient.GET(
-    "/meetings/{meetingId}/tabulation-report",
-    {
+  const tabulationResult = asRecord(
+    await apiClient.GET("/meetings/{meetingId}/tabulation-report", {
       params: {
         path: { meetingId: meeting.id },
       },
-    }
-  )) as { data?: TabulationReport; error?: unknown };
+    })
+  );
+  const tabulationReport = asRecord(tabulationResult?.data);
 
-  if (
-    tabulationResult.error === undefined &&
-    tabulationResult.data !== undefined
-  ) {
-    return buildSummaryFromReport(meeting, tabulationResult.data);
+  if (tabulationResult?.error === undefined && tabulationReport !== null) {
+    return buildSummaryFromReport(
+      meeting,
+      tabulationReport as TabulationReport
+    );
   }
 
-  const positionsResult = (await apiClient.GET("/positions", {
+  // listPositions wraps its array as `{ positions: [...] }` at runtime, even
+  // though the OpenAPI spec for this endpoint (incorrectly) documents a bare
+  // array — see mock-api-server/domain-models/api/positions.ts.
+  const positionsResult = await apiClient.GET("/positions", {
     params: { query: { meetingId: meeting.id } },
-  })) as { data?: { positions?: Position[] }; error?: unknown };
+  });
+  const positions = asArray<Position>(
+    asRecord(positionsResult.data)?.positions
+  );
 
-  const positions = positionsResult.data?.positions;
-
-  if (
-    positionsResult.error === undefined &&
-    positions !== undefined &&
-    Array.isArray(positions)
-  ) {
+  if (positionsResult.error === undefined && positions.length > 0) {
     return buildSummaryFromPositions(meeting, positions);
   }
 
@@ -223,13 +233,13 @@ const sortMeetingsBySeriesOrder = (
   }
 
   const firstDate = hasText(firstMeeting.meetingDate)
-    ? new Date(firstMeeting.meetingDate).getTime()
-    : 0;
+    ? new Date(firstMeeting.meetingDate)
+    : null;
   const secondDate = hasText(secondMeeting.meetingDate)
-    ? new Date(secondMeeting.meetingDate).getTime()
-    : 0;
+    ? new Date(secondMeeting.meetingDate)
+    : null;
 
-  return firstDate - secondDate;
+  return (firstDate?.getTime() ?? 0) - (secondDate?.getTime() ?? 0);
 };
 
 const toLocalMidnight = (dateString: string): Date | null => {
@@ -241,9 +251,96 @@ const toLocalMidnight = (dateString: string): Date | null => {
   return date;
 };
 
+interface ComparableMeetingContext {
+  meetingType: string;
+  cusip?: string | null;
+}
+
+const isComparableMeeting = (
+  meeting: Meeting,
+  context: ComparableMeetingContext,
+  currentMeetingId?: string
+): boolean => {
+  if (!hasText(meeting.id) || meeting.meetingType !== context.meetingType) {
+    return false;
+  }
+
+  const isCusipMatches =
+    !hasText(context.cusip) || meeting.cusip === context.cusip;
+  const isIncluded =
+    meeting.id === currentMeetingId || meeting.status === "COMPLETE";
+
+  return isCusipMatches && isIncluded;
+};
+
+interface HistoricalMeetingSource {
+  ticker: string;
+  meetingType: string;
+  cusip?: string | null;
+}
+
+// No try/catch here on purpose: the caller's try/catch handles failures, and
+// keeping this function throw-free-of-its-own-try keeps unicorn/try-complexity
+// happy without hiding the branching logic behind a disable comment.
+const fetchComparableMeetings = async (
+  apiClient: ApiClient,
+  currentMeeting: HistoricalMeetingSource,
+  currentMeetingId?: string
+): Promise<HistoricalTabulationPoint[]> => {
+  const { data, error } = await apiClient.GET("/meetings", {
+    params: {
+      query: {
+        ticker: currentMeeting.ticker,
+        limit: 200,
+      },
+    },
+  });
+
+  if (error !== undefined) {
+    throw new Error("Failed to fetch comparable meetings");
+  }
+
+  // The route returns `{ meetings: [...] }`, not a bare array.
+  const rawMeetings = asArray<Meeting>(asRecord(data)?.meetings);
+  const comparableMeetings = rawMeetings
+    .filter((meeting) =>
+      isComparableMeeting(meeting, currentMeeting, currentMeetingId)
+    )
+    .toSorted(sortMeetingsBySeriesOrder);
+
+  // Promise.all's op_mini gap is not a real concern for this app; there is no op_mini target in this project's browserslist.
+  // eslint-disable-next-line compat/compat
+  const settledHistoricalData = await Promise.all(
+    comparableMeetings.map(
+      async (comparableMeeting): Promise<HistoricalTabulationPoint | null> => {
+        if (!hasText(comparableMeeting.id)) {
+          return null;
+        }
+
+        const summary = await fetchMeetingSummary(apiClient, comparableMeeting);
+
+        return {
+          meetingId: summary.meeting_id,
+          yearLabel:
+            comparableMeeting.meetingYear?.toString() ??
+            parseMeetingYearInfo(summary.meeting_id)?.currentYear.toString() ??
+            "Unknown",
+          votedShares: Number(summary.shares_voted),
+          unvotedShares: Number(summary.shares_unvoted),
+          isCurrentMeeting: comparableMeeting.id === currentMeetingId,
+        };
+      }
+    )
+  );
+
+  return settledHistoricalData.filter(
+    (point): point is HistoricalTabulationPoint => point !== null
+  );
+};
+
 export const useTabulationTrackerData = ({
   meetingId,
-}: TabulationTrackerProps) => {
+}: TabulationTrackerProperties) => {
   const { currentMeeting } = useMeeting();
   const [data, setData] = useState<TabulationData | null>(null);
   const [historicalData, setHistoricalData] = useState<
@@ -282,30 +379,24 @@ export const useTabulationTrackerData = ({
         return;
       }
 
+      const summarySource: MeetingSummarySource = {
+        id: currentMeetingId,
+        title: currentMeeting?.title,
+        meetingDate: currentMeeting?.meetingDate,
+        status: currentMeeting?.status,
+      };
+
+      let summary: TabulationData;
       try {
         const apiClient = await buildApiClient();
-        const summary = await fetchMeetingSummary(apiClient, {
-          id: currentMeetingId,
-          title: currentMeeting?.title,
-          meetingDate: currentMeeting?.meetingDate,
-          status: currentMeeting?.status,
-        });
-
-        if (!isIgnore) {
-          setData(summary);
-        }
+        summary = await fetchMeetingSummary(apiClient, summarySource);
       } catch (error) {
         console.error("Error fetching tabulation data:", error);
-        if (!isIgnore) {
-          setData(
-            createEmptySummary({
-              id: currentMeetingId,
-              title: currentMeeting?.title,
-              meetingDate: currentMeeting?.meetingDate,
-              status: currentMeeting?.status,
-            })
-          );
-        }
+        summary = createEmptySummary(summarySource);
+      }
+
+      if (!isIgnore) {
+        setData(summary);
       }
     };
 
@@ -337,86 +428,28 @@ export const useTabulationTrackerData = ({
         return;
       }
 
-      if (isSpecialMeeting(currentMeeting.meetingType)) {
+      const { ticker, meetingType, cusip } = currentMeeting;
+
+      if (isSpecialMeeting(meetingType)) {
         setHistoricalData([]);
         return;
       }
 
+      let nextHistoricalData: HistoricalTabulationPoint[];
       try {
         const apiClient = await buildApiClient();
-        const comparableMeetingsResult = (await apiClient.GET("/meetings", {
-          params: {
-            query: {
-              ticker: currentMeeting.ticker,
-              limit: 200,
-            },
-          },
-        })) as {
-          data?: Meeting[] | { meetings?: Meeting[] };
-          error?: unknown;
-        };
-
-        if (comparableMeetingsResult.error !== undefined) {
-          throw new Error("Failed to fetch comparable meetings");
-        }
-
-        const rawMeetings = Array.isArray(comparableMeetingsResult.data)
-          ? comparableMeetingsResult.data
-          : (comparableMeetingsResult.data?.meetings ?? []);
-        const comparableMeetings = rawMeetings
-          .filter(
-            (meeting) =>
-              hasText(meeting.id) &&
-              meeting.meetingType === currentMeeting.meetingType &&
-              (!hasText(currentMeeting.cusip) ||
-                meeting.cusip === currentMeeting.cusip) &&
-              (meeting.id === currentMeetingId || meeting.status === "COMPLETE")
-          )
-          .sort(sortMeetingsBySeriesOrder);
-
-        const settledHistoricalData = await Promise.all(
-          comparableMeetings.map(
-            async (
-              comparableMeeting
-            ): Promise<HistoricalTabulationPoint | null> => {
-              if (!hasText(comparableMeeting.id)) {
-                return null;
-              }
-
-              const summary = await fetchMeetingSummary(
-                apiClient,
-                comparableMeeting
-              );
-
-              return {
-                meetingId: summary.meeting_id,
-                yearLabel:
-                  comparableMeeting.meetingYear?.toString() ??
-                  parseMeetingYearInfo(
-                    summary.meeting_id
-                  )?.currentYear.toString() ??
-                  "Unknown",
-                votedShares: Number(summary.shares_voted),
-                unvotedShares: Number(summary.shares_unvoted),
-                isCurrentMeeting: comparableMeeting.id === currentMeetingId,
-              };
-            }
-          )
+        nextHistoricalData = await fetchComparableMeetings(
+          apiClient,
+          { ticker, meetingType, cusip },
+          currentMeetingId
         );
-
-        const nextHistoricalData: HistoricalTabulationPoint[] =
-          settledHistoricalData.filter(
-            (point): point is HistoricalTabulationPoint => point !== null
-          );
-
-        if (!isIgnore) {
-          setHistoricalData(nextHistoricalData);
-        }
       } catch (error) {
         console.error("Error fetching previous year data:", error);
-        if (!isIgnore) {
-          setHistoricalData([]);
-        }
+        nextHistoricalData = [];
+      }
+
+      if (!isIgnore) {
+        setHistoricalData(nextHistoricalData);
       }
     };
 
