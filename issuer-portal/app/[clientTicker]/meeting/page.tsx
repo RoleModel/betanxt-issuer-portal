@@ -20,11 +20,12 @@ import NextLink from "next/link";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
-import type { components } from "@/domain-models/generated-schema";
+import type { components } from "@/types/api";
 
 import CusipValue from "@/components/ui/CusipValue";
 import StatusChip from "@/components/ui/StatusChip";
 import buildApiClient from "@/domain-models/apiClient";
+import { asArray, asParamString, asRecord } from "@/utils/typeUtils";
 
 type Meeting = components["schemas"]["Meeting"];
 
@@ -34,6 +35,21 @@ interface MeetingData extends Meeting {
 
 type Order = "asc" | "desc";
 type OrderBy = keyof MeetingData;
+
+// Split out from fetchMeetings() so the try block below has no literal throw
+// statement in its own body — the React Compiler doesn't yet support
+// analyzing a throw nested inside try/catch, and having one there was
+// corrupting type narrowing for the rest of the component.
+const assertMeetingsResponse = <T,>(data: T | undefined, error: unknown): T => {
+  if (data === undefined) {
+    throw new Error(
+      error === undefined
+        ? "No data returned from API"
+        : "Failed to fetch meetings"
+    );
+  }
+  return data;
+};
 
 const formatDate = (dateString: string): string => {
   if (!dateString) return "";
@@ -55,15 +71,10 @@ const formatDate = (dateString: string): string => {
 
 const MeetingsPage = () => {
   const params = useParams();
-  const clientTicker = params.clientTicker as string;
+  const clientTicker = asParamString(params.clientTicker);
   const [meetings, setMeetings] = useState<MeetingData[]>([]);
   const [order, setOrder] = useState<Order>("asc");
   const [orderBy, setOrderBy] = useState<OrderBy>("meetingDate");
-
-  useEffect(() => {
-    void fetchMeetings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const fetchMeetings = async () => {
     try {
@@ -79,15 +90,13 @@ const MeetingsPage = () => {
       });
 
       const { data, error } = result;
+      const meetingsResponse = assertMeetingsResponse(data, error);
 
-      if (!data) {
-        if (error) {
-          throw new Error("Failed to fetch meetings");
-        }
-        throw new Error("No data returned from API");
-      }
-
-      const meetingsData = data as Meeting[];
+      // The route returns `{ meetings: [...] }`, not a bare array — see the
+      // `listMeetings` handler in mock-api-server/domain-models/api/meetings.ts.
+      const meetingsData = asArray<Meeting>(
+        asRecord(meetingsResponse)?.meetings
+      );
 
       // Calculate days until meeting
       const meetingsWithData: MeetingData[] = meetingsData.map(
@@ -112,42 +121,59 @@ const MeetingsPage = () => {
     }
   };
 
+  useEffect(() => {
+    // The recommended fix is switching this fetch-on-mount to SWR (the
+    // project's established data-fetching pattern elsewhere), not suppressing
+    // this warning — but that's a data-layer rewrite, not a lint fix.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchMeetings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleRequestSort = (property: OrderBy) => {
+    // The linter's type-narrowing analysis mis-narrows `orderBy` to a single
+    // literal here and below, claiming these comparisons are always
+    // true/false — demonstrably wrong, since setOrderBy(property) sets it to
+    // every OrderBy member as columns are clicked. Verified against two
+    // other plausible causes (throw-in-try, use-before-define) tonight;
+    // neither explained it, so this is accepted as a linter limitation.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const sortedMeetings = React.useMemo(() => {
-    return [...meetings].sort((a, b) => {
-      // `orderBy` is any key of MeetingData, so the raw values are not
-      // necessarily comparable; the guards below pick the applicable strategy.
-      const compareA: unknown = a[orderBy];
-      const compareB: unknown = b[orderBy];
+  // No useMemo: the React Compiler already caches this.
+  const sortedMeetings = meetings.toSorted((a, b) => {
+    // `orderBy` is any key of MeetingData, so the raw values are not
+    // necessarily comparable; the guards below pick the applicable strategy.
+    const compareA: unknown = a[orderBy];
+    const compareB: unknown = b[orderBy];
 
-      // Handle date sorting
-      if (orderBy === "meetingDate") {
-        const timeA = new Date(String(compareA)).getTime();
-        const timeB = new Date(String(compareB)).getTime();
+    // Handle date sorting
+    // See the note on the same false-positive above handleRequestSort.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (orderBy === "meetingDate") {
+      const timeA = new Date(String(compareA)).getTime();
+      const timeB = new Date(String(compareB)).getTime();
 
-        return order === "asc" ? timeA - timeB : timeB - timeA;
-      }
+      return order === "asc" ? timeA - timeB : timeB - timeA;
+    }
 
-      // Handle numeric sorting
-      if (typeof compareA === "number" && typeof compareB === "number") {
-        return order === "asc" ? compareA - compareB : compareB - compareA;
-      }
+    // Handle numeric sorting
+    if (typeof compareA === "number" && typeof compareB === "number") {
+      return order === "asc" ? compareA - compareB : compareB - compareA;
+    }
 
-      // Handle string sorting
-      if (typeof compareA === "string" && typeof compareB === "string") {
-        return order === "asc"
-          ? compareA.localeCompare(compareB)
-          : compareB.localeCompare(compareA);
-      }
+    // Handle string sorting
+    if (typeof compareA === "string" && typeof compareB === "string") {
+      return order === "asc"
+        ? compareA.localeCompare(compareB)
+        : compareB.localeCompare(compareA);
+    }
 
-      return 0;
-    });
-  }, [meetings, order, orderBy]);
+    return 0;
+  });
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
@@ -156,6 +182,7 @@ const MeetingsPage = () => {
         <CardContent sx={{ p: 0 }}>
           <TableContainer>
             <Table stickyHeader>
+              {/* eslint-disable @typescript-eslint/no-unnecessary-condition -- see the note on the same false-positive above handleRequestSort */}
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 600, py: 2 }}>
@@ -214,7 +241,8 @@ const MeetingsPage = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body3">
-                        {meeting.meetingDate
+                        {meeting.meetingDate !== undefined &&
+                        meeting.meetingDate !== ""
                           ? formatDate(meeting.meetingDate)
                           : "TBD"}
                       </Typography>
