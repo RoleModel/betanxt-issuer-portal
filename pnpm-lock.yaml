@@ -178,27 +178,6 @@ importers:
         specifier: 7.9.4
         version: 7.9.4(@typescript/typescript6@6.0.2)(eslint@10.8.0(jiti@2.6.1))(oxfmt@0.53.0)(oxlint@1.76.0)
 
-  client-theming:
-    devDependencies:
-      '@mui/material':
-        specifier: ^7
-        version: 7.3.11(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@types/node':
-        specifier: ^24
-        version: 24.13.3
-      '@types/react':
-        specifier: ^18.3.31
-        version: 18.3.31
-      react:
-        specifier: ^19
-        version: 19.2.8
-      react-dom:
-        specifier: ^19
-        version: 19.2.8(react@19.2.8)
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-
   issuer-portal:
     dependencies:
       '@ai-sdk/openai':
