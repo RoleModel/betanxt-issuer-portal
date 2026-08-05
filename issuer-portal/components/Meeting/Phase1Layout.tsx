@@ -9,7 +9,7 @@ import type { Meeting } from "@/types/api-exports";
 
 import DocumentHostingCard from "@/components/Meeting/DocumentHostingCard";
 import KeyDatesCard from "@/components/Meeting/KeyDatesCard";
-import QuorumGaugeCard from "@/components/Meeting/QuorumGaugeCard";
+import QuorumGaugeCard from "@/components/Charts/QuorumGauge/QuorumGaugeCard";
 import buildApiClient from "@/domain-models/apiClient";
 import { buildQuorumGaugeModel } from "@/utils/quorum";
 

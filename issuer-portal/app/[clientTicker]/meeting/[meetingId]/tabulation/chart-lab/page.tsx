@@ -17,11 +17,11 @@ import {
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
-import BeneficialVsRegisteredCard from "@/components/Tabulation/BeneficialVsRegisteredCard";
-import { ConsolidatedVoteChart } from "@/components/Tabulation/chart-lab/ConsolidatedVoteChart";
-import { ResponseRateTimeline } from "@/components/Tabulation/chart-lab/ResponseRateTimeline";
-import { useVoteBreakdown } from "@/components/Tabulation/chart-lab/useVoteBreakdown";
-import VotingActivityCard from "@/components/Tabulation/VotingActivityCard";
+import BeneficialVsRegisteredCard from "@/components/Charts/BeneficialVsRegistered/BeneficialVsRegisteredCard";
+import { ConsolidatedVoteChart } from "@/components/Charts/ConsolidatedVote/ConsolidatedVoteChart";
+import { ResponseRateTimeline } from "@/components/Charts/ResponseRateTimeline/ResponseRateTimeline";
+import { useVoteBreakdown } from "@/components/Charts/ConsolidatedVote/useVoteBreakdown";
+import VotingActivityCard from "@/components/Charts/VotingActivity/VotingActivityCard";
 
 /**
  * Exploration surface, not production UI.

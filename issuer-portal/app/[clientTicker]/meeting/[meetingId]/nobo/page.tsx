@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 
 import { NoboPositionsTable } from "@/components/Nobo/NoboPositionsTable";
-import { GeoHeatmapCard } from "@/components/Reporting/GeoHeatmapCard";
+import { GeoHeatmapCard } from "@/components/Charts/GeoHeatmap/GeoHeatmapCard";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useNoboPositions } from "@/hooks/useNoboPositions";
 

@@ -46,7 +46,7 @@ const FeatureTile = dynamic(
 );
 
 const SharesVotedChart = dynamic(
-  async () => await import("@/components/Meeting/SharesVotedChart"),
+  async () => await import("@/components/Charts/SharesVoted/SharesVotedChart"),
   {
     loading: () => <Skeleton variant="rectangular" height={300} />,
     ssr: false,

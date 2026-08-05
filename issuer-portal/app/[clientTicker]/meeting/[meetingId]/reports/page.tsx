@@ -5,8 +5,8 @@ import Grid from "@mui/material/Grid";
 
 import DownloadReportsTable from "@/components/Reporting/DownloadReportsTable";
 import TabulationReportCard from "@/components/Reporting/TabulationReportCard";
-import VoteDistributionChart from "@/components/Reporting/VoteDistributionChart";
-import { buildVoteDistributionData } from "@/components/Reporting/vote-distribution-chart-data";
+import VoteDistributionChart from "@/components/Charts/VoteDistribution/VoteDistributionChart";
+import { buildVoteDistributionData } from "@/components/Charts/VoteDistribution/vote-distribution-chart-data";
 import { useMeeting } from "@/contexts/MeetingContext";
 
 const ReportsPage = () => {
