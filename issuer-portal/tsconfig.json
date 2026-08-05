@@ -33,7 +33,9 @@
       "@/lib/*": ["./lib/*"],
       "@/theme/*": ["./components/mui-styling/theme/*"],
       "@backend/*": ["../mock-api-server/*"],
-      "@rolemodel/*": ["./node_modules/@rolemodel/betanxt-design-system/*"]
+      "@rolemodel/betanxt-design-system/*": [
+        "./node_modules/@rolemodel/betanxt-design-system/*"
+      ]
     },
     "types": ["node", "react/experimental"],
     "noErrorTruncation": true

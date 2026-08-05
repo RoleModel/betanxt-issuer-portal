@@ -14,6 +14,9 @@ importers:
 
   .:
     dependencies:
+      '@rolemodel/client-theming':
+        specifier: 0.1.3
+        version: 0.1.3(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@snaplet/copycat':
         specifier: ^6.0.0
         version: 6.0.0
@@ -271,8 +274,8 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2(93f4d8aa7b1a17a74594da0f96f0368f)
       '@rolemodel/client-theming':
-        specifier: workspace:*
-        version: link:../client-theming
+        specifier: ^0.1.3
+        version: 0.1.3(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@sentry/nextjs':
         specifier: ^10.69.0
         version: 10.69.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(next@16.2.12(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.62.1)(@types/node@24.13.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(webpack@5.109.2(postcss@8.5.25))
@@ -2994,6 +2997,13 @@ packages:
         optional: true
       uuid:
         optional: true
+
+  '@rolemodel/client-theming@0.1.3':
+    resolution: {integrity: sha512-p84eQRbQLJ90fKlz3Q+61duEd1Zye6ofDKX++r+SiVF6wV4mpkmrip/TE8aUveEszs8eyc6h5fCs1fVyEox/vw==, tarball: https://npm.pkg.github.com/download/@rolemodel/client-theming/0.1.3/2fdeb77ac89832397b8bd3eeb4275ecdb7c61f2f}
+    peerDependencies:
+      '@mui/material': '>=6'
+      react: '>=18'
+      react-dom: '>=18'
 
   '@rollup/plugin-commonjs@28.0.1':
     resolution: {integrity: sha512-+tNWdlWKbpB3WgBN7ijjYkq9X5uhjmcvyjEght4NmH5fAU++zfQzAJ6wumLS+dNcvwEZhKx2Z+skY8m7v0wGSA==}
@@ -10445,6 +10455,12 @@ snapshots:
       '@mui/x-data-grid-pro': 9.10.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react@19.2.8))(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@mui/system@7.3.11(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react-dropzone: 14.4.1(react@19.2.8)
       uuid: 13.0.2
+
+  '@rolemodel/client-theming@0.1.3(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@mui/material': 7.3.11(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react@19.2.8))(@types/react@18.3.31)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
 
   '@rollup/plugin-commonjs@28.0.1(rollup@4.62.4)':
     dependencies:
