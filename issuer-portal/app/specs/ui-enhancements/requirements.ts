@@ -717,23 +717,6 @@ const tooltipsAndNavigation: SpecSection = {
         "Given any signed-in role, when they open any term, then it shows.",
       ],
     },
-    {
-      id: "TIP-10",
-      screens: [
-        {
-          href: "/WEN/meeting/wen-special-meeting-2026/tabulation",
-          label: "Tabulation — open a definition",
-        },
-      ],
-      title: "Lookups are recorded",
-      statement:
-        "Opening a definition or running a glossary search records the term and the screen it came from.",
-      rationale:
-        "The most looked-up words are the ones whose on-screen labels are unclear — the cheapest signal for what to reword.",
-      acceptance: [
-        "Given a user opens a definition, when it is recorded, then the term and the screen are captured.",
-      ],
-    },
   ],
   tables: [
     {
