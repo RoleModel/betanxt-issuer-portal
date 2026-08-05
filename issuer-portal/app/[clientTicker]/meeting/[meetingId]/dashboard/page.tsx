@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 
 import { useMeeting } from "@/contexts/MeetingContext";
+import { asParamString } from "@/utils/typeUtils";
 
 const parsePhaseNumber = (
   phase: string | number | null | undefined
@@ -31,22 +32,30 @@ const MeetingDashboardRedirect = () => {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const meetingId = params.meetingId as string;
-  const clientTicker = params.clientTicker as string;
+  const meetingId = asParamString(params.meetingId);
+  const clientTicker = asParamString(params.clientTicker);
   const { error, currentMeeting: meeting, isLoading } = useMeeting();
 
   useEffect(() => {
     // Wait for meeting to load before attempting redirect
-    if (isLoading) {
+    if (isLoading === true) {
       return;
     }
 
     // Only redirect if the meeting ID matches the URL and we have phase info
-    if (meeting?.id === meetingId && meeting?.currentPhase) {
+    if (
+      meeting?.id === meetingId &&
+      meeting?.currentPhase !== undefined &&
+      meeting.currentPhase !== ""
+    ) {
       // Use the meeting's current phase instead of looking for active phase in phases array
       const currentPhase = parsePhaseNumber(meeting.currentPhase);
       const search = searchParams.toString();
       const targetPath = `/${clientTicker}/meeting/${meetingId}/dashboard/${currentPhase}${search ? `?${search}` : ""}`;
+      // This redirect target depends on client-only data (useMeeting()'s
+      // load state and the fetched meeting's currentPhase), so it can't move
+      // to a server-side redirect without also moving that data fetch there.
+      // eslint-disable-next-line react-doctor/nextjs-no-client-side-redirect
       router.replace(targetPath);
     }
   }, [
@@ -59,7 +68,7 @@ const MeetingDashboardRedirect = () => {
     searchParams,
   ]);
 
-  if (error) {
+  if (error !== null) {
     return (
       <Box p={2}>
         <Typography color="error">Error: {error}</Typography>
