@@ -1,4 +1,3 @@
-/* eslint-disable react-doctor/react-compiler-no-manual-memoization */
 "use client";
 
 import { EditOutlined as EditOutlinedIcon } from "@mui/icons-material";
