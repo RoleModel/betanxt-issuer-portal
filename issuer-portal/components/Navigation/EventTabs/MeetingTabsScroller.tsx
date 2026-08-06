@@ -1,4 +1,3 @@
-/* eslint-disable react-doctor/react-compiler-no-manual-memoization */
 "use client";
 
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";

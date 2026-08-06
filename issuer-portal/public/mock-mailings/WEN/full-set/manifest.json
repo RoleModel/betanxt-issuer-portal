@@ -1,0 +1,16 @@
+{
+  "pieces": [
+    {
+      "file": "notice.pdf",
+      "label": "Notice of Annual Meeting"
+    },
+    {
+      "file": "proxy-statement.pdf",
+      "label": "Proxy Statement"
+    },
+    {
+      "file": "annual-report.pdf",
+      "label": "Annual Report (Form 10-K)"
+    }
+  ]
+}

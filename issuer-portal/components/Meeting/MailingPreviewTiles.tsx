@@ -1,9 +1,7 @@
 "use client";
 
 import { MailOutlineOutlined } from "@mui/icons-material";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { Box, Collapse, IconButton, Skeleton, Typography } from "@mui/material";
+import { Box, Skeleton, Tooltip } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTheme } from "@mui/material/styles";
 import dynamic from "next/dynamic";
@@ -32,8 +30,11 @@ const DocumentViewer = dynamic(
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
-/** Width, in px, of each preview thumbnail. */
+/** Width, in px, of the single NAA / Electronic preview thumbnail. */
 const thumbnailWidth = 60;
+
+/** Width, in px, of each piece thumbnail in the Full Set grid. */
+const pieceThumbnailWidth = 40;
 
 interface ActivePreview {
   readonly title: string;
@@ -42,7 +43,7 @@ interface ActivePreview {
   readonly isWebsite: boolean;
 }
 
-/** One piece of the Full Set package, thumbnailed in the expanded row. */
+/** One piece of the Full Set package, thumbnailed in the tile's grid. */
 interface FullSetItem {
   readonly key: string;
   readonly label: string;
@@ -52,7 +53,7 @@ interface FullSetItem {
 /**
  * The mailing pieces a Full Set package can contain, in mailing order. The
  * operations team stores these in the database per meeting, so which pieces
- * appear — typically 3–5 — varies by event and the row sizes to what exists.
+ * appear — typically 3–5 — varies by event and the grid sizes to what exists.
  */
 const FULL_SET_PIECES: readonly {
   readonly matches: (documentType: string) => boolean;
@@ -89,15 +90,39 @@ const formatNumber = (value: number | null | undefined): string =>
   value === null || value === undefined ? "0" : value.toLocaleString("en-US");
 
 /**
- * The Full Set pieces stored in the database for this meeting, in mailing
- * order. Falls back to the generated complete package when the database has
- * no individual pieces, so the expanded row is never empty.
+ * The manifest written next to each client's split Full Set pieces by
+ * scripts/split-full-set-pdfs.ts.
+ */
+interface PieceManifest {
+  readonly pieces: readonly { readonly file: string; readonly label: string }[];
+}
+
+const isPieceManifest = (value: unknown): value is PieceManifest => {
+  if (typeof value !== "object" || value === null) return false;
+  const { pieces } = value as Record<string, unknown>;
+  return (
+    Array.isArray(pieces) &&
+    pieces.every((piece) => {
+      if (typeof piece !== "object" || piece === null) return false;
+      const { file, label } = piece as Record<string, unknown>;
+      return typeof file === "string" && typeof label === "string";
+    })
+  );
+};
+
+/**
+ * The Full Set pieces for this meeting, in mailing order. Database documents
+ * win — the operations team stores mailing materials there — then the split
+ * static pieces, then the merged generated package, so the grid always has
+ * something to show.
  */
 const toFullSetItems = (
   documents: readonly Document[] | undefined,
+  manifest: PieceManifest | undefined,
+  ticker: string,
   fallbackUrl: string
 ): FullSetItem[] => {
-  const items: FullSetItem[] = [];
+  const fromDatabase: FullSetItem[] = [];
 
   for (const piece of FULL_SET_PIECES) {
     const match = (documents ?? []).find(
@@ -108,23 +133,29 @@ const toFullSetItems = (
         piece.matches(document.type.toLowerCase())
     );
     if (match?.id !== undefined && hasNonEmptyString(match.filePath)) {
-      items.push({
+      fromDatabase.push({
         key: match.id,
         label: piece.label,
         fileUrl: match.filePath,
       });
     }
   }
+  if (fromDatabase.length > 0) return fromDatabase;
 
-  return items.length > 0
-    ? items
-    : [
-        {
-          key: "full-set-package",
-          label: "Complete Proxy Package",
-          fileUrl: fallbackUrl,
-        },
-      ];
+  const fromManifest = (manifest?.pieces ?? []).map((piece) => ({
+    key: piece.file,
+    label: piece.label,
+    fileUrl: `/mock-mailings/${ticker}/full-set/${piece.file}`,
+  }));
+  if (fromManifest.length > 0) return fromManifest;
+
+  return [
+    {
+      key: "full-set-package",
+      label: "Complete Proxy Package",
+      fileUrl: fallbackUrl,
+    },
+  ];
 };
 
 /**
@@ -202,11 +233,11 @@ interface MailingPreviewTilesProps {
 /**
  * The three Primary Mailing Summary tiles (Full Set, NAA, Electronic). NAA and
  * Electronic each carry exactly one clickable thumbnail of what was mailed.
- * Full Set holds a variable number of pieces, so its tile toggles an
- * expandable row beneath the tiles — mirroring the tabulation table's
- * expandable rows — showing one thumbnail per piece, pulled from the meeting's
- * documents in the database. Clicking any thumbnail opens the document viewer
- * for a full-size preview.
+ * Full Set is a package of pieces — typically 3–5, varying by event — so its
+ * tile carries a grid with one thumbnail per piece, sized to however many
+ * pieces the package holds. Pieces come from the meeting's documents in the
+ * database, falling back to the split static package. Clicking any thumbnail
+ * opens the document viewer for a full-size preview.
  */
 const MailingPreviewTiles = ({
   loading,
@@ -220,7 +251,6 @@ const MailingPreviewTiles = ({
   const [activePreview, setActivePreview] = useState<ActivePreview | null>(
     null
   );
-  const [fullSetExpanded, setFullSetExpanded] = useState(false);
 
   const ticker =
     typeof params.clientTicker === "string"
@@ -265,9 +295,24 @@ const MailingPreviewTiles = ({
     { revalidateOnFocus: false }
   );
 
+  // The split static pieces, for clients whose mailing documents are not in
+  // the database. 404s (unsplit packages) resolve to undefined.
+  const { data: pieceManifest } = useSWR<PieceManifest | undefined>(
+    ticker.length > 0
+      ? `/mock-mailings/${ticker}/full-set/manifest.json`
+      : null,
+    async (url: string) => {
+      const response = await fetch(url);
+      if (!response.ok) return undefined;
+      const json: unknown = await response.json();
+      return isPieceManifest(json) ? json : undefined;
+    },
+    { revalidateOnFocus: false }
+  );
+
   const fullSetItems = useMemo(
-    () => toFullSetItems(meetingDocuments, fullSetUrl),
-    [meetingDocuments, fullSetUrl]
+    () => toFullSetItems(meetingDocuments, pieceManifest, ticker, fullSetUrl),
+    [meetingDocuments, pieceManifest, ticker, fullSetUrl]
   );
 
   // Every client-identifying field must be overridden here — the preview
@@ -295,8 +340,6 @@ const MailingPreviewTiles = ({
     [company, companyLegal, brandColor, ticker, brand]
   );
 
-  const fullSetRowOpen = fullSetExpanded && !loading;
-
   const openPdf = (title: string, fileUrl: string) => {
     setActivePreview({ title, fileUrl, isWebsite: false });
   };
@@ -316,20 +359,31 @@ const MailingPreviewTiles = ({
       subtitle: "Full Set",
       value: fullSetPositions,
       thumbnail: (
-        <IconButton
-          aria-expanded={fullSetExpanded}
-          aria-label={`${fullSetExpanded ? "Hide" : "Show"} full set contents`}
-          onClick={() => {
-            setFullSetExpanded((expanded) => !expanded);
+        // One thumbnail per piece in the package. The grid wraps, so 1, 3,
+        // 4, or 5 pieces all read well inside the tile.
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+            gap: 0.75,
+            maxWidth: (pieceThumbnailWidth + 6) * 3,
           }}
-          size="small"
         >
-          {fullSetExpanded ? (
-            <KeyboardArrowUpIcon />
-          ) : (
-            <KeyboardArrowDownIcon />
-          )}
-        </IconButton>
+          {fullSetItems.map((item) => (
+            <Tooltip key={item.key} title={item.label}>
+              <Box>
+                <DocumentThumbnail
+                  filePath={item.fileUrl}
+                  width={pieceThumbnailWidth}
+                  onClick={() => {
+                    openPdf(`Full Set — ${item.label}`, item.fileUrl);
+                  }}
+                />
+              </Box>
+            </Tooltip>
+          ))}
+        </Box>
       ),
     },
     {
@@ -384,51 +438,6 @@ const MailingPreviewTiles = ({
           </Grid>
         ))}
       </Grid>
-
-      {/* The Full Set contents, one thumbnail per piece stored for the
-          meeting. The row wraps fluidly so 3, 4, or 5 pieces all read well. */}
-      <Collapse in={fullSetRowOpen} unmountOnExit>
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 2,
-            p: 2,
-            borderRadius: 1,
-            border: "1px solid",
-            borderColor: "divider",
-            backgroundColor: "background.default",
-          }}
-        >
-          {fullSetItems.map((item) => (
-            <Box
-              key={item.key}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 0.5,
-                width: 96,
-              }}
-            >
-              <DocumentThumbnail
-                filePath={item.fileUrl}
-                width={thumbnailWidth}
-                onClick={() => {
-                  openPdf(`Full Set — ${item.label}`, item.fileUrl);
-                }}
-              />
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                align="center"
-              >
-                {item.label}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Collapse>
 
       <DocumentViewer
         open={activePreview !== null}

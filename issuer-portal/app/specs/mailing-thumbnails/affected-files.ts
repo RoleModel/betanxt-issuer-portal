@@ -42,9 +42,12 @@ export const AFFECTED_GROUPS: readonly AffectedGroup[] = [
   },
   {
     folder: "current/generators",
-    label: "The mock-mailing PDF generator",
+    label: "The mock-mailing PDF generator and splitter",
     sectionId: "generated-mailing-documents",
-    paths: ["scripts/generate-mock-mailing-pdfs.tsx"],
+    paths: [
+      "scripts/generate-mock-mailing-pdfs.tsx",
+      "scripts/split-full-set-pdfs.ts",
+    ],
   },
 ];
 
@@ -103,6 +106,12 @@ export const SCREEN_LINKS: Record<string, readonly ScreenLink[]> = {
     {
       href: "/WEN/meeting/wen-special-meeting-2026/mailing",
       label: "Mailing — Full Set / NAA previews",
+    },
+  ],
+  "scripts/split-full-set-pdfs.ts": [
+    {
+      href: "/WEN/meeting/wen-special-meeting-2026/mailing",
+      label: "Mailing — Full Set grid",
     },
   ],
 };

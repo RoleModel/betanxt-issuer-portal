@@ -3,12 +3,16 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 "use client";
 
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import {
+  Badge,
   Box,
   Card,
   CardContent,
   CardHeader,
   Chip,
+  IconButton,
   Stack,
   Table,
   TableBody,
@@ -20,6 +24,7 @@ import {
   Typography,
 } from "@mui/material";
 import DocumentStackIcon from "@rolemodel/betanxt-design-system/components/icons/brand/DocumentStackIcon";
+import { useParams } from "next/navigation";
 import React, { useState } from "react";
 import useSWR from "swr";
 
@@ -32,9 +37,19 @@ import buildApiClient from "@/domain-models/apiClient";
 
 type Document = components["schemas"]["Document"];
 
+/** One document inside a follow-up mailing job. */
+interface JobDocument {
+  readonly id: string;
+  readonly label: string;
+  readonly fileUrl: string;
+}
+
 /**
  * A single follow-up ("FW") mailing job for an event. Most events have 1-3 of
- * these; a few can have ~15, so this renders as a scrollable table.
+ * these; a few can have ~15, so this renders as a scrollable table. A job can
+ * mail more than one document — a supplement usually rides with a notice or
+ * card — so each row carries its full document list and expands when there is
+ * more than one.
  */
 interface FollowUpJob {
   id: string;
@@ -44,8 +59,8 @@ interface FollowUpJob {
   sentDate?: string;
   /** Number of positions included in this follow-up job */
   positions?: number;
-  /** URL of the PDF showing exactly what was mailed */
-  pdfUrl?: string;
+  /** Every document mailed in this job, in mailing order */
+  documents: readonly JobDocument[];
   /** Count of ad-hoc / email fulfillment requests (the "Q") tied to this job */
   fulfillmentRequests?: number;
   fullSetFulfillmentRequests?: number;
@@ -97,26 +112,115 @@ const parseAdditionalMailingMetadata = (
   }
 };
 
-const toFollowUpJob = (document: Document): FollowUpJob | null => {
-  const metadata = parseAdditionalMailingMetadata(document.description);
-  const documentId = document.id;
-  if (
-    metadata === null ||
-    !hasNonEmptyString(documentId) ||
-    !hasNonEmptyString(document.filePath)
-  ) {
-    return null;
+/**
+ * Groups the meeting's stored additional-mailing documents into jobs. The
+ * operations team stores one row per document; documents sharing a job name
+ * belong to the same mailing job and become one expandable row.
+ */
+const toFollowUpJobs = (documents: readonly Document[]): FollowUpJob[] => {
+  const jobsByName = new Map<string, FollowUpJob>();
+
+  for (const document of documents) {
+    const metadata = parseAdditionalMailingMetadata(document.description);
+    const documentId = document.id;
+    if (
+      metadata === null ||
+      !hasNonEmptyString(documentId) ||
+      !hasNonEmptyString(document.filePath)
+    ) {
+      continue;
+    }
+
+    const jobDocument: JobDocument = {
+      id: documentId,
+      label: hasNonEmptyString(document.title)
+        ? document.title
+        : metadata.jobName,
+      fileUrl: document.filePath,
+    };
+
+    const existing = jobsByName.get(metadata.jobName);
+    if (existing) {
+      existing.documents = [...existing.documents, jobDocument];
+      continue;
+    }
+
+    jobsByName.set(metadata.jobName, {
+      id: documentId,
+      alternateJobName: metadata.jobName,
+      sentDate: document.createdAt,
+      positions: metadata.positions,
+      documents: [jobDocument],
+      fullSetFulfillmentRequests: metadata.fullSet,
+      electronicFulfillmentRequests: metadata.electronic,
+    });
   }
 
-  return {
-    id: documentId,
-    alternateJobName: metadata.jobName,
-    sentDate: document.createdAt,
-    positions: metadata.positions,
-    pdfUrl: document.filePath,
-    fullSetFulfillmentRequests: metadata.fullSet,
-    electronicFulfillmentRequests: metadata.electronic,
-  };
+  return [...jobsByName.values()];
+};
+
+/**
+ * Demo follow-up jobs built from the client's generated mailing PDFs, shown
+ * when the database holds no additional mailings for the meeting. FW2 mails
+ * two documents — the supplement rides with the notice — so the multi-document
+ * row UX is always visible somewhere.
+ */
+const buildDemoJobs = (ticker: string): FollowUpJob[] => {
+  if (ticker.length === 0) return [];
+
+  const base = `/mock-mailings/${ticker}`;
+  return [
+    {
+      id: "demo-fw1",
+      alternateJobName: "FW1 — Proxy Card (Reminder, Unvoted)",
+      sentDate: "2026-04-14",
+      positions: 4820,
+      documents: [
+        {
+          id: "demo-fw1-card",
+          label: "Proxy Card Reminder",
+          fileUrl: `${base}/fw1-reminder-unvoted.pdf`,
+        },
+      ],
+      fullSetFulfillmentRequests: 3,
+      electronicFulfillmentRequests: 1,
+    },
+    {
+      id: "demo-fw2",
+      alternateJobName: "FW2 — Supplemental Proxy Material",
+      sentDate: "2026-04-24",
+      positions: 12960,
+      documents: [
+        {
+          id: "demo-fw2-supplement",
+          label: "Supplemental Materials",
+          fileUrl: `${base}/fw2-supplemental-proxy.pdf`,
+        },
+        {
+          id: "demo-fw2-notice",
+          label: "Notice of Internet Availability",
+          fileUrl: `${base}/naa.pdf`,
+        },
+      ],
+      fullSetFulfillmentRequests: 6,
+      electronicFulfillmentRequests: 4,
+    },
+    {
+      id: "demo-fw3",
+      alternateJobName: "FW3 — Shareholder Letter (Retail)",
+      sentDate: "2026-05-04",
+      positions: 2140,
+      documents: [
+        {
+          id: "demo-fw3-letter",
+          label: "Shareholder Letter",
+          fileUrl: `${base}/fw3-second-reminder-retail.pdf`,
+        },
+      ],
+      fullSetFulfillmentRequests: 0,
+      electronicFulfillmentRequests: 2,
+    },
+  ];
 };
 
 interface AdditionalMailingSummaryCardProps {
@@ -141,10 +245,25 @@ const formatSentDate = (date: string | undefined): string => {
   });
 };
 
+interface ActiveDocument {
+  readonly title: string;
+  readonly fileUrl: string;
+}
+
 const AdditionalMailingSummaryCard: React.FC<
   AdditionalMailingSummaryCardProps
 > = ({ meetingId, jobs }) => {
-  const [activeJob, setActiveJob] = useState<FollowUpJob | null>(null);
+  const params = useParams<{ clientTicker?: string }>();
+  const [activeDocument, setActiveDocument] = useState<ActiveDocument | null>(
+    null
+  );
+  const [expandedJobIds, setExpandedJobIds] = useState<readonly string[]>([]);
+
+  const ticker =
+    typeof params.clientTicker === "string"
+      ? params.clientTicker.toUpperCase()
+      : "";
+
   // Additional mailing jobs come straight from the database — the operations
   // team stores mailing materials there, so nothing is uploaded from this
   // screen.
@@ -172,10 +291,34 @@ const AdditionalMailingSummaryCard: React.FC<
     },
     { revalidateOnFocus: false }
   );
-  const persistedJobs = (mailingDocuments ?? [])
-    .map(toFollowUpJob)
-    .filter((job): job is FollowUpJob => job !== null);
-  const resolvedJobs = [...persistedJobs, ...(jobs ?? [])];
+  const persistedJobs = toFollowUpJobs(mailingDocuments ?? []);
+  const providedJobs = [...persistedJobs, ...(jobs ?? [])];
+  const resolvedJobs =
+    providedJobs.length > 0 ? providedJobs : buildDemoJobs(ticker);
+
+  const toggleExpanded = (jobId: string) => {
+    setExpandedJobIds((current) =>
+      current.includes(jobId)
+        ? current.filter((id) => id !== jobId)
+        : [...current, jobId]
+    );
+  };
+
+  const openDocument = (job: FollowUpJob, jobDocument: JobDocument) => {
+    setActiveDocument({
+      title: `${job.alternateJobName} — ${jobDocument.label}`,
+      fileUrl: jobDocument.fileUrl,
+    });
+  };
+
+  const handleRowClick = (job: FollowUpJob) => {
+    const [firstDocument] = job.documents;
+    if (job.documents.length > 1) {
+      toggleExpanded(job.id);
+    } else if (firstDocument !== undefined) {
+      openDocument(job, firstDocument);
+    }
+  };
 
   return (
     <>
@@ -213,93 +356,183 @@ const AdditionalMailingSummaryCard: React.FC<
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {resolvedJobs.map((job) => (
-                      <TableRow
-                        onClick={() => {
-                          setActiveJob(job);
-                        }}
-                        key={job.id}
-                        hover
-                        sx={{ cursor: "pointer" }}
-                      >
-                        <TableCell sx={{ fontWeight: 500, width: 50 }}>
-                          {job.pdfUrl ? (
-                            <DocumentThumbnail filePath={job.pdfUrl} />
-                          ) : (
-                            <Typography variant="caption" color="text.disabled">
-                              —
-                            </Typography>
-                          )}
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: 500 }}>
-                          {job.alternateJobName}
-                        </TableCell>
-                        <TableCell sx={{ whiteSpace: "nowrap" }}>
-                          {formatSentDate(job.sentDate)}
-                        </TableCell>
-                        <TableCell
-                          align="right"
-                          sx={{ fontVariantNumeric: "tabularNums" }}
-                        >
-                          {formatNumber(job.positions)}
-                        </TableCell>
+                    {resolvedJobs.map((job) => {
+                      const expanded = expandedJobIds.includes(job.id);
+                      const [firstDocument] = job.documents;
+                      const extraCount = job.documents.length - 1;
 
-                        <TableCell align="right">
-                          <Stack
-                            direction="column"
-                            alignItems="end"
-                            spacing={1}
+                      return (
+                        <React.Fragment key={job.id}>
+                          <TableRow
+                            onClick={() => {
+                              handleRowClick(job);
+                            }}
+                            hover
+                            sx={{ cursor: "pointer" }}
                           >
-                            <Tooltip
-                              title={
-                                job.fullSetFulfillmentRequests
-                                  ? `${job.fullSetFulfillmentRequests} full set fulfillment request${
-                                      job.fullSetFulfillmentRequests === 1
-                                        ? ""
-                                        : "s"
-                                    }`
-                                  : "No full set fulfillment requests"
-                              }
+                            <TableCell sx={{ fontWeight: 500, width: 50 }}>
+                              {firstDocument ? (
+                                <Badge
+                                  badgeContent={
+                                    extraCount > 0 ? `+${extraCount}` : null
+                                  }
+                                  color="primary"
+                                  overlap="rectangular"
+                                >
+                                  <DocumentThumbnail
+                                    filePath={firstDocument.fileUrl}
+                                  />
+                                </Badge>
+                              ) : (
+                                <Typography
+                                  variant="caption"
+                                  color="text.disabled"
+                                >
+                                  —
+                                </Typography>
+                              )}
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 500 }}>
+                              <Stack
+                                direction="row"
+                                alignItems="center"
+                                spacing={0.5}
+                              >
+                                <span>{job.alternateJobName}</span>
+                                {job.documents.length > 1 && (
+                                  <IconButton
+                                    aria-expanded={expanded}
+                                    aria-label={`${expanded ? "Hide" : "Show"} the ${job.documents.length} documents in ${job.alternateJobName}`}
+                                    size="small"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      toggleExpanded(job.id);
+                                    }}
+                                  >
+                                    {expanded ? (
+                                      <KeyboardArrowUpIcon fontSize="small" />
+                                    ) : (
+                                      <KeyboardArrowDownIcon fontSize="small" />
+                                    )}
+                                  </IconButton>
+                                )}
+                              </Stack>
+                            </TableCell>
+                            <TableCell sx={{ whiteSpace: "nowrap" }}>
+                              {formatSentDate(job.sentDate)}
+                            </TableCell>
+                            <TableCell
+                              align="right"
+                              sx={{ fontVariantNumeric: "tabularNums" }}
                             >
-                              <Chip
-                                size="small"
-                                label={`Full Set: ${formatNumber(job.fullSetFulfillmentRequests)}`}
-                                color={
-                                  job.fullSetFulfillmentRequests
-                                    ? "primary"
-                                    : "default"
-                                }
-                                variant="outlined"
-                                sx={{ px: 1 }}
-                              />
-                            </Tooltip>
-                            <Tooltip
-                              title={
-                                job.electronicFulfillmentRequests
-                                  ? `${job.electronicFulfillmentRequests} electronic fulfillment request${
-                                      job.electronicFulfillmentRequests === 1
-                                        ? ""
-                                        : "s"
-                                    }`
-                                  : "No electronic fulfillment requests"
-                              }
-                            >
-                              <Chip
-                                size="small"
-                                label={`Electronic: ${formatNumber(job.electronicFulfillmentRequests)}`}
-                                color={
-                                  job.electronicFulfillmentRequests
-                                    ? "default"
-                                    : "default"
-                                }
-                                variant="outlined"
-                                sx={{ px: 1 }}
-                              />
-                            </Tooltip>
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              {formatNumber(job.positions)}
+                            </TableCell>
+
+                            <TableCell align="right">
+                              <Stack
+                                direction="column"
+                                alignItems="end"
+                                spacing={1}
+                              >
+                                <Tooltip
+                                  title={
+                                    job.fullSetFulfillmentRequests
+                                      ? `${job.fullSetFulfillmentRequests} full set fulfillment request${
+                                          job.fullSetFulfillmentRequests === 1
+                                            ? ""
+                                            : "s"
+                                        }`
+                                      : "No full set fulfillment requests"
+                                  }
+                                >
+                                  <Chip
+                                    size="small"
+                                    label={`Full Set: ${formatNumber(job.fullSetFulfillmentRequests)}`}
+                                    color={
+                                      job.fullSetFulfillmentRequests
+                                        ? "primary"
+                                        : "default"
+                                    }
+                                    variant="outlined"
+                                    sx={{ px: 1 }}
+                                  />
+                                </Tooltip>
+                                <Tooltip
+                                  title={
+                                    job.electronicFulfillmentRequests
+                                      ? `${job.electronicFulfillmentRequests} electronic fulfillment request${
+                                          job.electronicFulfillmentRequests ===
+                                          1
+                                            ? ""
+                                            : "s"
+                                        }`
+                                      : "No electronic fulfillment requests"
+                                  }
+                                >
+                                  <Chip
+                                    size="small"
+                                    label={`Electronic: ${formatNumber(job.electronicFulfillmentRequests)}`}
+                                    color="default"
+                                    variant="outlined"
+                                    sx={{ px: 1 }}
+                                  />
+                                </Tooltip>
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+
+                          {/* Expanded detail row — one labelled thumbnail per
+                              document in the job, like the tabulation table's
+                              expandable rows. */}
+                          {expanded && (
+                            <TableRow>
+                              <TableCell
+                                colSpan={5}
+                                sx={{
+                                  backgroundColor: "background.default",
+                                  py: 2,
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 2,
+                                    pl: 1,
+                                  }}
+                                >
+                                  {job.documents.map((jobDocument) => (
+                                    <Box
+                                      key={jobDocument.id}
+                                      sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        gap: 0.5,
+                                        width: 108,
+                                        textAlign: "center",
+                                        fontSize: (theme) =>
+                                          theme.typography.caption.fontSize,
+                                        color: "text.secondary",
+                                      }}
+                                    >
+                                      <DocumentThumbnail
+                                        filePath={jobDocument.fileUrl}
+                                        width={60}
+                                        onClick={() => {
+                                          openDocument(job, jobDocument);
+                                        }}
+                                      />
+                                      {jobDocument.label}
+                                    </Box>
+                                  ))}
+                                </Box>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -324,12 +557,12 @@ const AdditionalMailingSummaryCard: React.FC<
       {/* Read-only PDF preview of the mailed document. Empty signatureAreas → view-only;
           activity buttons hidden since a mailing has no comments/history. */}
       <DocumentViewer
-        open={Boolean(activeJob)}
+        open={Boolean(activeDocument)}
         onClose={() => {
-          setActiveJob(null);
+          setActiveDocument(null);
         }}
-        fileUrl={activeJob?.pdfUrl}
-        title={activeJob?.alternateJobName}
+        fileUrl={activeDocument?.fileUrl}
+        title={activeDocument?.title}
         signatureAreas={[]}
         hideActivityButtons
         showDownloadButton

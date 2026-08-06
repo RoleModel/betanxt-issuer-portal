@@ -28,24 +28,32 @@ const previewThumbnails: SpecSection = {
     "Requirements for clickable thumbnail previews on the Primary Mailing Summary (Full Set, NAA, Electronic) so a client can see exactly what went out. Thumbnails are pulled from documents the operations team stores in the database — nothing is uploaded from the app.",
   background: [
     "The Mailing tab's Primary Mailing Summary shows three figures — Full Set, NAA, and Electronic. NAA and Electronic each carry exactly one small thumbnail of the document that figure counts, in the space to the right of the tile.",
-    "Full Set is different: it is a package of pieces — typically 3–5, e.g. proxy card, proxy statement, annual report, 10-K — and which pieces it contains varies by event. Its tile therefore toggles an expandable row beneath the tiles, mirroring the tabulation table's expandable rows, showing one thumbnail per piece pulled from the meeting's documents in the database. The row sizes to however many pieces exist.",
-    "The operations team stores mailing materials directly in the database, so the upload options previously planned for the primary and additional mailing sections are removed. Full Set applies only to the primary mailing job; each additional (follow-up) mailing is its own row with its own single thumbnail.",
+    "Full Set is different: it is a package of split pieces — typically 3–5, e.g. proxy card, proxy statement, annual report, 10-K — and which pieces it contains varies by event. Its tile therefore carries a grid of thumbnails, one per piece, that sizes to however many pieces the package holds. Pieces come from the meeting's documents in the database, falling back to the client's split static package.",
+    "The operations team stores mailing materials directly in the database, so the upload options previously planned for the primary and additional mailing sections are removed. Full Set applies only to the primary mailing job.",
+    "An additional (follow-up) mailing job is its own row, and can mail more than one document — a supplement usually rides with a notice or card. A row with several documents shows its first thumbnail with a count badge and expands, mirroring the tabulation table's expandable rows, to a labelled thumbnail per document.",
     "Clicking any thumbnail opens the existing document viewer full-screen: the PDF viewer for printed pieces, the website (iframe) view for the Electronic email.",
   ],
   topics: [
     {
       question: "Which figures get a thumbnail, and what each thumbnail shows.",
       answer: [
-        "NAA and Electronic always show exactly one thumbnail — the first page of the NAA PDF, and a scaled preview of the rendered email. Full Set shows one thumbnail per piece in its expandable row, so the count is conditional on what the event mailed.",
+        "NAA and Electronic always show exactly one thumbnail — the first page of the NAA PDF, and a scaled preview of the rendered email. Full Set shows one thumbnail per split piece directly on its tile, so the grid is dynamic on what the event mailed.",
       ],
       requirementIds: ["MTP-01", "MTP-02", "MTP-03", "MTP-07"],
     },
     {
       question: "Where the documents behind the thumbnails come from.",
       answer: [
-        "The database. The operations team stores mailing materials there, so thumbnails render from stored documents and no upload option appears on the primary or additional mailing sections.",
+        "The database. The operations team stores mailing materials there, so thumbnails render from stored documents and no upload option appears on the primary or additional mailing sections. For clients without stored pieces, the split static package stands in.",
       ],
       requirementIds: ["MTP-07", "MTP-08"],
+    },
+    {
+      question: "How a follow-up mailing with several documents is shown.",
+      answer: [
+        "As one job row. Its thumbnail carries a badge with the extra-document count, and the row expands — the tabulation table's expandable-row pattern — to a labelled thumbnail per document.",
+      ],
+      requirementIds: ["MTP-09"],
     },
     {
       question: "What happens when a thumbnail is clicked.",
@@ -190,20 +198,20 @@ const previewThumbnails: SpecSection = {
           label: "Mailing — Full Set expanded",
         },
       ],
-      title: "Full Set expands to a row of piece thumbnails",
+      title: "Full Set shows a dynamic grid of piece thumbnails",
       statement:
-        "The Full Set tile carries an expand toggle instead of a single thumbnail. Toggling it reveals a row beneath the tiles — the same expandable-row pattern as the tabulation table — with one labelled thumbnail per piece stored for the meeting in the database, laid out fluidly so any piece count reads well.",
+        "The Full Set tile carries a grid of thumbnails, one per piece of the split package, wrapping fluidly so the grid sizes to whatever the package holds. Pieces come from the meeting's documents in the database, then the client's split static package (full-set/manifest.json), then the merged package as a single thumbnail.",
       rationale:
-        "A full set is a variable package — typically 3–5 pieces depending on the event — so a fixed icon layout cannot represent it; the row must size to what was actually mailed. Full Set applies only to the primary mailing job.",
+        "A full set is a variable package — typically 3–5 pieces depending on the event — so a fixed icon layout cannot represent it; the grid must size to what was actually mailed. Full Set applies only to the primary mailing job.",
       evidence: [
         "components/Meeting/MailingPreviewTiles.tsx",
-        "components/Tabulation/PositionsTable.tsx",
+        "scripts/split-full-set-pdfs.ts",
       ],
       acceptance: [
-        "Given the Mailing tab, when a user toggles the Full Set tile, then a row of piece thumbnails expands beneath the tiles and the toggle's state is announced.",
-        "Given a meeting whose database documents include a proxy card, proxy statement, and annual report, when the row expands, then those three pieces appear as labelled thumbnails in mailing order.",
-        "Given a meeting with more or fewer stored pieces, when the row expands, then the grid shows exactly the pieces that exist.",
-        "Given a meeting with no individual pieces stored, when the row expands, then it falls back to the complete generated package as a single thumbnail.",
+        "Given a meeting whose database documents include a proxy card, proxy statement, and annual report, when the tile renders, then those three pieces appear as thumbnails in mailing order, each named in its tooltip.",
+        "Given a client with a split 4-piece static package and no stored documents, when the tile renders, then all four pieces appear.",
+        "Given WEN, whose real filing splits into notice, proxy statement, and Form 10-K, when the tile renders, then exactly those three pieces appear.",
+        "Given a client with no stored pieces and no split package, when the tile renders, then the merged package appears as a single thumbnail.",
         "Given a piece thumbnail, when a user clicks it, then that piece opens full-screen in the PDF viewer.",
       ],
     },
@@ -226,7 +234,31 @@ const previewThumbnails: SpecSection = {
       ],
       acceptance: [
         "Given the Mailing tab, when it renders, then no upload button or upload dialog is reachable from the primary or additional mailing sections.",
-        "Given follow-up mailings stored for the meeting, when the Additional Mailing Summary renders, then each appears as its own row with its single thumbnail.",
+        "Given follow-up mailings stored for the meeting, when the Additional Mailing Summary renders, then each job appears as its own row.",
+      ],
+    },
+    {
+      id: "MTP-09",
+      screens: [
+        {
+          href: "/WEN/meeting/wen-special-meeting-2026/mailing",
+          label: "Mailing — Additional Mailing Summary",
+        },
+      ],
+      title: "A follow-up job with several documents expands",
+      statement:
+        "A follow-up mailing job that mails more than one document shows its first thumbnail with a badge counting the extra documents, and expands — the tabulation table's expandable-row pattern — to a full-width row with a labelled thumbnail per document. Stored documents sharing a job name group into one job.",
+      rationale:
+        "A supplement usually rides with a notice or card in the same envelope; the row has to show the whole envelope without giving every document its own job row.",
+      evidence: [
+        "components/Meeting/AdditionalMailingSummaryCard.tsx",
+        "components/Tabulation/PositionsTable.tsx",
+      ],
+      acceptance: [
+        "Given a follow-up job with two documents, when its row renders, then the thumbnail carries a `+1` badge.",
+        "Given a multi-document row, when a user clicks it or its chevron, then a detail row expands with a labelled thumbnail per document, and the chevron's state is announced.",
+        "Given an expanded detail row, when a user clicks a document's thumbnail, then that document opens full-screen in the PDF viewer.",
+        "Given a single-document job, when a user clicks its row, then the document opens directly with no expansion step.",
       ],
     },
   ],
@@ -237,9 +269,9 @@ const previewThumbnails: SpecSection = {
       rows: [
         [
           "Full Set",
-          "One per stored piece (typically 3–5)",
-          "Expandable row of labelled piece thumbnails",
-          "Meeting documents in the database; falls back to /mock-mailings/{TICKER}/full-set.pdf",
+          "One per piece (typically 3–5)",
+          "Dynamic grid on the tile, one thumbnail per piece",
+          "Meeting documents in the database → split pieces in /mock-mailings/{TICKER}/full-set/ → merged full-set.pdf",
         ],
         [
           "NAA",
@@ -269,6 +301,7 @@ const generatedDocuments: SpecSection = {
     "The document generators behind the previews: the per-client PDF generator and the themeable Electronic email template.",
   background: [
     "Full Set and NAA PDFs come from a single generator that renders each client's mailings with `@react-pdf/renderer`, themed with that client's brand colours and logo. Output lands in `public/mock-mailings/{TICKER}/`.",
+    "A splitter then divides every Full Set package into its constituent pieces — notice, proxy statement, annual report, proxy card — each as its own PDF beside a manifest.json the Mailing tab reads to build the tile's thumbnail grid. Real client filings (WEN) have hand-listed page boundaries.",
     "The Electronic notice is a react-email template rendered on the mock API. The preview route can return it as JSON (for the email preview screen) or as an HTML document (for iframing in the viewer), and accepts query parameters that theme it per client.",
   ],
   requirements: [
@@ -325,6 +358,24 @@ const generatedDocuments: SpecSection = {
         "Given `ENABLE_EMAIL_PREVIEW` is not set, when the route is called, then it returns 404 without rendering.",
       ],
     },
+    {
+      id: "GEN-04",
+      screens: [
+        {
+          href: "/WEN/meeting/wen-special-meeting-2026/mailing",
+          label: "Mailing — Full Set grid",
+        },
+      ],
+      title: "The splitter emits per-piece PDFs and a manifest",
+      statement:
+        "The Full Set splitter divides each generated 16-page package into notice, proxy statement, annual report, and proxy card PDFs under `public/mock-mailings/{TICKER}/full-set/`, writing a manifest.json listing each piece's file and label. Real client filings use hand-listed page boundaries; packages with neither are skipped.",
+      evidence: ["scripts/split-full-set-pdfs.ts"],
+      acceptance: [
+        "Given `pnpm dlx tsx scripts/split-full-set-pdfs.ts`, when it finishes, then each generated client's full-set/ folder holds four piece PDFs and a manifest.",
+        "Given WEN's real merged filing, when the splitter runs, then it emits notice, proxy statement, and Form 10-K pieces from its hand-listed boundaries.",
+        "Given a package that is neither the generated layout nor hand-listed, when the splitter runs, then that client is skipped and reported.",
+      ],
+    },
   ],
   tables: [
     {
@@ -347,6 +398,14 @@ const generatedDocuments: SpecSection = {
         [
           "scripts/generate-mock-mailing-pdfs.tsx",
           "Generates full-set.pdf and naa.pdf per client",
+        ],
+        [
+          "scripts/split-full-set-pdfs.ts",
+          "Splits each package into per-piece PDFs plus manifest.json",
+        ],
+        [
+          "components/Meeting/AdditionalMailingSummaryCard.tsx",
+          "Follow-up job rows, expanding for multi-document jobs",
         ],
         [
           "mock-api-server/emails/MailingElectronicNotice.tsx",
@@ -372,5 +431,5 @@ export const SPEC_META: SpecMeta = {
   repository: "betanxt-issuer-portal / issuer-portal",
   status: "For build",
   title: "Issuer Portal — Mailing Preview Thumbnails",
-  version: "1.1",
+  version: "1.2",
 };
