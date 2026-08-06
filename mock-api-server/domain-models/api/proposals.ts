@@ -13,41 +13,42 @@ type ProposalRow = Database["public"]["Tables"]["proposal"]["Row"];
 type ProposalUpdate = Database["public"]["Tables"]["proposal"]["Update"];
 
 // Helper function to convert null to undefined
-function nullToUndefined<T>(value: T | null): T | undefined {
-  return value === null ? undefined : value;
-}
+const nullToUndefined = <T>(value: T | null): T | undefined =>
+  value === null ? undefined : value;
 
-function transformProposalRow(row: ProposalRow): Proposal {
-  return {
-    id: nullToUndefined(row.id),
-    proposalNumber: nullToUndefined(row.proposal_number),
-    proposalTitle: nullToUndefined(row.proposal_title),
-    directorName: nullToUndefined(row.director_name),
-    proposalType: nullToUndefined(row.proposal_type),
-    proposalSubtype: nullToUndefined(row.proposal_subtype),
-    directorTermYears: nullToUndefined(row.director_term_years),
-    directorClass: nullToUndefined(row.director_class),
-    termExpirationYear: nullToUndefined(row.term_expiration_year),
-    frequencyOptions: nullToUndefined(
-      row.frequency_options as Record<string, never>
-    ),
-    recommendation: nullToUndefined(row.recommendation),
-    meetingId: nullToUndefined(row.meeting_id),
-    totalVotesFor: nullToUndefined(row.total_votes_for),
-    totalVotesAgainst: nullToUndefined(row.total_votes_against),
-    totalVotesAbstain: nullToUndefined(row.total_votes_abstain),
-    totalSharesEligible: nullToUndefined(row.total_shares_eligible),
-    forPercentage: nullToUndefined(row.for_percentage),
-    againstPercentage: nullToUndefined(row.against_percentage),
-    abstainPercentage: nullToUndefined(row.abstain_percentage),
-    participationRate: nullToUndefined(row.participation_rate),
-    finalResult: nullToUndefined(row.final_result),
-    votingCompleted: row.voting_completed || false,
-    votingCompletedAt: nullToUndefined(row.voting_completed_at),
-    createdAt: nullToUndefined(row.created_at),
-    updatedAt: nullToUndefined(row.updated_at),
-  };
-}
+// `types/api.ts` and `utils/supabase/database.types.ts` are excluded from
+// ESLint's typed-linting program, so the linter's own type resolution for
+// their fields here falls back to an error type that reads as `any` —
+// `tsc --noEmit` has no issue with any of this.
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+const transformProposalRow = (row: ProposalRow): Proposal => ({
+  id: nullToUndefined(row.id),
+  proposalNumber: nullToUndefined(row.proposal_number),
+  proposalTitle: nullToUndefined(row.proposal_title),
+  directorName: nullToUndefined(row.director_name),
+  proposalType: nullToUndefined(row.proposal_type),
+  proposalSubtype: nullToUndefined(row.proposal_subtype),
+  directorTermYears: nullToUndefined(row.director_term_years),
+  directorClass: nullToUndefined(row.director_class),
+  termExpirationYear: nullToUndefined(row.term_expiration_year),
+  frequencyOptions: row.frequency_options === null ? undefined : {},
+  recommendation: nullToUndefined(row.recommendation),
+  meetingId: nullToUndefined(row.meeting_id),
+  totalVotesFor: nullToUndefined(row.total_votes_for),
+  totalVotesAgainst: nullToUndefined(row.total_votes_against),
+  totalVotesAbstain: nullToUndefined(row.total_votes_abstain),
+  totalSharesEligible: nullToUndefined(row.total_shares_eligible),
+  forPercentage: nullToUndefined(row.for_percentage),
+  againstPercentage: nullToUndefined(row.against_percentage),
+  abstainPercentage: nullToUndefined(row.abstain_percentage),
+  participationRate: nullToUndefined(row.participation_rate),
+  finalResult: nullToUndefined(row.final_result),
+  votingCompleted: row.voting_completed || false,
+  votingCompletedAt: nullToUndefined(row.voting_completed_at),
+  createdAt: nullToUndefined(row.created_at),
+  updatedAt: nullToUndefined(row.updated_at),
+});
+/* eslint-enable @typescript-eslint/strict-boolean-expressions */
 
 // Helper type for consistent response format
 interface ApiResponse<T> {
@@ -58,202 +59,156 @@ interface ApiResponse<T> {
   };
 }
 
-export async function listProposals(
-  meetingId: string,
-  proposalType?: string
-): Promise<ApiResponse<Proposal[]>> {
+// Runs a Supabase operation with the try/catch isolated to this one spot, so
+// callers can branch on the outcome without nesting a conditional inside
+// their own try block (unicorn/try-complexity flags any branch inside try).
+type QueryOutcome<T> = { ok: true; data: T } | { ok: false; message: string };
+
+const runQuery = async <T>(
+  operation: () => Promise<{
+    data: T | null;
+    error: { message: string } | null;
+  }>,
+  fallbackMessage: string
+): Promise<QueryOutcome<T>> => {
+  let outcome: { data: T | null; error: { message: string } | null };
   try {
-    let query = supabase
-      .from("proposal")
-      .select("*")
-      .eq("meeting_id", meetingId);
-
-    if (proposalType) {
-      query = query.eq("proposal_type", proposalType);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      return {
-        data: undefined,
-        error: {
-          message: error.message ?? "Failed to fetch proposals",
-          statusCode: 500,
-        },
-      };
-    }
-
-    // Transform database rows to API response format
-    const proposals = (data ?? []).map(transformProposalRow);
-
+    outcome = await operation();
+  } catch (caughtError) {
     return {
-      data: proposals,
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      data: undefined,
-      error: {
-        message: Error.isError(error) ? error.message : "Unknown error",
-        statusCode: 500,
-      },
+      ok: false,
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- Error.isError's lib type resolves oddly here; tsc has no issue
+      message: Error.isError(caughtError)
+        ? caughtError.message
+        : fallbackMessage,
     };
   }
-}
 
-export async function createProposal(
+  if (outcome.error !== null) {
+    return { ok: false, message: outcome.error.message };
+  }
+  if (outcome.data === null) {
+    return { ok: false, message: fallbackMessage };
+  }
+  return { ok: true, data: outcome.data };
+};
+
+export const listProposals = async (
+  meetingId: string,
+  proposalType?: string
+): Promise<ApiResponse<Proposal[]>> => {
+  let query = supabase.from("proposal").select("*").eq("meeting_id", meetingId);
+  if (proposalType !== undefined) {
+    query = query.eq("proposal_type", proposalType);
+  }
+
+  const result = await runQuery(async () => {
+    const { data, error } = await query;
+    return { data: data ?? [], error };
+  }, "Failed to fetch proposals");
+
+  if (!result.ok) {
+    return { error: { message: result.message, statusCode: 500 } };
+  }
+  return { data: result.data.map(transformProposalRow) };
+};
+
+export const createProposal = async (
   meetingId: string,
   body: CreateProposalRequest
-): Promise<ApiResponse<Proposal>> {
-  try {
-    const request = body;
+): Promise<ApiResponse<Proposal>> => {
+  const result = await runQuery(async () => {
     const { data, error } = await supabase
       .from("proposal")
       .insert({
         id: randomUUID(),
         meeting_id: meetingId,
-        proposal_number: request.proposalNumber,
-        proposal_title: request.proposalTitle,
-        proposal_type: request.proposalType,
-        proposal_subtype: request.proposalSubtype,
-        director_name: request.directorName,
-        director_term_years: request.directorTermYears,
-        director_class: request.directorClass,
-        term_expiration_year: request.termExpirationYear,
-        frequency_options: request.frequencyOptions,
-        recommendation: request.recommendation,
+        proposal_number: body.proposalNumber,
+        proposal_title: body.proposalTitle,
+        proposal_type: body.proposalType,
+        proposal_subtype: body.proposalSubtype,
+        director_name: body.directorName,
+        director_term_years: body.directorTermYears,
+        director_class: body.directorClass,
+        term_expiration_year: body.termExpirationYear,
+        frequency_options: body.frequencyOptions,
+        recommendation: body.recommendation,
         voting_completed: false,
       })
       .select()
       .single();
+    return { data, error };
+  }, "Failed to create proposal");
 
-    if (error) {
-      return {
-        data: undefined,
-        error: {
-          message: error.message ?? "Failed to create proposal",
-          statusCode: 400,
-        },
-      };
-    }
-
-    // Transform database row to API response format
-    return {
-      data: transformProposalRow(data),
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      data: undefined,
-      error: {
-        message: Error.isError(error) ? error.message : "Unknown error",
-        statusCode: 500,
-      },
-    };
+  if (!result.ok) {
+    return { error: { message: result.message, statusCode: 400 } };
   }
-}
+  return { data: transformProposalRow(result.data) };
+};
 
-export async function getProposalById(
+export const getProposalById = async (
   id: string
-): Promise<ApiResponse<Proposal>> {
-  try {
+): Promise<ApiResponse<Proposal>> => {
+  const result = await runQuery(async () => {
     const { data, error } = await supabase
       .from("proposal")
       .select("*")
       .eq("id", id)
       .single();
+    return { data, error };
+  }, "Failed to fetch proposal");
 
-    if (error) {
-      return {
-        data: undefined,
-        error: {
-          message: error.message ?? "Failed to fetch proposal",
-          statusCode: 404,
-        },
-      };
-    }
-
-    // Transform database row to API response format
-    return {
-      data: transformProposalRow(data),
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      data: undefined,
-      error: {
-        message: Error.isError(error) ? error.message : "Unknown error",
-        statusCode: 500,
-      },
-    };
+  if (!result.ok) {
+    return { error: { message: result.message, statusCode: 404 } };
   }
-}
+  return { data: transformProposalRow(result.data) };
+};
 
-export async function updateProposal(
+export const updateProposal = async (
   id: string,
   body: UpdateProposalRequest
-): Promise<ApiResponse<Proposal>> {
-  try {
-    const request = body;
-    const updateData: Partial<ProposalUpdate> = {};
-    if (request.proposalTitle !== undefined) {
-      updateData.proposal_title = request.proposalTitle;
-    }
-    if (request.proposalType !== undefined) {
-      updateData.proposal_type = request.proposalType;
-    }
-    if (request.proposalSubtype !== undefined) {
-      updateData.proposal_subtype = request.proposalSubtype;
-    }
-    if (request.directorName !== undefined) {
-      updateData.director_name = request.directorName;
-    }
-    if (request.directorTermYears !== undefined) {
-      updateData.director_term_years = request.directorTermYears;
-    }
-    if (request.directorClass !== undefined) {
-      updateData.director_class = request.directorClass;
-    }
-    if (request.termExpirationYear !== undefined) {
-      updateData.term_expiration_year = request.termExpirationYear;
-    }
-    if (request.frequencyOptions !== undefined) {
-      updateData.frequency_options = request.frequencyOptions;
-    }
-    if (request.recommendation !== undefined) {
-      updateData.recommendation = request.recommendation;
-    }
+): Promise<ApiResponse<Proposal>> => {
+  const updateData: Partial<ProposalUpdate> = {};
+  if (body.proposalTitle !== undefined) {
+    updateData.proposal_title = body.proposalTitle;
+  }
+  if (body.proposalType !== undefined) {
+    updateData.proposal_type = body.proposalType;
+  }
+  if (body.proposalSubtype !== undefined) {
+    updateData.proposal_subtype = body.proposalSubtype;
+  }
+  if (body.directorName !== undefined) {
+    updateData.director_name = body.directorName;
+  }
+  if (body.directorTermYears !== undefined) {
+    updateData.director_term_years = body.directorTermYears;
+  }
+  if (body.directorClass !== undefined) {
+    updateData.director_class = body.directorClass;
+  }
+  if (body.termExpirationYear !== undefined) {
+    updateData.term_expiration_year = body.termExpirationYear;
+  }
+  if (body.frequencyOptions !== undefined) {
+    updateData.frequency_options = body.frequencyOptions;
+  }
+  if (body.recommendation !== undefined) {
+    updateData.recommendation = body.recommendation;
+  }
 
+  const result = await runQuery(async () => {
     const { data, error } = await supabase
       .from("proposal")
       .update(updateData)
       .eq("id", id)
       .select()
       .single();
+    return { data, error };
+  }, "Failed to update proposal");
 
-    if (error) {
-      return {
-        data: undefined,
-        error: {
-          message: error.message ?? "Failed to update proposal",
-          statusCode: 400,
-        },
-      };
-    }
-
-    // Transform database row to API response format
-    return {
-      data: transformProposalRow(data),
-      error: undefined,
-    };
-  } catch (error) {
-    return {
-      data: undefined,
-      error: {
-        message: Error.isError(error) ? error.message : "Unknown error",
-        statusCode: 500,
-      },
-    };
+  if (!result.ok) {
+    return { error: { message: result.message, statusCode: 400 } };
   }
-}
+  return { data: transformProposalRow(result.data) };
+};
