@@ -4,10 +4,10 @@ import type { components } from "@/types/api";
 import type { Database } from "@/utils/supabase/database.types";
 
 import { supabase } from "@/utils/supabase/client";
+import { asRecord, asString } from "@/utils/typeUtils";
 
 // Use generated types from OpenAPI schema
 type PositionVote = components["schemas"]["PositionVote"];
-type CastVoteRequest = components["schemas"]["CastVoteRequest"];
 type PositionVoteRow = Database["public"]["Tables"]["position_vote"]["Row"];
 
 // Helper type for openapi-fetch response
@@ -20,19 +20,22 @@ interface ApiResponse<T> {
   response: Response;
 }
 
-function nullToUndefined<T>(value: T | null): T | undefined {
-  return value === null ? undefined : value;
-}
+const nullToUndefined = <T>(value: T | null): T | undefined =>
+  value === null ? undefined : value;
 
-function normalizeFilterValue(value?: string): string | undefined {
-  if (!value) {
+const normalizeFilterValue = (value?: string): string | undefined => {
+  if (value === undefined || value.trim().length === 0) {
     return undefined;
   }
   return value.trim();
-}
+};
 
-function parseInFilter(value?: string): string[] | null {
-  if (!value?.startsWith("in.(") || !value.endsWith(")")) {
+const parseInFilter = (value?: string): string[] | null => {
+  if (
+    value === undefined ||
+    !value.startsWith("in.(") ||
+    !value.endsWith(")")
+  ) {
     return null;
   }
 
@@ -40,30 +43,39 @@ function parseInFilter(value?: string): string[] | null {
     .slice(4, -1)
     .split(",")
     .map((item) => item.trim())
-    .filter(Boolean);
+    .filter((item) => item.length > 0);
 
   return values.length > 0 ? values : null;
-}
+};
 
-function parseEqFilter(value?: string): string | undefined {
-  if (!value) {
-    return undefined;
-  }
-  return value.startsWith("eq.") ? value.slice(3) : value;
-}
+const parseEqFilter = (value: string): string =>
+  value.startsWith("eq.") ? value.slice(3) : value;
 
-function transformPositionVote(row: PositionVoteRow): PositionVote {
-  return {
-    id: nullToUndefined(row.id),
-    positionId: nullToUndefined(row.position_id),
-    proposalId: nullToUndefined(row.proposal_id),
-    vote: nullToUndefined(row.vote),
-    sharesVoting: nullToUndefined(row.shares_voting),
-    createdAt: nullToUndefined(row.created_at),
-  };
-}
+const transformPositionVote = (row: PositionVoteRow): PositionVote => ({
+  id: nullToUndefined(row.id),
+  positionId: nullToUndefined(row.position_id),
+  proposalId: nullToUndefined(row.proposal_id),
+  vote: nullToUndefined(row.vote),
+  sharesVoting: nullToUndefined(row.shares_voting),
+  createdAt: nullToUndefined(row.created_at),
+});
 
-export async function listPositionVotes(options?: {
+const buildBasePositionVoteQuery = () =>
+  supabase.from("position_vote").select("*");
+type PositionVoteQuery = ReturnType<typeof buildBasePositionVoteQuery>;
+
+const applyEqOrInFilter = (
+  query: PositionVoteQuery,
+  column: "position_id" | "proposal_id" | "vote",
+  rawValue: string
+): PositionVoteQuery => {
+  const values = parseInFilter(rawValue);
+  return values === null
+    ? query.eq(column, parseEqFilter(rawValue))
+    : query.in(column, values);
+};
+
+interface PositionVoteListOptions {
   meetingId?: string;
   positionId?: string;
   proposalId?: string;
@@ -71,202 +83,235 @@ export async function listPositionVotes(options?: {
   limit?: number;
   offset?: number;
   order?: string;
-}): Promise<ApiResponse<PositionVote[] | undefined>> {
-  try {
-    let query = supabase.from("position_vote").select("*");
+}
 
-    if (options?.meetingId) {
-      const { data: meetingPositions, error: meetingPositionsError } =
-        await supabase
-          .from("position")
-          .select("id")
-          .eq("meeting_id", options.meetingId)
-          .limit(5000);
+const applyPositionVoteFilters = (
+  initialQuery: PositionVoteQuery,
+  options: PositionVoteListOptions | undefined
+): PositionVoteQuery => {
+  let query = initialQuery;
 
-      if (meetingPositionsError) {
-        return {
-          data: undefined,
-          error: {
-            message:
-              meetingPositionsError.message ??
-              "Failed to fetch meeting positions",
-            statusCode: 500,
-          },
-          response: new Response(null, { status: 500 }),
-        };
-      }
+  const positionId = normalizeFilterValue(options?.positionId);
+  if (positionId !== undefined) {
+    query = applyEqOrInFilter(query, "position_id", positionId);
+  }
 
-      const meetingPositionIds = (meetingPositions ?? [])
-        .map((position) => position.id)
-        .filter((positionId): positionId is string => Boolean(positionId));
+  const proposalId = normalizeFilterValue(options?.proposalId);
+  if (proposalId !== undefined) {
+    query = applyEqOrInFilter(query, "proposal_id", proposalId);
+  }
 
-      if (meetingPositionIds.length === 0) {
-        return {
-          data: [],
-          error: undefined,
-          response: new Response(null, { status: 200 }),
-        };
-      }
+  const vote = normalizeFilterValue(options?.vote);
+  if (vote !== undefined) {
+    query = applyEqOrInFilter(query, "vote", vote);
+  }
 
-      query = query.in("position_id", meetingPositionIds);
-    }
+  return query;
+};
 
-    const positionId = normalizeFilterValue(options?.positionId);
-    const proposalId = normalizeFilterValue(options?.proposalId);
-    const vote = normalizeFilterValue(options?.vote);
+const ORDER_COLUMN_ALIASES: Record<string, string> = {
+  createdAt: "created_at",
+  positionId: "position_id",
+  proposalId: "proposal_id",
+  sharesVoting: "shares_voting",
+};
 
-    if (positionId) {
-      const positionIds = parseInFilter(positionId);
-      query = positionIds
-        ? query.in("position_id", positionIds)
-        : query.eq("position_id", parseEqFilter(positionId) || positionId);
-    }
+const applyPositionVoteOrder = (
+  query: PositionVoteQuery,
+  order: string | undefined
+): PositionVoteQuery => {
+  if (order === undefined) {
+    return query.order("created_at", { ascending: false });
+  }
+  const [column, direction] = order.split(".");
+  const normalizedColumn = ORDER_COLUMN_ALIASES[column] ?? column;
+  return query.order(normalizedColumn, { ascending: direction !== "desc" });
+};
 
-    if (proposalId) {
-      const proposalIds = parseInFilter(proposalId);
-      query = proposalIds
-        ? query.in("proposal_id", proposalIds)
-        : query.eq("proposal_id", parseEqFilter(proposalId) || proposalId);
-    }
+const applyPositionVotePage = (
+  query: PositionVoteQuery,
+  limit: number | undefined,
+  offset: number | undefined
+): PositionVoteQuery => {
+  if (limit === undefined) {
+    return query.limit(1000);
+  }
+  const resolvedOffset = offset ?? 0;
+  return resolvedOffset > 0
+    ? query.range(resolvedOffset, resolvedOffset + limit - 1)
+    : query.limit(limit);
+};
 
-    if (vote) {
-      const votes = parseInFilter(vote);
-      query = votes
-        ? query.in("vote", votes)
-        : query.eq("vote", parseEqFilter(vote) || vote);
-    }
+const jsonResponse = (statusCode: number): Response =>
+  new Response(null, { status: statusCode });
 
-    if (options?.order) {
-      const [column, direction] = options.order.split(".");
-      const normalizedColumn =
-        column === "createdAt"
-          ? "created_at"
-          : column === "positionId"
-            ? "position_id"
-            : column === "proposalId"
-              ? "proposal_id"
-              : column === "sharesVoting"
-                ? "shares_voting"
-                : column;
+const resolveMeetingPositionIds = async (
+  meetingId: string
+): Promise<{ ids: string[] | null; errorMessage: string | null }> => {
+  const { data, error } = await supabase
+    .from("position")
+    .select("id")
+    .eq("meeting_id", meetingId)
+    .limit(5000);
 
-      query = query.order(normalizedColumn, {
-        ascending: direction !== "desc",
-      });
-    } else {
-      query = query.order("created_at", { ascending: false });
-    }
+  if (error !== null) {
+    return {
+      ids: null,
+      errorMessage: error.message ?? "Failed to fetch meeting positions",
+    };
+  }
 
-    if (options?.limit) {
-      const offset = options.offset ?? 0;
-      query =
-        offset > 0
-          ? query.range(offset, offset + options.limit - 1)
-          : query.limit(options.limit);
-    } else {
-      query = query.limit(1000);
-    }
+  const ids = (data ?? [])
+    .map((position) => position.id)
+    .filter(
+      (positionId): positionId is string =>
+        positionId !== null && positionId.length > 0
+    );
 
-    const { data, error } = await query;
+  return { ids, errorMessage: null };
+};
 
-    if (error) {
+export const listPositionVotes = async (
+  options?: PositionVoteListOptions
+): Promise<ApiResponse<PositionVote[] | undefined>> => {
+  let meetingPositionIds: string[] | null = null;
+  if (options?.meetingId !== undefined) {
+    const resolved = await resolveMeetingPositionIds(options.meetingId);
+    if (resolved.errorMessage !== null) {
       return {
-        data: undefined,
-        error: {
-          message: error.message ?? "Failed to fetch position votes",
-          statusCode: 500,
-        },
-        response: new Response(null, { status: 500 }),
+        error: { message: resolved.errorMessage, statusCode: 500 },
+        response: jsonResponse(500),
       };
     }
+    if (resolved.ids === null || resolved.ids.length === 0) {
+      return { data: [], response: jsonResponse(200) };
+    }
+    meetingPositionIds = resolved.ids;
+  }
 
+  let query = buildBasePositionVoteQuery();
+  if (meetingPositionIds !== null) {
+    query = query.in("position_id", meetingPositionIds);
+  }
+  query = applyPositionVoteFilters(query, options);
+  query = applyPositionVoteOrder(query, options?.order);
+  query = applyPositionVotePage(query, options?.limit, options?.offset);
+
+  let outcome: Awaited<typeof query>;
+  try {
+    outcome = await query;
+  } catch (caughtError) {
     return {
-      data: (data ?? []).map(transformPositionVote),
-      error: undefined,
-      response: new Response(null, { status: 200 }),
-    };
-  } catch (error) {
-    return {
-      data: undefined,
       error: {
-        message: Error.isError(error)
-          ? error.message
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- Error.isError's lib type resolves oddly here; tsc has no issue
+        message: Error.isError(caughtError)
+          ? caughtError.message
           : "Failed to fetch position votes",
         statusCode: 500,
       },
-      response: new Response(null, { status: 500 }),
+      response: jsonResponse(500),
     };
   }
+
+  if (outcome.error !== null) {
+    return {
+      error: {
+        message: outcome.error.message ?? "Failed to fetch position votes",
+        statusCode: 500,
+      },
+      response: jsonResponse(500),
+    };
+  }
+
+  return {
+    data: (outcome.data ?? []).map(transformPositionVote),
+    response: jsonResponse(200),
+  };
+};
+
+interface CastVoteFields {
+  positionId: string;
+  proposalId: string;
+  vote: string;
+  sharesVoting: string;
 }
 
 /**
- * Pulls `positionId` off an unvalidated request body.
- *
- * The OpenAPI `CastVoteRequest` omits `positionId`, but `position_vote`
- * requires it to attach the vote to a holding, so it is read defensively from
- * the raw body rather than through the generated type.
- *
- * @param body - Parsed JSON request body of unknown shape
- * @returns The position id, or null when absent or not a non-empty string
+ * Reads and validates the fields `position_vote` needs off an unvalidated
+ * request body. The OpenAPI `CastVoteRequest` omits `positionId`, but the
+ * insert requires it, so the whole payload is read defensively here rather
+ * than trusting a blind cast to the generated type.
  */
-function readPositionId(body: unknown): string | null {
-  if (typeof body !== "object" || body === null) {
+const readCastVoteFields = (body: unknown): CastVoteFields | null => {
+  const record = asRecord(body);
+  if (record === null) {
     return null;
   }
-  const { positionId } = body as { positionId?: unknown };
-  return typeof positionId === "string" && positionId.length > 0
-    ? positionId
-    : null;
-}
+
+  const positionId = asString(record.positionId);
+  const proposalId = asString(record.proposalId);
+  const vote = asString(record.vote);
+  const sharesVoting = asString(record.sharesVoting);
+
+  if (
+    positionId === null ||
+    proposalId === null ||
+    vote === null ||
+    sharesVoting === null
+  ) {
+    return null;
+  }
+
+  return { positionId, proposalId, vote, sharesVoting };
+};
 
 /**
  * Records a vote cast by a position against a proposal.
  *
  * @param body - A `CastVoteRequest` plus the `positionId` the vote belongs to
- * @returns The stored vote, or a 400 error when `positionId` is missing or the insert fails
+ * @returns The stored vote, or a 400 error when required fields are missing or the insert fails
  */
-export async function createPositionVote(
+export const createPositionVote = async (
   body: unknown
-): Promise<ApiResponse<PositionVote>> {
-  const request = body as CastVoteRequest;
-  const positionId = readPositionId(body);
+): Promise<ApiResponse<PositionVote>> => {
+  const fields = readCastVoteFields(body);
 
-  if (positionId === null) {
+  if (fields === null) {
     return {
-      data: undefined,
-      error: { message: "positionId is required", statusCode: 400 },
-      response: new Response(null, { status: 400 }),
+      error: {
+        message: "positionId, proposalId, vote, and sharesVoting are required",
+        statusCode: 400,
+      },
+      response: jsonResponse(400),
     };
   }
 
+  const now = new Date();
   const { data, error } = await supabase
     .from("position_vote")
     .insert({
       id: randomUUID(),
-      position_id: positionId,
-      proposal_id: request.proposalId,
-      vote: request.vote,
-      shares_voting: request.sharesVoting,
-      created_at: new Date().toISOString(),
+      position_id: fields.positionId,
+      proposal_id: fields.proposalId,
+      vote: fields.vote,
+      shares_voting: fields.sharesVoting,
+      created_at: now.toISOString(),
     })
     .select()
     .single();
 
-  const response = new Response(null, { status: error ? 400 : 201 });
-
-  if (error) {
+  if (error !== null) {
     return {
-      data: undefined,
       error: {
         message: error.message ?? "Failed to create position vote",
         statusCode: 400,
       },
-      response,
+      response: jsonResponse(400),
     };
   }
 
   return {
     data: transformPositionVote(data),
-    error: undefined,
-    response,
+    response: jsonResponse(201),
   };
-}
+};
