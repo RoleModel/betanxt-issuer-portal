@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import React from "react";
 import type { NextRequest } from "next/server";
 
+import type { MailingElectronicNoticeProps } from "@/emails/types";
 import { DocumentUpdateNotification } from "@/emails/DocumentUpdateNotification";
+import { MailingElectronicNotice } from "@/emails/MailingElectronicNotice";
 import { TabulationReportEmail } from "@/emails/TabulationReportEmail";
 import { handleCors, withCors } from "@/utils/cors";
 
@@ -73,29 +75,146 @@ const TABULATION_FIXTURE = {
   ],
 };
 
+const ELECTRONIC_FIXTURE: MailingElectronicNoticeProps = {
+  companyName: "Woodward",
+  companyLegalName: "Woodward, Inc.",
+  meetingDateTime: "January 28, 2026 at 8:00 a.m. CT",
+  recordDate: "December 1, 2025",
+  votingDeadline: "8:00 a.m. CT on Tuesday, January 27, 2026",
+  proxyPushUrl: "https://www.proxypush.com/WWD",
+  proxyPushLabel: "www.proxypush.com/WWD",
+  voteSiteUrl: "https://www.proxydocs.com/WWD",
+  controlNumber: "338141742198",
+  phone: "1-866-829-5209",
+  printedCopiesContactName: "Becky Dees",
+  printedCopiesContactEmail: "becky.dees@woodward.com",
+  questionsContactName: "Bryan Dunn",
+  questionsContactLocation: "Colorado",
+  questionsContactEmail: "bryan.dunn@woodward.com",
+  portalBaseUrl: "http://localhost:3000",
+};
+
+/**
+ * Builds the electronic-notice props from the fixture, letting query params
+ * override the client-specific fields. The Mailing tab passes the current
+ * client's name and brand colour so the notice matches that client's theme.
+ */
+function buildElectronicProperties(
+  searchParameters: URLSearchParams
+): MailingElectronicNoticeProps {
+  const override = (key: string, fallback: string): string =>
+    searchParameters.get(key) ?? fallback;
+
+  return {
+    companyName: override("company", ELECTRONIC_FIXTURE.companyName),
+    companyLegalName: override(
+      "companyLegal",
+      ELECTRONIC_FIXTURE.companyLegalName
+    ),
+    brandColor: searchParameters.get("color") ?? undefined,
+    meetingDateTime: override(
+      "meetingDateTime",
+      ELECTRONIC_FIXTURE.meetingDateTime
+    ),
+    recordDate: override("recordDate", ELECTRONIC_FIXTURE.recordDate),
+    votingDeadline: override(
+      "votingDeadline",
+      ELECTRONIC_FIXTURE.votingDeadline
+    ),
+    proxyPushUrl: override("proxyPushUrl", ELECTRONIC_FIXTURE.proxyPushUrl),
+    proxyPushLabel: override(
+      "proxyPushLabel",
+      ELECTRONIC_FIXTURE.proxyPushLabel
+    ),
+    voteSiteUrl: override("voteSiteUrl", ELECTRONIC_FIXTURE.voteSiteUrl),
+    controlNumber: override("controlNumber", ELECTRONIC_FIXTURE.controlNumber),
+    phone: override("phone", ELECTRONIC_FIXTURE.phone),
+    printedCopiesContactName: override(
+      "printedContactName",
+      ELECTRONIC_FIXTURE.printedCopiesContactName
+    ),
+    printedCopiesContactEmail: override(
+      "printedContactEmail",
+      ELECTRONIC_FIXTURE.printedCopiesContactEmail
+    ),
+    questionsContactName: override(
+      "questionsContactName",
+      ELECTRONIC_FIXTURE.questionsContactName
+    ),
+    questionsContactLocation: override(
+      "questionsContactLocation",
+      ELECTRONIC_FIXTURE.questionsContactLocation
+    ),
+    questionsContactEmail: override(
+      "questionsContactEmail",
+      ELECTRONIC_FIXTURE.questionsContactEmail
+    ),
+    portalBaseUrl: override("portalBaseUrl", ELECTRONIC_FIXTURE.portalBaseUrl),
+  };
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  if (process.env.ENABLE_EMAIL_PREVIEW !== "true") {
+  const { searchParams } = new URL(request.url);
+  const template = searchParams.get("template") ?? "tabulation-daily-report";
+
+  // The electronic mailing notice is a product feature (previewed on the
+  // Mailing tab), so it is served regardless of the dev-only preview flag; the
+  // other templates are developer previews and remain gated behind it.
+  if (
+    template !== "mailing-electronic-notice" &&
+    process.env.ENABLE_EMAIL_PREVIEW !== "true"
+  ) {
     return withCors(
       NextResponse.json({ error: "Not available" }, { status: 404 })
     );
   }
 
-  const { searchParams } = new URL(request.url);
-  const template = searchParams.get("template") ?? "tabulation-daily-report";
+  // `format=html` returns a rendered HTML document (for iframing in the
+  // document viewer); anything else returns JSON for the preview screen.
+  const isAsHtml = searchParams.get("format") === "html";
 
   let element: React.ReactElement;
 
-  if (template === "document-update-notification") {
-    element = React.createElement(DocumentUpdateNotification, DOCUMENT_FIXTURE);
-  } else if (template === "tabulation-daily-report") {
-    element = React.createElement(TabulationReportEmail, TABULATION_FIXTURE);
-  } else {
-    return withCors(
-      NextResponse.json({ error: "Unknown template" }, { status: 400 })
-    );
+  switch (template) {
+    case "document-update-notification": {
+      element = React.createElement(
+        DocumentUpdateNotification,
+        DOCUMENT_FIXTURE
+      );
+
+      break;
+    }
+    case "tabulation-daily-report": {
+      element = React.createElement(TabulationReportEmail, TABULATION_FIXTURE);
+
+      break;
+    }
+    case "mailing-electronic-notice": {
+      element = React.createElement(
+        MailingElectronicNotice,
+        buildElectronicProperties(searchParams)
+      );
+
+      break;
+    }
+    default: {
+      return withCors(
+        NextResponse.json({ error: "Unknown template" }, { status: 400 })
+      );
+    }
   }
 
   const html = await render(element);
+
+  if (isAsHtml) {
+    return withCors(
+      new NextResponse(html, {
+        status: 200,
+        headers: { "content-type": "text/html; charset=utf-8" },
+      })
+    );
+  }
+
   return withCors(NextResponse.json({ html }));
 }
 

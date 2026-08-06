@@ -1,0 +1,321 @@
+meta {
+  name: Approve a pending proxy material version
+  type: http
+  seq: 10
+  tags: [
+    Documents
+  ]
+}
+
+post {
+  url: {{baseUrl}}/documents/types/:documentType/:versionId/approve
+  body: json
+  auth: inherit
+}
+
+params:path {
+  documentType: 
+  versionId: 
+}
+
+body:json {
+  {
+    "meetingId": "",
+    "comment": ""
+  }
+}
+
+example {
+  name: 200 Response
+  description: Version approved
+  
+  request: {
+    url: {{baseUrl}}/documents/types/:documentType/:versionId/approve
+    method: POST
+    mode: json
+    params:path: {
+      documentType: 
+      versionId: 
+    }
+  
+    body:json: {
+      {
+        "meetingId": "",
+        "comment": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "id": "",
+          "meetingId": "",
+          "taskId": "",
+          "participantId": "",
+          "title": "",
+          "description": "",
+          "type": "",
+          "filePath": "",
+          "fileType": "",
+          "fileSize": 0,
+          "status": "DRAFT",
+          "uploadDate": "",
+          "uploadedDate": "",
+          "signedDate": "",
+          "authorizedDate": "",
+          "completedDate": "",
+          "inProgressDate": "",
+          "deadline": "",
+          "history": {},
+          "approvedBy": "",
+          "approvedAt": "",
+          "createdBy": "",
+          "createdByFirstName": "",
+          "createdByLastName": "",
+          "updatedBy": "",
+          "updatedByFirstName": "",
+          "updatedByLastName": "",
+          "createdAt": "",
+          "updatedAt": "",
+          "displayCategory": "general",
+          "meeting": {
+            "id": "wen-annual-meeting-2026",
+            "title": "Annual Meeting",
+            "cusip": "95058W100",
+            "ticker": "WEN",
+            "setKey": "WENJ2026",
+            "preFilingDate": "2025-02-15",
+            "filingDate": "2025-03-01",
+            "brokerSearchDate": "2025-03-15",
+            "recordDate": "2025-04-01",
+            "mailingDate": "2025-04-15",
+            "meetingDate": "2025-05-15",
+            "cutoffDate": "",
+            "meetingType": "",
+            "meetingYear": 2025,
+            "status": "ACTIVE",
+            "currentPhase": "Notice & Access",
+            "overallCompletion": 75,
+            "distributionType": "Notice & Access",
+            "transferAgent": "Computershare Trust Company",
+            "transferAgentConfirmed": false,
+            "employeeStockPlans": "",
+            "planAdministrator": "",
+            "planAdministratorContact": "",
+            "planAdministratorContactEmail": "",
+            "solicitor": "",
+            "solicitorEmail": "",
+            "inspector": "",
+            "ivrDialInNumber": "",
+            "totalSharesOutstanding": "",
+            "quorumRequirement": 0,
+            "brokerNonVote": 22480600,
+            "mailingStatus": "",
+            "clientId": "",
+            "createdAt": "",
+            "updatedAt": "",
+            "tabulationDistribution": {
+              "enabled": false,
+              "startOffsetDays": 0,
+              "recipients": [],
+              "lastSentAt": "",
+              "nextScheduledAt": ""
+            },
+            "client": {
+              "id": "291cdbe5-192b-50ec-b3ae-3197c9c5103c",
+              "ticker": "WEN",
+              "companyName": "The Wendy's Company",
+              "shortName": "Wendy's",
+              "industry": "Restaurants",
+              "description": "Leading fast food hamburger chain",
+              "website": "https://www.wendys.com",
+              "primaryContact": "Mike Chen",
+              "primaryContactEmail": "mike.chen@wendys.com",
+              "isActive": true,
+              "brandingId": 966152,
+              "logoUrl": "",
+              "primaryColor": "#1A3C5E",
+              "secondaryColor": "#E8A020",
+              "createdBy": "",
+              "enabledFeatures": [
+                "documents",
+                "mailing",
+                "tabulation",
+                "reports",
+                "fileTransfer",
+                "agenda"
+              ],
+              "createdAt": "",
+              "updatedAt": ""
+            }
+          },
+          "comments": [
+            {
+              "id": 0,
+              "documentId": "",
+              "userId": "",
+              "comment": "",
+              "firstName": "",
+              "lastName": "",
+              "createdAt": "",
+              "document": "",
+              "user": {
+                "id": "b1f5062a-09b6-5dc1-b18c-3800c5930eab",
+                "username": "lisa.rodriguez",
+                "firstName": "Lisa",
+                "lastName": "Rodriguez",
+                "email": "lisa.rodriguez@paycom.com",
+                "password": "",
+                "type": "ADMIN",
+                "accountId": "fe3ad07a-80a7-59a0-a253-9083d6d4c02c",
+                "account": {
+                  "id": "",
+                  "name": "",
+                  "primaryContact": "",
+                  "clientId": "",
+                  "createdAt": "",
+                  "client": {
+                    "id": "291cdbe5-192b-50ec-b3ae-3197c9c5103c",
+                    "ticker": "WEN",
+                    "companyName": "The Wendy's Company",
+                    "shortName": "Wendy's",
+                    "industry": "Restaurants",
+                    "description": "Leading fast food hamburger chain",
+                    "website": "https://www.wendys.com",
+                    "primaryContact": "Mike Chen",
+                    "primaryContactEmail": "mike.chen@wendys.com",
+                    "isActive": true,
+                    "brandingId": 966152,
+                    "logoUrl": "",
+                    "primaryColor": "#1A3C5E",
+                    "secondaryColor": "#E8A020",
+                    "createdBy": "",
+                    "enabledFeatures": [
+                      "documents",
+                      "mailing",
+                      "tabulation",
+                      "reports",
+                      "fileTransfer",
+                      "agenda"
+                    ],
+                    "createdAt": "",
+                    "updatedAt": ""
+                  }
+                },
+                "avatar_url": "https://example.supabase.co/storage/v1/object/public/user-avatars/b1f5062a-09b6-5dc1-b18c-3800c5930eab.jpg"
+              }
+            }
+          ],
+          "signatures": [
+            {
+              "id": "",
+              "documentId": "",
+              "pageNumber": 0,
+              "xPosition": 0,
+              "yPosition": 0,
+              "width": 0,
+              "height": 0,
+              "signatureType": "",
+              "required": false,
+              "createdAt": "",
+              "updatedAt": "",
+              "document": ""
+            }
+          ]
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 400 Response
+  description: Bad request
+  
+  request: {
+    url: {{baseUrl}}/documents/types/:documentType/:versionId/approve
+    method: POST
+    mode: json
+    params:path: {
+      documentType: 
+      versionId: 
+    }
+  
+    body:json: {
+      {
+        "meetingId": "",
+        "comment": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 400
+      text: Bad Request
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 409 Response
+  description: Invalid state transition
+  
+  request: {
+    url: {{baseUrl}}/documents/types/:documentType/:versionId/approve
+    method: POST
+    mode: json
+    params:path: {
+      documentType: 
+      versionId: 
+    }
+  
+    body:json: {
+      {
+        "meetingId": "",
+        "comment": ""
+      }
+    }
+  }
+  
+  response: {
+    status: {
+      code: 409
+      text: Conflict
+    }
+  
+    body: {
+      type: text
+      content: '''
+  
+      '''
+    }
+  }
+}

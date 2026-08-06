@@ -39,7 +39,7 @@ export interface CodeToken {
   readonly value: string;
 }
 
-const TS_KEYWORDS = [
+const TS_KEYWORDS = new Set([
   "abstract",
   "as",
   "async",
@@ -95,9 +95,9 @@ const TS_KEYWORDS = [
   "void",
   "while",
   "yield",
-];
+]);
 
-const TS_TYPES = [
+const TS_TYPES = new Set([
   "Array",
   "Boolean",
   "Map",
@@ -116,7 +116,7 @@ const TS_TYPES = [
   "object",
   "string",
   "unknown",
-];
+]);
 
 /**
  * One pattern per token class, ordered longest-context-first.
@@ -194,11 +194,11 @@ const firstGroup = (
  * @returns The token kind the viewer should colour it with.
  */
 const classifyWord = (word: string): TokenKind => {
-  if (TS_KEYWORDS.includes(word)) {
+  if (TS_KEYWORDS.has(word)) {
     return "keyword";
   }
 
-  if (TS_TYPES.includes(word)) {
+  if (TS_TYPES.has(word)) {
     return "type";
   }
 

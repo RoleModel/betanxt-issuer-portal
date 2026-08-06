@@ -1,0 +1,158 @@
+meta {
+  name: List phases for a meeting
+  type: http
+  seq: 1
+  tags: [
+    Phases
+  ]
+}
+
+get {
+  url: {{baseUrl}}/meetings/:meetingId/phases
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~status: IN_PROGRESS
+  ~status: COMPLETE
+}
+
+params:path {
+  meetingId: 
+}
+
+example {
+  name: 200 Response
+  description: Phases retrieved successfully
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/phases
+    method: GET
+    mode: none
+    params:query: {
+      ~status: IN_PROGRESS
+      ~status: COMPLETE
+    }
+  
+    params:path: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        [
+          {
+            "id": "11111111-2222-3333-4444-555555555555",
+            "meetingId": "01234567-89ab-cdef-0123-456789abcdef",
+            "name": "Notice & Access",
+            "orderIndex": 1,
+            "status": "IN_PROGRESS",
+            "keyDates": {
+              "startDate": "2025-03-01",
+              "endDate": "2025-03-31",
+              "dueDate": "2025-03-25",
+              "completionDate": "2025-03-20"
+            },
+            "createdAt": "",
+            "updatedAt": ""
+          }
+        ]
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/phases
+    method: GET
+    mode: none
+    params:query: {
+      ~status: IN_PROGRESS
+      ~status: COMPLETE
+    }
+  
+    params:path: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 404 Response
+  description: Not found
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/phases
+    method: GET
+    mode: none
+    params:query: {
+      ~status: IN_PROGRESS
+      ~status: COMPLETE
+    }
+  
+    params:path: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 404
+      text: Not Found
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

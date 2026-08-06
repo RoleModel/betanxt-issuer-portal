@@ -1,0 +1,249 @@
+meta {
+  name: Create new task
+  type: http
+  seq: 2
+  tags: [
+    Tasks
+  ]
+}
+
+post {
+  url: {{baseUrl}}/meetings/:meetingId/tasks
+  body: json
+  auth: inherit
+}
+
+params:path {
+  meetingId: 
+}
+
+body:json {
+  {
+    "taskId": "",
+    "phaseId": "",
+    "phaseNumber": 0,
+    "title": "",
+    "description": "",
+    "type": "",
+    "dueDate": "",
+    "owner": "",
+    "documentId": "",
+    "links": {}
+  }
+}
+
+example {
+  name: 201 Response
+  description: Task created successfully
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/tasks
+    method: POST
+    mode: json
+    params:path: {
+      meetingId: 
+    }
+  
+    body:json: {
+      {
+        "taskId": "",
+        "phaseId": "",
+        "phaseNumber": 0,
+        "title": "",
+        "description": "",
+        "type": "",
+        "dueDate": "",
+        "owner": "",
+        "documentId": "",
+        "links": {}
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "id": "81c351e9-36cd-5528-b5a4-f48b2fe05bd6",
+          "taskId": "wen-annual-meeting-2026-P1-1",
+          "phaseId": "11111111-2222-3333-4444-555555555555",
+          "meetingId": "wen-annual-meeting-2026",
+          "phaseNumber": 1,
+          "title": "DTCC (SPR) Authorization Status",
+          "description": "Check and confirm authorization status with DTCC for shareholder proxy record access.",
+          "type": "Authorization",
+          "status": "INCOMPLETE",
+          "dueDate": "2025-12-22",
+          "owner": "The Wendy's Company",
+          "documentId": "33333333-4444-5555-6666-777777777777",
+          "links": {},
+          "createdAt": "",
+          "updatedAt": ""
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 400 Response
+  description: Bad request
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/tasks
+    method: POST
+    mode: json
+    params:path: {
+      meetingId: 
+    }
+  
+    body:json: {
+      {
+        "taskId": "",
+        "phaseId": "",
+        "phaseNumber": 0,
+        "title": "",
+        "description": "",
+        "type": "",
+        "dueDate": "",
+        "owner": "",
+        "documentId": "",
+        "links": {}
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 400
+      text: Bad Request
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/tasks
+    method: POST
+    mode: json
+    params:path: {
+      meetingId: 
+    }
+  
+    body:json: {
+      {
+        "taskId": "",
+        "phaseId": "",
+        "phaseNumber": 0,
+        "title": "",
+        "description": "",
+        "type": "",
+        "dueDate": "",
+        "owner": "",
+        "documentId": "",
+        "links": {}
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 403 Response
+  description: Forbidden
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/tasks
+    method: POST
+    mode: json
+    params:path: {
+      meetingId: 
+    }
+  
+    body:json: {
+      {
+        "taskId": "",
+        "phaseId": "",
+        "phaseNumber": 0,
+        "title": "",
+        "description": "",
+        "type": "",
+        "dueDate": "",
+        "owner": "",
+        "documentId": "",
+        "links": {}
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 403
+      text: Forbidden
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

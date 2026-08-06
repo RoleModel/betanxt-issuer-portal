@@ -507,6 +507,9 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
     if (pathname === "/profile" || pathname.startsWith("/profile/")) {
       return "";
     }
+    if (pathname === "/specs" || pathname.startsWith("/specs/")) {
+      return "";
+    }
     if (pathname === "/events" || editEventRegex.test(pathname)) {
       return "events";
     }
@@ -764,7 +767,7 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
             {
               label: "Specifications",
               onClick: () => {
-                router.push("/specs/ui-enhancements");
+                router.push("/specs");
               },
             },
           ]

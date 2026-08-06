@@ -31,6 +31,32 @@ export default [
       "@typescript-eslint/no-floating-promises": "warn",
       "@typescript-eslint/prefer-optional-chain": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
+      // Object literal keys frequently mirror backend enum values verbatim
+      // (e.g. status maps keyed by AWAITING_DRAFT/APPROVED/...), so allow
+      // UPPER_CASE there alongside the usual formats.
+      "@typescript-eslint/naming-convention": [
+        "warn",
+        {
+          selector: "default",
+          format: ["camelCase", "PascalCase", "snake_case", "UPPER_CASE"],
+          leadingUnderscore: "allow",
+        },
+        {
+          selector: "objectLiteralProperty",
+          format: ["camelCase", "PascalCase", "snake_case", "UPPER_CASE"],
+          leadingUnderscore: "allow",
+        },
+        {
+          selector: [
+            "classProperty",
+            "enumMember",
+            "objectLiteralProperty",
+            "typeProperty",
+          ],
+          format: null,
+          modifiers: ["requiresQuotes"],
+        },
+      ],
     },
   },
   // Test file overrides

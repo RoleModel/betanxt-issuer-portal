@@ -1,0 +1,191 @@
+meta {
+  name: List meetings
+  type: http
+  seq: 1
+  tags: [
+    Meetings
+  ]
+}
+
+get {
+  url: {{baseUrl}}/meetings
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  limit: 20
+  ~status: ACTIVE
+  ~status: COMPLETE
+  ~status: ADJOURNED
+  @description('Filter by client ID')
+  ~clientId: 
+  ~meetingYear: 
+  ~cusip: 
+  ~ticker: 
+}
+
+example {
+  name: 200 Response
+  description: Meetings retrieved successfully
+  
+  request: {
+    url: {{baseUrl}}/meetings
+    method: GET
+    mode: none
+    params:query: {
+      page: 1
+      limit: 20
+      ~status: ACTIVE
+      ~status: COMPLETE
+      ~status: ADJOURNED
+      ~clientId: 
+      ~meetingYear: 
+      ~cusip: 
+      ~ticker: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "meetings": [
+            {
+              "id": "wen-annual-meeting-2026",
+              "title": "Annual Meeting",
+              "cusip": "95058W100",
+              "ticker": "WEN",
+              "setKey": "WENJ2026",
+              "preFilingDate": "2025-02-15",
+              "filingDate": "2025-03-01",
+              "brokerSearchDate": "2025-03-15",
+              "recordDate": "2025-04-01",
+              "mailingDate": "2025-04-15",
+              "meetingDate": "2025-05-15",
+              "cutoffDate": "",
+              "meetingType": "",
+              "meetingYear": 2025,
+              "status": "ACTIVE",
+              "currentPhase": "Notice & Access",
+              "overallCompletion": 75,
+              "distributionType": "Notice & Access",
+              "transferAgent": "Computershare Trust Company",
+              "transferAgentConfirmed": false,
+              "employeeStockPlans": "",
+              "planAdministrator": "",
+              "planAdministratorContact": "",
+              "planAdministratorContactEmail": "",
+              "solicitor": "",
+              "solicitorEmail": "",
+              "inspector": "",
+              "ivrDialInNumber": "",
+              "totalSharesOutstanding": "",
+              "quorumRequirement": 0,
+              "brokerNonVote": 22480600,
+              "mailingStatus": "",
+              "clientId": "",
+              "createdAt": "",
+              "updatedAt": "",
+              "tabulationDistribution": {
+                "enabled": false,
+                "startOffsetDays": 0,
+                "recipients": [],
+                "lastSentAt": "",
+                "nextScheduledAt": ""
+              },
+              "client": {
+                "id": "291cdbe5-192b-50ec-b3ae-3197c9c5103c",
+                "ticker": "WEN",
+                "companyName": "The Wendy's Company",
+                "shortName": "Wendy's",
+                "industry": "Restaurants",
+                "description": "Leading fast food hamburger chain",
+                "website": "https://www.wendys.com",
+                "primaryContact": "Mike Chen",
+                "primaryContactEmail": "mike.chen@wendys.com",
+                "isActive": true,
+                "brandingId": 966152,
+                "logoUrl": "",
+                "primaryColor": "#1A3C5E",
+                "secondaryColor": "#E8A020",
+                "createdBy": "",
+                "enabledFeatures": [
+                  "documents",
+                  "mailing",
+                  "tabulation",
+                  "reports",
+                  "fileTransfer",
+                  "agenda"
+                ],
+                "createdAt": "",
+                "updatedAt": ""
+              }
+            }
+          ],
+          "pagination": {
+            "page": 0,
+            "limit": 0,
+            "total": 0,
+            "pages": 0
+          }
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/meetings
+    method: GET
+    mode: none
+    params:query: {
+      page: 1
+      limit: 20
+      ~status: ACTIVE
+      ~status: COMPLETE
+      ~status: ADJOURNED
+      ~clientId: 
+      ~meetingYear: 
+      ~cusip: 
+      ~ticker: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

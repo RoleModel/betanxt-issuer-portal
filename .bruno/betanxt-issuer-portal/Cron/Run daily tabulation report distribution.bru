@@ -1,0 +1,122 @@
+meta {
+  name: Run daily tabulation report distribution
+  type: http
+  seq: 1
+  tags: [
+    Cron
+  ]
+}
+
+post {
+  url: {{baseUrl}}/cron/tabulation-distribute
+  body: none
+  auth: inherit
+}
+
+docs {
+  Finds all meetings with auto-distribution enabled and within their delivery window, creates in-app notifications for every user associated with the meeting, and sends emails to configured recipients. Intended to be called by a daily cron job at 8 AM, but can also be triggered manually from the distribution settings drawer.
+  
+}
+
+example {
+  name: 200 Response
+  description: Distribution run completed
+  
+  request: {
+    url: {{baseUrl}}/cron/tabulation-distribute
+    method: POST
+    mode: none
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "ok": false,
+          "date": "",
+          "processed": 0,
+          "skipped": 0,
+          "results": [
+            {
+              "meetingId": "",
+              "ticker": "",
+              "notificationsCreated": 0,
+              "emailsSent": 0,
+              "emailRecipients": [],
+              "skipped": "",
+              "error": ""
+            }
+          ]
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/cron/tabulation-distribute
+    method: POST
+    mode: none
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 500 Response
+  description: Internal server error
+  
+  request: {
+    url: {{baseUrl}}/cron/tabulation-distribute
+    method: POST
+    mode: none
+  }
+  
+  response: {
+    status: {
+      code: 500
+      text: Internal Server Error
+    }
+  
+    body: {
+      type: text
+      content: '''
+  
+      '''
+    }
+  }
+}

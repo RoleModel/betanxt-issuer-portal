@@ -1,0 +1,96 @@
+meta {
+  name: Get readiness aggregation for a meeting
+  type: http
+  seq: 12
+  tags: [
+    Documents
+  ]
+}
+
+get {
+  url: {{baseUrl}}/documents/readiness
+  body: none
+  auth: inherit
+}
+
+params:query {
+  meetingId: 
+}
+
+example {
+  name: 200 Response
+  description: Readiness status
+  
+  request: {
+    url: {{baseUrl}}/documents/readiness
+    method: GET
+    mode: none
+    params:query: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "phase1Ready": false,
+          "phase2Ready": false,
+          "overallReady": false,
+          "outstandingPhase1": [
+            {}
+          ],
+          "outstandingPhase2": [
+            {}
+          ]
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 400 Response
+  description: Bad request
+  
+  request: {
+    url: {{baseUrl}}/documents/readiness
+    method: GET
+    mode: none
+    params:query: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 400
+      text: Bad Request
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

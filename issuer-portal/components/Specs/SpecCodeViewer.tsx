@@ -221,11 +221,11 @@ export const SpecCodeViewer = ({
           {tokensByLine.map((tokens, lineIndex) => (
             <Box
               component="span"
-              // eslint-disable-next-line react/no-array-index-key -- Lines are static after mount and have no stable id.
+
               key={lineIndex}
               sx={{ display: "block", whiteSpace: "pre" }}
             >
-              {showLineNumbers && (
+              {showLineNumbers ? (
                 <Box
                   aria-hidden
                   component="span"
@@ -240,11 +240,11 @@ export const SpecCodeViewer = ({
                 >
                   {lineIndex + 1}
                 </Box>
-              )}
+              ) : null}
               {tokens.map((token, tokenIndex) => (
                 <Box
                   component="span"
-                  // eslint-disable-next-line react/no-array-index-key -- Tokens are derived from static source in source order.
+
                   key={tokenIndex}
                   sx={(theme) => ({
                     color: tokenColor(theme)[token.kind],

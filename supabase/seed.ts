@@ -1877,6 +1877,19 @@ const main = async () => {
   if (companyPositions) {
     sqlStatements.push("-- Insert mailing records");
 
+    // Per-meeting overrides for the Primary Mailing Summary (Full Set / NAA /
+    // Electronic). company_positions.json applies the same figures to every
+    // meeting of a company; these pin specific meetings to their real numbers.
+    const mailingOverrides: Record<
+      string,
+      { fullset: number; naa: number; electronic: number }
+    > = {
+      "wen-annual-meeting-2026": { fullset: 0, naa: 16_000, electronic: 923 },
+      "wwd-annual-meeting-2025": { fullset: 26, naa: 2_136, electronic: 5_487 },
+      "wwd-annual-meeting-2022": { fullset: 26, naa: 5_434, electronic: 0 },
+      "payc-annual-meeting-2026": { fullset: 2_805, naa: 0, electronic: 0 },
+    };
+
     // Create mailing records for each company's meetings
     Object.keys(clientIds).forEach((ticker) => {
       // Map ticker codes to company position keys
@@ -1914,7 +1927,8 @@ const main = async () => {
             meetingClient?.ticker === ticker &&
             (year <= 2025 ||
               (year === 2026 && isSpecialMeeting) ||
-              (year === 2026 && (ticker === "WEN" || ticker === "FOC")))
+              (year === 2026 && (ticker === "WEN" || ticker === "FOC")) ||
+              meetingId in mailingOverrides)
           );
         });
 
@@ -1943,6 +1957,13 @@ const main = async () => {
           const canceledSuppressed =
             data["Suppressed Positions"]?.Canceled ?? 0;
 
+          const override = mailingOverrides[meetingId];
+          const fullsetMailFinal = override ? override.fullset : fullsetMail;
+          const naaMailFinal = override ? override.naa : naaMail;
+          const electronicSuppressedFinal = override
+            ? override.electronic
+            : electronicSuppressed;
+
           sqlStatements.push(
             `INSERT INTO mailing(id, meeting_id, ticker, total_accounts, total_positions, total_retransmissions, total_rollups, fullset_mail_positions, naa_mail_positions, courtesy_other_mail_positions, electronic_suppressed_positions, household_suppressed_positions, managed_suppressed_positions, consolidated_suppressed_positions, canceled_suppressed_positions, created_at, updated_at) VALUES (` +
               `${sqlValue(mailingId)}, ` +
@@ -1952,10 +1973,10 @@ const main = async () => {
               `${sqlValue(totalPositions)}, ` +
               `${sqlValue(totalRetransmissions)}, ` +
               `${sqlValue(totalRollups)}, ` +
-              `${sqlValue(fullsetMail)}, ` +
-              `${sqlValue(naaMail)}, ` +
+              `${sqlValue(fullsetMailFinal)}, ` +
+              `${sqlValue(naaMailFinal)}, ` +
               `${sqlValue(courtesyOtherMail)}, ` +
-              `${sqlValue(electronicSuppressed)}, ` +
+              `${sqlValue(electronicSuppressedFinal)}, ` +
               `${sqlValue(householdSuppressed)}, ` +
               `${sqlValue(managedSuppressed)}, ` +
               `${sqlValue(consolidatedSuppressed)}, ` +

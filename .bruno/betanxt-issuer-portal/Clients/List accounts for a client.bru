@@ -1,0 +1,228 @@
+meta {
+  name: List accounts for a client
+  type: http
+  seq: 6
+  tags: [
+    Clients
+    Accounts
+  ]
+}
+
+get {
+  url: {{baseUrl}}/clients/:ticker/accounts
+  body: none
+  auth: inherit
+}
+
+params:query {
+  page: 1
+  limit: 20
+}
+
+params:path {
+  @description('The client ticker symbol')
+  ticker: 
+}
+
+example {
+  name: 200 Response
+  description: Client accounts retrieved successfully
+  
+  request: {
+    url: {{baseUrl}}/clients/:ticker/accounts
+    method: GET
+    mode: none
+    params:query: {
+      page: 1
+      limit: 20
+    }
+  
+    params:path: {
+      ticker: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "accounts": [
+            {
+              "id": "",
+              "name": "",
+              "primaryContact": "",
+              "clientId": "",
+              "createdAt": "",
+              "client": {
+                "id": "291cdbe5-192b-50ec-b3ae-3197c9c5103c",
+                "ticker": "WEN",
+                "companyName": "The Wendy's Company",
+                "shortName": "Wendy's",
+                "industry": "Restaurants",
+                "description": "Leading fast food hamburger chain",
+                "website": "https://www.wendys.com",
+                "primaryContact": "Mike Chen",
+                "primaryContactEmail": "mike.chen@wendys.com",
+                "isActive": true,
+                "brandingId": 966152,
+                "logoUrl": "",
+                "primaryColor": "#1A3C5E",
+                "secondaryColor": "#E8A020",
+                "createdBy": "",
+                "enabledFeatures": [
+                  "documents",
+                  "mailing",
+                  "tabulation",
+                  "reports",
+                  "fileTransfer",
+                  "agenda"
+                ],
+                "createdAt": "",
+                "updatedAt": ""
+              }
+            }
+          ],
+          "pagination": {
+            "page": 0,
+            "limit": 0,
+            "total": 0,
+            "pages": 0
+          }
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/clients/:ticker/accounts
+    method: GET
+    mode: none
+    params:query: {
+      page: 1
+      limit: 20
+    }
+  
+    params:path: {
+      ticker: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 403 Response
+  description: Forbidden
+  
+  request: {
+    url: {{baseUrl}}/clients/:ticker/accounts
+    method: GET
+    mode: none
+    params:query: {
+      page: 1
+      limit: 20
+    }
+  
+    params:path: {
+      ticker: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 403
+      text: Forbidden
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 404 Response
+  description: Not found
+  
+  request: {
+    url: {{baseUrl}}/clients/:ticker/accounts
+    method: GET
+    mode: none
+    params:query: {
+      page: 1
+      limit: 20
+    }
+  
+    params:path: {
+      ticker: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 404
+      text: Not Found
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

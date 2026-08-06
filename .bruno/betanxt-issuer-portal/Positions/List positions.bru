@@ -1,0 +1,190 @@
+meta {
+  name: List positions
+  type: http
+  seq: 1
+  tags: [
+    Positions
+  ]
+}
+
+get {
+  url: {{baseUrl}}/positions
+  body: none
+  auth: inherit
+}
+
+params:query {
+  @description('Filter by meeting ID (e.g., `eq.WEN-2024-AGM`)')
+  ~meetingId: 
+  @description('Filter by vote status (e.g., `eq.Voted`, `eq.Unvoted`)')
+  ~voteStatus: 
+  @description('Filter by account type (e.g., `eq.Registered Account`)')
+  ~accountType: 
+  @description('Specify columns to return and embed related resources')
+  ~select: 
+  @description('Order results (e.g., `shares.desc`, `name.asc`)')
+  ~order: 
+  @description('Limit number of results')
+  ~limit: 
+  @description('Number of results to skip for pagination')
+  ~offset: 
+}
+
+docs {
+  List positions with Supabase PostgREST filters.
+  
+  Common usage:
+  - Filter by meeting: `?meetingId=eq.wen-annual-meeting-2025`
+  - Filter by vote status: `?voteStatus=eq.Voted` or `?voteStatus=eq.Unvoted`
+  - Filter by account type: `?accountType=eq.CEDE%20%26%20CO%20%2F%20CTC%20%26%20CO`
+  - Include meeting data: `?select=*,meetings(*)`
+  - Include position votes: `?select=*,position_votes(*)`
+  - Order by shares: `?order=shares.desc`
+  - Pagination: `?limit=20&offset=40`
+  
+}
+
+example {
+  name: 200 Response
+  description: Positions retrieved successfully
+  
+  request: {
+    url: {{baseUrl}}/positions
+    method: GET
+    mode: none
+    params:query: {
+      ~meetingId: 
+      ~voteStatus: 
+      ~accountType: 
+      ~select: 
+      ~order: 
+      ~limit: 
+      ~offset: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        [
+          {
+            "id": "90953927-6e41-5c55-be8b-a690299746ad",
+            "meetingId": "01234567-89ab-cdef-0123-456789abcdef",
+            "cusip": "95058W100",
+            "accountType": "DTC/CDS",
+            "setKey": "WEN12026",
+            "name": "CEDE & CO M C/O DTCC",
+            "accountNumber": null,
+            "accountEmail": null,
+            "controlNumber": null,
+            "voteStatus": "Unvoted",
+            "shares": 132463881,
+            "sharesVoted": 0,
+            "source": "WEB",
+            "dateVoted": "",
+            "sentBy": "MAIL",
+            "holderCategory": "REGISTERED",
+            "state": "NC",
+            "country": "US",
+            "createdAt": "",
+            "updatedAt": ""
+          }
+        ]
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/positions
+    method: GET
+    mode: none
+    params:query: {
+      ~meetingId: 
+      ~voteStatus: 
+      ~accountType: 
+      ~select: 
+      ~order: 
+      ~limit: 
+      ~offset: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 404 Response
+  description: Not found
+  
+  request: {
+    url: {{baseUrl}}/positions
+    method: GET
+    mode: none
+    params:query: {
+      ~meetingId: 
+      ~voteStatus: 
+      ~accountType: 
+      ~select: 
+      ~order: 
+      ~limit: 
+      ~offset: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 404
+      text: Not Found
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

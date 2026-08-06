@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import NextLink from "next/link";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
@@ -54,16 +54,10 @@ const formatDate = (dateString: string): string => {
 };
 
 const MeetingsPage = () => {
-  const params = useParams();
-  const clientTicker = params.clientTicker as string;
+  const { clientTicker } = useParams<{ clientTicker: string }>();
   const [meetings, setMeetings] = useState<MeetingData[]>([]);
   const [order, setOrder] = useState<Order>("asc");
   const [orderBy, setOrderBy] = useState<OrderBy>("meetingDate");
-
-  useEffect(() => {
-    void fetchMeetings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const fetchMeetings = async () => {
     try {
@@ -112,14 +106,19 @@ const MeetingsPage = () => {
     }
   };
 
+  useEffect(() => {
+    void fetchMeetings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientTicker]);
+
   const handleRequestSort = (property: OrderBy) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const sortedMeetings = React.useMemo(() => {
-    return [...meetings].sort((a, b) => {
+  const sortedMeetings = () => {
+    return [...meetings].toSorted((a, b) => {
       // `orderBy` is any key of MeetingData, so the raw values are not
       // necessarily comparable; the guards below pick the applicable strategy.
       const compareA: unknown = a[orderBy];
@@ -147,7 +146,7 @@ const MeetingsPage = () => {
 
       return 0;
     });
-  }, [meetings, order, orderBy]);
+  };
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
@@ -196,7 +195,7 @@ const MeetingsPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sortedMeetings.map((meeting) => (
+                {sortedMeetings().map((meeting) => (
                   <TableRow key={meeting.id} hover>
                     <TableCell>
                       <Link

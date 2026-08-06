@@ -159,8 +159,7 @@ const PhaseDrawer: React.FC<PhaseDrawerProps> = (props) => {
   } = usePhases(currentMeeting?.id);
 
   // Get client data for form generation
-  const params = useParams();
-  const clientTicker = params?.clientTicker as string;
+  const { clientTicker } = useParams<{ clientTicker: string }>();
 
   const { clients } = useClients();
   const currentClient = clients.find(

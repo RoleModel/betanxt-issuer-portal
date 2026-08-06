@@ -1,0 +1,168 @@
+meta {
+  name: Create an in-app notification
+  type: http
+  seq: 2
+  tags: [
+    Notifications
+  ]
+}
+
+post {
+  url: {{baseUrl}}/notifications
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userId": "",
+    "meetingId": "",
+    "title": "Daily Tabulation Report Available",
+    "message": "",
+    "type": "info",
+    "priority": "low",
+    "actionUrl": ""
+  }
+}
+
+example {
+  name: 201 Response
+  description: Notification created
+  
+  request: {
+    url: {{baseUrl}}/notifications
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "userId": "",
+        "meetingId": "",
+        "title": "Daily Tabulation Report Available",
+        "message": "",
+        "type": "info",
+        "priority": "low",
+        "actionUrl": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "id": "389e5e4b-10e5-5eed-8047-3da0e36f051b",
+          "title": "Your Event Has Been Created",
+          "message": "Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started.",
+          "type": "success",
+          "priority": "high",
+          "read": false,
+          "userId": "b1f5062a-09b6-5dc1-b18c-3800c5930eab",
+          "meetingId": "01234567-89ab-cdef-0123-456789abcdef",
+          "taskId": null,
+          "actionUrl": "/WEN/meeting/wen-annual-meeting-2026/dashboard/Phase%201",
+          "createdAt": "2025-10-01T21:48:48.724Z",
+          "readAt": null,
+          "expiresAt": null
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 400 Response
+  description: Bad request
+  
+  request: {
+    url: {{baseUrl}}/notifications
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "userId": "",
+        "meetingId": "",
+        "title": "Daily Tabulation Report Available",
+        "message": "",
+        "type": "info",
+        "priority": "low",
+        "actionUrl": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 400
+      text: Bad Request
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/notifications
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "userId": "",
+        "meetingId": "",
+        "title": "Daily Tabulation Report Available",
+        "message": "",
+        "type": "info",
+        "priority": "low",
+        "actionUrl": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

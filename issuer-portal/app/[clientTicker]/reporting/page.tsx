@@ -68,8 +68,7 @@ interface PositionsVotedBuckets {
  * requirement into the threshold line.
  */
 const ReportingPage = () => {
-  const params = useParams();
-  const clientTicker = params.clientTicker as string;
+  const { clientTicker } = useParams<{ clientTicker: string }>();
 
   const { data: reportingData, loading, error } = useReporting(clientTicker);
   const { isEnabled } = useClientFeatures();

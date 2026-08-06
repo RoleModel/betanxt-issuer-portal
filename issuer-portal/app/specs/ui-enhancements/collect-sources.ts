@@ -1,5 +1,4 @@
 import type { ZipEntry } from "@/components/Specs/zip";
-
 import { AFFECTED_GROUPS } from "@/app/specs/ui-enhancements/affected-files";
 
 /**
@@ -28,9 +27,11 @@ export interface CollectedSources {
   }[];
 }
 
-interface SourceResponse {
-  readonly source?: string;
-}
+const hasSourceString = (value: unknown): value is { source: string } =>
+  typeof value === "object" &&
+  value !== null &&
+  "source" in value &&
+  typeof value.source === "string";
 
 /**
  * Fetches one file's source.
@@ -38,34 +39,44 @@ interface SourceResponse {
  * @param path - Repo-relative path from `issuer-portal/`.
  * @returns The file's text, or a reason it could not be read.
  */
+const requestFailedReason = (error: unknown): { reason: string } => ({
+  reason: Error.isError(error) ? error.message : "request failed",
+});
+
 const fetchSource = async (
   path: string
 ): Promise<{ source: string } | { reason: string }> => {
+  let response: Response;
+
   try {
-    const response = await fetch(
-      `/api/dev/source?path=${encodeURIComponent(path)}`,
-      { headers: { accept: "application/json" } }
-    );
-
-    if (!response.ok) {
-      return {
-        reason:
-          response.status === 404
-            ? "not found, or the dev overlay is switched off for this deployment"
-            : `source route returned ${response.status}`,
-      };
-    }
-
-    const body = (await response.json()) as SourceResponse;
-
-    return typeof body.source === "string"
-      ? { source: body.source }
-      : { reason: "source route returned no content" };
+    // eslint-disable-next-line compat/compat -- Opera Mini is not a target; fetch is available in every browser this app supports.
+    response = await fetch(`/api/dev/source?path=${encodeURIComponent(path)}`, {
+      headers: { accept: "application/json" },
+    });
   } catch (error) {
+    return requestFailedReason(error);
+  }
+
+  if (!response.ok) {
     return {
-      reason: error instanceof Error ? error.message : "request failed",
+      reason:
+        response.status === 404
+          ? "not found, or the dev overlay is switched off for this deployment"
+          : `source route returned ${response.status}`,
     };
   }
+
+  let body: unknown;
+
+  try {
+    body = await response.json();
+  } catch (error) {
+    return requestFailedReason(error);
+  }
+
+  return hasSourceString(body)
+    ? { source: body.source }
+    : { reason: "source route returned no content" };
 };
 
 /**
@@ -126,7 +137,7 @@ export const buildManifest = (
     "- `current/` — a sample of the app's source as it is today, grouped by",
     "  what it does. One file per idea rather than every file the work touches:",
     "  the rest follow the same patterns and are named under each requirement's",
-    "  \"In the code\" on the spec page.",
+    '  "In the code" on the spec page.',
     "- `proposed/` — the reference code from the spec page.",
     "",
     "Paths under `current/` mirror `issuer-portal/`, so a file at",

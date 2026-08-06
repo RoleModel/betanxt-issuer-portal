@@ -1,0 +1,193 @@
+meta {
+  name: Create a position vote
+  type: http
+  seq: 2
+  tags: [
+    Voting
+  ]
+}
+
+post {
+  url: {{baseUrl}}/position_votes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "proposalId": "",
+    "vote": "FOR",
+    "sharesVoting": ""
+  }
+}
+
+docs {
+  Create a new position vote record.
+  
+  Note: In Supabase PostgREST, you POST directly to the table endpoint.
+  The positionId should be included in the request body, not the URL path.
+  
+}
+
+example {
+  name: 201 Response
+  description: Vote cast successfully
+  
+  request: {
+    url: {{baseUrl}}/position_votes
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "proposalId": "",
+        "vote": "FOR",
+        "sharesVoting": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "id": "55555555-6666-7777-8888-999999999999",
+          "positionId": "44444444-5555-6666-7777-888888888888",
+          "proposalId": "66666666-7777-8888-9999-aaaaaaaaaaaa",
+          "vote": "FOR",
+          "sharesVoting": "1000000",
+          "createdAt": ""
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 400 Response
+  description: Bad request
+  
+  request: {
+    url: {{baseUrl}}/position_votes
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "proposalId": "",
+        "vote": "FOR",
+        "sharesVoting": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 400
+      text: Bad Request
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/position_votes
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "proposalId": "",
+        "vote": "FOR",
+        "sharesVoting": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 403 Response
+  description: Forbidden
+  
+  request: {
+    url: {{baseUrl}}/position_votes
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "proposalId": "",
+        "vote": "FOR",
+        "sharesVoting": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 403
+      text: Forbidden
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

@@ -1,0 +1,165 @@
+meta {
+  name: List user notifications
+  type: http
+  seq: 1
+  tags: [
+    Notifications
+  ]
+}
+
+get {
+  url: {{baseUrl}}/notifications
+  body: none
+  auth: inherit
+}
+
+params:query {
+  @description('Resolve user by username when the session user ID is not seeded in the database')
+  username: csm.user
+  @description('Filter notifications by client ticker')
+  ticker: WEN
+  @description('Filter notifications by meeting ID')
+  meetingId: wen-annual-meeting-2026
+  page: 1
+  limit: 20
+  @description('Filter notifications by user ID (scopes results to a specific user)')
+  ~userId: 
+  @description('Filter by read status')
+  ~read: 
+  @description('Filter by notification type')
+  ~type: info
+  @description('Filter by notification type')
+  ~type: warning
+  @description('Filter by notification type')
+  ~type: error
+  @description('Filter by notification type')
+  ~type: success
+  @description('Filter by notification type')
+  ~type: unread
+  @description('Filter by notification type')
+  ~type: read
+  @description('Filter by priority level')
+  ~priority: low
+  @description('Filter by priority level')
+  ~priority: medium
+  @description('Filter by priority level')
+  ~priority: high
+  @description('Filter by priority level')
+  ~priority: critical
+}
+
+example {
+  name: 200 Response
+  description: Notifications retrieved successfully
+  
+  request: {
+    url: {{baseUrl}}/notifications
+    method: GET
+    mode: none
+    params:query: {
+      ~userId: 
+      username: csm.user
+      ticker: WEN
+      meetingId: wen-annual-meeting-2026
+      ~read: 
+      ~type: info
+      ~type: warning
+      ~type: error
+      ~type: success
+      ~type: unread
+      ~type: read
+      ~priority: low
+      ~priority: medium
+      ~priority: high
+      ~priority: critical
+      page: 1
+      limit: 20
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        [
+          {
+            "id": "389e5e4b-10e5-5eed-8047-3da0e36f051b",
+            "title": "Your Event Has Been Created",
+            "message": "Your meeting has been successfully created and is ready for you to begin working. Click here to view your meeting dashboard and get started.",
+            "type": "success",
+            "priority": "high",
+            "read": false,
+            "userId": "b1f5062a-09b6-5dc1-b18c-3800c5930eab",
+            "meetingId": "01234567-89ab-cdef-0123-456789abcdef",
+            "taskId": null,
+            "actionUrl": "/WEN/meeting/wen-annual-meeting-2026/dashboard/Phase%201",
+            "createdAt": "2025-10-01T21:48:48.724Z",
+            "readAt": null,
+            "expiresAt": null
+          }
+        ]
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/notifications
+    method: GET
+    mode: none
+    params:query: {
+      ~userId: 
+      username: csm.user
+      ticker: WEN
+      meetingId: wen-annual-meeting-2026
+      ~read: 
+      ~type: info
+      ~type: warning
+      ~type: error
+      ~type: success
+      ~type: unread
+      ~type: read
+      ~priority: low
+      ~priority: medium
+      ~priority: high
+      ~priority: critical
+      page: 1
+      limit: 20
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

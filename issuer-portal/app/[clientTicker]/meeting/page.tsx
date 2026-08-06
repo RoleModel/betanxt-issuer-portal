@@ -54,8 +54,7 @@ const formatDate = (dateString: string): string => {
 };
 
 const MeetingsPage = () => {
-  const params = useParams();
-  const clientTicker = params.clientTicker as string;
+  const { clientTicker } = useParams<{ clientTicker: string }>();
   const [meetings, setMeetings] = useState<MeetingData[]>([]);
   const [order, setOrder] = useState<Order>("asc");
   const [orderBy, setOrderBy] = useState<OrderBy>("meetingDate");

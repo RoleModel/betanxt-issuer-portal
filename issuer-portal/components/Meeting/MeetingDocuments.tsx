@@ -206,8 +206,7 @@ const MeetingDocuments = ({
   meeting,
 }: MeetingDocumentsProps) => {
   const router = useRouter();
-  const params = useParams();
-  const clientTicker = params.clientTicker as string;
+  const { clientTicker } = useParams<{ clientTicker: string }>();
   const { getDocumentsByMeeting, uploadDocument } = useDocuments();
   const [documents, setDocuments] = useState<Document[]>(propDocuments || []);
   const [open, setOpen] = useState(false);

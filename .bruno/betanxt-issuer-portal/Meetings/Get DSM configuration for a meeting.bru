@@ -1,0 +1,111 @@
+meta {
+  name: Get DSM configuration for a meeting
+  type: http
+  seq: 6
+  tags: [
+    Meetings
+  ]
+}
+
+get {
+  url: {{baseUrl}}/meetings/:meetingId/dsm-config
+  body: none
+  auth: inherit
+}
+
+params:path {
+  meetingId: 
+}
+
+example {
+  name: 200 Response
+  description: DSM configuration retrieved
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/dsm-config
+    method: GET
+    mode: none
+    params:path: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "id": "",
+          "meetingId": "",
+          "liveQa": false,
+          "audioOnly": false,
+          "meetingRecording": false,
+          "staticSlideDocId": "",
+          "displayDocsDocId": "",
+          "isConfirmed": false,
+          "logisticsCallDate": "",
+          "logisticsCallNotes": "",
+          "logisticsCallScheduled": false,
+          "dryRunDate": "",
+          "dryRunNotes": "",
+          "dryRunScheduled": false,
+          "dsmEnabled": false,
+          "ioeEnabled": false,
+          "dsmProducerName": "",
+          "dsmProducerEmail": "",
+          "inspectorName": "",
+          "inspectorEmail": "",
+          "speakerListDocId": "",
+          "guestLinkRegistrationDocId": "",
+          "createdAt": "",
+          "updatedAt": ""
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 404 Response
+  description: Not found
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/dsm-config
+    method: GET
+    mode: none
+    params:path: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 404
+      text: Not Found
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

@@ -1,8 +1,6 @@
 "use client";
 
-import type {
-  CodeSample,
-} from "@/app/specs/ui-enhancements/code-samples";
+import type { CodeSample } from "@/app/specs/ui-enhancements/code-samples";
 import type {
   Requirement,
   SpecSection,
@@ -339,11 +337,7 @@ const SpecTableBlock = ({
           {table.rows.map((row) => (
             <TableRow key={row.join("|")}>
               {row.map((cell, cellIndex) => (
-                <TableCell
-                  // eslint-disable-next-line react/no-array-index-key -- Cells are positional within a static row.
-                  key={cellIndex}
-                  sx={{ verticalAlign: "top" }}
-                >
+                <TableCell key={cellIndex} sx={{ verticalAlign: "top" }}>
                   {cell}
                 </TableCell>
               ))}
@@ -420,11 +414,7 @@ const SpecSectionBlock = ({ section }: { readonly section: SpecSection }) => {
 
   return (
     <Box component="section" id={section.id} sx={{ scrollMarginTop: 24 }}>
-      <Typography
-        component="h2"
-        variant="h5"
-        sx={{ fontWeight: 700, mb: 1.5 }}
-      >
+      <Typography component="h2" variant="h5" sx={{ fontWeight: 700, mb: 1.5 }}>
         {section.title}
       </Typography>
 
@@ -493,9 +483,7 @@ const SpecSectionBlock = ({ section }: { readonly section: SpecSection }) => {
                       </Typography>
                     ))}
 
-                    <ScreenButtons
-                      screens={screensFor(topic.requirementIds)}
-                    />
+                    <ScreenButtons screens={screensFor(topic.requirementIds)} />
 
                     <Stack
                       direction="row"

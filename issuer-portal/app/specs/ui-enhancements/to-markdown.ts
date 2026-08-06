@@ -165,7 +165,7 @@ export const buildSpecMarkdown = (generatedOn: string): string => {
           "",
           `Satisfies ${sample.satisfies.join(", ")}.`,
           "",
-          "```" + sample.language,
+          `\`\`\`${sample.language}`,
           sample.code.trimEnd(),
           "```",
           ""

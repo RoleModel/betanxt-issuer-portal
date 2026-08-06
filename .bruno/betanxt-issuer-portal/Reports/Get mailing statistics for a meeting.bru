@@ -1,0 +1,141 @@
+meta {
+  name: Get mailing statistics for a meeting
+  type: http
+  seq: 2
+  tags: [
+    Reports
+  ]
+}
+
+get {
+  url: {{baseUrl}}/meetings/:meetingId/mailing
+  body: none
+  auth: inherit
+}
+
+params:path {
+  @description('Meeting ID to get mailing statistics for')
+  meetingId: 
+}
+
+example {
+  name: 200 Response
+  description: Mailing statistics retrieved successfully
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/mailing
+    method: GET
+    mode: none
+    params:path: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "id": "",
+          "meetingId": "01234567-89ab-cdef-0123-456789abcdef",
+          "ticker": "PAYC",
+          "totalAccounts": 0,
+          "totalPositions": 0,
+          "totalRetransmissions": 0,
+          "totalRollups": 0,
+          "fullsetMailPositions": 0,
+          "naaMailPositions": 0,
+          "courtesyOtherMailPositions": 0,
+          "electronicSuppressedPositions": 0,
+          "householdSuppressedPositions": 0,
+          "managedSuppressedPositions": 0,
+          "consolidatedSuppressedPositions": 0,
+          "canceledSuppressedPositions": 0,
+          "createdAt": "",
+          "updatedAt": ""
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/mailing
+    method: GET
+    mode: none
+    params:path: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 404 Response
+  description: Not found
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/mailing
+    method: GET
+    mode: none
+    params:path: {
+      meetingId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 404
+      text: Not Found
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

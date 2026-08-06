@@ -1356,6 +1356,9 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
           isOfficeDocument={isOfficeDocument}
           fileExtension={fileExtension}
           pageNumber={pageNumber}
+          numPages={numPages}
+          onPrevPage={goToPrevPage}
+          onNextPage={goToNextPage}
           showComments={effectiveShowComments}
           showHistory={effectiveShowHistory}
           onDocumentLoadSuccess={onDocumentLoadSuccess}
@@ -1470,7 +1473,7 @@ const DocumentViewerToolbarActions: React.FC<
 
   return (
     <Stack direction="row" spacing={1} alignItems="center">
-      {isWebsiteView ? (
+      {isWebsiteView && !hideActivityButtons ? (
         <>
           <Button
             variant="outlined"
@@ -1672,6 +1675,9 @@ interface DocumentContentAreaProps {
   readonly isOfficeDocument: boolean;
   readonly fileExtension: string | null | undefined;
   readonly pageNumber: number;
+  readonly numPages: number | null;
+  readonly onPrevPage: () => void;
+  readonly onNextPage: () => void;
   readonly showComments: boolean;
   readonly showHistory: boolean;
   readonly onDocumentLoadSuccess: (info: { numPages: number }) => void;
@@ -1695,6 +1701,9 @@ const DocumentContentArea: React.FC<DocumentContentAreaProps> = ({
   isOfficeDocument,
   fileExtension,
   pageNumber,
+  numPages,
+  onPrevPage,
+  onNextPage,
   showComments,
   showHistory,
   onDocumentLoadSuccess,
@@ -1715,8 +1724,58 @@ const DocumentContentArea: React.FC<DocumentContentAreaProps> = ({
     setMounted(true);
   }, []);
 
+  // Scroll-to-change-pages: once the current page is scrolled to its top or
+  // bottom edge, the next wheel step rewinds or advances the page, so scrolling
+  // pages through the document works alongside the toolbar arrows. A short
+  // cooldown stops a single flick from skipping several pages at once.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const wheelCooldownRef = useRef(false);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [pageNumber]);
+
+  const handleWheel = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>) => {
+      const element = scrollRef.current;
+      if (element === null || isWebsiteView || isPDF !== true || !numPages) {
+        return;
+      }
+      if (numPages <= 1) {
+        return;
+      }
+
+      const atBottom =
+        element.scrollHeight - element.scrollTop - element.clientHeight <= 2;
+      const atTop = element.scrollTop <= 2;
+
+      // Let a tall page scroll internally until its edge is reached first.
+      if (event.deltaY > 0 && !atBottom) return;
+      if (event.deltaY < 0 && !atTop) return;
+      if (wheelCooldownRef.current) return;
+
+      const startCooldown = (): void => {
+        wheelCooldownRef.current = true;
+        globalThis.setTimeout(() => {
+          wheelCooldownRef.current = false;
+        }, 400);
+      };
+
+      if (event.deltaY > 0 && pageNumber < numPages) {
+        startCooldown();
+        onNextPage();
+      } else if (event.deltaY < 0 && pageNumber > 1) {
+        startCooldown();
+        onPrevPage();
+      }
+    },
+    [isWebsiteView, isPDF, numPages, pageNumber, onNextPage, onPrevPage]
+  );
+
   return (
     <Box
+      ref={scrollRef}
+      onWheel={handleWheel}
       sx={{
         flex: 1,
         display: "flex",

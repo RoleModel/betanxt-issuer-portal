@@ -30,6 +30,14 @@ import {
   loadHeaderLogoForBrand,
   loadLogoForBrand,
 } from "./mailing-pdf-logo";
+import {
+  type BallotProposal,
+  type Director,
+  FALLBACK_DIRECTORS,
+  FALLBACK_PROPOSALS,
+  ProxyBallotPage,
+  fetchMeetingProposals,
+} from "./proxy-ballot";
 
 // Register Roboto font
 Font.register({
@@ -55,7 +63,7 @@ Font.register({
 });
 
 const INK = "#282C46";
-const PAGE_WIDTH = 612; // LETTER, pt
+const PageWidth = 612; // LETTER, pt
 
 /** Pick black or white text for legibility on a given background. */
 function contrastText(hex: string): string {
@@ -87,6 +95,8 @@ interface MailingJob {
   recordDateLine: string;
   /** "proxy" → themed Notice of Internet Availability card; "generic" → themed-header doc */
   layout: "proxy" | "generic";
+  /** When true, the mailing renders the real voting ballot as its reverse. */
+  ballot?: boolean;
   /** Generic-layout body copy; empty strings render as paragraph breaks */
   body?: string[];
 }
@@ -95,6 +105,18 @@ interface MailingJob {
 // config; meeting/recipient copy is generic placeholder data for the prototype.
 function buildJobs(fullName: string): MailingJob[] {
   return [
+    {
+      // NAA → themed Notice of Internet Availability (the "Notice and Access"
+      // mailing). Rendered as the proxy Notice card + full agenda.
+      file: "naa.pdf",
+      jobName: "NAA — Notice of Internet Availability",
+      meetingType: "Annual Meeting of Shareholders",
+      meetingDateLine: "Monday, April 6, 2026  8:30 AM, EST",
+      meetingLocation: "Three Limited Parkway, Columbus, Ohio 43230",
+      recordDateLine: "For Shareholders of record as of January 2, 2026",
+      layout: "proxy",
+      ballot: true,
+    },
     {
       // Proxy card → themed Notice of Internet Availability design
       file: "fw1-reminder-unvoted.pdf",
@@ -557,11 +579,11 @@ const ProxyNoticePage: React.FC<{
 
       {/* Perforation line near bottom */}
       <View style={{ position: "absolute", bottom: 44, left: 28 }}>
-        <Svg width={PAGE_WIDTH - 56} height={2}>
+        <Svg width={PageWidth - 56} height={2}>
           <Line
             x1={0}
             y1={1}
-            x2={PAGE_WIDTH - 56}
+            x2={PageWidth - 56}
             y2={1}
             stroke="#787878"
             strokeWidth={0.8}
@@ -678,13 +700,13 @@ const GenericPage: React.FC<{
           {(job.body ?? []).map((line, index) =>
             line ? (
               <Text
-                key={index}
+                key={line.indexOf(line) + index}
                 style={{ fontSize: 10.5, color: "#373737", marginBottom: 6 }}
               >
                 {line}
               </Text>
             ) : (
-              <View key={index} style={{ height: 8 }} />
+              <View key={line.indexOf(line) + index} style={{ height: 8 }} />
             )
           )}
         </View>
@@ -723,12 +745,30 @@ const GenericPage: React.FC<{
   );
 };
 
+interface BallotData {
+  legalName: string;
+  recordDate: string;
+  directors: Director[];
+  proposals: BallotProposal[];
+}
+
 const MailingDocument: React.FC<{
   readonly client: ClientTheme;
   readonly job: MailingJob;
-}> = ({ client, job }) => (
+  readonly ballotData: BallotData;
+}> = ({ client, job, ballotData }) => (
   <Document>
-    {job.layout === "proxy" ? (
+    {job.ballot ? (
+      <>
+        <ProxyNoticePage client={client} job={job} />
+        <ProxyBallotPage
+          legalName={ballotData.legalName}
+          recordDate={ballotData.recordDate}
+          directors={ballotData.directors}
+          proposals={ballotData.proposals}
+        />
+      </>
+    ) : job.layout === "proxy" ? (
       <>
         <ProxyNoticePage client={client} job={job} />
         <AgendaPage client={client} />
@@ -773,12 +813,25 @@ async function main() {
       phone: "1-866-523-3647",
     };
 
+    // Real director nominees and proposals for this company's annual meeting,
+    // used for the NAA ballot; falls back to shared content when DB is offline.
+    const lower = ticker.toLowerCase();
+    const fromDb =
+      (await fetchMeetingProposals(`${lower}-annual-meeting-2026`)) ??
+      (await fetchMeetingProposals(`${lower}-annual-meeting-2025`));
+    const ballotData: BallotData = {
+      legalName: `${cfg.companyName || fullName}, Inc.`,
+      recordDate: "January 2, 2026",
+      directors: fromDb?.directors ?? FALLBACK_DIRECTORS,
+      proposals: fromDb?.proposals ?? FALLBACK_PROPOSALS,
+    };
+
     const dir = path.join(outRoot, ticker.toUpperCase());
     fs.mkdirSync(dir, { recursive: true });
 
     for (const job of buildJobs(fullName)) {
       await ReactPDF.renderToFile(
-        <MailingDocument client={client} job={job} />,
+        <MailingDocument client={client} job={job} ballotData={ballotData} />,
         path.join(dir, job.file)
       );
       fileCount++;

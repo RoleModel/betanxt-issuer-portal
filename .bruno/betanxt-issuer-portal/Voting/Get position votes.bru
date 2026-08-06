@@ -1,0 +1,143 @@
+meta {
+  name: Get position votes
+  type: http
+  seq: 1
+  tags: [
+    Voting
+  ]
+}
+
+get {
+  url: {{baseUrl}}/position_votes
+  body: none
+  auth: inherit
+}
+
+params:query {
+  @description('Filter by position ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`)')
+  ~positionId: 
+  @description('Filter by proposal ID (e.g., `eq.123e4567-e89b-12d3-a456-426614174000`)')
+  ~proposalId: 
+  @description('Filter by vote type (e.g., `eq.FOR`, `eq.AGAINST`, `eq.ABSTAIN`)')
+  ~vote: 
+  @description('Specify columns and embed related resources (e.g., `*,positions(name,cusip)`)')
+  ~select: 
+  @description('Order results (e.g., `createdAt.desc`, `sharesVoting.asc`)')
+  ~order: 
+  @description('Limit number of results')
+  ~limit: 
+  @description('Number of results to skip for pagination')
+  ~offset: 
+}
+
+docs {
+  Get position votes using Supabase PostgREST filters.
+  
+  Common usage examples:
+  - Get votes for a position: `?positionId=eq.{uuid}`
+  - Get votes for a proposal: `?proposalId=eq.{uuid}`
+  - Include related data: `?select=*,positions(*),proposals(*)`
+  - Order by date: `?order=createdAt.desc`
+  
+  Supabase operators:
+  - `eq` - equals
+  - `neq` - not equals
+  - `gt` - greater than
+  - `gte` - greater than or equal
+  - `lt` - less than
+  - `lte` - less than or equal
+  - `like` - LIKE operator
+  - `ilike` - ILIKE operator
+  - `in` - one of a list of values
+  - `is` - checking for null/not null
+  
+}
+
+example {
+  name: 200 Response
+  description: Position votes retrieved successfully
+  
+  request: {
+    url: {{baseUrl}}/position_votes
+    method: GET
+    mode: none
+    params:query: {
+      ~positionId: 
+      ~proposalId: 
+      ~vote: 
+      ~select: 
+      ~order: 
+      ~limit: 
+      ~offset: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        [
+          {
+            "id": "55555555-6666-7777-8888-999999999999",
+            "positionId": "44444444-5555-6666-7777-888888888888",
+            "proposalId": "66666666-7777-8888-9999-aaaaaaaaaaaa",
+            "vote": "FOR",
+            "sharesVoting": "1000000",
+            "createdAt": ""
+          }
+        ]
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/position_votes
+    method: GET
+    mode: none
+    params:query: {
+      ~positionId: 
+      ~proposalId: 
+      ~vote: 
+      ~select: 
+      ~order: 
+      ~limit: 
+      ~offset: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}

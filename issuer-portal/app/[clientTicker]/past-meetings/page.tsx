@@ -2,7 +2,7 @@
 
 import { Box, Container, LinearProgress } from "@mui/material";
 import { usePathname } from "next/navigation";
-import React, { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { components } from "@/domain-models/generated-schema";
 
@@ -44,44 +44,13 @@ const parseNumericValue = (value: unknown): number => {
   return 0;
 };
 
-const getVoteStatus = (position: components["schemas"]["Position"]): string => {
-  if (position.voteStatus) {
-    return position.voteStatus;
-  }
-
-  const record = asRecord(position);
-  if (!record) return "";
-
-  return asString(record.vote_status) ?? asString(record.status) ?? "";
-};
-
-const isPositionVoted = (
-  position: components["schemas"]["Position"]
-): boolean => {
-  const status = getVoteStatus(position).toLowerCase();
-  return status === "voted";
-};
-
-const _extractPositions = (
-  data: unknown
-): components["schemas"]["Position"][] => {
-  if (Array.isArray(data)) {
-    return data as components["schemas"]["Position"][];
-  }
-
-  const record = asRecord(data);
-  if (record?.positions && Array.isArray(record.positions)) {
-    return record.positions as components["schemas"]["Position"][];
-  }
-
-  return [];
-};
-
 const getMeetingId = (meeting: Meeting): string => {
-  if (meeting.id) return meeting.id;
+  if (typeof meeting.id === "string" && meeting.id.length > 0) {
+    return meeting.id;
+  }
 
   const meetingRecord = asRecord(meeting);
-  if (!meetingRecord) return "";
+  if (meetingRecord === null) return "";
 
   return (
     asString(meetingRecord.meetingId) ??
@@ -96,7 +65,7 @@ const getTotalSharesOutstanding = (meeting: Meeting): number => {
   if (directValue > 0) return directValue;
 
   const meetingRecord = asRecord(meeting);
-  if (!meetingRecord) return 0;
+  if (meetingRecord === null) return 0;
 
   const camelCaseValue = parseNumericValue(
     meetingRecord.totalSharesOutstanding
@@ -104,53 +73,6 @@ const getTotalSharesOutstanding = (meeting: Meeting): number => {
   if (camelCaseValue > 0) return camelCaseValue;
 
   return parseNumericValue(meetingRecord.total_shares_outstanding);
-};
-
-const _computeParticipationMetrics = (
-  meeting: Meeting,
-  positions: components["schemas"]["Position"][]
-): ParticipationMetrics => {
-  const meetingId = getMeetingId(meeting);
-  if (positions.length === 0) {
-    return getDefaultMetrics(meetingId);
-  }
-
-  const totalSharesOutstanding = getTotalSharesOutstanding(meeting);
-  const totalSharesFromPositions = positions.reduce(
-    (sum, position) => sum + parseNumericValue(position.shares),
-    0
-  );
-
-  const totalShares =
-    totalSharesOutstanding > 0
-      ? totalSharesOutstanding
-      : totalSharesFromPositions;
-
-  const votedShares = positions.reduce((sum, position) => {
-    if (!isPositionVoted(position)) return sum;
-    const sharesValue =
-      position.sharesVoted ??
-      asRecord(position)?.shares_voted ??
-      position.shares ??
-      0;
-    return sum + parseNumericValue(sharesValue);
-  }, 0);
-
-  const totalVotes = positions.reduce(
-    (count, position) => (isPositionVoted(position) ? count + 1 : count),
-    0
-  );
-
-  const participationPercent =
-    totalShares > 0
-      ? Math.round((votedShares / totalShares) * 100 * 10) / 10
-      : 0;
-
-  return {
-    participationPercent,
-    totalVotes,
-    votingShares: votedShares,
-  };
 };
 
 const formatDate = (dateString: string): string => {
@@ -172,23 +94,30 @@ const formatDate = (dateString: string): string => {
   }
 };
 
+interface MeetingsApiResponse {
+  meetings?: Meeting[];
+  pagination?: components["schemas"]["Pagination"];
+}
+
 const PastMeetingsPage = () => {
   const pathname = usePathname();
-  const clientTicker = pathname.split("/")[1];
+  const [, clientTicker] = pathname.split("/");
   const [meetings, setMeetings] = useState<PastMeetingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<Order>("desc");
   const [orderBy, setOrderBy] = useState<OrderBy>("meetingDate");
 
-  const fetchPastMeetings = useCallback(async () => {
-    try {
-      setLoading(true);
+  useEffect(() => {
+    let cancelled = false;
 
+    const loadPastMeetings = async (): Promise<void> => {
       if (!clientTicker) {
         setMeetings([]);
         setLoading(false);
         return;
       }
+
+      setLoading(true);
 
       // Use openapi-fetch to fetch meetings
       const apiClient = await buildApiClient();
@@ -199,25 +128,20 @@ const PastMeetingsPage = () => {
             status: "COMPLETE",
           },
         },
-      })) as ApiClientReturnType<unknown>;
+      })) as ApiClientReturnType<MeetingsApiResponse>;
 
-      if (meetingsResponse.error) {
-        const errBody = meetingsResponse.error as Record<string, unknown>;
-        const msg =
-          (typeof errBody.message === "string" ? errBody.message : null) ??
-          (typeof errBody.error === "string" ? errBody.error : null) ??
-          "Failed to fetch meetings";
-        throw new Error(msg);
+      if (cancelled) return;
+
+      if (meetingsResponse.error !== undefined) {
+        console.error("Error fetching past meetings:", meetingsResponse.error);
+        setMeetings([]);
+        setLoading(false);
+        return;
       }
 
-      // Get meetings array from the paginated response - already filtered by API
-      interface MeetingsApiResponse {
-        meetings?: Meeting[];
-        pagination?: components["schemas"]["Pagination"];
-      }
-      const typedData = meetingsResponse.data as
-        MeetingsApiResponse | undefined;
-      const completedMeetings: Meeting[] = Array.isArray(typedData?.meetings)
+      // Meetings array from the paginated response — already filtered by API.
+      const typedData = meetingsResponse.data;
+      const completedMeetings: Meeting[] = Array.isArray(typedData.meetings)
         ? typedData.meetings
         : [];
 
@@ -241,17 +165,20 @@ const PastMeetingsPage = () => {
         });
 
       setMeetings(meetingsWithParticipation);
-    } catch (error) {
+      setLoading(false);
+    };
+
+    void loadPastMeetings().catch((error: unknown) => {
+      if (cancelled) return;
       console.error("Error fetching past meetings:", error);
       setMeetings([]);
-    } finally {
       setLoading(false);
-    }
-  }, [clientTicker]);
+    });
 
-  useEffect(() => {
-    void fetchPastMeetings();
-  }, [fetchPastMeetings]);
+    return () => {
+      cancelled = true;
+    };
+  }, [clientTicker]);
 
   const handleRequestSort = (property: OrderBy) => {
     const isAsc = orderBy === property && order === "asc";
@@ -259,32 +186,31 @@ const PastMeetingsPage = () => {
     setOrderBy(property);
   };
 
-  const sortedMeetings = React.useMemo(() => {
-    return [...meetings].sort((a, b) => {
-      let compareA: string | number = a[orderBy] as string;
-      let compareB: string | number = b[orderBy] as string;
+  const sortedMeetings = meetings.toSorted((a, b) => {
+    const rawA = a[orderBy];
+    const rawB = b[orderBy];
 
-      // Handle date sorting
-      if (orderBy === "meetingDate") {
-        compareA = new Date(compareA).getTime();
-        compareB = new Date(compareB).getTime();
-      }
+    // Date sorting
+    if (orderBy === "meetingDate") {
+      const timeA = new Date(String(rawA)).getTime();
+      const timeB = new Date(String(rawB)).getTime();
+      return order === "asc" ? timeA - timeB : timeB - timeA;
+    }
 
-      // Handle numeric sorting
-      if (typeof compareA === "number" && typeof compareB === "number") {
-        return order === "asc" ? compareA - compareB : compareB - compareA;
-      }
+    // Numeric sorting
+    if (typeof rawA === "number" && typeof rawB === "number") {
+      return order === "asc" ? rawA - rawB : rawB - rawA;
+    }
 
-      // Handle string sorting
-      if (typeof compareA === "string" && typeof compareB === "string") {
-        return order === "asc"
-          ? compareA.localeCompare(compareB)
-          : compareB.localeCompare(compareA);
-      }
+    // String sorting
+    if (typeof rawA === "string" && typeof rawB === "string") {
+      return order === "asc"
+        ? rawA.localeCompare(rawB)
+        : rawB.localeCompare(rawA);
+    }
 
-      return 0;
-    });
-  }, [meetings, order, orderBy]);
+    return 0;
+  });
 
   if (loading) {
     return <LinearProgress />;

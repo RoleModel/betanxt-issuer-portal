@@ -6,7 +6,8 @@ import { ErrorOutlineOutlined } from "@mui/icons-material";
 import AudioFileOutlinedIcon from "@mui/icons-material/AudioFileOutlined";
 import { Box, CircularProgress } from "@mui/material";
 import { IconForFileType } from "@rolemodel/betanxt-design-system/components/icons/IconForFileType";
-import React, { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import React, { useMemo, useState } from "react";
 
 import { pdfWorkerSource } from "@/lib/pdf-worker";
 import {
@@ -17,38 +18,175 @@ import {
 
 import DocumentThumbnailGenerator from "./DocumentThumbnailGenerator";
 
+// Mirrors PDFViewer.tsx's dynamic-import pattern: react-pdf is heavy and
+// only ever needed client-side, so it's code-split here instead of hand
+// -rolled with a useState/useEffect pair.
+const Document = dynamic(
+  async () =>
+    await import("react-pdf").then((mod) => {
+      mod.pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSource;
+      return mod.Document;
+    }),
+  { ssr: false, loading: () => <CircularProgress size={20} /> }
+);
+
+const Page = dynamic(
+  async () => await import("react-pdf").then((mod) => mod.Page),
+  { ssr: false }
+);
+
+// The canvas react-pdf renders to is sized in real pixels, then the CSS
+// below scales it down to the thumbnail's display width. Rendering at a
+// multiple of the display width — rather than 1:1 — keeps the page sharp
+// on high-DPI screens instead of looking soft/blurry.
+const THUMBNAIL_RENDER_SCALE = 3;
+
 interface Props {
   readonly filePath?: string | null;
   readonly onClick?: () => void;
   readonly width?: number;
-  readonly height?: number;
 }
 
-interface DocumentProps {
-  file: string | File | null;
-  loading?: React.ReactNode;
-  error?: React.ReactNode;
-  onLoadSuccess?: (pdf: PDFDocumentProxy) => void;
-  onLoadError?: (error: Error) => void;
-  children?: React.ReactNode;
+interface ThumbnailFrameProps {
+  readonly width: number;
+  readonly onClick?: () => void;
+  readonly interactive?: boolean;
+  readonly fontSize?: string;
+  readonly children: React.ReactNode;
 }
 
-interface PageProps {
-  pageNumber: number;
-  width?: number;
-  height?: number;
-  scale?: number;
-  renderTextLayer?: boolean;
-  renderAnnotationLayer?: boolean;
+const ThumbnailFrame = ({
+  width,
+  onClick,
+  interactive = true,
+  fontSize,
+  children,
+}: ThumbnailFrameProps) => (
+  <Box
+    sx={{
+      width,
+      aspectRatio: "8.5 / 11",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "background.paper",
+      borderRadius: 1,
+      border: "1px solid",
+      borderColor: "divider",
+      ...(fontSize ? { fontSize } : {}),
+      ...(interactive ? { cursor: onClick ? "pointer" : "default" } : {}),
+    }}
+    onClick={onClick}
+  >
+    {children}
+  </Box>
+);
+
+interface PdfThumbnailPreviewProps {
+  readonly width: number;
+  readonly onClick?: () => void;
+  readonly fileUrl: string;
+  readonly hasError: boolean;
+  readonly onLoadSuccess: (pdf: PDFDocumentProxy) => void;
+  readonly onLoadError: (error: Error) => void;
 }
+
+const PdfThumbnailPreview = ({
+  width,
+  onClick,
+  fileUrl,
+  hasError,
+  onLoadSuccess,
+  onLoadError,
+}: PdfThumbnailPreviewProps) => (
+  <Box
+    sx={{
+      position: "relative",
+      width,
+      aspectRatio: "8.5 / 11",
+      cursor: onClick ? "pointer" : "default",
+      overflow: "hidden",
+      borderRadius: 1,
+      backgroundColor: "background.paper",
+      border: "1px solid",
+      borderColor: "divider",
+      transition: "all 0.2s ease",
+      "&:hover": onClick
+        ? {
+            borderColor: "primary.main",
+            boxShadow: 2,
+            transform: "scale(1.02)",
+          }
+        : {},
+    }}
+    onClick={onClick}
+  >
+    <Box
+      sx={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        "& .react-pdf__Document": {
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          height: "100%",
+        },
+        "& .react-pdf__Page": {
+          width: "100% !important",
+          height: "100% !important",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        "& .react-pdf__Page__canvas": {
+          width: "100% !important",
+          height: "auto !important",
+          maxHeight: "100%",
+          objectFit: "contain",
+        },
+        "& .react-pdf__Page__textContent": {
+          display: "none !important",
+        },
+        "& .react-pdf__Page__annotations": {
+          display: "none !important",
+        },
+      }}
+    >
+      {hasError ? (
+        <ErrorOutlineOutlined sx={{ fontSize: 20, color: "text.secondary" }} />
+      ) : (
+        <Document
+          file={fileUrl}
+          loading={<CircularProgress size={20} />}
+          error={
+            <ErrorOutlineOutlined
+              sx={{ fontSize: 20, color: "text.secondary" }}
+            />
+          }
+          onLoadSuccess={onLoadSuccess}
+          onLoadError={onLoadError}
+        >
+          <Page
+            pageNumber={1}
+            width={width * THUMBNAIL_RENDER_SCALE}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+          />
+        </Document>
+      )}
+    </Box>
+  </Box>
+);
 
 const DocumentThumbnail = ({ filePath, onClick, width = 60 }: Props) => {
-  const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [Document, setDocument] =
-    useState<React.ComponentType<DocumentProps> | null>(null);
-  const [Page, setPage] = useState<React.ComponentType<PageProps> | null>(null);
-  const [, setNumPages] = useState<number | null>(null);
 
   const fileUrl = useMemo(() => {
     if (!filePath) return null;
@@ -135,42 +273,8 @@ const DocumentThumbnail = ({ filePath, onClick, width = 60 }: Props) => {
     }
   }, [filePath]);
 
-  useEffect(() => {
-    if (!isPDF || !fileUrl) return;
-
-    let mounted = true;
-
-    const loadPDFComponents = async () => {
-      try {
-        const { pdfjs } = await import("react-pdf");
-        pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSource;
-
-        const pdfComponents = await import("react-pdf");
-
-        if (mounted) {
-          setDocument(
-            () => pdfComponents.Document as React.ComponentType<DocumentProps>
-          );
-          setPage(() => pdfComponents.Page as React.ComponentType<PageProps>);
-          setIsLoaded(true);
-        }
-      } catch (err) {
-        console.error("Failed to load PDF components for thumbnail:", err);
-        if (mounted) {
-          setHasError(true);
-        }
-      }
-    };
-
-    void loadPDFComponents();
-
-    return () => {
-      mounted = false;
-    };
-  }, [isPDF, fileUrl]);
-
-  const onDocumentLoadSuccess = (pdf: PDFDocumentProxy) => {
-    setNumPages(pdf.numPages);
+  const onDocumentLoadSuccess = () => {
+    setHasError(false);
   };
 
   const onDocumentLoadError = (error: Error) => {
@@ -184,12 +288,8 @@ const DocumentThumbnail = ({ filePath, onClick, width = 60 }: Props) => {
     setHasError(true);
   };
 
-  // Check if this is a mock/development URL that doesn't exist
-  // Note: Signed documents may have these paths but should still show previews
-  const isMockUrl = false; // Disabled - let all URLs attempt to load
-
-  // No file path provided or mock URL
-  if (!fileUrl || isMockUrl) {
+  // No file path provided
+  if (!fileUrl) {
     return (
       <ThumbnailFrame width={width} interactive={false} fontSize="10px">
         <IconForFileType fileType={iconFileType} />
@@ -248,17 +348,6 @@ const DocumentThumbnail = ({ filePath, onClick, width = 60 }: Props) => {
     );
   }
 
-  // PDF loading
-  if (!isLoaded || !Document || !Page) {
-    return (
-      <ThumbnailFrame width={width} interactive={false}>
-        <CircularProgress size={20} />
-      </ThumbnailFrame>
-    );
-  }
-
-  // (error case handled above)
-
   // PDF preview
   return (
     <PdfThumbnailPreview
@@ -266,154 +355,10 @@ const DocumentThumbnail = ({ filePath, onClick, width = 60 }: Props) => {
       onClick={onClick}
       fileUrl={fileUrl}
       hasError={hasError}
-      Document={Document}
-      Page={Page}
       onLoadSuccess={onDocumentLoadSuccess}
       onLoadError={onDocumentLoadError}
     />
   );
 };
-
-interface ThumbnailFrameProps {
-  readonly width: number;
-  readonly onClick?: () => void;
-  readonly interactive?: boolean;
-  readonly fontSize?: string;
-  readonly children: React.ReactNode;
-}
-
-const ThumbnailFrame = ({
-  width,
-  onClick,
-  interactive = true,
-  fontSize,
-  children,
-}: ThumbnailFrameProps) => (
-  <Box
-    sx={{
-      width,
-      aspectRatio: "8.5 / 11",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "background.paper",
-      borderRadius: 1,
-      border: "1px solid",
-      borderColor: "divider",
-      ...(fontSize ? { fontSize } : {}),
-      ...(interactive ? { cursor: onClick ? "pointer" : "default" } : {}),
-    }}
-    onClick={onClick}
-  >
-    {children}
-  </Box>
-);
-
-interface PdfThumbnailPreviewProps {
-  readonly width: number;
-  readonly onClick?: () => void;
-  readonly fileUrl: string;
-  readonly hasError: boolean;
-  readonly Document: React.ComponentType<DocumentProps>;
-  readonly Page: React.ComponentType<PageProps>;
-  readonly onLoadSuccess: (pdf: PDFDocumentProxy) => void;
-  readonly onLoadError: (error: Error) => void;
-}
-
-const PdfThumbnailPreview = ({
-  width,
-  onClick,
-  fileUrl,
-  hasError,
-  Document,
-  Page,
-  onLoadSuccess,
-  onLoadError,
-}: PdfThumbnailPreviewProps) => (
-  <Box
-    sx={{
-      position: "relative",
-      width,
-      aspectRatio: "8.5 / 11",
-      cursor: onClick ? "pointer" : "default",
-      overflow: "hidden",
-      borderRadius: 1,
-      backgroundColor: "background.paper",
-      border: "1px solid",
-      borderColor: "divider",
-      transition: "all 0.2s ease",
-      "&:hover": onClick
-        ? {
-            borderColor: "primary.main",
-            boxShadow: 2,
-            transform: "scale(1.02)",
-          }
-        : {},
-    }}
-    onClick={onClick}
-  >
-    <Box
-      sx={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        "& .react-pdf__Document": {
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-          height: "100%",
-        },
-        "& .react-pdf__Page": {
-          width: "100% !important",
-          height: "100% !important",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        },
-        "& .react-pdf__Page__canvas": {
-          width: "100% !important",
-          height: "auto !important",
-          maxHeight: "100%",
-          objectFit: "contain",
-        },
-        "& .react-pdf__Page__textContent": {
-          display: "none !important",
-        },
-        "& .react-pdf__Page__annotations": {
-          display: "none !important",
-        },
-      }}
-    >
-      {hasError ? (
-        <ErrorOutlineOutlined sx={{ fontSize: 20, color: "text.secondary" }} />
-      ) : (
-        <Document
-          file={fileUrl}
-          loading={<CircularProgress size={20} />}
-          error={
-            <ErrorOutlineOutlined
-              sx={{ fontSize: 20, color: "text.secondary" }}
-            />
-          }
-          onLoadSuccess={onLoadSuccess}
-          onLoadError={onLoadError}
-        >
-          <Page
-            pageNumber={1}
-            width={width}
-            renderTextLayer={false}
-            renderAnnotationLayer={false}
-          />
-        </Document>
-      )}
-    </Box>
-  </Box>
-);
 
 export default DocumentThumbnail;

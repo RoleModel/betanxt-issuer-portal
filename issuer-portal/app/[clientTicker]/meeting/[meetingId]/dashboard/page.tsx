@@ -29,10 +29,11 @@ const parsePhaseNumber = (
 // This handles the Meeting Dashboard route and redirects to the active phase
 const MeetingDashboardRedirect = () => {
   const router = useRouter();
-  const params = useParams();
+  const { clientTicker, meetingId } = useParams<{
+    clientTicker: string;
+    meetingId: string;
+  }>();
   const searchParams = useSearchParams();
-  const meetingId = params.meetingId as string;
-  const clientTicker = params.clientTicker as string;
   const { error, currentMeeting: meeting, isLoading } = useMeeting();
 
   useEffect(() => {

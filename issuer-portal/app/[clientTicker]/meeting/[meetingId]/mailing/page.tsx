@@ -17,17 +17,13 @@ import type { components } from "@/domain-models/generated-schema";
 import FeatureTile from "@/components/FeatureTile";
 import AdditionalMailingSummaryCard from "@/components/Meeting/AdditionalMailingSummaryCard";
 import MailingDataCard from "@/components/Meeting/MailingDataCard";
+import MailingPreviewTiles from "@/components/Meeting/MailingPreviewTiles";
 import MailingTimelineCard from "@/components/Meeting/MailingTimelineCard";
 import { toMailingStatus } from "@/components/Meeting/mailingTimeline";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useMailing } from "@/hooks/useMailing";
 
 type MailingData = components["schemas"]["Mailing"];
-
-const formatNumber = (num: number | null | undefined): string => {
-  if (num === null || num === undefined) return "0";
-  return num.toLocaleString("en-US");
-};
 
 const MailingPage = () => {
   const { currentMeeting, isLoading: meetingLoading } = useMeeting();
@@ -75,46 +71,14 @@ const MailingPage = () => {
               <CardContent
                 sx={{ display: "flex", flexDirection: "column", gap: 2 }}
               >
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    {mailingLoading ? (
-                      <Skeleton variant="rounded" height={80} />
-                    ) : (
-                      <FeatureTile
-                        height="auto"
-                        variant="base"
-                        title={formatNumber(mailingData?.fullsetMailPositions)}
-                        subtitle="Full Set"
-                      />
-                    )}
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    {mailingLoading ? (
-                      <Skeleton variant="rounded" height={80} />
-                    ) : (
-                      <FeatureTile
-                        height="auto"
-                        variant="base"
-                        title={formatNumber(mailingData?.naaMailPositions)}
-                        subtitle="NAA"
-                      />
-                    )}
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    {mailingLoading ? (
-                      <Skeleton variant="rounded" height={80} />
-                    ) : (
-                      <FeatureTile
-                        height="auto"
-                        variant="base"
-                        title={formatNumber(
-                          mailingData?.electronicSuppressedPositions
-                        )}
-                        subtitle="Electronic"
-                      />
-                    )}
-                  </Grid>
-                </Grid>
+                <MailingPreviewTiles
+                  loading={mailingLoading}
+                  fullSetPositions={mailingData?.fullsetMailPositions}
+                  naaPositions={mailingData?.naaMailPositions}
+                  electronicPositions={
+                    mailingData?.electronicSuppressedPositions
+                  }
+                />
               </CardContent>
             </Card>
             <MailingDataCard meetingId={meetingId} />

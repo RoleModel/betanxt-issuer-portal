@@ -1,0 +1,259 @@
+meta {
+  name: Create new proposal
+  type: http
+  seq: 2
+  tags: [
+    Proposals
+  ]
+}
+
+post {
+  url: {{baseUrl}}/meetings/:meetingId/proposals
+  body: json
+  auth: inherit
+}
+
+params:path {
+  meetingId: 
+}
+
+body:json {
+  {
+    "proposalNumber": 0,
+    "proposalTitle": "",
+    "proposalType": "",
+    "proposalSubtype": "",
+    "directorName": "",
+    "directorTermYears": 0,
+    "directorClass": "",
+    "termExpirationYear": 0,
+    "frequencyOptions": {},
+    "recommendation": ""
+  }
+}
+
+example {
+  name: 201 Response
+  description: Proposal created successfully
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/proposals
+    method: POST
+    mode: json
+    params:path: {
+      meetingId: 
+    }
+  
+    body:json: {
+      {
+        "proposalNumber": 0,
+        "proposalTitle": "",
+        "proposalType": "",
+        "proposalSubtype": "",
+        "directorName": "",
+        "directorTermYears": 0,
+        "directorClass": "",
+        "termExpirationYear": 0,
+        "frequencyOptions": {},
+        "recommendation": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 201
+      text: Created
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "id": "be601464-c593-5d74-b6f6-c14152132103",
+          "meetingId": "01234567-89ab-cdef-0123-456789abcdef",
+          "proposalNumber": 1.01,
+          "proposalTitle": "Arthur B. Winkleblack",
+          "proposalType": "Director Election",
+          "proposalSubtype": null,
+          "directorName": "Arthur B. Winkleblack",
+          "directorTermYears": 3,
+          "directorClass": "",
+          "termExpirationYear": 0,
+          "frequencyOptions": {},
+          "recommendation": "",
+          "finalResult": "PASSED",
+          "totalVotesFor": 150000000.19,
+          "totalVotesAgainst": 25000000.39,
+          "totalVotesAbstain": 5000000.21,
+          "totalSharesEligible": 200000000,
+          "forPercentage": 85.7,
+          "againstPercentage": 12.5,
+          "abstainPercentage": 2.5,
+          "participationRate": 90,
+          "votingCompleted": false,
+          "votingCompletedAt": "",
+          "createdAt": "",
+          "updatedAt": ""
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 400 Response
+  description: Bad request
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/proposals
+    method: POST
+    mode: json
+    params:path: {
+      meetingId: 
+    }
+  
+    body:json: {
+      {
+        "proposalNumber": 0,
+        "proposalTitle": "",
+        "proposalType": "",
+        "proposalSubtype": "",
+        "directorName": "",
+        "directorTermYears": 0,
+        "directorClass": "",
+        "termExpirationYear": 0,
+        "frequencyOptions": {},
+        "recommendation": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 400
+      text: Bad Request
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 401 Response
+  description: Unauthorized
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/proposals
+    method: POST
+    mode: json
+    params:path: {
+      meetingId: 
+    }
+  
+    body:json: {
+      {
+        "proposalNumber": 0,
+        "proposalTitle": "",
+        "proposalType": "",
+        "proposalSubtype": "",
+        "directorName": "",
+        "directorTermYears": 0,
+        "directorClass": "",
+        "termExpirationYear": 0,
+        "frequencyOptions": {},
+        "recommendation": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 401
+      text: Unauthorized
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 403 Response
+  description: Forbidden
+  
+  request: {
+    url: {{baseUrl}}/meetings/:meetingId/proposals
+    method: POST
+    mode: json
+    params:path: {
+      meetingId: 
+    }
+  
+    body:json: {
+      {
+        "proposalNumber": 0,
+        "proposalTitle": "",
+        "proposalType": "",
+        "proposalSubtype": "",
+        "directorName": "",
+        "directorTermYears": 0,
+        "directorClass": "",
+        "termExpirationYear": 0,
+        "frequencyOptions": {},
+        "recommendation": ""
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 403
+      text: Forbidden
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "",
+          "code": "",
+          "details": {}
+        }
+      '''
+    }
+  }
+}
