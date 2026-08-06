@@ -25,24 +25,32 @@ const previewThumbnails: SpecSection = {
   id: "mailing-preview-thumbnails",
   title: "1. Mailing Preview Thumbnails",
   summary:
-    "Requirements for clickable thumbnail previews beside each Primary Mailing Summary figure (Full Set, NAA, Electronic) so a client can see exactly what went out.",
+    "Requirements for clickable thumbnail previews on the Primary Mailing Summary (Full Set, NAA, Electronic) so a client can see exactly what went out. Thumbnails are pulled from documents the operations team stores in the database — nothing is uploaded from the app.",
   background: [
-    "The Mailing tab's Primary Mailing Summary shows three figures — Full Set, NAA, and Electronic. Each figure now carries a small thumbnail of the document that figure counts, in the space to the right of the tile.",
-    "Full Set and NAA are printed pieces, previewed from a generated PDF. Electronic is an email, previewed from a themed react-email notice rendered with the current client's brand colour.",
-    "Clicking any thumbnail opens the existing document viewer full-screen: the PDF viewer for Full Set and NAA, the website (iframe) view for the Electronic email.",
+    "The Mailing tab's Primary Mailing Summary shows three figures — Full Set, NAA, and Electronic. NAA and Electronic each carry exactly one small thumbnail of the document that figure counts, in the space to the right of the tile.",
+    "Full Set is different: it is a package of pieces — typically 3–5, e.g. proxy card, proxy statement, annual report, 10-K — and which pieces it contains varies by event. Its tile therefore toggles an expandable row beneath the tiles, mirroring the tabulation table's expandable rows, showing one thumbnail per piece pulled from the meeting's documents in the database. The row sizes to however many pieces exist.",
+    "The operations team stores mailing materials directly in the database, so the upload options previously planned for the primary and additional mailing sections are removed. Full Set applies only to the primary mailing job; each additional (follow-up) mailing is its own row with its own single thumbnail.",
+    "Clicking any thumbnail opens the existing document viewer full-screen: the PDF viewer for printed pieces, the website (iframe) view for the Electronic email.",
   ],
   topics: [
     {
       question: "Which figures get a thumbnail, and what each thumbnail shows.",
       answer: [
-        "All three Primary Mailing Summary figures. Full Set and NAA show the first page of the generated PDF; Electronic shows a scaled preview of the rendered email.",
+        "NAA and Electronic always show exactly one thumbnail — the first page of the NAA PDF, and a scaled preview of the rendered email. Full Set shows one thumbnail per piece in its expandable row, so the count is conditional on what the event mailed.",
       ],
-      requirementIds: ["MTP-01", "MTP-02", "MTP-03"],
+      requirementIds: ["MTP-01", "MTP-02", "MTP-03", "MTP-07"],
+    },
+    {
+      question: "Where the documents behind the thumbnails come from.",
+      answer: [
+        "The database. The operations team stores mailing materials there, so thumbnails render from stored documents and no upload option appears on the primary or additional mailing sections.",
+      ],
+      requirementIds: ["MTP-07", "MTP-08"],
     },
     {
       question: "What happens when a thumbnail is clicked.",
       answer: [
-        "The document viewer opens over the page. Full Set and NAA open in the PDF viewer with a download button; Electronic opens the email in the website (iframe) view.",
+        "The document viewer opens over the page. Printed pieces open in the PDF viewer with a download button; Electronic opens the email in the website (iframe) view.",
         "Previews are read-only — no signature fields, and the comment and history panels are hidden.",
       ],
       requirementIds: ["MTP-04", "MTP-06"],
@@ -83,15 +91,17 @@ const previewThumbnails: SpecSection = {
           label: "Mailing — Full Set / NAA",
         },
       ],
-      title: "Full Set and NAA show the generated PDF",
+      title: "NAA shows exactly one thumbnail",
       statement:
-        "The Full Set and NAA tiles show a PDF thumbnail of `/mock-mailings/{TICKER}/full-set.pdf` and `/mock-mailings/{TICKER}/naa.pdf` respectively.",
+        "The NAA tile shows exactly one PDF thumbnail — the first page of `/mock-mailings/{TICKER}/naa.pdf` — in its current position on the tile.",
+      rationale:
+        "A Notice & Access mailing is always a single printed piece, so its preview never needs more than one thumbnail.",
       evidence: [
         "components/Meeting/MailingPreviewTiles.tsx",
         "components/Documents/DocumentThumbnail.tsx",
       ],
       acceptance: [
-        "Given a client with generated mailings, when the Mailing tab loads, then the Full Set and NAA tiles render the first page of their PDF.",
+        "Given a client with generated mailings, when the Mailing tab loads, then the NAA tile renders the first page of its PDF.",
         "Given a client with no generated PDF, when the tile renders, then it falls back to a document icon rather than erroring.",
       ],
     },
@@ -172,20 +182,74 @@ const previewThumbnails: SpecSection = {
         "Given a PDF preview, when it opens, then a download button is available.",
       ],
     },
+    {
+      id: "MTP-07",
+      screens: [
+        {
+          href: "/WEN/meeting/wen-special-meeting-2026/mailing",
+          label: "Mailing — Full Set expanded",
+        },
+      ],
+      title: "Full Set expands to a row of piece thumbnails",
+      statement:
+        "The Full Set tile carries an expand toggle instead of a single thumbnail. Toggling it reveals a row beneath the tiles — the same expandable-row pattern as the tabulation table — with one labelled thumbnail per piece stored for the meeting in the database, laid out fluidly so any piece count reads well.",
+      rationale:
+        "A full set is a variable package — typically 3–5 pieces depending on the event — so a fixed icon layout cannot represent it; the row must size to what was actually mailed. Full Set applies only to the primary mailing job.",
+      evidence: [
+        "components/Meeting/MailingPreviewTiles.tsx",
+        "components/Tabulation/PositionsTable.tsx",
+      ],
+      acceptance: [
+        "Given the Mailing tab, when a user toggles the Full Set tile, then a row of piece thumbnails expands beneath the tiles and the toggle's state is announced.",
+        "Given a meeting whose database documents include a proxy card, proxy statement, and annual report, when the row expands, then those three pieces appear as labelled thumbnails in mailing order.",
+        "Given a meeting with more or fewer stored pieces, when the row expands, then the grid shows exactly the pieces that exist.",
+        "Given a meeting with no individual pieces stored, when the row expands, then it falls back to the complete generated package as a single thumbnail.",
+        "Given a piece thumbnail, when a user clicks it, then that piece opens full-screen in the PDF viewer.",
+      ],
+    },
+    {
+      id: "MTP-08",
+      screens: [
+        {
+          href: "/WEN/meeting/wen-special-meeting-2026/mailing",
+          label: "Mailing — primary and additional mailing",
+        },
+      ],
+      title: "No uploads — documents come from the database",
+      statement:
+        "Neither the Primary Mailing Summary nor the Additional Mailing Summary offers an upload. Thumbnails and follow-up job rows render from documents the operations team stores in the database.",
+      rationale:
+        "The operations and business teams agreed to store mailing materials directly in the database rather than have CSMs upload them, which is what makes automatic thumbnails possible.",
+      evidence: [
+        "components/Meeting/AdditionalMailingSummaryCard.tsx",
+        "components/Meeting/MailingPreviewTiles.tsx",
+      ],
+      acceptance: [
+        "Given the Mailing tab, when it renders, then no upload button or upload dialog is reachable from the primary or additional mailing sections.",
+        "Given follow-up mailings stored for the meeting, when the Additional Mailing Summary renders, then each appears as its own row with its single thumbnail.",
+      ],
+    },
   ],
   tables: [
     {
       title: "What each figure previews",
-      headers: ["Figure", "Preview", "Source"],
+      headers: ["Figure", "Thumbnails", "Preview", "Source"],
       rows: [
         [
           "Full Set",
-          "First page of the PDF",
-          "/mock-mailings/{TICKER}/full-set.pdf",
+          "One per stored piece (typically 3–5)",
+          "Expandable row of labelled piece thumbnails",
+          "Meeting documents in the database; falls back to /mock-mailings/{TICKER}/full-set.pdf",
         ],
-        ["NAA", "First page of the PDF", "/mock-mailings/{TICKER}/naa.pdf"],
+        [
+          "NAA",
+          "Exactly one",
+          "First page of the PDF",
+          "/mock-mailings/{TICKER}/naa.pdf",
+        ],
         [
           "Electronic",
+          "Exactly one",
           "Scaled email",
           "GET /api/emails/preview?template=mailing-electronic-notice&format=html",
         ],
@@ -308,5 +372,5 @@ export const SPEC_META: SpecMeta = {
   repository: "betanxt-issuer-portal / issuer-portal",
   status: "For build",
   title: "Issuer Portal — Mailing Preview Thumbnails",
-  version: "1.0",
+  version: "1.1",
 };

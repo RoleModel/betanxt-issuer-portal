@@ -27,6 +27,7 @@ export const AFFECTED_GROUPS: readonly AffectedGroup[] = [
     paths: [
       "components/FeatureTile.tsx",
       "components/Meeting/MailingPreviewTiles.tsx",
+      "components/Meeting/AdditionalMailingSummaryCard.tsx",
       "app/[clientTicker]/meeting/[meetingId]/mailing/page.tsx",
     ],
   },
@@ -72,6 +73,12 @@ export const SCREEN_LINKS: Record<string, readonly ScreenLink[]> = {
     {
       href: "/WEN/meeting/wen-special-meeting-2026/mailing",
       label: "Mailing — Primary Mailing Summary",
+    },
+  ],
+  "components/Meeting/AdditionalMailingSummaryCard.tsx": [
+    {
+      href: "/WEN/meeting/wen-special-meeting-2026/mailing",
+      label: "Mailing — Additional Mailing Summary",
     },
   ],
   "app/[clientTicker]/meeting/[meetingId]/mailing/page.tsx": [

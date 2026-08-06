@@ -73,6 +73,7 @@ const MailingPage = () => {
               >
                 <MailingPreviewTiles
                   loading={mailingLoading}
+                  meetingId={meetingId}
                   fullSetPositions={mailingData?.fullsetMailPositions}
                   naaPositions={mailingData?.naaMailPositions}
                   electronicPositions={
