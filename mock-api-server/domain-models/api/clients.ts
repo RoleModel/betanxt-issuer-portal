@@ -71,9 +71,6 @@ const transformClient = (row: ClientRow): Client => ({
 // Pagination is not yet implemented; `page` is kept as a positional
 // parameter to match the OpenAPI-generated call site's shape.
 export const listClients = async (
-  // sonarjs/no-unused-function-argument wants the `_` prefix here;
-  // naming-convention forbids it — the two rules directly conflict.
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   _page?: number,
   limit?: number,
   ticker?: string

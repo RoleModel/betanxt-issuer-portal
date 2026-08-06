@@ -308,8 +308,6 @@ const fetchComparableMeetings = async (
     )
     .toSorted(sortMeetingsBySeriesOrder);
 
-  // Promise.all's op_mini gap is not a real concern for this app; there is no op_mini target in this project's browserslist.
-  // eslint-disable-next-line compat/compat
   const settledHistoricalData = await Promise.all(
     comparableMeetings.map(
       async (comparableMeeting): Promise<HistoricalTabulationPoint | null> => {
