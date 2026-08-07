@@ -16,12 +16,16 @@ import { brandConfigs } from "@/utils/brandConfig";
 // DocumentViewer is a large, modal-only component (pdf-lib, signature/upload
 // hooks) — only needed once a thumbnail is clicked, so defer it out of the
 // tile page's initial bundle.
-const DocumentViewer = dynamic(async () => await import("@/components/Documents/DocumentViewer"), {
-  ssr: false,
-});
+const DocumentViewer = dynamic(
+  async () => await import("@/components/Documents/DocumentViewer"),
+  {
+    ssr: false,
+  }
+);
 
 /** Mock-api base, matching the rest of the app's hooks. */
-const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+const apiBase =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
 /**
  * Every preview on the row is the same size — a lone NAA or Electronic
@@ -102,7 +106,9 @@ interface PieceManifest {
   readonly pieces: readonly { readonly file: string; readonly label: string }[];
 }
 
-const isManifestPiece = (value: unknown): value is { file: string; label: string } =>
+const isManifestPiece = (
+  value: unknown
+): value is { file: string; label: string } =>
   typeof value === "object" &&
   value !== null &&
   "file" in value &&
@@ -115,7 +121,10 @@ const isPieceManifest = (value: unknown): value is PieceManifest => {
     return false;
   }
   const { pieces } = value;
-  return Array.isArray(pieces) && pieces.every((piece: unknown) => isManifestPiece(piece));
+  return (
+    Array.isArray(pieces) &&
+    pieces.every((piece: unknown) => isManifestPiece(piece))
+  );
 };
 
 const formatNumber = (value: number | null | undefined): string =>
@@ -129,7 +138,7 @@ const formatNumber = (value: number | null | undefined): string =>
 const toFullSetItems = (
   manifest: PieceManifest | undefined,
   ticker: string,
-  fallbackUrl: string,
+  fallbackUrl: string
 ): FullSetItem[] => {
   const fromManifest = (manifest?.pieces ?? []).map((piece) => ({
     key: piece.file,
@@ -237,18 +246,23 @@ const MailingPreviewTiles = ({
 }: MailingPreviewTilesProps) => {
   const theme = useTheme();
   const params = useParams<{ clientTicker?: string }>();
-  const [activePreview, setActivePreview] = useState<ActivePreview | null>(null);
+  const [activePreview, setActivePreview] = useState<ActivePreview | null>(
+    null
+  );
 
-  const ticker = typeof params.clientTicker === "string" ? params.clientTicker.toUpperCase() : "";
+  const ticker =
+    typeof params.clientTicker === "string"
+      ? params.clientTicker.toUpperCase()
+      : "";
 
   // Brand name and colour drive the Electronic email's per-client theming.
   // The legal name is the brandConfigs key (e.g. "The Wendy's Company").
   const [companyLegal, brand] = useMemo(
     () =>
       Object.entries(brandConfigs).find(
-        ([, config]) => config.ticker?.toUpperCase() === ticker,
+        ([, config]) => config.ticker?.toUpperCase() === ticker
       ) ?? [undefined, undefined],
-    [ticker],
+    [ticker]
   );
   const company = brand?.companyName ?? ticker;
   const brandColor = brand?.primaryColor ?? theme.palette.primary.main;
@@ -261,19 +275,25 @@ const MailingPreviewTiles = ({
   // stand-in for the mailing materials the operations team stores in the
   // database. 404s (unsplit packages) resolve to undefined.
   const { data: pieceManifest } = useSWR<PieceManifest | undefined>(
-    ticker.length > 0 ? `/mock-mailings/${ticker}/full-set/manifest.json` : null,
+    ticker.length > 0
+      ? `/mock-mailings/${ticker}/full-set/manifest.json`
+      : null,
     async (url: string) => {
       const response = await fetch(url);
       if (!response.ok) return undefined;
       const json: unknown = await response.json();
       return isPieceManifest(json) ? json : undefined;
     },
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false }
   );
 
   const fullSetItems = useMemo(
-    () => toFullSetItems(pieceManifest, ticker, fullSetUrl).slice(0, maxPreviewedPieces),
-    [pieceManifest, ticker, fullSetUrl],
+    () =>
+      toFullSetItems(pieceManifest, ticker, fullSetUrl).slice(
+        0,
+        maxPreviewedPieces
+      ),
+    [pieceManifest, ticker, fullSetUrl]
   );
 
   // Every client-identifying field must be overridden here — the preview
@@ -298,7 +318,7 @@ const MailingPreviewTiles = ({
             }
           : {}),
       }).toString()}`,
-    [company, companyLegal, brandColor, ticker, brand],
+    [company, companyLegal, brandColor, ticker, brand]
   );
 
   const openPdf = (title: string, fileUrl: string) => {
@@ -398,7 +418,8 @@ const MailingPreviewTiles = ({
   // slot holds beside it and a column for the count and label. A twelfth-based
   // grid could not express that, and rounding Full Set up to a whole row left
   // its count stranded a long way from its fan.
-  const fullSetBasis = labelColumnWidth + fanWidth(fullSetItems.length) + flowGutter;
+  const fullSetBasis =
+    labelColumnWidth + fanWidth(fullSetItems.length) + flowGutter;
   const singleBasis = labelColumnWidth + overlayThumbnailWidth + overlayGutter;
 
   // The row has three shapes, and which one applies depends on the width of
@@ -437,7 +458,9 @@ const MailingPreviewTiles = ({
                 flexShrink: 1,
                 flexBasis: "100%",
                 [`@container (min-width: ${pairedWidth}px)`]: {
-                  flexBasis: isFullSet ? "100%" : `calc(50% - ${tileGap / 2}px)`,
+                  flexBasis: isFullSet
+                    ? "100%"
+                    : `calc(50% - ${tileGap / 2}px)`,
                 },
                 [`@container (min-width: ${oneRowWidth}px)`]: {
                   flexBasis: `${basis}px`,
