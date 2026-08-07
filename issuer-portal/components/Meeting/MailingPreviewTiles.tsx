@@ -1,7 +1,7 @@
 "use client";
 
 import { MailOutlineOutlined } from "@mui/icons-material";
-import { Box, Skeleton } from "@mui/material";
+import { Box, Skeleton, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTheme } from "@mui/material/styles";
 import dynamic from "next/dynamic";
@@ -27,9 +27,6 @@ const apiBase =
 
 /** Width, in px, of the single NAA / Electronic preview thumbnail. */
 const thumbnailWidth = 60;
-
-/** Render width, in px, of each piece thumbnail in the Full Set fan. */
-const pieceThumbnailWidth = 40;
 
 interface ActivePreview {
   readonly title: string;
@@ -179,9 +176,10 @@ interface MailingPreviewTilesProps {
  * The three Primary Mailing Summary tiles (Full Set, NAA, Electronic). NAA and
  * Electronic each carry exactly one clickable thumbnail of what was mailed.
  * Full Set is a package of pieces — typically 3–5, varying by event — so its
- * tile fans one thumbnail per piece, and the tile widens to over half the row
- * once the package holds more than two pieces. Clicking any thumbnail opens
- * the document viewer for a full-size preview.
+ * tile lays out one labelled thumbnail per piece in a wrap grid, and the
+ * summary grid responds to the count: an even third for one piece, half the
+ * row for two or three, the whole row for four or more. Clicking any
+ * thumbnail opens the document viewer for a full-size preview.
  */
 const MailingPreviewTiles = ({
   loading,
@@ -281,45 +279,50 @@ const MailingPreviewTiles = ({
       subtitle: "Full Set",
       value: fullSetPositions,
       thumbnail: (
-        // One thumbnail per piece, fanned right-to-left in a fixed rhythm —
-        // each piece sits 104px further left, so the stack grows with the
-        // piece count while the tile's grid span makes room for it.
+        // One labelled thumbnail per piece in a wrap grid: the pieces flow
+        // and wrap at their natural size, so any count reads without
+        // overlapping each other or the tile's value.
         <Box
           sx={{
             display: "flex",
             flexWrap: "wrap",
             justifyContent: "flex-end",
-            gap: 0.75,
-            maxWidth: (pieceThumbnailWidth + 6) * 3,
-            zIndex: 5,
+            columnGap: 1.5,
+            rowGap: 1,
           }}
         >
-          {fullSetItems.map((item, index) => (
+          {fullSetItems.map((item) => (
             <Box
               key={item.key}
               sx={{
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "flex-end",
-                flex: "1 0 230px",
-                pr: 2,
-                position: "relative",
-                "& > .MuiBox-root": {
-                  width: 110,
-                  height: "fit-content",
-                  position: "absolute",
-                  right: `${index * 104}px`,
-                  top: 0,
-                },
+                gap: 0.5,
+                width: 72,
               }}
             >
               <DocumentThumbnail
                 filePath={item.fileUrl}
-                width={pieceThumbnailWidth}
+                width={thumbnailWidth}
                 onClick={() => {
                   openPdf(`Full Set — ${item.label}`, item.fileUrl);
                 }}
               />
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                align="center"
+                sx={{
+                  lineHeight: 1.2,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {item.label}
+              </Typography>
             </Box>
           ))}
         </Box>
@@ -363,7 +366,22 @@ const MailingPreviewTiles = ({
       <Grid container spacing={2}>
         {tiles.map((tile) => {
           const isFullSet = tile.key === "full-set";
-          const mdSize = isFullSet && fullSetItems.length > 2 ? 5.25 : 3.35;
+          // The grid responds to the piece count: a lone piece shares the
+          // row evenly, two or three widen Full Set to half the row, four or
+          // more give it the whole row with NAA and Electronic beneath.
+          const pieceCount = fullSetItems.length;
+          const fullRow = pieceCount >= 4;
+          const mdSize = isFullSet
+            ? fullRow
+              ? 12
+              : pieceCount >= 2
+                ? 6
+                : 4
+            : fullRow
+              ? 6
+              : pieceCount >= 2
+                ? 3
+                : 4;
 
           return (
             <Grid key={tile.key} size={{ xs: 12, md: mdSize }}>
@@ -376,6 +394,7 @@ const MailingPreviewTiles = ({
                   title={formatNumber(tile.value)}
                   subtitle={tile.subtitle}
                   thumbnail={tile.thumbnail}
+                  thumbnailLayout={isFullSet ? "flow" : "overlay"}
                 />
               )}
             </Grid>

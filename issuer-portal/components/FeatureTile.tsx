@@ -39,6 +39,14 @@ interface FeatureTileProps {
    * behaviour, so the caller decides what a click opens.
    */
   readonly thumbnail?: React.ReactNode;
+  /**
+   * How the thumbnail slot is laid out. "overlay" (the default) absolutely
+   * positions a single preview at a fixed width on the tile's right edge.
+   * "flow" keeps the slot in the flex flow at its natural size, so a
+   * container of several thumbnails can wrap without covering the tile's
+   * title and value.
+   */
+  readonly thumbnailLayout?: "overlay" | "flow";
 }
 
 type FeatureTileVariant = NonNullable<FeatureTileProps["variant"]>;
@@ -130,6 +138,7 @@ export const FeatureTile = ({
   sx,
   brandFont = false,
   thumbnail,
+  thumbnailLayout = "overlay",
   children,
 }: FeatureTileProps) => {
   const theme = useTheme();
@@ -291,20 +300,32 @@ export const FeatureTile = ({
         </Box>
         {thumbnail != null && (
           <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              flex: "1 0 200px",
-              pr: 2,
-              position: "relative",
-              "& > .MuiBox-root": {
-                width: 140,
-                position: "absolute",
-                right: 20,
-                top: 0,
-              },
-            }}
+            sx={
+              thumbnailLayout === "overlay"
+                ? {
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    flex: "1 0 200px",
+                    pr: 2,
+                    position: "relative",
+                    "& > .MuiBox-root": {
+                      width: 140,
+                      position: "absolute",
+                      right: 20,
+                      top: 0,
+                    },
+                  }
+                : {
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    flex: "0 1 auto",
+                    minWidth: 0,
+                    pr: 2,
+                    pt: 2,
+                  }
+            }
           >
             {thumbnail}
           </Box>
