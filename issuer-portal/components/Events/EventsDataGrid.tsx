@@ -1,18 +1,19 @@
 "use client";
 
-import { Box } from "@mui/material";
+import { Alert, Box, Snackbar } from "@mui/material";
 import { DataGridPro, gridClasses } from "@mui/x-data-grid-pro";
-import { useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 import type { EventRow } from "@/utils/eventData";
 
 import { SavedFilterPanel } from "@/components/ui/SavedFilterPanel";
-import { SavedFilterToolbar } from "@/components/ui/SavedFilterToolbar";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useEventRisk } from "@/hooks/useEventRisk";
 
+import { EventsGridToolbar } from "./EventsGridToolbar";
 import { createEventsDataGridColumns } from "./eventsDataGridColumns";
 import { useEventsFilterModel } from "./useEventsFilterModel";
+import { useTabulationRelease } from "./useTabulationRelease";
 
 // The grid renders only on the client; this defers it until after hydration
 // rather than rendering a server pass the grid would immediately discard.
@@ -25,17 +26,29 @@ const getServerRenderSnapshot = (): boolean => false;
 interface EventsDataGridProps {
   readonly assignedTickers: ReadonlySet<string> | null;
   readonly assignedTickersKey: string;
+  /** Only a CSM may release tabulation, so only a CSM gets the checkboxes. */
+  readonly canReleaseTabulation: boolean;
   readonly emptyMessage: string;
   readonly events: EventRow[];
   readonly loading: boolean;
+  /** Patches the cached rows for the ids that persisted. */
+  readonly onTabulationReleased: (
+    meetingIds: readonly string[],
+    released: boolean
+  ) => void;
+  /** Refetches the events list once a batch has settled. */
+  readonly onRefresh: () => void;
 }
 
 export const EventsDataGrid = ({
   assignedTickers,
   assignedTickersKey,
+  canReleaseTabulation,
   emptyMessage,
   events,
   loading,
+  onRefresh,
+  onTabulationReleased,
 }: EventsDataGridProps) => {
   const isGridReady = useSyncExternalStore(
     subscribeToClientRender,
@@ -57,9 +70,43 @@ export const EventsDataGrid = ({
     savedFilters,
   } = useEventsFilterModel(assignedTickers);
 
+  const {
+    clearFeedback,
+    feedback,
+    pendingMeetingIds,
+    progress,
+    setTabulationReleased,
+  } = useTabulationRelease({ onReleased: onTabulationReleased });
+
+  const runRelease = useCallback(
+    (meetingIds: readonly string[], released: boolean) => {
+      void setTabulationReleased(meetingIds, released).then(() => {
+        onRefresh();
+      });
+    },
+    [onRefresh, setTabulationReleased]
+  );
+
+  const handleRowTabulationChange = useCallback(
+    (event: EventRow, released: boolean) => {
+      runRelease([event.meetingId], released);
+    },
+    [runRelease]
+  );
+
+  const handleBulkRelease = useCallback(
+    (meetingIds: readonly string[]) => {
+      runRelease(meetingIds, true);
+    },
+    [runRelease]
+  );
+
   const columns = createEventsDataGridColumns({
     assignedTickers,
     atRiskMeetingIds,
+    canReleaseTabulation,
+    onTabulationChange: handleRowTabulationChange,
+    pendingTabulationIds: pendingMeetingIds,
     showEventStatus: flags.eventStatus,
   });
 
@@ -88,6 +135,7 @@ export const EventsDataGrid = ({
     <Box sx={{ display: "flex", width: "100%" }}>
       <DataGridPro
         autoHeight
+        checkboxSelection={canReleaseTabulation}
         columns={columns}
         disableRowSelectionOnClick
         filterDebounceMs={0}
@@ -125,16 +173,19 @@ export const EventsDataGrid = ({
           },
           toolbar: {
             activeFilterId,
+            canReleaseTabulation,
             onApply: handleApplySavedFilter,
             onClear: clearFilters,
             onDelete: handleDeleteSavedFilter,
+            onReleaseTabulation: handleBulkRelease,
             onRemoveFilter: handleRemoveFilterItem,
             savedFilters,
+            tabulationProgress: progress,
           },
         }}
         slots={{
           filterPanel: SavedFilterPanel,
-          toolbar: SavedFilterToolbar,
+          toolbar: EventsGridToolbar,
         }}
         sx={{
           "& .MuiDataGrid-scrollShadow--vertical": {
@@ -154,6 +205,16 @@ export const EventsDataGrid = ({
           },
         }}
       />
+      <Snackbar
+        anchorOrigin={{ horizontal: "center", vertical: "bottom" }}
+        autoHideDuration={feedback?.severity === "success" ? 4000 : null}
+        onClose={clearFeedback}
+        open={feedback !== null}
+      >
+        <Alert onClose={clearFeedback} severity={feedback?.severity}>
+          {feedback?.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

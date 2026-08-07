@@ -17,6 +17,7 @@ import {
   EventActionsCell,
   EventPrimaryCell,
   EventStatusCell,
+  EventTabulationStatusCell,
 } from "./EventDataGridCells";
 import { eventDateRangeOperator } from "./EventDateRangeFilter";
 import {
@@ -25,6 +26,11 @@ import {
   getEventRiskLabel,
   parseEventDate,
 } from "./eventRiskStatus";
+import {
+  TABULATION_NOT_RELEASED_LABEL,
+  TABULATION_RELEASED_LABEL,
+  getTabulationStatusLabel,
+} from "./eventTabulationStatus";
 
 /** Restricts the grid to the signed-in CSM's own clients. */
 export const myClientsOnlyFilterOperator = (
@@ -71,13 +77,21 @@ const dateColumn = (
 interface EventsDataGridColumnsOptions {
   readonly assignedTickers: ReadonlySet<string> | null;
   readonly atRiskMeetingIds: ReadonlySet<string>;
+  /** Only a CSM gets the tabulation dropdown; everyone else sees a plain chip. */
+  readonly canReleaseTabulation: boolean;
+  /** Meeting ids with an in-flight tabulation write. */
+  readonly pendingTabulationIds: ReadonlySet<string>;
   /** `event-status` flag — hides the risk-status column while it is off. */
   readonly showEventStatus: boolean;
+  readonly onTabulationChange: (event: EventRow, released: boolean) => void;
 }
 
 export const createEventsDataGridColumns = ({
   assignedTickers,
   atRiskMeetingIds,
+  canReleaseTabulation,
+  onTabulationChange,
+  pendingTabulationIds,
   showEventStatus,
 }: EventsDataGridColumnsOptions): GridColDef<EventRow>[] => [
   {
@@ -142,6 +156,27 @@ export const createEventsDataGridColumns = ({
         } satisfies GridColDef<EventRow>,
       ]
     : []),
+  {
+    field: "tabulationStatus",
+    filterable: true,
+    headerName: "Tabulation",
+    minWidth: 170,
+    renderHeader: () => <GlossaryText>Tabulation</GlossaryText>,
+    renderCell: (parameters: GridRenderCellParams<EventRow, string>) => (
+      <EventTabulationStatusCell
+        editable={canReleaseTabulation}
+        event={parameters.row}
+        onChange={onTabulationChange}
+        pending={pendingTabulationIds.has(parameters.row.meetingId)}
+      />
+    ),
+    type: "singleSelect",
+    valueGetter: (value: unknown, row: EventRow) => {
+      void value;
+      return getTabulationStatusLabel(row);
+    },
+    valueOptions: [TABULATION_RELEASED_LABEL, TABULATION_NOT_RELEASED_LABEL],
+  },
   {
     align: "right",
     field: "actions",

@@ -20,7 +20,8 @@ import { useEvents } from "@/hooks/useEvents";
 
 const EventsPage = () => {
   const { data: session } = useSession();
-  const { events, loading, error, revalidate } = useEvents();
+  const { events, loading, error, revalidate, applyTabulationReleased } =
+    useEvents();
   const [newClientOpen, setNewClientOpen] = useState(false);
 
   const userType = session?.user.type ?? "PARENT_CLIENT";
@@ -71,9 +72,14 @@ const EventsPage = () => {
             <EventsDataGrid
               assignedTickers={assignedTickers}
               assignedTickersKey={assignedTickersKey}
+              canReleaseTabulation={isCSM}
               emptyMessage={emptyMessage}
               events={events}
               loading={loading}
+              onRefresh={() => {
+                void revalidate();
+              }}
+              onTabulationReleased={applyTabulationReleased}
             />
           </Box>
         </CardContent>

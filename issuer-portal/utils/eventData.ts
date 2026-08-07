@@ -26,6 +26,13 @@ export interface EventRow {
   mailingStatus: string | null;
   exchange: string | null;
   quorumRequirement: number | null;
+  /**
+   * Whether a CSM has released this event's tabulation results.
+   *
+   * Tabulation stays hidden on every surface until this flips to `true`, so
+   * the events index treats a missing value from the API as "not released".
+   */
+  tabulationReleased: boolean;
 }
 
 /** Build a meeting URL for an event row */

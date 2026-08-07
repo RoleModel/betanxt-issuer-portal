@@ -8,7 +8,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import useSWR from "swr";
 
 import type { EventRow } from "@/utils/eventData";
@@ -16,7 +16,7 @@ import buildApiClient from "@/domain-models/apiClient";
 import { clientsSWRConfig } from "@/lib/swr-config";
 import { getBrandConfigByTicker } from "@/utils/brandConfig";
 import { parseLocalDate } from "@/utils/dateUtils";
-import { asNumber, asRecord, asString } from "@/utils/typeUtils";
+import { asBoolean, asNumber, asRecord, asString } from "@/utils/typeUtils";
 
 function extractClientCompanyName(client: unknown): string | null {
   const record = asRecord(client);
@@ -95,6 +95,9 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
   const quorumRequirement = asNumber(
     meeting.quorumRequirement ?? meeting.quorum_requirement
   );
+  const isTabulationReleased = asBoolean(
+    meeting.tabulationReleased ?? meeting.tabulation_released
+  );
 
   return {
     id,
@@ -112,6 +115,7 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     mailingStatus,
     exchange,
     quorumRequirement,
+    tabulationReleased: isTabulationReleased,
   };
 }
 
@@ -121,6 +125,14 @@ interface UseEventsResult {
   error: string | null;
   /** Revalidate the events list from the server */
   revalidate: () => Promise<EventRow[] | undefined>;
+  /**
+   * Patch the cached rows so a tabulation release shows immediately, without
+   * waiting on the (multi-page) refetch that follows it.
+   */
+  applyTabulationReleased: (
+    meetingIds: readonly string[],
+    released: boolean
+  ) => void;
 }
 
 interface EventsPage {
@@ -270,10 +282,31 @@ export function useEvents(): UseEventsResult {
     return rawData.filter((row) => allowedTickerSet.has(row.clientTicker));
   }, [rawData, allowedTickers]);
 
+  const applyTabulationReleased = useCallback(
+    (meetingIds: readonly string[], released: boolean) => {
+      const targets = new Set<string>(meetingIds);
+      if (targets.size === 0) {
+        return;
+      }
+
+      void mutate(
+        (current: EventRow[] | undefined) =>
+          current?.map((row) =>
+            targets.has(row.meetingId)
+              ? { ...row, tabulationReleased: released }
+              : row
+          ),
+        { revalidate: false }
+      );
+    },
+    [mutate]
+  );
+
   return {
     events,
     loading: isLoading,
     error: Error.isError(error) ? error.message : null,
     revalidate: mutate,
+    applyTabulationReleased,
   };
 }
