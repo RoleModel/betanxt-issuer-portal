@@ -101,6 +101,12 @@ interface MailingJob {
   body?: string[];
 }
 
+// Clients whose mailings are real documents rather than this script's output:
+// WEN's are the client's own, and FOC's are the FocalPoint brand deliverables.
+// Both are committed, and a run of this script would replace them with the
+// generic template — so they are left alone.
+const SKIP_TICKERS = new Set(["WEN", "FOC"]);
+
 // Build the per-client follow-up jobs. Colors/logo come from each client's brand
 // config; meeting/recipient copy is generic placeholder data for the prototype.
 function buildJobs(fullName: string): MailingJob[] {
@@ -785,10 +791,16 @@ async function main() {
   let fileCount = 0;
   let logoHits = 0;
   let headerLogoHits = 0;
+  let skippedCount = 0;
 
   for (const [fullName, cfg] of Object.entries(brandConfigs)) {
     const { ticker } = cfg;
     if (!ticker) continue;
+
+    if (SKIP_TICKERS.has(ticker.toUpperCase())) {
+      skippedCount++;
+      continue;
+    }
 
     const logo = await loadLogoForBrand(cfg);
     const headerLogo = await loadHeaderLogoForBrand(cfg);
@@ -840,7 +852,7 @@ async function main() {
   }
 
   console.log(
-    `Done. Generated ${fileCount} PDFs across ${clientCount} clients (${logoHits} light logos, ${headerLogoHits} header logos) in ${outRoot}.`
+    `Done. Generated ${fileCount} PDFs across ${clientCount} clients (${logoHits} light logos, ${headerLogoHits} header logos, ${skippedCount} clients skipped) in ${outRoot}.`
   );
 }
 

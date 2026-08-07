@@ -60,7 +60,12 @@ Font.register({
 
 const INK = "#1F2933";
 const MUTED = "#6B7280";
-const SKIP_TICKERS = new Set(["WEN"]); // has real client-provided full-set
+// Packages that are real documents rather than this template's output, and so
+// must not be overwritten: WEN's is the client's own merged filing, and FOC's
+// is the merge of the FocalPoint brand deliverables this template is modelled
+// on — regenerating it would replace the brand's own design with an imitation
+// of it.
+const SKIP_TICKERS = new Set(["WEN", "FOC"]);
 
 /** Black or white text for legibility on a background colour. */
 function contrastText(hex: string): string {

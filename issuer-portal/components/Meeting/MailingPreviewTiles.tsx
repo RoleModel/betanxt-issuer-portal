@@ -9,7 +9,9 @@ import React, { useMemo, useState } from "react";
 import useSWR from "swr";
 
 import DocumentThumbnail from "@/components/Documents/DocumentThumbnail";
-import FeatureTile from "@/components/FeatureTile";
+import FeatureTile, {
+  featureTileThumbnailWidth,
+} from "@/components/FeatureTile";
 import { brandConfigs } from "@/utils/brandConfig";
 
 // DocumentViewer is a large, modal-only component (pdf-lib, signature/upload
@@ -26,18 +28,24 @@ const DocumentViewer = dynamic(
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
-/** Width, in px, of the single NAA / Electronic preview thumbnail. */
-const thumbnailWidth = 60;
-
 /**
- * Display width of one Full Set piece. Below sm the pieces stack under the
- * tile's count and label rather than fanning along its right edge, so they
- * shrink to a width that fits three to a row on a phone.
+ * Every preview on the row is the same size — a lone NAA or Electronic
+ * notice, and each piece of the Full Set fan alike — so the three tiles read
+ * as one set of documents rather than three scales of them. A client whose
+ * package has not been split shows its merged package as a single piece, and
+ * that piece has to match NAA and Electronic exactly.
  */
-const fullSetPieceWidth = { xs: 84, sm: 120 } as const;
+const previewWidth = featureTileThumbnailWidth;
 
 /** Displayed width of a preview once the tiles lay out side by side. */
-const overlayThumbnailWidth = fullSetPieceWidth.sm;
+const overlayThumbnailWidth = previewWidth.sm;
+
+/**
+ * Pixel width the PDF page is rasterised at. Held at the widest a preview is
+ * ever displayed so the canvas is never scaled up — see the render scale in
+ * DocumentThumbnail, which multiplies this for high-DPI screens.
+ */
+const thumbnailRenderWidth = previewWidth.sm;
 
 /** How far each fanned Full Set piece is stepped past the one before it. */
 const fanStep = 110;
@@ -46,12 +54,26 @@ const fanStep = 110;
 const tileGap = 16;
 
 /**
- * Room a tile's count and label need beside its previews. This is the least
- * they can live with, not a comfortable width: flex wraps a row by comparing
- * flex-basis totals, before flex-shrink gets a say, so an inflated figure here
- * drops a tile to the next row while there is still space for it.
+ * Room a tile's count and label need beside its previews: the wider of the
+ * two — "Electronic", at 83px, against a five-figure count at 72px — plus the
+ * column's own padding. This is the least they can live with, not a
+ * comfortable width: flex wraps a row by comparing flex-basis totals, before
+ * flex-shrink gets a say, so an inflated figure here drops a tile to the next
+ * row while there is still space for it. Understating it is the worse
+ * failure, though — the tile then shrinks past the point where the label
+ * clears the preview, and the two overlap.
  */
-const labelColumnWidth = 112;
+const labelColumnWidth = 116;
+
+/**
+ * Room the overlay slot holds to the right of the preview it positions —
+ * FeatureTile's own inset and padding, which sit outside the preview's width
+ * and so have to be counted separately when budgeting a tile.
+ */
+const overlayGutter = 36;
+
+/** The same, for the flow slot, which insets its previews by padding alone. */
+const flowGutter = 16;
 
 /**
  * Pieces the tile previews. A package can run to five or more, but a fan that long forces Full Set on to a row of its own and strands its count far from its thumbnails, so the tile shows the first few and leaves the rest to the mailing materials list.
@@ -151,7 +173,7 @@ const EmailThumbnail = ({
     onClick={onClick}
     sx={{
       position: "relative",
-      width: thumbnailWidth,
+      width: previewWidth,
       aspectRatio: "8.5 / 11",
       overflow: "hidden",
       borderRadius: 1,
@@ -338,15 +360,15 @@ const MailingPreviewTiles = ({
                 pr: { sm: 2 },
                 position: { xs: "relative", sm: "absolute" },
                 right: { sm: `${index * fanStep}px` },
-                top: { sm: `${10 + index * 5}px` },
+                top: { sm: `${16 + index * 5}px` },
                 "& > .MuiBox-root": {
-                  width: fullSetPieceWidth,
+                  width: previewWidth,
                 },
               }}
             >
               <DocumentThumbnail
                 filePath={item.fileUrl}
-                width={thumbnailWidth}
+                width={thumbnailRenderWidth}
                 onClick={() => {
                   openPdf(`Full Set — ${item.label}`, item.fileUrl);
                 }}
@@ -363,7 +385,7 @@ const MailingPreviewTiles = ({
       thumbnail: (
         <DocumentThumbnail
           filePath={naaUrl}
-          width={thumbnailWidth}
+          width={thumbnailRenderWidth}
           onClick={() => {
             openPdf("NAA — Notice of Internet Availability", naaUrl);
           }}
@@ -390,13 +412,14 @@ const MailingPreviewTiles = ({
   ];
 
   // Each tile asks for the width its previews actually need: Full Set for its
-  // whole fan — a 140px piece, each one after it stepped 120px further along —
-  // and NAA and Electronic for a single 140px preview, all on top of a column
-  // for the count and label. A twelfth-based grid could not express that, and
-  // rounding Full Set up to a whole row left its count stranded a long way
-  // from its fan.
-  const fullSetBasis = labelColumnWidth + fanWidth(fullSetItems.length);
-  const singleBasis = labelColumnWidth + overlayThumbnailWidth;
+  // whole fan — a piece, each one after it stepped `fanStep` further along —
+  // and NAA and Electronic for a single preview, each on top of the gutter its
+  // slot holds beside it and a column for the count and label. A twelfth-based
+  // grid could not express that, and rounding Full Set up to a whole row left
+  // its count stranded a long way from its fan.
+  const fullSetBasis =
+    labelColumnWidth + fanWidth(fullSetItems.length) + flowGutter;
+  const singleBasis = labelColumnWidth + overlayThumbnailWidth + overlayGutter;
 
   // The row has three shapes, and which one applies depends on the width of
   // the card the tiles sit in rather than of the window — the meeting sidebar

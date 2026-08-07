@@ -16,7 +16,18 @@
  * merged filing) are left alone — the UI falls back to the meeting's database
  * documents, then the merged package.
  *
- * Run from issuer-portal/: pnpm dlx tsx scripts/split-full-set-pdfs.ts
+ * The pieces are derived from a package that is already in the repository, so
+ * only a handful of them are committed and postinstall runs this to produce
+ * the rest. That is what stops a deployment from showing different Full Set
+ * thumbnails than a developer sees locally: without it, every client whose
+ * pieces are not committed falls back to the merged package, and its tile
+ * previews one document where it should preview the whole package.
+ *
+ * A client that already has a manifest is left alone, so the committed pieces
+ * never churn. Pass --force to re-split every package after changing the page
+ * ranges below.
+ *
+ * Run from issuer-portal/: node scripts/split-full-set-pdfs.ts [--force]
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -57,16 +68,17 @@ const PIECES: readonly PieceRange[] = [
 ];
 
 /**
- * Real client filings don't follow the generated layout, so their piece
- * boundaries are listed by hand. WEN's package is its real merged 2026
- * filing: cover and letter, notice, proxy statement, the annual review
- * section, then the Form 10-K — five pieces, exercising the grid's
- * widest layout.
+ * Real packages don't follow the generated layout, so their piece boundaries
+ * are listed by hand. WEN's is the client's real merged 2026 filing: cover
+ * and letter, notice, proxy statement, the annual review section, then the
+ * Form 10-K — five pieces, exercising the grid's widest layout. FOC's is the
+ * merge of the FocalPoint brand deliverables, and is the only package that
+ * mails a corporate responsibility report.
  *
  * A piece's first page is the one the Mailing tab thumbnails, so the
  * boundaries below are set to open each piece on a page that identifies it.
- * The three-page table of contents (pages 7–9 of the filing, with a blank on
- * 10) rides with the notice for that reason: left at the head of the proxy
+ * The three-page table of contents (pages 7–9 of WEN's filing, with a blank
+ * on 10) rides with the notice for that reason: left at the head of the proxy
  * statement it made two of the five pieces thumbnail as a wall of contents
  * entries, indistinguishable from each other.
  */
@@ -103,6 +115,38 @@ const REAL_PACKAGE_PIECES: Readonly<Record<string, readonly PieceRange[]>> = {
       lastPage: 287,
     },
   ],
+  FOC: [
+    {
+      file: "notice.pdf",
+      label: "Notice of Annual Meeting",
+      firstPage: 0,
+      lastPage: 8,
+    },
+    {
+      file: "proxy-statement.pdf",
+      label: "Proxy Statement",
+      firstPage: 9,
+      lastPage: 29,
+    },
+    {
+      file: "annual-report.pdf",
+      label: "Fiscal 2025 Annual Report",
+      firstPage: 30,
+      lastPage: 132,
+    },
+    {
+      file: "corporate-responsibility.pdf",
+      label: "Corporate Responsibility Report",
+      firstPage: 133,
+      lastPage: 150,
+    },
+    {
+      file: "proxy-card.pdf",
+      label: "Proxy Card",
+      firstPage: 151,
+      lastPage: 153,
+    },
+  ],
 };
 
 interface ManifestPiece {
@@ -112,10 +156,25 @@ interface ManifestPiece {
 
 const outRoot = path.join(process.cwd(), "public", "mock-mailings");
 
-async function splitClient(ticker: string): Promise<"split" | "skipped"> {
+/** Re-split packages that already have a manifest, rather than leaving them. */
+const isForce = process.argv.includes("--force");
+
+async function splitClient(
+  ticker: string
+): Promise<"split" | "current" | "skipped"> {
   const packagePath = path.join(outRoot, ticker, "full-set.pdf");
   if (!fs.existsSync(packagePath)) {
     return "skipped";
+  }
+
+  // pdf-lib stamps each save with fresh object ids, so re-splitting a package
+  // rewrites bytes that are already correct. Committed pieces would show up
+  // as modified after every install if this ran unconditionally.
+  if (
+    !isForce &&
+    fs.existsSync(path.join(outRoot, ticker, "full-set", "manifest.json"))
+  ) {
+    return "current";
   }
 
   const packageDocument = await PDFDocument.load(fs.readFileSync(packagePath));
@@ -157,6 +216,7 @@ async function splitClient(ticker: string): Promise<"split" | "skipped"> {
 
 async function main(): Promise<void> {
   let split = 0;
+  let current = 0;
   let skipped = 0;
 
   for (const entry of fs.readdirSync(outRoot, { withFileTypes: true })) {
@@ -166,13 +226,17 @@ async function main(): Promise<void> {
     const result = await splitClient(entry.name);
     if (result === "split") {
       split++;
+    } else if (result === "current") {
+      current++;
     } else {
       skipped++;
       console.log(`Skipped ${entry.name} — no generated 16-page package.`);
     }
   }
 
-  console.log(`Done. Split ${split} packages (${skipped} skipped).`);
+  console.log(
+    `Done. Split ${split} packages (${current} already split, ${skipped} skipped).`
+  );
 }
 
 main().catch((error: unknown) => {

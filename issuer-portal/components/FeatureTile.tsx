@@ -49,6 +49,14 @@ interface FeatureTileProps {
   readonly thumbnailLayout?: "overlay" | "flow";
 }
 
+/**
+ * Display width of a tile preview. Exported because a caller that lays its
+ * own previews out in the flow slot has to size them itself: sharing this
+ * constant is what keeps a flow preview the same size as an overlay one, and
+ * lets the caller budget the room a tile's previews need.
+ */
+export const featureTileThumbnailWidth = { xs: 120, sm: 140 } as const;
+
 type FeatureTileVariant = NonNullable<FeatureTileProps["variant"]>;
 
 interface VariantColors {
@@ -322,7 +330,7 @@ export const FeatureTile = ({
                     right: 20,
                     top: 20,
                     "& > .MuiBox-root": {
-                      width: { xs: 120, sm: 140 },
+                      width: featureTileThumbnailWidth,
                       // Keep the preview positioned: this rule outranks its
                       // own `position`, and a static preview would let
                       // anything it places absolutely — a fallback icon, say —
