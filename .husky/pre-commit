@@ -27,7 +27,12 @@ node issuer-portal/scripts/generate-dev-source-manifest.mjs
 
 pnpm run lint
 pnpm --filter issuer-portal run type-check
-# Playwright forces color for useful worker output. Clear a user-level NO_COLOR
-# setting for this invocation so Node does not emit its conflicting-env warning.
-NO_COLOR= pnpm --filter mock-api-server run test:unit
 pnpm run check
+
+# The mock-api-server unit suite used to run here too. It dominated the time
+# every commit took, so it is now run on demand:
+#
+#   pnpm --filter mock-api-server run test:unit
+#
+# Nothing runs it automatically — no workflow in .github/workflows does — so
+# run it before opening a PR that touches the API or its domain models.
