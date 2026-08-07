@@ -35,20 +35,6 @@ const nextConfig = {
   // useCallback in this codebase is therefore load-bearing — do not strip it
   // on the assumption that the compiler handles memoization.
   reactStrictMode: false,
-  // The dev-overlay source route reads files by a path it computes at runtime,
-  // which the tracer cannot follow, so it falls back to bundling the directory
-  // — and `public` is mostly mailing PDFs and a product video, which pushed the
-  // function past Vercel's 250MB uncompressed limit. Nothing on the server
-  // reads either: the browser fetches them over HTTP from the static output,
-  // which is deployed separately and unaffected by this. `public/data` is left
-  // traced because `utils/axeUtils.ts` does read it from disk.
-  outputFileTracingRoot: repoRoot,
-  outputFileTracingExcludes: {
-    "**/*": [
-      "issuer-portal/public/mock-mailings/**",
-      "issuer-portal/public/*.mp4",
-    ],
-  },
   turbopack: {
     root: repoRoot,
   },

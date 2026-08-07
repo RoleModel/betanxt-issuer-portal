@@ -64,7 +64,15 @@ const buildFileIndex = async (): Promise<readonly string[]> => {
   const roots = await Promise.all(
     SEARCH_ROOTS.map(async (directory): Promise<string[]> => {
       try {
-        return await walk(path.join(root, directory));
+        // Turbopack cannot see where a computed path leads, so left unmarked
+        // it bundles the whole directory into this route's function — every
+        // mailing PDF in `public` included, which is hundreds of megabytes and
+        // past Vercel's function size limit. Nothing is lost by hiding it:
+        // this branch only runs under `next dev`, where the working tree is
+        // read live and no bundle is involved.
+        return await walk(
+          path.join(/* turbopackIgnore: true */ root, directory)
+        );
       } catch {
         // A root that isn't present in this workspace is not an error.
         return [];
@@ -120,7 +128,11 @@ const readSource = async (requested: string): Promise<string | null> => {
   }
 
   try {
-    return await readFile(path.resolve(process.cwd(), normalized), "utf-8");
+    // Hidden from Turbopack for the same reason as the index walk above.
+    return await readFile(
+      path.resolve(/* turbopackIgnore: true */ process.cwd(), normalized),
+      "utf-8"
+    );
   } catch {
     return null;
   }
