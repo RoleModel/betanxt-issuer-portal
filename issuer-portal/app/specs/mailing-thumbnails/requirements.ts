@@ -208,8 +208,8 @@ const previewThumbnails: SpecSection = {
         "scripts/split-full-set-pdfs.ts",
       ],
       acceptance: [
-        "Given WEN, whose real filing splits into notice, proxy statement, and Form 10-K, when the tile renders, then exactly those three labelled pieces appear and the Full Set tile takes half the row.",
-        "Given a client with a split 4-piece package, when the tile renders, then all four pieces appear at full thumbnail size and the Full Set tile takes the whole row.",
+        "Given WEN, whose real filing splits into letter, notice, proxy statement, annual review, and Form 10-K, when the tile renders, then all five labelled pieces appear at full thumbnail size and the Full Set tile takes the whole row.",
+        "Given a client with a split 2- or 3-piece package, when the tile renders, then the Full Set tile takes half the row with NAA and Electronic beside it.",
         "Given a client with no split package, when the tile renders, then the merged package appears as a single thumbnail and the three tiles share the row evenly.",
         "Given a piece thumbnail, when a user clicks it, then that piece opens full-screen in the PDF viewer.",
       ],
@@ -371,7 +371,7 @@ const generatedDocuments: SpecSection = {
       evidence: ["scripts/split-full-set-pdfs.ts"],
       acceptance: [
         "Given `pnpm dlx tsx scripts/split-full-set-pdfs.ts`, when it finishes, then each generated client's full-set/ folder holds four piece PDFs and a manifest.",
-        "Given WEN's real merged filing, when the splitter runs, then it emits notice, proxy statement, and Form 10-K pieces from its hand-listed boundaries.",
+        "Given WEN's real merged filing, when the splitter runs, then it emits letter, notice, proxy statement, annual review, and Form 10-K pieces from its hand-listed boundaries.",
         "Given a package that is neither the generated layout nor hand-listed, when the splitter runs, then that client is skipped and reported.",
       ],
     },

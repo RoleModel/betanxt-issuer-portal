@@ -1,12 +1,20 @@
 {
   "pieces": [
     {
+      "file": "letter.pdf",
+      "label": "Letter to Stockholders"
+    },
+    {
       "file": "notice.pdf",
       "label": "Notice of Annual Meeting"
     },
     {
       "file": "proxy-statement.pdf",
       "label": "Proxy Statement"
+    },
+    {
+      "file": "annual-review.pdf",
+      "label": "2025 Annual Review"
     },
     {
       "file": "annual-report.pdf",

@@ -59,21 +59,34 @@ const PIECES: readonly PieceRange[] = [
 /**
  * Real client filings don't follow the generated layout, so their piece
  * boundaries are listed by hand. WEN's package is its real merged 2026
- * filing: notice and letter up front, proxy statement, then the Form 10-K —
- * three pieces, showing the grid sizing to a different piece count.
+ * filing: cover and letter, notice, proxy statement, the annual review
+ * section, then the Form 10-K — five pieces, exercising the grid's
+ * widest layout.
  */
 const REAL_PACKAGE_PIECES: Readonly<Record<string, readonly PieceRange[]>> = {
   WEN: [
     {
+      file: "letter.pdf",
+      label: "Letter to Stockholders",
+      firstPage: 0,
+      lastPage: 3,
+    },
+    {
       file: "notice.pdf",
       label: "Notice of Annual Meeting",
-      firstPage: 0,
+      firstPage: 4,
       lastPage: 5,
     },
     {
       file: "proxy-statement.pdf",
       label: "Proxy Statement",
       firstPage: 6,
+      lastPage: 159,
+    },
+    {
+      file: "annual-review.pdf",
+      label: "2025 Annual Review",
+      firstPage: 160,
       lastPage: 163,
     },
     {
