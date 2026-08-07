@@ -94,6 +94,10 @@ const hasMainColor = (
   color: PaletteColorOptions
 ): color is SimplePaletteColorOptions => Object.hasOwn(color, "main");
 
+const assertNever = (value: never): never => {
+  throw new Error(`Unsupported FeatureTile value: ${String(value)}`);
+};
+
 /**
  * The palette colour an accent edge is drawn in.
  *
@@ -116,10 +120,8 @@ const getAccentColor = (
       return hasMainColor(tertiary) ? tertiary.main : undefined;
     }
   }
-};
 
-const assertNever = (value: never): never => {
-  throw new Error(`Unsupported FeatureTile variant: ${String(value)}`);
+  return assertNever(accent);
 };
 
 const getVariantColors = (
