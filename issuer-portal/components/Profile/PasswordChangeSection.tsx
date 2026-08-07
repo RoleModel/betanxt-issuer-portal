@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import React from "react";
+import { z } from "zod";
 
 /**
  * The legacy Issuer Portal's secure-password rules, checked live as the user
@@ -82,8 +83,34 @@ export const PASSWORD_RULES: readonly PasswordRule[] = [
   },
 ];
 
+/**
+ * Zod schema for the legacy secure-password rules. Each failed rule surfaces
+ * as its own issue whose message is the rule id, so one parse both gates the
+ * form and drives the per-rule checkmarks.
+ */
+export const securePasswordSchema = z.string().superRefine((value, context) => {
+  for (const rule of PASSWORD_RULES) {
+    if (!rule.passes(value)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: rule.id,
+      });
+    }
+  }
+});
+
+/** The ids of the rules the password does not yet satisfy. */
+export const failedPasswordRuleIds = (
+  password: string
+): ReadonlySet<string> => {
+  const result = securePasswordSchema.safeParse(password);
+  return new Set(
+    result.success ? [] : result.error.issues.map((issue) => issue.message)
+  );
+};
+
 export const isSecurePassword = (password: string): boolean =>
-  PASSWORD_RULES.every((rule) => rule.passes(password));
+  securePasswordSchema.safeParse(password).success;
 
 interface PasswordChangeSectionProps {
   readonly changePassword: boolean;
@@ -112,6 +139,10 @@ const PasswordChangeSection = ({
     changePassword &&
     confirmPassword.length > 0 &&
     confirmPassword !== password;
+
+  // One zod parse drives every checkmark: a rule ticks the moment the
+  // password stops failing it.
+  const failedRules = failedPasswordRuleIds(password);
 
   return (
     <Box>
@@ -158,41 +189,42 @@ const PasswordChangeSection = ({
           />
         </Grid>
       </Grid>
-      {changePassword && (
-        <Box sx={{ mt: 1 }}>
-          <Typography variant="caption" color="text.secondary">
-            A secure password contains all of the following:
-          </Typography>
-          <List dense disablePadding>
-            {PASSWORD_RULES.map((rule) => {
-              const passes = rule.passes(password);
-              return (
-                <ListItem key={rule.id} disableGutters sx={{ py: 0 }}>
-                  <ListItemIcon sx={{ minWidth: 28 }}>
-                    {passes ? (
-                      <CheckCircleIcon color="success" fontSize="small" />
-                    ) : (
-                      <RadioButtonUncheckedIcon
-                        color="disabled"
-                        fontSize="small"
-                      />
-                    )}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={rule.label}
-                    slotProps={{
-                      primary: {
-                        variant: "caption",
-                        color: passes ? "text.primary" : "text.secondary",
-                      },
-                    }}
-                  />
-                </ListItem>
-              );
-            })}
-          </List>
-        </Box>
-      )}
+      {/* The legacy screen keeps the secure-password rules on screen the
+          whole time, so the list always shows; the ticks only run while a
+          password change is underway. */}
+      <Box sx={{ mt: 1 }}>
+        <Typography variant="caption" color="text.secondary">
+          *A secure password contains all of the following:
+        </Typography>
+        <List dense disablePadding>
+          {PASSWORD_RULES.map((rule) => {
+            const passes = changePassword && !failedRules.has(rule.id);
+            return (
+              <ListItem key={rule.id} disableGutters sx={{ py: 0 }}>
+                <ListItemIcon sx={{ minWidth: 28 }}>
+                  {passes ? (
+                    <CheckCircleIcon color="success" fontSize="small" />
+                  ) : (
+                    <RadioButtonUncheckedIcon
+                      color="disabled"
+                      fontSize="small"
+                    />
+                  )}
+                </ListItemIcon>
+                <ListItemText
+                  primary={rule.label}
+                  slotProps={{
+                    primary: {
+                      variant: "caption",
+                      color: passes ? "text.primary" : "text.secondary",
+                    },
+                  }}
+                />
+              </ListItem>
+            );
+          })}
+        </List>
+      </Box>
     </Box>
   );
 };

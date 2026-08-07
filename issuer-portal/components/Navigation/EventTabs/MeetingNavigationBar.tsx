@@ -51,7 +51,7 @@ export const MeetingNavigationBar = ({
           }}
         />
       ) : null}
-      <Container maxWidth="xl" sx={{ px: { xs: 0, sm: 0, md: 3 }, py: 0 }}>
+      <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 0 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Tabs
             value={activeTab}
@@ -116,7 +116,7 @@ export const MeetingNavigationBar = ({
             variant="overline"
             sx={{ color: "text.secondary", flexShrink: 0 }}
           >
-            Display as:
+            Display:
           </Typography>
           <ToggleButtonGroup
             exclusive

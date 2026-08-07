@@ -231,7 +231,7 @@ const ProfilePage = () => {
                 />
               </Grid>
             )}
-            {isEditing && (
+            {isEditing ? (
               <Grid size={12}>
                 <PasswordChangeSection
                   changePassword={changePassword}
@@ -251,7 +251,7 @@ const ProfilePage = () => {
                   Profile changes take effect the next time you sign in.
                 </Typography>
               </Grid>
-            )}
+            ) : null}
           </Grid>
         </CardContent>
         <CardActions sx={{ gap: 1, p: 2 }}>
