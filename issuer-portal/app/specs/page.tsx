@@ -77,7 +77,7 @@ const SpecsIndexPage = () => {
         aria-label="Specifications"
         component="nav"
         sx={{
-          borderColor: "divider",
+          borderColor: "var(--mui-palette-divider)",
           borderRight: 1,
           flexShrink: 0,
           overflowY: "auto",
