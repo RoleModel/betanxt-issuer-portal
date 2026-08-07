@@ -1,88 +1,42 @@
 "use client";
 
-import { MailOutlineOutlined } from "@mui/icons-material";
-import { Box, Skeleton } from "@mui/material";
+// material-ui
+import Box from "@mui/material/Box";
+import Skeleton from "@mui/material/Skeleton";
 import { useTheme } from "@mui/material/styles";
+
+// third-party
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
-import React, { useMemo, useState } from "react";
-import useSWR from "swr";
+import React, { useState } from "react";
 
-import DocumentThumbnail from "@/components/Documents/DocumentThumbnail";
+// project imports
 import FeatureTile from "@/components/FeatureTile";
-import { featureTileThumbnailWidth } from "@/components/featureTileMetrics";
-import { brandConfigs } from "@/utils/brandConfig";
+
+import EmailPreview from "./mailingPreviews/EmailPreview";
+import PiecePreview from "./mailingPreviews/PiecePreview";
+import {
+  fanRise,
+  fanStep,
+  fanTop,
+  previewWidth,
+  tileGap,
+  tileMetrics,
+} from "./mailingPreviews/layout";
+import { useMailingPreviews } from "./mailingPreviews/useMailingPreviews";
 
 // DocumentViewer is a large, modal-only component (pdf-lib, signature/upload
 // hooks) — only needed once a thumbnail is clicked, so defer it out of the
 // tile page's initial bundle.
 const DocumentViewer = dynamic(
   async () => await import("@/components/Documents/DocumentViewer"),
-  {
-    ssr: false,
-  }
+  { ssr: false }
 );
 
-/** Mock-api base, matching the rest of the app's hooks. */
-const apiBase =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
+/** The notice both the printed NAA and the Electronic email carry. */
+const NOTICE_LABEL = "Notice of Internet Availability";
 
-/**
- * Every preview on the row is the same size — a lone NAA or Electronic
- * notice, and each piece of the Full Set fan alike — so the three tiles read
- * as one set of documents rather than three scales of them. A client whose
- * package has not been split shows its merged package as a single piece, and
- * that piece has to match NAA and Electronic exactly.
- */
-const previewWidth = featureTileThumbnailWidth;
-
-/** Displayed width of a preview once the tiles lay out side by side. */
-const overlayThumbnailWidth = previewWidth.sm;
-
-/**
- * Pixel width the PDF page is rasterised at. Held at the widest a preview is
- * ever displayed so the canvas is never scaled up — see the render scale in
- * DocumentThumbnail, which multiplies this for high-DPI screens.
- */
-const thumbnailRenderWidth = previewWidth.sm;
-
-/** How far each fanned Full Set piece is stepped past the one before it. */
-const fanStep = 110;
-
-/** Gap between tiles, in px — `theme.spacing(2)`, needed here as a number. */
-const tileGap = 16;
-
-/**
- * Room a tile's count and label need beside its previews: the wider of the
- * two — "Electronic", at 83px, against a five-figure count at 72px — plus the
- * column's own padding. This is the least they can live with, not a
- * comfortable width: flex wraps a row by comparing flex-basis totals, before
- * flex-shrink gets a say, so an inflated figure here drops a tile to the next
- * row while there is still space for it. Understating it is the worse
- * failure, though — the tile then shrinks past the point where the label
- * clears the preview, and the two overlap.
- */
-const labelColumnWidth = 116;
-
-/**
- * Room the overlay slot holds to the right of the preview it positions —
- * FeatureTile's own inset and padding, which sit outside the preview's width
- * and so have to be counted separately when budgeting a tile.
- */
-const overlayGutter = 36;
-
-/** The same, for the flow slot, which insets its previews by padding alone. */
-const flowGutter = 16;
-
-/**
- * Pieces the tile previews. A package can run to five or more, but a fan that long forces Full Set on to a row of its own and strands its count far from its thumbnails, so the tile shows the first few and leaves the rest to the mailing materials list.
- */
-const maxPreviewedPieces = 3;
-
-/** Width the fan spans once `pieceCount` pieces are stepped across it. */
-const fanWidth = (pieceCount: number): number =>
-  overlayThumbnailWidth + Math.max(0, pieceCount - 1) * fanStep;
-
+/** What the viewer is currently showing, if anything. */
 interface ActivePreview {
   readonly title: string;
   readonly fileUrl: string;
@@ -90,135 +44,8 @@ interface ActivePreview {
   readonly isWebsite: boolean;
 }
 
-/** One piece of the Full Set package, thumbnailed in the tile's grid. */
-interface FullSetItem {
-  readonly key: string;
-  readonly label: string;
-  readonly fileUrl: string;
-}
-
-/**
- * The manifest written next to each client's split Full Set pieces by
- * scripts/split-full-set-pdfs.ts. It stands in for the mailing-materials
- * records the operations team will store in the database.
- */
-interface PieceManifest {
-  readonly pieces: readonly { readonly file: string; readonly label: string }[];
-}
-
-const isManifestPiece = (
-  value: unknown
-): value is { file: string; label: string } =>
-  typeof value === "object" &&
-  value !== null &&
-  "file" in value &&
-  typeof value.file === "string" &&
-  "label" in value &&
-  typeof value.label === "string";
-
-const isPieceManifest = (value: unknown): value is PieceManifest => {
-  if (typeof value !== "object" || value === null || !("pieces" in value)) {
-    return false;
-  }
-  const { pieces } = value;
-  return (
-    Array.isArray(pieces) &&
-    pieces.every((piece: unknown) => isManifestPiece(piece))
-  );
-};
-
 const formatNumber = (value: number | null | undefined): string =>
   value === null || value === undefined ? "0" : value.toLocaleString("en-US");
-
-/**
- * The Full Set pieces for this client, in mailing order — from the split
- * package's manifest, falling back to the merged package as a single piece so
- * the grid always has something to show.
- */
-const toFullSetItems = (
-  manifest: PieceManifest | undefined,
-  ticker: string,
-  fallbackUrl: string
-): FullSetItem[] => {
-  const fromManifest = (manifest?.pieces ?? []).map((piece) => ({
-    key: piece.file,
-    label: piece.label,
-    fileUrl: `/mock-mailings/${ticker}/full-set/${piece.file}`,
-  }));
-  if (fromManifest.length > 0) return fromManifest;
-
-  return [
-    {
-      key: "full-set-package",
-      label: "Complete Proxy Package",
-      fileUrl: fallbackUrl,
-    },
-  ];
-};
-
-/**
- * A thumbnail of the Electronic notice email, shown as a pre-rendered PNG
- * snapshot (generated per client) cropped to the tile with object-fit cover,
- * so the reader sees what actually went out rather than a generic icon.
- */
-const EmailThumbnail = ({
-  pngUrl,
-  onClick,
-}: {
-  readonly pngUrl: string;
-  readonly onClick: () => void;
-}) => (
-  <Box
-    onClick={onClick}
-    sx={{
-      position: "relative",
-      width: previewWidth,
-      aspectRatio: "8.5 / 11",
-      overflow: "hidden",
-      borderRadius: 1,
-      border: "1px solid",
-      borderColor: "divider",
-      backgroundColor: "background.paper",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-      "&:hover": {
-        borderColor: "primary.main",
-        boxShadow: 2,
-        transform: "scale(1.02)",
-      },
-    }}
-  >
-    {/* Fallback shown until — or if — the PNG snapshot fails to load. */}
-    <Box
-      sx={{
-        position: "absolute",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "text.disabled",
-      }}
-    >
-      <MailOutlineOutlined fontSize="small" />
-    </Box>
-    <Box
-      component="img"
-      src={pngUrl}
-      alt="Electronic notice preview"
-      onError={(event: React.SyntheticEvent<HTMLImageElement>) => {
-        event.currentTarget.style.display = "none";
-      }}
-      sx={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
-        objectPosition: "top",
-        display: "block",
-      }}
-    />
-  </Box>
-);
 
 interface MailingPreviewTilesProps {
   readonly loading: boolean;
@@ -227,16 +54,20 @@ interface MailingPreviewTilesProps {
   readonly electronicPositions?: number | null;
 }
 
+// ==============================|| MAILING PREVIEW TILES ||============================== //
+
 /**
  * The three Primary Mailing Summary tiles (Full Set, NAA, Electronic). NAA and
- * Electronic each carry exactly one clickable thumbnail of what was mailed,
- * held at the tile's right edge. Full Set is a package: a proxy card, proxy
- * statement, annual report and so on, with issuers free to add to it, so the
- * count is fluid and the tile fans the first {@link maxPreviewedPieces} of
- * them. Clicking any thumbnail opens the document viewer at full size.
+ * Electronic each carry exactly one clickable preview of what was mailed, held
+ * at the tile's right edge. Full Set is a package — proxy card, proxy
+ * statement, annual report and so on, with issuers free to add to it — so its
+ * count is fluid and the tile fans the first few pieces. Clicking any preview
+ * opens the document viewer at full size.
  *
- * The row itself takes one of three shapes, chosen by the width of the card
- * the tiles sit in — see the container queries below.
+ * @remarks
+ * The measurements and the row's three shapes live in `./mailingPreviews/layout`,
+ * and everything the tiles preview is resolved by `useMailingPreviews`. What is
+ * left here is the composition.
  */
 const MailingPreviewTiles = ({
   loading,
@@ -255,106 +86,35 @@ const MailingPreviewTiles = ({
       ? params.clientTicker.toUpperCase()
       : "";
 
-  // Brand name and colour drive the Electronic email's per-client theming.
-  // The legal name is the brandConfigs key (e.g. "The Wendy's Company").
-  const [companyLegal, brand] = useMemo(
-    () =>
-      Object.entries(brandConfigs).find(
-        ([, config]) => config.ticker?.toUpperCase() === ticker
-      ) ?? [undefined, undefined],
-    [ticker]
-  );
-  const company = brand?.companyName ?? ticker;
-  const brandColor = brand?.primaryColor ?? theme.palette.primary.main;
-
-  const fullSetUrl = `/mock-mailings/${ticker}/full-set.pdf`;
-  const naaUrl = `/mock-mailings/${ticker}/naa.pdf`;
-  const electronicPngUrl = `/mock-mailings/${ticker}/electronic.png`;
-
-  // The split pieces of this client's Full Set package — the prototype's
-  // stand-in for the mailing materials the operations team stores in the
-  // database. 404s (unsplit packages) resolve to undefined.
-  const { data: pieceManifest } = useSWR<PieceManifest | undefined>(
-    ticker.length > 0
-      ? `/mock-mailings/${ticker}/full-set/manifest.json`
-      : null,
-    async (url: string) => {
-      const response = await fetch(url);
-      if (!response.ok) return undefined;
-      const json: unknown = await response.json();
-      return isPieceManifest(json) ? json : undefined;
-    },
-    { revalidateOnFocus: false }
-  );
-
-  const fullSetItems = useMemo(
-    () =>
-      toFullSetItems(pieceManifest, ticker, fullSetUrl).slice(
-        0,
-        maxPreviewedPieces
-      ),
-    [pieceManifest, ticker, fullSetUrl]
-  );
-
-  // Every client-identifying field must be overridden here — the preview
-  // route's fixture defaults are Woodward's real notice copy, so any field
-  // left unset would leak Woodward's legal name, proxy links, and contact
-  // emails into other clients' previews.
-  const electronicUrl = useMemo(
-    () =>
-      `${apiBase}/emails/preview?${new URLSearchParams({
-        template: "mailing-electronic-notice",
-        format: "html",
-        company,
-        companyLegal: companyLegal ?? company,
-        color: brandColor,
-        proxyPushUrl: `https://www.proxypush.com/${ticker}`,
-        proxyPushLabel: `www.proxypush.com/${ticker}`,
-        voteSiteUrl: `https://www.proxydocs.com/${ticker}`,
-        ...(brand
-          ? {
-              printedContactEmail: `investor.relations@${brand.domain}`,
-              questionsContactEmail: `proxyvoting@${brand.domain}`,
-            }
-          : {}),
-      }).toString()}`,
-    [company, companyLegal, brandColor, ticker, brand]
-  );
+  const { fullSetPieces, naaUrl, electronicPngUrl, electronicUrl } =
+    useMailingPreviews(ticker, theme.palette.primary.main);
 
   const openPdf = (title: string, fileUrl: string) => {
     setActivePreview({ title, fileUrl, isWebsite: false });
   };
 
-  const closePreview = () => {
-    setActivePreview(null);
-  };
+  const { fullSetBasis, singleBasis, pairedWidth, oneRowWidth } = tileMetrics(
+    fullSetPieces.length
+  );
 
-  const tiles: {
-    key: string;
-    subtitle: string;
-    variant?: "primary" | "base";
-    /**
-     * Full Set leads the row — it is the whole package where the other two are
-     * a single notice each — so it takes a brand-coloured left edge. Filling
-     * the tile instead would say the same thing louder and less accurately:
-     * its count is usually the smallest of the three, and the fan of document
-     * previews it carries loses contrast against a saturated surface.
-     */
-    accent?: "primary";
-    value: number | null | undefined;
-    thumbnail: React.ReactNode;
-  }[] = [
+  const tiles = [
     {
       key: "full-set",
       subtitle: "Full Set",
-      variant: "base",
-      accent: "primary",
       value: fullSetPositions,
+      /**
+       * Full Set leads the row — it is the whole package where the other two
+       * are a single notice each — so it takes a brand-coloured left edge.
+       * Filling the tile instead would say the same thing louder and less
+       * accurately: its count is usually the smallest of the three, and the
+       * fan of previews it carries loses contrast on a saturated surface.
+       */
+      accent: "primary" as const,
       thumbnail: (
         <>
-          {fullSetItems.map((item, index) => (
+          {fullSetPieces.map((piece, index) => (
             <Box
-              key={item.key}
+              key={piece.key}
               className="feature-tile-thumbnail"
               sx={{
                 display: "flex",
@@ -370,17 +130,15 @@ const MailingPreviewTiles = ({
                 pr: { sm: 2 },
                 position: { xs: "relative", sm: "absolute" },
                 right: { sm: `${index * fanStep}px` },
-                top: { sm: `${16 + index * 5}px` },
-                "& > .MuiBox-root": {
-                  width: previewWidth,
-                },
+                top: { sm: `${fanTop + index * fanRise}px` },
+                "& > .MuiBox-root": { width: previewWidth },
               }}
             >
-              <DocumentThumbnail
-                filePath={item.fileUrl}
-                width={thumbnailRenderWidth}
+              <PiecePreview
+                label={piece.label}
+                fileUrl={piece.fileUrl}
                 onClick={() => {
-                  openPdf(`Full Set — ${item.label}`, item.fileUrl);
+                  openPdf(`Full Set — ${piece.label}`, piece.fileUrl);
                 }}
               />
             </Box>
@@ -392,13 +150,13 @@ const MailingPreviewTiles = ({
       key: "naa",
       subtitle: "NAA",
       value: naaPositions,
-      variant: "base",
+      accent: undefined,
       thumbnail: (
-        <DocumentThumbnail
-          filePath={naaUrl}
-          width={thumbnailRenderWidth}
+        <PiecePreview
+          label={NOTICE_LABEL}
+          fileUrl={naaUrl}
           onClick={() => {
-            openPdf("NAA — Notice of Internet Availability", naaUrl);
+            openPdf(`NAA — ${NOTICE_LABEL}`, naaUrl);
           }}
         />
       ),
@@ -406,14 +164,15 @@ const MailingPreviewTiles = ({
     {
       key: "electronic",
       subtitle: "Electronic",
-      variant: "base",
       value: electronicPositions,
+      accent: undefined,
       thumbnail: (
-        <EmailThumbnail
+        <EmailPreview
+          label={NOTICE_LABEL}
           pngUrl={electronicPngUrl}
           onClick={() => {
             setActivePreview({
-              title: "Electronic — Notice of Internet Availability",
+              title: `Electronic — ${NOTICE_LABEL}`,
               fileUrl: electronicUrl,
               isWebsite: true,
             });
@@ -422,27 +181,6 @@ const MailingPreviewTiles = ({
       ),
     },
   ];
-
-  // Each tile asks for the width its previews actually need: Full Set for its
-  // whole fan — a piece, each one after it stepped `fanStep` further along —
-  // and NAA and Electronic for a single preview, each on top of the gutter its
-  // slot holds beside it and a column for the count and label. A twelfth-based
-  // grid could not express that, and rounding Full Set up to a whole row left
-  // its count stranded a long way from its fan.
-  const fullSetBasis =
-    labelColumnWidth + fanWidth(fullSetItems.length) + flowGutter;
-  const singleBasis = labelColumnWidth + overlayThumbnailWidth + overlayGutter;
-
-  // The row has three shapes, and which one applies depends on the width of
-  // the card the tiles sit in rather than of the window — the meeting sidebar
-  // takes a share of the window that the tiles never see. Narrowest: a tile
-  // per row. Then Full Set across the top with NAA and Electronic paired
-  // beneath it. Widest: all three on one line. Letting flex wrap decide
-  // instead would stop halfway, pairing Full Set with NAA and stranding
-  // Electronic alone on a row wide enough to push its count and its preview
-  // to opposite ends of an empty card.
-  const pairedWidth = 2 * singleBasis + tileGap;
-  const oneRowWidth = fullSetBasis + 2 * singleBasis + 2 * tileGap;
 
   return (
     <>
@@ -484,7 +222,7 @@ const MailingPreviewTiles = ({
                 <FeatureTile
                   flex
                   height="auto"
-                  variant={tile.variant}
+                  variant="base"
                   accent={tile.accent}
                   title={formatNumber(tile.value)}
                   subtitle={tile.subtitle}
@@ -499,7 +237,9 @@ const MailingPreviewTiles = ({
 
       <DocumentViewer
         open={activePreview !== null}
-        onClose={closePreview}
+        onClose={() => {
+          setActivePreview(null);
+        }}
         fileUrl={activePreview?.fileUrl}
         title={activePreview?.title}
         isWebsiteView={activePreview?.isWebsite ?? false}

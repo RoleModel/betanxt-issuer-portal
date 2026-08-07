@@ -4733,10 +4733,10 @@ WHERE meeting_id = 'payc-annual-meeting-2026';`);
  *    identical data. Rows exist for all clients so toggling the `nobo`
  *    feature flag on at runtime immediately surfaces data; they stay
  *    invisible while the flag is off.
- * 2. holder_category backfill — rows without a category are split
- *    deterministically by an md5 bucket of the position id: 55% REGISTERED /
- *    15% PLAN / 30% BENEFICIAL, while DTC/CDS omnibus rows always stay
- *    REGISTERED to match the legacy accountType convention.
+ * 2. holder_category backfill — the CEDE & CO omnibus row is BENEFICIAL, the
+ *    street-name block every broker-held share sits behind. Each individually
+ *    named holder is split deterministically by an md5 bucket of the position
+ *    id: 55% REGISTERED / 15% PLAN / 30% BENEFICIAL.
  * 3. Geography backfill — state/country assigned from a weighted md5 bucket
  *    skewed toward NC/NY/CA/TX, with ~4% international holders and ~6% left
  *    NULL to exercise the "unknown" rendering path.
@@ -4806,18 +4806,29 @@ FROM (
 ) m
 CROSS JOIN generate_series(1, 40) AS gs(i);`);
 
-  // holder_category backfill. CEDE/DTC omnibus rows stay REGISTERED, while
-  // Non-DTC records retain their beneficial-holder semantics. Remaining
-  // individual holders split deterministically so every population has data.
+  // holder_category backfill.
+  //
+  // The DTC/CDS row is CEDE & CO, the nominee every street-name share is
+  // registered to, so it is the beneficial omnibus — one row per meeting
+  // carrying roughly three quarters of the shares. Every other row is an
+  // account held directly on the books, which is what "registered" means, so
+  // those split across the three individual populations.
+  //
+  // The split has to be written against account_type rather than left to the
+  // account_number and md5 branches this once had: normalizeAccountType()
+  // rewrites every account_number-bearing row to 'DTC/CDS' or 'Non-DTC' long
+  // before this runs, so those later branches were unreachable and every named
+  // holder in the database fell through to BENEFICIAL. That left one
+  // REGISTERED row per meeting — the omnibus, mislabelled — no PLAN rows at
+  // all, and any chart counting registered votes empty for a meeting whose
+  // omnibus had not voted yet.
+  //
+  // NOBO rows are inserted with their category already set and so are excluded
+  // by the IS NULL guard below.
   sqlStatements.push(`
 UPDATE "position"
 SET holder_category = CASE
-  WHEN account_type = 'DTC/CDS' THEN 'REGISTERED'::position_holder_category
-  WHEN account_type = 'Non-DTC' THEN 'BENEFICIAL'::position_holder_category
-  WHEN account_number LIKE 'ACC%' OR account_number LIKE 'CSV%'
-    THEN 'REGISTERED'::position_holder_category
-  WHEN account_number LIKE 'NDTC%'
-    THEN 'BENEFICIAL'::position_holder_category
+  WHEN account_type = 'DTC/CDS' THEN 'BENEFICIAL'::position_holder_category
   WHEN mod(('x' || substr(md5(id || '-cat'), 1, 6))::bit(24)::int, 100) < 55
     THEN 'REGISTERED'::position_holder_category
   WHEN mod(('x' || substr(md5(id || '-cat'), 1, 6))::bit(24)::int, 100) < 70
