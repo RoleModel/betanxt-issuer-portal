@@ -60,14 +60,15 @@ const SpecsIndexPage = () => {
 
   const handleSelectedItemsChange = (
     _event: SyntheticEvent | null,
-    itemId: string | null,
+    itemId: string | null
   ): void => {
     if (itemId !== null) {
       setSelectedSpecId(itemId);
     }
   };
 
-  const selectedSpec = SPECS.find((spec) => spec.id === selectedSpecId) ?? SPECS[0];
+  const selectedSpec =
+    SPECS.find((spec) => spec.id === selectedSpecId) ?? SPECS[0];
   const SelectedSpecPage = selectedSpec.Page;
 
   return (
