@@ -12,6 +12,7 @@ import { useTheme } from "@mui/material/styles";
 import Link from "next/link";
 import React from "react";
 
+import { featureTileThumbnailWidth } from "@/components/featureTileMetrics";
 import GlossaryText from "@/components/ui/GlossaryText";
 
 interface FeatureTileProps {
@@ -48,14 +49,6 @@ interface FeatureTileProps {
    */
   readonly thumbnailLayout?: "overlay" | "flow";
 }
-
-/**
- * Display width of a tile preview. Exported because a caller that lays its
- * own previews out in the flow slot has to size them itself: sharing this
- * constant is what keeps a flow preview the same size as an overlay one, and
- * lets the caller budget the room a tile's previews need.
- */
-export const featureTileThumbnailWidth = { xs: 120, sm: 140 } as const;
 
 type FeatureTileVariant = NonNullable<FeatureTileProps["variant"]>;
 
