@@ -46,6 +46,27 @@ export function asNumber(value: unknown): number | null {
 }
 
 /**
+ * Safely cast an unknown value to a boolean flag, defaulting to false.
+ *
+ * @param value - Unknown value to cast
+ * @returns The boolean, or false when the value is absent or unrecognised
+ *
+ * @remarks
+ * Returns a boolean rather than `boolean | null` because the flags read
+ * through this — chiefly `tabulationReleased` — gate whether data is shown at
+ * all, and an unreadable value has to resolve to the withholding side. Postgres
+ * booleans reach the client as `true`/`false` through the API's domain
+ * transforms but as `"t"`/`"true"` when a raw row is read directly, so both
+ * spellings are accepted.
+ */
+export function asBoolean(value: unknown): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  return value === "true" || value === "t";
+}
+
+/**
  * Get string value from object using multiple possible keys
  * @param obj - Object to search
  * @param keys - Array of possible keys to check

@@ -18,6 +18,12 @@ import { asArray, asRecord, asString } from "@/utils/typeUtils";
 // Type alias for DocumentHistory from components
 type DocumentHistory = apiComponents["schemas"]["DocumentHistory"];
 
+// The wire shape of a comment row, straight from the OpenAPI `Comment` schema.
+// Note it is camelCase and carries a nested `user` object, whereas the
+// `DocumentComment` view model below is snake_case with a flat `users.avatar` —
+// see `toDocumentComment` for the translation between them.
+type ApiComment = apiComponents["schemas"]["Comment"];
+
 // Valid event types from the OpenAPI schema
 const VALID_EVENT_TYPES = [
   "CREATED",
@@ -40,6 +46,11 @@ function isDocumentHistoryEventType(
   );
 }
 
+/**
+ * The snake_case comment view model the approvals UI renders
+ * (`ApprovalDrawer`, `DocumentViewer`). Deliberately distinct from the
+ * camelCase `ApiComment` wire row; `toDocumentComment` bridges the two.
+ */
 export interface DocumentComment {
   id: string;
   comment: string;
@@ -51,6 +62,36 @@ export interface DocumentComment {
     avatar: string | null;
   } | null;
 }
+
+/**
+ * Translates a wire `Comment` into the `DocumentComment` view model.
+ *
+ * The API returns camelCase fields (`firstName`, `lastName`, `createdAt`) and a
+ * nested `user` object, while the approvals drawer reads `first_name`,
+ * `last_name`, `created_at`, and `users.avatar`. Returning the wire rows
+ * unchanged left every one of those fields `undefined` at runtime, rendering
+ * "undefined undefined" as the author and an Invalid Date timestamp.
+ *
+ * Author names prefer the comment's own denormalized `firstName`/`lastName`
+ * (present even when the row has no joined user) and fall back to the joined
+ * user record.
+ *
+ * @param row - A single comment as returned by `GET /documents/{id}/comments`.
+ * @returns The comment in the shape the approvals UI expects.
+ */
+const toDocumentComment = (row: ApiComment): DocumentComment => {
+  const avatar = row.user?.avatar_url ?? null;
+
+  return {
+    id: row.id === undefined ? crypto.randomUUID() : String(row.id),
+    comment: row.comment ?? "",
+    user: row.user?.email ?? row.user?.username ?? row.userId ?? "",
+    first_name: row.firstName ?? row.user?.firstName ?? "",
+    last_name: row.lastName ?? row.user?.lastName ?? "",
+    created_at: row.createdAt ?? new Date().toISOString(),
+    users: avatar === null ? null : { avatar },
+  };
+};
 
 export interface DocumentHistoryEvent {
   id: string;
@@ -248,8 +289,9 @@ export const useDocuments = (): UseDocumentsResult => {
           throw new Error("Failed to get document comments");
         }
 
-        // Return comments as-is since backend now returns CommentWithUser format
-        return data || [];
+        // The wire rows are camelCase; map them into the snake_case view model
+        // the approvals UI reads.
+        return (data ?? []).map(toDocumentComment);
       } catch (error_) {
         const errorMessage = Error.isError(error_)
           ? error_.message

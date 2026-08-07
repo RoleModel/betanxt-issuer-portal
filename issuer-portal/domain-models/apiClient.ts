@@ -4,9 +4,24 @@ import type { Session } from "next-auth";
 
 import type { paths as ExpandedPaths } from "@/types/api";
 
-import type { paths as LegacyPaths } from "./generated-schema";
-
-type CombinedPaths = LegacyPaths & ExpandedPaths;
+/**
+ * The single source of truth for the client's route table.
+ *
+ * This was previously `LegacyPaths & ExpandedPaths`, intersecting
+ * `./generated-schema` with `@/types/api`. Those two modules are byte-identical
+ * — both are emitted from `mock-api-server/openapi-schema/openapi.yaml`, one by
+ * `generate:types` and one by `generate:api-types` — so the intersection added
+ * no routes. It did, however, break every response type: openapi-fetch resolves
+ * a body by distributing a conditional type over the operation's `responses`
+ * member, and an intersection of two object types is not assignable to either
+ * branch of that conditional. Every `apiClient.GET/POST/PUT(...)` therefore
+ * resolved to `{ data: never; error?: undefined }`, which silently typed the
+ * whole app's API surface as `never` and made `error` checks always-falsy.
+ *
+ * Keep this a single `paths` type. If the two generators ever diverge, fix the
+ * generators rather than intersecting their output.
+ */
+type CombinedPaths = ExpandedPaths;
 
 export type ApiClientReturnType<T> =
   | {

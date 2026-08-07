@@ -10,12 +10,9 @@ async function fetchMeetings(ticker?: string): Promise<Meeting[]> {
   const { data } = await api.GET("/meetings", {
     params: { query: ticker ? { ticker } : {} },
   });
-  if (!data) {
-    return [];
-  }
-
-  // The API returns an array of meetings directly
-  return data;
+  // `GET /meetings` responds with a paginated envelope
+  // (`{ meetings: [...], pagination: {...} }`), not a bare array.
+  return data?.meetings ?? [];
 }
 
 export const getMeetingsCached = cacheFn(
