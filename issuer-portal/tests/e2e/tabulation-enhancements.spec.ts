@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { releaseTabulation } from "../helpers/tabulation";
+
 /**
  * E2E contracts for 002-tabulation-enhancements
  * (specs/002-tabulation-enhancements/contracts/ui-contracts.md)
@@ -10,6 +12,12 @@ import { expect, test } from "@playwright/test";
 
 const WEN_TABULATION_URL =
   "http://localhost:3000/WEN/meeting/wen-annual-meeting-2025/tabulation";
+
+// Tabulation is withheld until a CSM releases it, so this spec states that
+// precondition rather than asserting against the locked empty state.
+test.beforeEach(async ({ request }) => {
+  await releaseTabulation(request, "wen-annual-meeting-2025");
+});
 
 test.describe("C1 — Voting Activity registered-only labeling", () => {
   // NOTE: FR-001 ("labeling explicitly indicates Registered Holder voting

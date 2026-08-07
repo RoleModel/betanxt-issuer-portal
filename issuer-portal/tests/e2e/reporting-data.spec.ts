@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+import { releaseTabulation } from "../helpers/tabulation";
+
+// Tabulation is withheld until a CSM releases it, so these specs state that
+// precondition rather than asserting against the locked empty state.
+test.beforeEach(async ({ request }) => {
+  await releaseTabulation(request, "wen-annual-meeting-2025");
+});
+
 const REPORTS_URL = "/WEN/meeting/wen-annual-meeting-2025/reports";
 
 test.describe("Reporting data", () => {

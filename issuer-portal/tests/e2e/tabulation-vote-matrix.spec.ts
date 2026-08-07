@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+import { releaseTabulation } from "../helpers/tabulation";
+
+// Tabulation is withheld until a CSM releases it, so these specs state that
+// precondition rather than asserting against the locked empty state.
+test.beforeEach(async ({ request }) => {
+  await releaseTabulation(request, "wen-special-meeting-2026");
+});
+
 test("voting activity chart shows sources only, not holder types", async ({
   page,
 }) => {

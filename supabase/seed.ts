@@ -4623,6 +4623,15 @@ SELECT
   // 002-tabulation-enhancements: holder population + geography enrichment
   appendHolderEnrichment(sqlStatements);
 
+  // Backstop: any meeting the generators above left with zero votes gets a
+  // plausible mid-solicitation ballot. Must run after appendHolderEnrichment so
+  // holder_category is populated, and after every other position_vote insert so
+  // it only fills the gaps.
+  appendSolicitationVotesForUnvotedMeetings(sqlStatements);
+
+  // CSM tabulation release gate — past meetings open, live meetings locked
+  appendTabulationReleaseFlags(sqlStatements);
+
   // Output all SQL statements
   console.log(sqlStatements.join("\n"));
 };
@@ -4874,6 +4883,334 @@ FROM (
 WHERE "position".id = bucket.pid
   AND "position".state IS NULL
   AND "position".country IS NULL;`);
+}
+
+/**
+ * Gives every meeting that still has no votes a plausible mid-solicitation
+ * ballot, so a CSM releasing tabulation never exposes empty charts.
+ *
+ * The per-position generator above only writes votes for meetings at phase 6 or
+ * later with a nonzero participation target, which leaves the 2026 annual
+ * meetings — phase 1, past their record date, months from their meeting date —
+ * with positions and proposals but not a single `position_vote` row. Those are
+ * exactly the meetings a CSM is most likely to release, and the quorum gauge and
+ * the vote-matrix charts render nothing without them. The named-client overrides
+ * (`appendWenStyleAnnualVoteOverrides`, `appendPaycomVotingData`) fix this one
+ * ticker at a time; this closes the rest.
+ *
+ * Written as SQL over the already-inserted rows rather than as another pass in
+ * the TypeScript generators, both so it covers every position-insert site and so
+ * it stays a pure backstop: the `NOT EXISTS (position_vote …)` guard means a
+ * meeting any earlier generator voted is left untouched, which also makes the
+ * whole block idempotent.
+ *
+ * What it produces, all keyed off md5 buckets of ids so reseeding reproduces it:
+ *
+ * 1. Participation varies per meeting — 30–69% of positions for a meeting past
+ *    its record date, 8–20% for one that has not reached it yet, so an early
+ *    meeting reads as barely solicited rather than as fully voted.
+ * 2. The DTC/CDS omnibus always votes a partial block (32–70% of its shares,
+ *    12–49% pre-record). It is the aggregate of every broker's street-name
+ *    position and holds roughly three quarters of the shares, so it is what
+ *    moves the quorum gauge off zero; voting it partially is what makes the
+ *    gauge read mid-solicitation. Named holders vote their whole block apart
+ *    from a ~14% minority who vote 58–94% of it. `shares_voted` is capped at
+ *    `shares` throughout.
+ * 3. `source` walks a fixed 10-slot pattern (4x WEB, 3x PRINT, 2x IVR, 1x
+ *    SOLICITOR) by descending-share rank *within each holder type*, so all four
+ *    values the Voting Activity chart draws are represented among registered
+ *    holders — that card reports registered voting only, so a source assigned by
+ *    plain hash across all holders could leave its bands empty.
+ * 4. Outcomes are For-dominant and vary by proposal type: director elections
+ *    split For/Withhold, shareholder proposals lean Against, everything else
+ *    runs roughly 80% For with Against and Abstain behind it. The omnibus is the
+ *    exception and votes with management on everything but shareholder
+ *    proposals — it nets thousands of broker returns into a single row, so
+ *    letting a hash bucket flip it would swing three quarters of a meeting's
+ *    shares on a coin toss and fail one routine proposal in five.
+ * 5. Proposal totals and the tabulation report are recomputed from the inserted
+ *    votes. The report is where the quorum gauge reads voted and outstanding
+ *    shares, so leaving it at zero would leave the gauge empty however many
+ *    votes exist. Solicitor shares are counted under `webShares` in
+ *    `non_dtc_vote_status`, which has no solicitor field, so its print/IVR/web
+ *    rows still sum to the voted subtotal.
+ *
+ * Inserted vote ids carry a `sol-` prefix so steps 3 and 4 can aggregate exactly
+ * the rows this pass created rather than guessing at which meetings it touched.
+ *
+ * @param sqlStatements - Seed SQL accumulator the statements are pushed onto
+ */
+function appendSolicitationVotesForUnvotedMeetings(
+  sqlStatements: string[]
+): void {
+  sqlStatements.push(
+    "-- Mid-solicitation votes for any meeting left with zero position_vote rows"
+  );
+
+  // 1. Mark a deterministic slice of each target meeting's positions as voted.
+  sqlStatements.push(`
+WITH target_meeting AS (
+  SELECT
+    m.id,
+    mod(('x' || substr(md5(m.id || '-solicitation'), 1, 6))::bit(24)::int, 1000) AS meeting_bucket,
+    COALESCE(m.record_date, CURRENT_DATE) > CURRENT_DATE AS is_pre_record,
+    LEAST(COALESCE(m.record_date, CURRENT_DATE - 30), CURRENT_DATE - 7) AS solicitation_start,
+    LEAST(COALESCE(m.meeting_date, CURRENT_DATE), CURRENT_DATE) AS solicitation_end
+  FROM meeting m
+  WHERE EXISTS (SELECT 1 FROM proposal pr WHERE pr.meeting_id = m.id)
+    AND EXISTS (SELECT 1 FROM "position" p WHERE p.meeting_id = m.id)
+    AND NOT EXISTS (
+      SELECT 1
+      FROM position_vote pv
+      JOIN proposal pr ON pr.id = pv.proposal_id
+      WHERE pr.meeting_id = m.id
+    )
+),
+target_window AS (
+  SELECT
+    tm.id,
+    tm.meeting_bucket,
+    tm.is_pre_record,
+    tm.solicitation_start,
+    GREATEST(1, LEAST(45, tm.solicitation_end - tm.solicitation_start)) AS solicitation_days,
+    CASE
+      WHEN tm.is_pre_record THEN 8 + mod(tm.meeting_bucket, 13)
+      ELSE 30 + mod(tm.meeting_bucket, 40)
+    END AS participation_pct
+  FROM target_meeting tm
+),
+voting_position AS (
+  SELECT
+    p.id,
+    p.shares,
+    p.account_type,
+    tw.is_pre_record,
+    tw.solicitation_start,
+    tw.solicitation_days,
+    tw.meeting_bucket,
+    mod(('x' || substr(md5(p.id || '-solicit-share'), 1, 6))::bit(24)::int, 100) AS share_bucket,
+    mod(('x' || substr(md5(p.id || '-solicit-when'), 1, 6))::bit(24)::int, 1000) AS when_bucket,
+    ROW_NUMBER() OVER (
+      PARTITION BY p.meeting_id, (p.holder_category IN ('REGISTERED', 'PLAN'))
+      ORDER BY p.shares DESC, p.id
+    ) AS holder_rank
+  FROM "position" p
+  JOIN target_window tw ON tw.id = p.meeting_id
+  WHERE p.shares > 0
+    AND p.holder_category IS DISTINCT FROM 'NOBO'
+    AND (
+      p.vote_status = 'Voted'
+      OR p.account_type = 'DTC/CDS'
+      OR mod(('x' || substr(md5(p.id || '-solicit-pick'), 1, 6))::bit(24)::int, 100)
+         < tw.participation_pct
+    )
+),
+voting_plan AS (
+  SELECT
+    vp.id,
+    LEAST(
+      vp.shares,
+      GREATEST(
+        1,
+        FLOOR(vp.shares * CASE
+          WHEN vp.account_type = 'DTC/CDS'
+            THEN ((CASE WHEN vp.is_pre_record THEN 12 ELSE 32 END) + mod(vp.share_bucket, 38))::numeric / 100
+          WHEN vp.share_bucket < 14
+            THEN (58 + mod(vp.share_bucket, 37))::numeric / 100
+          ELSE 1
+        END)
+      )
+    ) AS shares_voted,
+    (ARRAY['WEB', 'WEB', 'WEB', 'WEB', 'PRINT', 'PRINT', 'PRINT', 'IVR', 'IVR', 'SOLICITOR'])[
+      1 + mod(vp.holder_rank + vp.meeting_bucket, 10)
+    ]::position_source AS source,
+    to_char(
+      (vp.solicitation_start + mod(vp.when_bucket, vp.solicitation_days)::int)
+        + make_interval(hours => 8 + mod(vp.when_bucket, 9), mins => 5 * mod(vp.when_bucket, 12)),
+      'MM/DD/YYYY HH12:MIAM'
+    ) AS date_voted
+  FROM voting_position vp
+)
+UPDATE "position" AS target
+SET
+  vote_status = 'Voted',
+  shares_voted = vpl.shares_voted,
+  source = vpl.source,
+  date_voted = vpl.date_voted,
+  updated_at = NOW()
+FROM voting_plan vpl
+WHERE target.id = vpl.id;`);
+
+  // 2. One position_vote per voted position per proposal.
+  sqlStatements.push(`
+INSERT INTO position_vote (id, position_id, proposal_id, vote, shares_voting, created_at)
+SELECT
+  'sol-' || md5(p.id || '-' || pr.id),
+  p.id,
+  pr.id,
+  CASE
+    WHEN p.account_type = 'DTC/CDS' THEN
+      CASE WHEN pr.proposal_type = 'Shareholder Proposal' THEN 'AGAINST' ELSE 'FOR' END
+    WHEN pr.proposal_type = 'Shareholder Proposal' THEN
+      CASE
+        WHEN outcome.bucket < 52 THEN 'AGAINST'
+        WHEN outcome.bucket < 84 THEN 'FOR'
+        ELSE 'ABSTAIN'
+      END
+    WHEN pr.proposal_type = 'Director Election' THEN
+      CASE
+        WHEN outcome.bucket < 86 THEN 'FOR'
+        WHEN outcome.bucket < 95 THEN 'WITHHOLD'
+        ELSE 'ABSTAIN'
+      END
+    WHEN pr.proposal_type IN ('Say on Pay', 'Say on Pay Frequency') THEN
+      CASE
+        WHEN outcome.bucket < 74 THEN 'FOR'
+        WHEN outcome.bucket < 90 THEN 'AGAINST'
+        ELSE 'ABSTAIN'
+      END
+    ELSE
+      CASE
+        WHEN outcome.bucket < 82 THEN 'FOR'
+        WHEN outcome.bucket < 93 THEN 'AGAINST'
+        ELSE 'ABSTAIN'
+      END
+  END,
+  p.shares_voted::text,
+  NOW()
+FROM "position" p
+JOIN meeting m ON m.id = p.meeting_id
+JOIN proposal pr ON pr.meeting_id = m.id
+CROSS JOIN LATERAL (
+  SELECT mod(('x' || substr(md5(p.id || pr.id || '-outcome'), 1, 6))::bit(24)::int, 100) AS bucket
+) outcome
+WHERE p.vote_status = 'Voted'
+  AND p.shares_voted > 0
+  AND NOT EXISTS (
+    SELECT 1
+    FROM position_vote pv
+    JOIN proposal pr2 ON pr2.id = pv.proposal_id
+    WHERE pr2.meeting_id = m.id
+  );`);
+
+  // 3. Proposal-level aggregates for the meetings this pass voted.
+  sqlStatements.push(`
+UPDATE proposal AS target
+SET
+  total_votes_for = agg.votes_for,
+  total_votes_against = agg.votes_against,
+  total_votes_abstain = agg.votes_abstain,
+  total_shares_eligible = NULLIF(m.total_shares_outstanding, '')::numeric,
+  for_percentage = ROUND(agg.votes_for / NULLIF(NULLIF(m.total_shares_outstanding, '')::numeric, 0) * 100, 4),
+  against_percentage = ROUND(agg.votes_against / NULLIF(NULLIF(m.total_shares_outstanding, '')::numeric, 0) * 100, 4),
+  abstain_percentage = ROUND(agg.votes_abstain / NULLIF(NULLIF(m.total_shares_outstanding, '')::numeric, 0) * 100, 4),
+  participation_rate = ROUND(agg.participating / NULLIF(NULLIF(m.total_shares_outstanding, '')::numeric, 0) * 100, 4),
+  final_result = 'PENDING',
+  voting_completed = false,
+  voting_completed_at = NULL,
+  updated_at = NOW()
+FROM (
+  SELECT
+    pv.proposal_id,
+    SUM(CASE WHEN pv.vote = 'FOR' THEN pv.shares_voting::numeric ELSE 0 END) AS votes_for,
+    SUM(CASE WHEN pv.vote = 'AGAINST' THEN pv.shares_voting::numeric ELSE 0 END) AS votes_against,
+    SUM(CASE WHEN pv.vote IN ('ABSTAIN', 'WITHHOLD') THEN pv.shares_voting::numeric ELSE 0 END) AS votes_abstain,
+    SUM(pv.shares_voting::numeric) AS participating
+  FROM position_vote pv
+  WHERE pv.id LIKE 'sol-%'
+  GROUP BY pv.proposal_id
+) agg
+CROSS JOIN meeting m
+WHERE target.id = agg.proposal_id
+  AND m.id = target.meeting_id;`);
+
+  // 4. Tabulation report totals, which is where the quorum gauge reads voted
+  //    and outstanding shares from.
+  sqlStatements.push(`
+UPDATE tabulation_report AS target
+SET
+  positions_voted = jsonb_build_object(
+    'voted', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND vote_status = 'Voted'),
+    'unvoted', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND vote_status <> 'Voted'),
+    'totalShares', COALESCE(NULLIF(m.total_shares_outstanding, '')::numeric,
+      (SELECT COALESCE(SUM(shares), 0) FROM "position" WHERE meeting_id = target.meeting_id)),
+    'votedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM "position" WHERE meeting_id = target.meeting_id AND vote_status = 'Voted')
+  ),
+  vote_distribution = jsonb_build_object(
+    'dtcVotedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type = 'DTC/CDS' AND vote_status = 'Voted'),
+    'dtcUnvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type = 'DTC/CDS' AND vote_status <> 'Voted'),
+    'nonDtcVotedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status = 'Voted'),
+    'nonDtcUnvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status <> 'Voted')
+  ),
+  dtc_vote_status = jsonb_build_object(
+    'votedShareholders', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND account_type = 'DTC/CDS' AND vote_status = 'Voted'),
+    'votedShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type = 'DTC/CDS' AND vote_status = 'Voted'),
+    'unvotedShareholders', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND account_type = 'DTC/CDS' AND vote_status <> 'Voted'),
+    'unvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type = 'DTC/CDS' AND vote_status <> 'Voted'),
+    'grandTotalShareholders', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND account_type = 'DTC/CDS'),
+    'grandTotalShares', (SELECT COALESCE(SUM(shares), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type = 'DTC/CDS')
+  ),
+  non_dtc_vote_status = jsonb_build_object(
+    'printShareholders', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status = 'Voted' AND source = 'PRINT'),
+    'printShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status = 'Voted' AND source = 'PRINT'),
+    'ivrShareholders', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status = 'Voted' AND source = 'IVR'),
+    'ivrShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status = 'Voted' AND source = 'IVR'),
+    'webShareholders', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status = 'Voted' AND source IN ('WEB', 'SOLICITOR')),
+    'webShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status = 'Voted' AND source IN ('WEB', 'SOLICITOR')),
+    'votedSubtotalShareholders', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status = 'Voted'),
+    'votedSubtotalShares', (SELECT COALESCE(SUM(shares_voted), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status = 'Voted'),
+    'unvotedShareholders', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status <> 'Voted'),
+    'unvotedShares', (SELECT COALESCE(SUM(shares), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS' AND vote_status <> 'Voted'),
+    'grandTotalShareholders', (SELECT COUNT(*) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS'),
+    'grandTotalShares', (SELECT COALESCE(SUM(shares), 0) FROM "position" WHERE meeting_id = target.meeting_id AND account_type <> 'DTC/CDS')
+  ),
+  last_calculated_at = NOW(),
+  updated_at = NOW()
+FROM meeting m
+WHERE m.id = target.meeting_id
+  AND EXISTS (
+    SELECT 1
+    FROM position_vote pv
+    JOIN proposal pr ON pr.id = pv.proposal_id
+    WHERE pr.meeting_id = target.meeting_id
+      AND pv.id LIKE 'sol-%'
+  );`);
+
+  sqlStatements.push("");
+}
+
+/**
+ * Sets `meeting.tabulation_released`, the CSM-controlled gate that hides
+ * tabulation results from the issuer until a CSM releases them.
+ *
+ * Rule: a meeting is RELEASED when its `meeting_year` is 2025 or earlier and
+ * LOCKED from 2026 on. Every meeting the generator builds with a negative
+ * `monthOffset` or a real 2025 CSV date is stamped `meeting_year <= 2025` and
+ * has already happened, so its tabulation is history and safe to show; the
+ * 2026 rows (the September annual meetings and the +10-month specials) are the
+ * live ones and stay locked so the demo exercises the empty/locked state.
+ *
+ * The year column is used rather than `meeting_date` on purpose: past-meeting
+ * dates are generated relative to `DateTime.now()`, so they drift every time
+ * the seed is regenerated, while `meeting_year` is a fixed literal. That keeps
+ * the flag reproducible across runs, in line with the copycat-seeded data.
+ *
+ * Runs as a single post-insert UPDATE over every meeting row so it covers all
+ * meeting-insert sites, and both branches are written explicitly rather than
+ * relying on the column default.
+ *
+ * @param sqlStatements - Seed SQL accumulator the statements are pushed onto
+ */
+function appendTabulationReleaseFlags(sqlStatements: string[]): void {
+  sqlStatements.push(
+    "-- Tabulation release gate: meetings through 2025 are released, 2026+ stay locked"
+  );
+  sqlStatements.push(`
+UPDATE meeting
+SET
+  tabulation_released = (meeting_year <= 2025),
+  updated_at = NOW();`);
+  sqlStatements.push("");
 }
 
 // Execute seed generation

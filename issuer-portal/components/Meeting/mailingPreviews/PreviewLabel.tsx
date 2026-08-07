@@ -16,7 +16,7 @@ import { styled } from "@mui/material/styles";
  */
 const LabelChip = styled(Box)(({ theme }) => ({
   position: "absolute",
-  top: 4,
+  top: 8,
   right: 8,
   maxWidth: "calc(100% - 44px)",
   padding: theme.spacing(0.375, 0.75),
