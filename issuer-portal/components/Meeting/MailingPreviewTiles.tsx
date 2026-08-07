@@ -332,14 +332,23 @@ const MailingPreviewTiles = ({
   const tiles: {
     key: string;
     subtitle: string;
-    variant?: string;
+    variant?: "primary" | "base";
+    /**
+     * Full Set leads the row — it is the whole package where the other two are
+     * a single notice each — so it takes a brand-coloured left edge. Filling
+     * the tile instead would say the same thing louder and less accurately:
+     * its count is usually the smallest of the three, and the fan of document
+     * previews it carries loses contrast against a saturated surface.
+     */
+    accent?: "primary";
     value: number | null | undefined;
     thumbnail: React.ReactNode;
   }[] = [
     {
       key: "full-set",
       subtitle: "Full Set",
-      variant: "primary",
+      variant: "base",
+      accent: "primary",
       value: fullSetPositions,
       thumbnail: (
         <>
@@ -383,6 +392,7 @@ const MailingPreviewTiles = ({
       key: "naa",
       subtitle: "NAA",
       value: naaPositions,
+      variant: "base",
       thumbnail: (
         <DocumentThumbnail
           filePath={naaUrl}
@@ -396,6 +406,7 @@ const MailingPreviewTiles = ({
     {
       key: "electronic",
       subtitle: "Electronic",
+      variant: "base",
       value: electronicPositions,
       thumbnail: (
         <EmailThumbnail
@@ -473,7 +484,8 @@ const MailingPreviewTiles = ({
                 <FeatureTile
                   flex
                   height="auto"
-                  variant="base"
+                  variant={tile.variant}
+                  accent={tile.accent}
                   title={formatNumber(tile.value)}
                   subtitle={tile.subtitle}
                   thumbnail={tile.thumbnail}

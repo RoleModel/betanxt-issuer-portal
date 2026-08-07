@@ -48,20 +48,75 @@ interface FeatureTileProps {
    * title and value.
    */
   readonly thumbnailLayout?: "overlay" | "flow";
+  /**
+   * Draws the tile's left edge in a palette colour, to mark it out from the
+   * tiles beside it without filling it.
+   *
+   * @remarks
+   * Only the `base` variant honours this. The filled variants already carry
+   * their colour across the whole surface, and an accent on a `default` tile
+   * would put an edge on the app's ordinary card. It is opt-in rather than
+   * automatic because most `base` tiles are one of a set of equals — the
+   * product pages, the education cards — and an edge on all of them says
+   * nothing.
+   *
+   * Prefer this to a filled variant when a tile leads a group it is still
+   * being compared against: it keeps the surface, so a thumbnail on the tile
+   * keeps its contrast and a glossary term in the subtitle keeps reading as
+   * one.
+   */
+  readonly accent?: "primary" | "secondary" | "tertiary";
 }
 
 type FeatureTileVariant = NonNullable<FeatureTileProps["variant"]>;
+
+/** Width of the accent edge, in px. */
+const accentEdgeWidth = 4;
 
 interface VariantColors {
   background: string;
   backgroundDark: string;
   color: string;
   colorDark: string;
+  /**
+   * The subtitle, and so the glossary markers inside it — they inherit their
+   * colour and draw their underline in `currentColor`. On a tile whose surface
+   * is a neutral one this is the brand colour, which is what makes the label
+   * read as a term you can open. On a tile filled with that same brand colour
+   * it has to invert to the contrast text instead, or the label is drawn in
+   * the colour it is sitting on and disappears.
+   */
+  subtitle: string;
+  subtitleDark: string;
 }
 
 const hasMainColor = (
   color: PaletteColorOptions
 ): color is SimplePaletteColorOptions => Object.hasOwn(color, "main");
+
+/**
+ * The palette colour an accent edge is drawn in.
+ *
+ * @remarks
+ * Read from `theme.vars` rather than `theme.palette` so the edge follows the
+ * CSS variable, which is what per-client theming rewrites — a tile on
+ * FocalPoint's meeting draws its own purple, not the default brand's.
+ */
+const getAccentColor = (
+  theme: Theme,
+  accent: NonNullable<FeatureTileProps["accent"]>
+): string | undefined => {
+  switch (accent) {
+    case "primary":
+      return theme.vars.palette.primary.main;
+    case "secondary":
+      return theme.vars.palette.secondary.main;
+    case "tertiary": {
+      const { tertiary } = theme.palette;
+      return hasMainColor(tertiary) ? tertiary.main : undefined;
+    }
+  }
+};
 
 const assertNever = (value: never): never => {
   throw new Error(`Unsupported FeatureTile variant: ${String(value)}`);
@@ -78,6 +133,8 @@ const getVariantColors = (
         backgroundDark: theme.palette.primary.main,
         color: theme.palette.primary.contrastText,
         colorDark: theme.palette.primary.contrastText,
+        subtitle: theme.palette.primary.contrastText,
+        subtitleDark: theme.palette.primary.contrastText,
       };
     case "secondary":
       return {
@@ -85,6 +142,8 @@ const getVariantColors = (
         backgroundDark: theme.palette.secondary.main,
         color: theme.palette.secondary.contrastText,
         colorDark: theme.palette.secondary.contrastText,
+        subtitle: theme.palette.secondary.contrastText,
+        subtitleDark: theme.palette.secondary.contrastText,
       };
     case "tertiary": {
       const { tertiary } = theme.palette;
@@ -100,6 +159,8 @@ const getVariantColors = (
         backgroundDark: tertiary.main,
         color: contrastText,
         colorDark: contrastText,
+        subtitle: contrastText,
+        subtitleDark: contrastText,
       };
     }
     case "base":
@@ -108,6 +169,8 @@ const getVariantColors = (
         backgroundDark: theme.vars.palette.background.default,
         color: theme.vars.palette.text.primary,
         colorDark: theme.vars.palette.text.primary,
+        subtitle: theme.vars.palette.primary.main,
+        subtitleDark: theme.vars.palette.primary.main,
       };
     case "default":
       return {
@@ -115,6 +178,8 @@ const getVariantColors = (
         backgroundDark: theme.vars.palette.background.paper,
         color: theme.vars.palette.text.primary,
         colorDark: theme.vars.palette.text.primary,
+        subtitle: theme.vars.palette.primary.main,
+        subtitleDark: theme.vars.palette.primary.main,
       };
   }
 
@@ -140,11 +205,16 @@ export const FeatureTile = ({
   brandFont = false,
   thumbnail,
   thumbnailLayout = "overlay",
+  accent,
   children,
 }: FeatureTileProps) => {
   const theme = useTheme();
   const variantColors = getVariantColors(theme, variant);
   const isInteractive = href !== undefined || onClick !== undefined;
+  const accentColor =
+    accent === undefined || variant !== "base"
+      ? undefined
+      : getAccentColor(theme, accent);
 
   const CardContent = (
     <Card
@@ -160,6 +230,16 @@ export const FeatureTile = ({
           background: variantColors.background,
           backgroundColor: variantColors.background,
           color: variantColors.color,
+          // Thickens the outlined card's existing left rule rather than adding
+          // a border, so the edge sits flush inside the same rounded corner
+          // instead of overhanging it.
+          ...(accentColor === undefined
+            ? {}
+            : {
+                borderLeftWidth: accentEdgeWidth,
+                borderLeftStyle: "solid",
+                borderLeftColor: accentColor,
+              }),
           pt: 2,
           cursor: isInteractive ? "pointer" : "default",
           transition:
@@ -265,10 +345,13 @@ export const FeatureTile = ({
           {subtitle != null && (
             <Typography
               variant={bodyVariant}
-              sx={(muiTheme) => ({
-                color: muiTheme.vars.palette.primary.main,
-                fontWeight: 600,
-              })}
+              sx={[
+                { color: variantColors.subtitle, fontWeight: 600 },
+                (muiTheme) =>
+                  muiTheme.applyStyles("dark", {
+                    color: variantColors.subtitleDark,
+                  }),
+              ]}
             >
               <GlossaryText>{subtitle}</GlossaryText>
             </Typography>
