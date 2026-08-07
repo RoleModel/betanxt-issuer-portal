@@ -12,6 +12,25 @@ import { getContrastRatio } from "@mui/material/styles";
 export const CONTRAST_THRESHOLD = 4.5;
 
 /**
+ * Chooses the more legible of two foreground candidates for a fill.
+ *
+ * @param background - The fill behind the label.
+ * @param light - The light foreground candidate. Defaults to `"#fff"`.
+ * @param dark - The dark foreground candidate. Defaults to `"#111"`.
+ * @returns The candidate with the higher contrast ratio.
+ */
+export function getMostLegibleText(
+  background: string,
+  light = "#fff",
+  dark = "#111"
+): string {
+  return getContrastRatio(background, light) >=
+    getContrastRatio(background, dark)
+    ? light
+    : dark;
+}
+
+/**
  * Choose a readable text color to place on top of `background`.
  *
  * Returns `light` when white text clears the {@link CONTRAST_THRESHOLD} against
@@ -33,7 +52,8 @@ export function contrastText(
   light = "#fff",
   dark = "#111"
 ): string {
-  return getContrastRatio(background, "#fff") > CONTRAST_THRESHOLD
-    ? light
+  const mostLegibleText = getMostLegibleText(background, light, dark);
+  return getContrastRatio(background, mostLegibleText) >= CONTRAST_THRESHOLD
+    ? mostLegibleText
     : dark;
 }

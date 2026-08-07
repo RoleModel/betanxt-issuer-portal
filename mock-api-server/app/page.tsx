@@ -1,3 +1,5 @@
+import type { JSX } from "react";
+
 // This is a minimal page required by Next.js 13+ app directory
 // Since this is an API-only server, we redirect to the API documentation
 export default function HomePage(): JSX.Element {

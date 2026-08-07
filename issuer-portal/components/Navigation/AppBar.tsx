@@ -18,7 +18,7 @@ const NextImageComponent = React.memo(
   (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
     const { src, alt, style } = props;
 
-    if (!src) {
+    if (typeof src !== "string" || src === "") {
       return null;
     }
 

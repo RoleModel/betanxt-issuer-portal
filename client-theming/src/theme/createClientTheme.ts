@@ -17,12 +17,16 @@ import type {
   ThemeOptions,
 } from "@mui/material/styles";
 
-import { createTheme, darken, lighten } from "@mui/material/styles";
+import { createTheme } from "@mui/material/styles";
 
 import type { BrandConfig } from "../brand/types.js";
 
 import { getBrandConfigByTicker } from "../brand/registry.js";
-import { contrastText } from "./contrast.js";
+import {
+  createBrandPaletteColor,
+  createDarkThemeColors,
+} from "./brandPalette.js";
+import { createClientChartPalette } from "./chartPalette.js";
 // Ensure the `tertiary` palette augmentation is part of this module graph.
 import "./augmentation.js";
 
@@ -98,8 +102,8 @@ export function resolveBrandColors(
 
 /**
  * Build a MUI {@link PaletteOptions} for one mode from resolved brand colors.
- * Contrast text is computed per color; the tertiary color gets `light`/`dark`
- * shades via MUI's `lighten`/`darken`.
+ * Dark palettes receive a minimal visibility adjustment against the dark canvas
+ * while keeping already accessible client brand colors unchanged.
  *
  * @param colors - Resolved brand colors.
  * @param mode - `"light"` or `"dark"`.
@@ -109,22 +113,14 @@ function buildClientPalette(
   colors: Required<BrandColors>,
   mode: PaletteMode
 ): PaletteOptions {
+  const schemeColors = mode === "dark" ? createDarkThemeColors(colors) : colors;
+
   return {
     mode,
-    primary: {
-      main: colors.primaryColor,
-      contrastText: contrastText(colors.primaryColor),
-    },
-    secondary: {
-      main: colors.secondaryColor,
-      contrastText: contrastText(colors.secondaryColor),
-    },
-    tertiary: {
-      main: colors.tertiaryColor,
-      light: lighten(colors.tertiaryColor, 0.2),
-      dark: darken(colors.tertiaryColor, 0.2),
-      contrastText: contrastText(colors.tertiaryColor),
-    },
+    chart: createClientChartPalette(colors, mode),
+    primary: createBrandPaletteColor(schemeColors.primaryColor, mode),
+    secondary: createBrandPaletteColor(schemeColors.secondaryColor, mode),
+    tertiary: createBrandPaletteColor(schemeColors.tertiaryColor, mode),
   };
 }
 

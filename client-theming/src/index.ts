@@ -47,7 +47,26 @@ export {
 } from "./brandfetch/toBrandConfig.js";
 
 // --- Theme generation ---------------------------------------------------------
-export { CONTRAST_THRESHOLD, contrastText } from "./theme/contrast.js";
+export {
+  DARK_THEME_SURFACE_COLOR,
+  createBrandPaletteColor,
+  createDarkThemeColors,
+} from "./theme/brandPalette.js";
+export type {
+  BrandColorScheme,
+  BrandPaletteColor,
+  BrandThemeColors,
+} from "./theme/brandPalette.js";
+export {
+  CONTRAST_THRESHOLD,
+  contrastText,
+  getMostLegibleText,
+} from "./theme/contrast.js";
+export type {
+  ClientChartColor,
+  ClientChartPalette,
+} from "./theme/chartPalette.js";
+export { createClientChartPalette } from "./theme/chartPalette.js";
 export type {
   BrandColors,
   ClientThemeInput,
