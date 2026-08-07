@@ -575,6 +575,11 @@ export interface components {
       createdAt?: string;
       /** Format: date-time */
       updatedAt?: string;
+      /**
+       * @description When false, tabulation results are withheld from every surface. Only a CSM can set it.
+       * @default false
+       */
+      tabulationReleased?: boolean;
       /** @description Prototype config for automated daily tabulation report delivery */
       tabulationDistribution?: components["schemas"]["TabulationDistribution"];
       /** @description The client this meeting belongs to (relationship) */
@@ -1275,6 +1280,8 @@ export interface components {
       brokerNonVote?: number | null;
       /** @description Current status of the mailing process */
       mailingStatus?: string | null;
+      /** @description When false, tabulation results are withheld from every surface. Only a CSM can set it. */
+      tabulationReleased?: boolean;
       /** @description Prototype config for automated daily tabulation report delivery */
       tabulationDistribution?: components["schemas"]["TabulationDistribution"];
     };

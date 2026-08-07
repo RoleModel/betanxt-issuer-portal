@@ -2892,6 +2892,11 @@ components:
         updatedAt:
           type: string
           format: date-time
+        tabulationReleased:
+          type: boolean
+          default: false
+          description: >-
+            When false, tabulation results are withheld from every surface. Only a CSM can set it.
         tabulationDistribution:
           $ref: "#/components/schemas/TabulationDistribution"
           nullable: true
@@ -3918,6 +3923,10 @@ components:
           type: string
           nullable: true
           description: Current status of the mailing process
+        tabulationReleased:
+          type: boolean
+          description: >-
+            When false, tabulation results are withheld from every surface. Only a CSM can set it.
         tabulationDistribution:
           $ref: "#/components/schemas/TabulationDistribution"
           nullable: true

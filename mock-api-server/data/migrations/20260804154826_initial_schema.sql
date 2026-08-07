@@ -181,6 +181,7 @@ CREATE TABLE public.meeting (
     client_id TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NULL,
     updated_at TIMESTAMP DEFAULT NULL,
+    tabulation_released BOOLEAN NOT NULL DEFAULT false,
     tabulation_distribution TEXT DEFAULT NULL,
     client TEXT DEFAULT NULL
 );
@@ -212,6 +213,7 @@ COMMENT ON COLUMN meeting.mailing_status IS 'Current status of the mailing proce
 COMMENT ON COLUMN meeting.client_id IS 'The client this meeting belongs to. Original param name - clientId.';
 COMMENT ON COLUMN meeting.created_at IS 'Original param name - createdAt.';
 COMMENT ON COLUMN meeting.updated_at IS 'Original param name - updatedAt.';
+COMMENT ON COLUMN meeting.tabulation_released IS 'When false, tabulation results are withheld from every surface. Only a CSM can set it. Original param name - tabulationReleased.';
 COMMENT ON COLUMN meeting.tabulation_distribution IS 'Original param name - tabulationDistribution.';
 
 -- Table 'phase' generated from model 'Phase'

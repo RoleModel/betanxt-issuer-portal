@@ -9,6 +9,7 @@ import { EventTabs } from "@/components/Navigation/EventTabs";
 import { DocumentProvider } from "@/contexts/DocumentContext";
 import { MeetingProvider } from "@/contexts/MeetingContext";
 import { TabulationDisplayProvider } from "@/contexts/TabulationDisplayContext";
+import { TabulationReleaseProvider } from "@/contexts/TabulationReleaseContext";
 
 // Main meeting layout with normal nested routes
 // EventTabs stay mounted while nested routes change
@@ -17,10 +18,12 @@ const MeetingLayout = (props: LayoutProps<"/[clientTicker]/meeting">) => {
     <MeetingProvider>
       <DocumentProvider>
         <TabulationDisplayProvider>
-          <Box sx={{ flexShrink: 0 }}>
-            <EventTabs />
-          </Box>
-          <Box sx={{ flexGrow: 1, flex: 1 }}>{props.children}</Box>
+          <TabulationReleaseProvider>
+            <Box sx={{ flexShrink: 0 }}>
+              <EventTabs />
+            </Box>
+            <Box sx={{ flexGrow: 1, flex: 1 }}>{props.children}</Box>
+          </TabulationReleaseProvider>
         </TabulationDisplayProvider>
       </DocumentProvider>
     </MeetingProvider>

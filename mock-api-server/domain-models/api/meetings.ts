@@ -159,6 +159,9 @@ function transformMeeting(databaseMeeting: MeetingRowWithRelations): Meeting {
     quorumRequirement: nullToUndefined(databaseMeeting.quorum_requirement),
     brokerNonVote: nullToUndefined(databaseMeeting.broker_non_vote),
     mailingStatus: nullToUndefined(databaseMeeting.mailing_status),
+    // Withheld by default: a row written before this column existed, or any
+    // non-boolean value, must read as "not released" rather than leak results.
+    tabulationReleased: databaseMeeting.tabulation_released === true,
     tabulationDistribution: parseTabulationDistribution(
       databaseMeeting.tabulation_distribution
     ),
@@ -551,6 +554,9 @@ export async function updateMeeting(
     }
     if (meetingData.mailingStatus !== undefined) {
       databaseUpdate.mailing_status = meetingData.mailingStatus;
+    }
+    if (meetingData.tabulationReleased !== undefined) {
+      databaseUpdate.tabulation_released = meetingData.tabulationReleased;
     }
     if (meetingData.tabulationDistribution !== undefined) {
       databaseUpdate.tabulation_distribution =

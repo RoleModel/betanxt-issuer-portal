@@ -144,6 +144,13 @@ interface TabulationInsightsResult {
   voteMatrixProposals: readonly VoteMatrixProposal[];
   meetingTitle: string;
   clientTicker: string;
+  /**
+   * Whether a CSM has released this meeting's tabulation.
+   *
+   * When false every result above is empty or zeroed and nothing was fetched,
+   * so a page can branch on this rather than inspect the empty collections.
+   */
+  isReleased: boolean;
 }
 
 const DEFAULT_FILTERS: TabulationFilters = {
@@ -423,6 +430,10 @@ export function useTabulationInsights(
   meetingId?: string,
   meeting?: components["schemas"]["Meeting"] | null
 ): TabulationInsightsResult {
+  // Withheld unless the meeting explicitly says otherwise, so a meeting that
+  // has not loaded yet — or an older record without the column — reads as
+  // withheld rather than briefly exposing results.
+  const isReleased = meeting?.tabulationReleased === true;
   const [loading, setLoading] = useState(true);
   const [positions, setPositions] = useState<TabulationPosition[]>([]);
   const [proposals, setProposals] = useState<ProposalRecord[]>([]);
@@ -436,6 +447,24 @@ export function useTabulationInsights(
     useState<number | null>(null);
 
   useEffect(() => {
+    // Nothing is requested while tabulation is withheld. Fetching and then
+    // hiding would still ship the numbers to the browser, where the network
+    // tab makes them trivially readable.
+    if (!isReleased) {
+      // Also drop whatever an earlier release fetched, so flipping back to
+      // withheld clears the figures from memory instead of merely hiding them.
+      // Identity is preserved when already empty to avoid a pointless render.
+      setPositions((current) => (current.length === 0 ? current : []));
+      setProposals((current) => (current.length === 0 ? current : []));
+      setPositionVotes((current) => (current.length === 0 ? current : []));
+      setMeetingTitle("");
+      setClientTicker("");
+      setTabulationReportVotedShares(null);
+      setTabulationReportTotalShares(null);
+      setLoading(false);
+      return;
+    }
+
     if (!meetingId) {
       return;
     }
@@ -572,7 +601,7 @@ export function useTabulationInsights(
     return () => {
       isCancelled = true;
     };
-  }, [meetingId]);
+  }, [isReleased, meetingId]);
 
   const accountTypes = useMemo(
     () =>
@@ -1024,6 +1053,29 @@ export function useTabulationInsights(
     );
   }, [filteredPositions, positionVotes, proposalsForDisplay]);
 
+  if (!isReleased) {
+    // Zeroed rather than merely flagged: a caller that ignores `isReleased`
+    // still cannot render a proposal, a position, a gauge or a matrix cell.
+    // Filters stay live so filter UI keeps working while the tab is locked.
+    return {
+      loading: false,
+      proposals: [],
+      filteredPositions: [],
+      summary: null,
+      quorumGauge: null,
+      filters,
+      setFilters,
+      accountTypes: [],
+      setKeys: [],
+      directors: [],
+      voteMatrixProposals: [],
+      // Identity, not a result: page headers still need to name the meeting.
+      meetingTitle: meeting?.title ?? "",
+      clientTicker: meeting?.ticker ?? "",
+      isReleased: false,
+    };
+  }
+
   return {
     loading,
     proposals: proposalsForDisplay,
@@ -1038,5 +1090,6 @@ export function useTabulationInsights(
     voteMatrixProposals,
     meetingTitle,
     clientTicker,
+    isReleased: true,
   };
 }
