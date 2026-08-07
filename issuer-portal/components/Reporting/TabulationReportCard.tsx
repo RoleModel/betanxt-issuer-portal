@@ -13,6 +13,7 @@ import type { components } from "@/domain-models/generated-schema";
 
 import { useClient } from "@/contexts/ClientContext";
 import { useMeeting } from "@/contexts/MeetingContext";
+import { useTabulationRelease } from "@/contexts/TabulationReleaseContext";
 import buildApiClient from "@/domain-models/apiClient";
 import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 import { exportTabulationPdf } from "@/utils/exportTabulationPdf";
@@ -26,6 +27,7 @@ import FeatureTile from "../FeatureTile";
 const TabulationReportCard = () => {
   const { currentClient } = useClient();
   const { currentMeeting } = useMeeting();
+  const { isReleased } = useTabulationRelease();
   const { proposals: votingProposals } = useVotingTabulation(
     currentMeeting?.id
   );
@@ -172,6 +174,11 @@ const TabulationReportCard = () => {
   const reportTitle = isMeetingConcluded
     ? "Final Tabulation Results"
     : "Preliminary Tabulation Results";
+
+  // The report is the tabulation, in PDF form — so it is withheld with it.
+  if (!isReleased) {
+    return null;
+  }
 
   return (
     <FeatureTile

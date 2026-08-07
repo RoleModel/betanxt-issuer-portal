@@ -4,11 +4,13 @@ import { Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 
 import QuorumGaugeCard from "@/components/Charts/QuorumGauge/QuorumGaugeCard";
+import VoteMatrixChartCard from "@/components/Charts/VoteMatrix/VoteMatrixChartCard";
 import ProposalDetailsCard from "@/components/Tabulation/ProposalDetailsCard";
 import { TabulationDistributionDrawer } from "@/components/Tabulation/TabulationDistributionDrawer";
 import TabulationReportCard from "@/components/Tabulation/TabulationReportCard";
-import VoteMatrixChartCard from "@/components/Charts/VoteMatrix/VoteMatrixChartCard";
+import TabulationUnavailableEmptyState from "@/components/Tabulation/TabulationLockedEmptyState";
 import { useMeeting } from "@/contexts/MeetingContext";
+import { useTabulationRelease } from "@/contexts/TabulationReleaseContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useTabulationInsights } from "@/hooks/useTabulationInsights";
 
@@ -23,6 +25,9 @@ const TabulationPageContent = () => {
   const meetingId = currentMeeting?.id ?? "";
   const { flags } = useFeatureFlags();
   const showConfiguration = flags.configureDistribution;
+  // The same context the quorum card and the dashboard tracker read, so every
+  // withheld surface agrees without each one re-deriving the flag.
+  const { isReleased } = useTabulationRelease();
 
   const {
     proposals,
@@ -35,6 +40,16 @@ const TabulationPageContent = () => {
 
   if (meetingLoading) {
     return null;
+  }
+
+  // Until a CSM releases tabulation, this tab is the empty state and nothing
+  // else — no charts, no tables, and no distribution configuration.
+  if (!isReleased) {
+    return (
+      <Container maxWidth="xl" sx={{ my: { xs: 2, md: 3 } }}>
+        <TabulationUnavailableEmptyState />
+      </Container>
+    );
   }
 
   return (

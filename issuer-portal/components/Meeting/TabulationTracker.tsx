@@ -5,6 +5,7 @@ import { Box, Fade, Grid, Paper, useTheme } from "@mui/material";
 import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BNTypographyPair";
 
 import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
+import { useTabulationRelease } from "@/contexts/TabulationReleaseContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { calculateDaysUntil } from "@/utils/dateUtils";
 import { formatTabulationMetric } from "@/utils/tabulation-display";
@@ -30,6 +31,9 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
   // Dashboard figures follow the same Percentage/Count toggle as the tabulation
   // views, so switching the toggle reformats the tracker too.
   const { displayMode } = useTabulationDisplay();
+  // This year's vote figures are withheld until a CSM releases tabulation. The
+  // previous-year figures alongside them are published history and stay.
+  const { isReleased } = useTabulationRelease();
 
   const shouldUseUpdatedColors = enableTabulationTrackerColors;
   const currentData = data?.meeting_id === currentMeetingId ? data : null;
@@ -157,6 +161,46 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
       previousComparablePoint.unvotedShares
     : 0;
 
+  /** Stands in for a figure that exists but is not being disclosed yet. */
+  const withheldPlaceholder = "---";
+  /** Stands in for a figure this meeting simply has no data for. */
+  const missingPlaceholder = "--";
+
+  const formatCurrentShareMetric = (
+    shares: number | null
+  ): ReturnType<typeof formatTabulationMetric> => {
+    if (!isReleased) {
+      return { alternate: withheldPlaceholder, display: withheldPlaceholder };
+    }
+
+    if (shares === null) {
+      return { alternate: missingPlaceholder, display: missingPlaceholder };
+    }
+
+    return formatTabulationMetric(shares, totalShares, displayMode);
+  };
+
+  const votedMetric = formatCurrentShareMetric(
+    currentData ? Number(currentData.shares_voted) : null
+  );
+  const unvotedMetric = formatCurrentShareMetric(
+    currentData ? Number(currentData.shares_unvoted) : null
+  );
+  const previousVotedMetric = previousComparablePoint
+    ? formatTabulationMetric(
+        previousComparablePoint.votedShares,
+        previousYearTotalShares,
+        displayMode
+      )
+    : null;
+  const previousUnvotedMetric = previousComparablePoint
+    ? formatTabulationMetric(
+        previousComparablePoint.unvotedShares,
+        previousYearTotalShares,
+        displayMode
+      )
+    : null;
+
   return (
     <Grid container spacing={2} sx={{ mt: 1, alignItems: "stretch" }}>
       <Grid size={{ xs: 12, lg: 6 }}>
@@ -234,92 +278,32 @@ const TabulationTracker = (props: TabulationTrackerProps) => {
             </Box>
           </Fade>
 
-          <VoteProgressBar
-            enableUpdatedColors={shouldUseUpdatedColors}
-            voted={progress.voted}
-            unvoted={progress.unvoted}
-          />
+          {/* Dropped rather than emptied while withheld — a bar at zero reads
+              as "nobody has voted" instead of "we are not saying yet". */}
+          {isReleased ? (
+            <VoteProgressBar
+              enableUpdatedColors={shouldUseUpdatedColors}
+              voted={progress.voted}
+              unvoted={progress.unvoted}
+            />
+          ) : null}
         </Paper>
       </Grid>
       <HistoricalShareCard
-        currentValue={
-          currentData
-            ? formatTabulationMetric(
-                Number(currentData.shares_voted),
-                totalShares,
-                displayMode
-              ).display
-            : "--"
-        }
-        alternateValue={
-          currentData
-            ? formatTabulationMetric(
-                Number(currentData.shares_voted),
-                totalShares,
-                displayMode
-              ).alternate
-            : "--"
-        }
+        currentValue={votedMetric.display}
+        alternateValue={votedMetric.alternate}
         label="Shares Voted"
-        previousValue={
-          previousComparablePoint
-            ? formatTabulationMetric(
-                previousComparablePoint.votedShares,
-                previousYearTotalShares,
-                displayMode
-              ).display
-            : null
-        }
-        previousAlternateValue={
-          previousComparablePoint
-            ? formatTabulationMetric(
-                previousComparablePoint.votedShares,
-                previousYearTotalShares,
-                displayMode
-              ).alternate
-            : null
-        }
+        previousValue={previousVotedMetric?.display ?? null}
+        previousAlternateValue={previousVotedMetric?.alternate ?? null}
         showPreviousYear={shouldShowPreviousYearInfo}
         sx={sparklineCardSx}
       />
       <HistoricalShareCard
-        currentValue={
-          currentData
-            ? formatTabulationMetric(
-                Number(currentData.shares_unvoted),
-                totalShares,
-                displayMode
-              ).display
-            : "--"
-        }
-        alternateValue={
-          currentData
-            ? formatTabulationMetric(
-                Number(currentData.shares_unvoted),
-                totalShares,
-                displayMode
-              ).alternate
-            : "--"
-        }
+        currentValue={unvotedMetric.display}
+        alternateValue={unvotedMetric.alternate}
         label="Shares Not Voted"
-        previousValue={
-          previousComparablePoint
-            ? formatTabulationMetric(
-                previousComparablePoint.unvotedShares,
-                previousYearTotalShares,
-                displayMode
-              ).display
-            : null
-        }
-        previousAlternateValue={
-          previousComparablePoint
-            ? formatTabulationMetric(
-                previousComparablePoint.unvotedShares,
-                previousYearTotalShares,
-                displayMode
-              ).alternate
-            : null
-        }
+        previousValue={previousUnvotedMetric?.display ?? null}
+        previousAlternateValue={previousUnvotedMetric?.alternate ?? null}
         showPreviousYear={shouldShowPreviousYearInfo}
         sx={sparklineCardSx}
       />

@@ -11,11 +11,12 @@ import {
 } from "@mui/material";
 import { Gauge } from "@mui/x-charts/Gauge";
 
-import GlossaryText from "@/components/ui/GlossaryText";
 import GaugeCenterLabel from "@/components/Charts/config/GaugeCenterLabel";
+import TabulationUnavailableEmptyState from "@/components/Tabulation/TabulationLockedEmptyState";
 import { CustomTooltip } from "@/components/ui/CustomToolTip";
-
+import GlossaryText from "@/components/ui/GlossaryText";
 import { useTabulationDisplay } from "@/contexts/TabulationDisplayContext";
+import { useTabulationRelease } from "@/contexts/TabulationReleaseContext";
 import {
   formatQuorumRequirementPercentLabel,
   type QuorumGaugeViewModel,
@@ -41,6 +42,9 @@ const QuorumGaugeCard = ({
   className,
 }: QuorumGaugeCardProps) => {
   const { displayMode } = useTabulationDisplay();
+  // Withheld tabulation gets an empty state rather than a gauge pinned at zero,
+  // which would read as "nobody has voted" instead of "we are not saying yet".
+  const { isReleased } = useTabulationRelease();
   const quorumMet = model?.quorumMet === true;
   const statusLabel = quorumMet ? "Quorum Met" : "Below Quorum";
   const statusColor = quorumMet ? "primary" : "default";
@@ -64,18 +68,22 @@ const QuorumGaugeCard = ({
       <CardHeader
         title={<GlossaryText>{displayTitle}</GlossaryText>}
         subheader={
-          <CustomTooltip title={requiredMetric.alternate}>
-            <span>
-              {displayMode === "numbers"
-                ? `Quorum requirement: ${requiredMetric.display} + 1`
-                : `Quorum requirement: ${formatQuorumRequirementPercentLabel(model?.quorumRequirementPercent)} + 1`}
-            </span>
-          </CustomTooltip>
+          isReleased ? (
+            <CustomTooltip title={requiredMetric.alternate}>
+              <span>
+                {displayMode === "numbers"
+                  ? `Quorum requirement: ${requiredMetric.display} + 1`
+                  : `Quorum requirement: ${formatQuorumRequirementPercentLabel(model?.quorumRequirementPercent)} + 1`}
+              </span>
+            </CustomTooltip>
+          ) : null
         }
         sx={tabulationCardHeaderStyles}
       />
       <CardContent sx={tabulationCardContentStartStyles}>
-        {loading || !model ? (
+        {!isReleased ? (
+          <TabulationUnavailableEmptyState height={230} minHeight={150} />
+        ) : loading || !model ? (
           <Typography color="text.secondary">Loading quorum data...</Typography>
         ) : (
           <Stack

@@ -10,6 +10,7 @@ interface EmptyStateProps {
   readonly icon?: React.ReactNode;
   readonly title: string;
   readonly minHeight?: number | string;
+  readonly height?: number | string;
   readonly description?: string | React.ReactNode;
   readonly action?: React.ReactNode;
   readonly children?: React.ReactNode;
@@ -19,6 +20,7 @@ export const EmptyState = ({
   icon = defaultEmptyStateIcon,
   title,
   minHeight = 400,
+  height,
   description,
   action,
   children,
@@ -38,7 +40,7 @@ export const EmptyState = ({
           alignItems: "center",
           justifyContent: "center",
           minHeight,
-          height: "100%",
+          height: height ?? "100%",
         }}
       >
         <Stack
