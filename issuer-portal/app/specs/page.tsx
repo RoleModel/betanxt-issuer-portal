@@ -7,8 +7,12 @@ import Typography from "@mui/material/Typography";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { useState } from "react";
 
+import ChartsSpecPage from "@/app/specs/charts/page";
+import { SPEC_META as CHARTS_META } from "@/app/specs/charts/requirements";
 import MailingThumbnailsSpecPage from "@/app/specs/mailing-thumbnails/page";
 import { SPEC_META as MAILING_THUMBNAILS_META } from "@/app/specs/mailing-thumbnails/requirements";
+import TabulationReleaseSpecPage from "@/app/specs/tabulation-release/page";
+import { SPEC_META as TABULATION_RELEASE_META } from "@/app/specs/tabulation-release/requirements";
 import UiEnhancementsSpecPage from "@/app/specs/ui-enhancements/page";
 import { SPEC_META as UI_ENHANCEMENTS_META } from "@/app/specs/ui-enhancements/requirements";
 
@@ -36,6 +40,16 @@ const SPECS: readonly SpecEntry[] = [
     id: "mailing-thumbnails",
     label: MAILING_THUMBNAILS_META.title,
     Page: MailingThumbnailsSpecPage,
+  },
+  {
+    id: "tabulation-release",
+    label: TABULATION_RELEASE_META.title,
+    Page: TabulationReleaseSpecPage,
+  },
+  {
+    id: "charts",
+    label: CHARTS_META.title,
+    Page: ChartsSpecPage,
   },
   {
     id: "ui-enhancements",

@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, Box, Snackbar } from "@mui/material";
-import { DataGridPro, gridClasses } from "@mui/x-data-grid-pro";
+import { DataGridPro, gridClasses, useGridApiRef } from "@mui/x-data-grid-pro";
 import { useCallback, useSyncExternalStore } from "react";
 
 import type { EventRow } from "@/utils/eventData";
@@ -10,8 +10,8 @@ import { SavedFilterPanel } from "@/components/ui/SavedFilterPanel";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useEventRisk } from "@/hooks/useEventRisk";
 
-import { EventsGridToolbar } from "./EventsGridToolbar";
 import { createEventsDataGridColumns } from "./eventsDataGridColumns";
+import { EventsGridToolbar } from "./EventsGridToolbar";
 import { useEventsFilterModel } from "./useEventsFilterModel";
 import { useTabulationRelease } from "./useTabulationRelease";
 
@@ -50,6 +50,7 @@ export const EventsDataGrid = ({
   onRefresh,
   onTabulationReleased,
 }: EventsDataGridProps) => {
+  const apiRef = useGridApiRef();
   const isGridReady = useSyncExternalStore(
     subscribeToClientRender,
     getClientRenderSnapshot,
@@ -81,10 +82,17 @@ export const EventsDataGrid = ({
   const runRelease = useCallback(
     (meetingIds: readonly string[], released: boolean) => {
       void setTabulationReleased(meetingIds, released).then(() => {
+        // Clearing the selection retires the batch button with it: the rows
+        // that were checked have been dealt with, and leaving them checked
+        // invites releasing them a second time.
+        apiRef.current?.setRowSelectionModel({
+          type: "include",
+          ids: new Set(),
+        });
         onRefresh();
       });
     },
-    [onRefresh, setTabulationReleased]
+    [apiRef, onRefresh, setTabulationReleased]
   );
 
   const handleRowTabulationChange = useCallback(
@@ -132,8 +140,14 @@ export const EventsDataGrid = ({
   }
 
   return (
+    // No max height here: the grid runs with `autoHeight`, which grows the root
+    // to fit the page's rows and sets the virtual scroller to overflow hidden.
+    // Capping the wrapper therefore clips the tail of the page instead of
+    // scrolling it — at 25 rows the grid wants ~1456px and the rows past the cap
+    // become unreachable. The page scrolls instead.
     <Box sx={{ display: "flex", width: "100%" }}>
       <DataGridPro
+        apiRef={apiRef}
         autoHeight
         checkboxSelection={canReleaseTabulation}
         columns={columns}
@@ -206,7 +220,7 @@ export const EventsDataGrid = ({
         }}
       />
       <Snackbar
-        anchorOrigin={{ horizontal: "center", vertical: "bottom" }}
+        anchorOrigin={{ horizontal: "center", vertical: "top" }}
         autoHideDuration={feedback?.severity === "success" ? 4000 : null}
         onClose={clearFeedback}
         open={feedback !== null}

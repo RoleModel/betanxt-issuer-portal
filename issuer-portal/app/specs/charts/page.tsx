@@ -32,17 +32,14 @@ import type {
 import {
   AFFECTED_GROUPS,
   SCREEN_LINKS,
-} from "@/app/specs/mailing-thumbnails/affected-files";
-import { CODE_SAMPLES } from "@/app/specs/mailing-thumbnails/code-samples";
+} from "@/app/specs/charts/affected-files";
+import { CODE_SAMPLES } from "@/app/specs/charts/code-samples";
 import {
   buildManifest,
   collectAffectedSources,
-} from "@/app/specs/mailing-thumbnails/collect-sources";
-import {
-  SPEC_META,
-  SPEC_SECTIONS,
-} from "@/app/specs/mailing-thumbnails/requirements";
-import { buildSpecMarkdown } from "@/app/specs/mailing-thumbnails/to-markdown";
+} from "@/app/specs/charts/collect-sources";
+import { SPEC_META, SPEC_SECTIONS } from "@/app/specs/charts/requirements";
+import { buildSpecMarkdown } from "@/app/specs/charts/to-markdown";
 import { buildJiraTicket } from "@/app/specs/ui-enhancements/to-jira";
 import { downloadTextFile } from "@/components/Specs/download";
 import { SpecCodeViewer } from "@/components/Specs/SpecCodeViewer";
@@ -331,8 +328,14 @@ const CodeBlock = ({ sample }: { readonly sample: CodeSample }) => (
     <Stack
       direction="row"
       spacing={0.5}
-      sx={{ alignItems: "center", flexWrap: "wrap", mt: 1 }}
+      sx={{ display: "none", flexWrap: "wrap", mt: 1 }}
     >
+      <Chip
+        color={sample.asBuilt === true ? "default" : "primary"}
+        label={sample.asBuilt === true ? "As built" : "As built + change"}
+        size="small"
+        variant="outlined"
+      />
       {(SCREEN_LINKS[sample.filename] ?? []).map((screen) => (
         <Chip
           clickable
@@ -509,8 +512,8 @@ const SpecSectionBlock = ({ section }: { readonly section: SpecSection }) => {
   );
 };
 
-/** Requirements package for the mailing preview thumbnails. */
-const MailingThumbnailsSpecPage = () => {
+/** Requirements package for the charts directory and the display control. */
+const ChartsSpecPage = () => {
   const [downloaded, setDownloaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [missingCount, setMissingCount] = useState(0);
@@ -522,24 +525,21 @@ const MailingThumbnailsSpecPage = () => {
       .then(({ entries, missing }) => {
         const generatedOn = new Date().toISOString().slice(0, 10);
 
-        downloadZip(
-          `issuer-portal-mailing-thumbnails-v${SPEC_META.version}.zip`,
-          [
-            {
-              contents: buildManifest(missing, CODE_SAMPLES.length),
-              path: "README.md",
-            },
-            {
-              contents: buildSpecMarkdown(generatedOn),
-              path: "REQUIREMENTS.md",
-            },
-            ...entries,
-            ...CODE_SAMPLES.map((sample) => ({
-              contents: sample.code,
-              path: `reference/${sample.filename}`,
-            })),
-          ]
-        );
+        downloadZip(`issuer-portal-charts-v${SPEC_META.version}.zip`, [
+          {
+            contents: buildManifest(missing, CODE_SAMPLES.length),
+            path: "README.md",
+          },
+          {
+            contents: buildSpecMarkdown(generatedOn),
+            path: "REQUIREMENTS.md",
+          },
+          ...entries,
+          ...CODE_SAMPLES.map((sample) => ({
+            contents: sample.code,
+            path: `reference/${sample.filename}`,
+          })),
+        ]);
         setMissingCount(missing.length);
         setDownloaded(true);
       })
@@ -552,7 +552,7 @@ const MailingThumbnailsSpecPage = () => {
     const generatedOn = new Date().toISOString().slice(0, 10);
 
     downloadTextFile(
-      `issuer-portal-mailing-thumbnails-v${SPEC_META.version}.md`,
+      `issuer-portal-charts-v${SPEC_META.version}.md`,
       buildSpecMarkdown(generatedOn)
     );
     setDownloaded(true);
@@ -640,4 +640,4 @@ const MailingThumbnailsSpecPage = () => {
   );
 };
 
-export default MailingThumbnailsSpecPage;
+export default ChartsSpecPage;

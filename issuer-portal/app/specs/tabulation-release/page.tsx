@@ -32,17 +32,17 @@ import type {
 import {
   AFFECTED_GROUPS,
   SCREEN_LINKS,
-} from "@/app/specs/mailing-thumbnails/affected-files";
-import { CODE_SAMPLES } from "@/app/specs/mailing-thumbnails/code-samples";
+} from "@/app/specs/tabulation-release/affected-files";
+import { CODE_SAMPLES } from "@/app/specs/tabulation-release/code-samples";
 import {
   buildManifest,
   collectAffectedSources,
-} from "@/app/specs/mailing-thumbnails/collect-sources";
+} from "@/app/specs/tabulation-release/collect-sources";
 import {
   SPEC_META,
   SPEC_SECTIONS,
-} from "@/app/specs/mailing-thumbnails/requirements";
-import { buildSpecMarkdown } from "@/app/specs/mailing-thumbnails/to-markdown";
+} from "@/app/specs/tabulation-release/requirements";
+import { buildSpecMarkdown } from "@/app/specs/tabulation-release/to-markdown";
 import { buildJiraTicket } from "@/app/specs/ui-enhancements/to-jira";
 import { downloadTextFile } from "@/components/Specs/download";
 import { SpecCodeViewer } from "@/components/Specs/SpecCodeViewer";
@@ -509,8 +509,8 @@ const SpecSectionBlock = ({ section }: { readonly section: SpecSection }) => {
   );
 };
 
-/** Requirements package for the mailing preview thumbnails. */
-const MailingThumbnailsSpecPage = () => {
+/** Requirements package for the CSM tabulation release. */
+const TabulationReleaseSpecPage = () => {
   const [downloaded, setDownloaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [missingCount, setMissingCount] = useState(0);
@@ -523,7 +523,7 @@ const MailingThumbnailsSpecPage = () => {
         const generatedOn = new Date().toISOString().slice(0, 10);
 
         downloadZip(
-          `issuer-portal-mailing-thumbnails-v${SPEC_META.version}.zip`,
+          `issuer-portal-tabulation-release-v${SPEC_META.version}.zip`,
           [
             {
               contents: buildManifest(missing, CODE_SAMPLES.length),
@@ -552,7 +552,7 @@ const MailingThumbnailsSpecPage = () => {
     const generatedOn = new Date().toISOString().slice(0, 10);
 
     downloadTextFile(
-      `issuer-portal-mailing-thumbnails-v${SPEC_META.version}.md`,
+      `issuer-portal-tabulation-release-v${SPEC_META.version}.md`,
       buildSpecMarkdown(generatedOn)
     );
     setDownloaded(true);
@@ -640,4 +640,4 @@ const MailingThumbnailsSpecPage = () => {
   );
 };
 
-export default MailingThumbnailsSpecPage;
+export default TabulationReleaseSpecPage;

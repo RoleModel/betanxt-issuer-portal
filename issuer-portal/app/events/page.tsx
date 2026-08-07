@@ -68,7 +68,10 @@ const EventsPage = () => {
         />
         <CardContent sx={{ pt: 0 }}>
           {error !== null && <Alert severity="error">{error}</Alert>}
-          <Box sx={{ display: "flex", maxHeight: 1280, width: "100%" }}>
+          {/* No max height: the grid uses `autoHeight`, so it sizes itself to
+              the page's rows and never scrolls internally. Any cap here clips
+              the rows past it instead — a full page of 25 needs ~1456px. */}
+          <Box sx={{ display: "flex", width: "100%" }}>
             <EventsDataGrid
               assignedTickers={assignedTickers}
               assignedTickersKey={assignedTickersKey}
