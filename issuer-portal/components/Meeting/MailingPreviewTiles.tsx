@@ -1,8 +1,7 @@
 "use client";
 
 import { MailOutlineOutlined } from "@mui/icons-material";
-import { Box, Skeleton, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import { Box, Skeleton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
@@ -18,7 +17,9 @@ import { brandConfigs } from "@/utils/brandConfig";
 // tile page's initial bundle.
 const DocumentViewer = dynamic(
   async () => await import("@/components/Documents/DocumentViewer"),
-  { ssr: false }
+  {
+    ssr: false,
+  }
 );
 
 /** Mock-api base, matching the rest of the app's hooks. */
@@ -27,6 +28,39 @@ const apiBase =
 
 /** Width, in px, of the single NAA / Electronic preview thumbnail. */
 const thumbnailWidth = 60;
+
+/**
+ * Display width of one Full Set piece. Below sm the pieces stack under the
+ * tile's count and label rather than fanning along its right edge, so they
+ * shrink to a width that fits three to a row on a phone.
+ */
+const fullSetPieceWidth = { xs: 84, sm: 120 } as const;
+
+/** Displayed width of a preview once the tiles lay out side by side. */
+const overlayThumbnailWidth = fullSetPieceWidth.sm;
+
+/** How far each fanned Full Set piece is stepped past the one before it. */
+const fanStep = 110;
+
+/** Gap between tiles, in px — `theme.spacing(2)`, needed here as a number. */
+const tileGap = 16;
+
+/**
+ * Room a tile's count and label need beside its previews. This is the least
+ * they can live with, not a comfortable width: flex wraps a row by comparing
+ * flex-basis totals, before flex-shrink gets a say, so an inflated figure here
+ * drops a tile to the next row while there is still space for it.
+ */
+const labelColumnWidth = 112;
+
+/**
+ * Pieces the tile previews. A package can run to five or more, but a fan that long forces Full Set on to a row of its own and strands its count far from its thumbnails, so the tile shows the first few and leaves the rest to the mailing materials list.
+ */
+const maxPreviewedPieces = 3;
+
+/** Width the fan spans once `pieceCount` pieces are stepped across it. */
+const fanWidth = (pieceCount: number): number =>
+  overlayThumbnailWidth + Math.max(0, pieceCount - 1) * fanStep;
 
 interface ActivePreview {
   readonly title: string;
@@ -174,12 +208,14 @@ interface MailingPreviewTilesProps {
 
 /**
  * The three Primary Mailing Summary tiles (Full Set, NAA, Electronic). NAA and
- * Electronic each carry exactly one clickable thumbnail of what was mailed.
- * Full Set is a package of pieces — typically 3–5, varying by event — so its
- * tile lays out one labelled thumbnail per piece in a wrap grid, and the
- * summary grid responds to the count: an even third for one piece, half the
- * row for two or three, the whole row for four or more. Clicking any
- * thumbnail opens the document viewer for a full-size preview.
+ * Electronic each carry exactly one clickable thumbnail of what was mailed,
+ * held at the tile's right edge. Full Set is a package: a proxy card, proxy
+ * statement, annual report and so on, with issuers free to add to it, so the
+ * count is fluid and the tile fans the first {@link maxPreviewedPieces} of
+ * them. Clicking any thumbnail opens the document viewer at full size.
+ *
+ * The row itself takes one of three shapes, chosen by the width of the card
+ * the tiles sit in — see the container queries below.
  */
 const MailingPreviewTiles = ({
   loading,
@@ -231,7 +267,11 @@ const MailingPreviewTiles = ({
   );
 
   const fullSetItems = useMemo(
-    () => toFullSetItems(pieceManifest, ticker, fullSetUrl),
+    () =>
+      toFullSetItems(pieceManifest, ticker, fullSetUrl).slice(
+        0,
+        maxPreviewedPieces
+      ),
     [pieceManifest, ticker, fullSetUrl]
   );
 
@@ -279,27 +319,29 @@ const MailingPreviewTiles = ({
       subtitle: "Full Set",
       value: fullSetPositions,
       thumbnail: (
-        // One labelled thumbnail per piece in a wrap grid: the pieces flow
-        // and wrap at their natural size, so any count reads without
-        // overlapping each other or the tile's value.
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "flex-end",
-            columnGap: 1.5,
-            rowGap: 1,
-          }}
-        >
-          {fullSetItems.map((item) => (
+        <>
+          {fullSetItems.map((item, index) => (
             <Box
               key={item.key}
+              className="feature-tile-thumbnail"
               sx={{
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
-                gap: 0.5,
-                width: 72,
+                justifyContent: "flex-end",
+                zIndex: 0,
+                // From sm up the pieces fan along the tile's right edge, each
+                // overlapping and stepping down from the one before it. Below
+                // sm the tile is too narrow to spread them — the tail of the
+                // fan lands outside the card — so they leave the overlay and
+                // stack below the count and label as a wrapping row instead.
+                flex: { xs: "0 0 auto", sm: "1 0 50%" },
+                pr: { sm: 2 },
+                position: { xs: "relative", sm: "absolute" },
+                right: { sm: `${index * fanStep}px` },
+                top: { sm: `${10 + index * 5}px` },
+                "& > .MuiBox-root": {
+                  width: fullSetPieceWidth,
+                },
               }}
             >
               <DocumentThumbnail
@@ -309,23 +351,9 @@ const MailingPreviewTiles = ({
                   openPdf(`Full Set — ${item.label}`, item.fileUrl);
                 }}
               />
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                align="center"
-                sx={{
-                  lineHeight: 1.2,
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                }}
-              >
-                {item.label}
-              </Typography>
             </Box>
           ))}
-        </Box>
+        </>
       ),
     },
     {
@@ -361,34 +389,65 @@ const MailingPreviewTiles = ({
     },
   ];
 
+  // Each tile asks for the width its previews actually need: Full Set for its
+  // whole fan — a 140px piece, each one after it stepped 120px further along —
+  // and NAA and Electronic for a single 140px preview, all on top of a column
+  // for the count and label. A twelfth-based grid could not express that, and
+  // rounding Full Set up to a whole row left its count stranded a long way
+  // from its fan.
+  const fullSetBasis = labelColumnWidth + fanWidth(fullSetItems.length);
+  const singleBasis = labelColumnWidth + overlayThumbnailWidth;
+
+  // The row has three shapes, and which one applies depends on the width of
+  // the card the tiles sit in rather than of the window — the meeting sidebar
+  // takes a share of the window that the tiles never see. Narrowest: a tile
+  // per row. Then Full Set across the top with NAA and Electronic paired
+  // beneath it. Widest: all three on one line. Letting flex wrap decide
+  // instead would stop halfway, pairing Full Set with NAA and stranding
+  // Electronic alone on a row wide enough to push its count and its preview
+  // to opposite ends of an empty card.
+  const pairedWidth = 2 * singleBasis + tileGap;
+  const oneRowWidth = fullSetBasis + 2 * singleBasis + 2 * tileGap;
+
   return (
     <>
-      <Grid container spacing={2}>
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "stretch",
+          gap: `${tileGap}px`,
+          containerType: "inline-size",
+        }}
+      >
         {tiles.map((tile) => {
           const isFullSet = tile.key === "full-set";
-          // The grid responds to the piece count: a lone piece shares the
-          // row evenly, two or three widen Full Set to half the row, four or
-          // more give it the whole row with NAA and Electronic beneath.
-          const pieceCount = fullSetItems.length;
-          const fullRow = pieceCount >= 4;
-          const mdSize = isFullSet
-            ? fullRow
-              ? 12
-              : pieceCount >= 2
-                ? 6
-                : 4
-            : fullRow
-              ? 6
-              : pieceCount >= 2
-                ? 3
-                : 4;
+          const basis = isFullSet ? fullSetBasis : singleBasis;
 
           return (
-            <Grid key={tile.key} size={{ xs: 12, md: mdSize }}>
+            <Box
+              key={tile.key}
+              sx={{
+                display: "flex",
+                minWidth: 0,
+                flexGrow: basis,
+                flexShrink: 1,
+                flexBasis: "100%",
+                [`@container (min-width: ${pairedWidth}px)`]: {
+                  flexBasis: isFullSet
+                    ? "100%"
+                    : `calc(50% - ${tileGap / 2}px)`,
+                },
+                [`@container (min-width: ${oneRowWidth}px)`]: {
+                  flexBasis: `${basis}px`,
+                },
+              }}
+            >
               {loading ? (
-                <Skeleton variant="rounded" height={80} />
+                <Skeleton variant="rounded" height={80} sx={{ flexGrow: 1 }} />
               ) : (
                 <FeatureTile
+                  flex
                   height="auto"
                   variant="base"
                   title={formatNumber(tile.value)}
@@ -397,10 +456,10 @@ const MailingPreviewTiles = ({
                   thumbnailLayout={isFullSet ? "flow" : "overlay"}
                 />
               )}
-            </Grid>
+            </Box>
           );
         })}
-      </Grid>
+      </Box>
 
       <DocumentViewer
         open={activePreview !== null}

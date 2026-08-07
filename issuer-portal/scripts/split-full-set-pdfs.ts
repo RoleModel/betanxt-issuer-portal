@@ -62,6 +62,13 @@ const PIECES: readonly PieceRange[] = [
  * filing: cover and letter, notice, proxy statement, the annual review
  * section, then the Form 10-K — five pieces, exercising the grid's
  * widest layout.
+ *
+ * A piece's first page is the one the Mailing tab thumbnails, so the
+ * boundaries below are set to open each piece on a page that identifies it.
+ * The three-page table of contents (pages 7–9 of the filing, with a blank on
+ * 10) rides with the notice for that reason: left at the head of the proxy
+ * statement it made two of the five pieces thumbnail as a wall of contents
+ * entries, indistinguishable from each other.
  */
 const REAL_PACKAGE_PIECES: Readonly<Record<string, readonly PieceRange[]>> = {
   WEN: [
@@ -75,12 +82,12 @@ const REAL_PACKAGE_PIECES: Readonly<Record<string, readonly PieceRange[]>> = {
       file: "notice.pdf",
       label: "Notice of Annual Meeting",
       firstPage: 4,
-      lastPage: 5,
+      lastPage: 9,
     },
     {
       file: "proxy-statement.pdf",
       label: "Proxy Statement",
-      firstPage: 6,
+      firstPage: 10,
       lastPage: 159,
     },
     {

@@ -184,9 +184,14 @@ export const FeatureTile = ({
       }
     >
       <Box
+        className="feature-tile-content"
         sx={{
           display: "flex",
-          flexDirection: "row",
+          // A single preview stays beside the title at every width. Only the
+          // flow slot, which may hold several previews, drops beneath it on a
+          // narrow tile — there is no room to line them up next to the title.
+          flexDirection:
+            thumbnailLayout === "flow" ? { xs: "column", sm: "row" } : "row",
           alignItems: "stretch",
           flexGrow: 1,
           minWidth: 0,
@@ -203,6 +208,7 @@ export const FeatureTile = ({
             flexDirection: "column",
             justifyContent: "flex-end",
             gap: 0.25,
+            zIndex: 0,
           }}
         >
           {icon != null && (
@@ -300,28 +306,44 @@ export const FeatureTile = ({
         </Box>
         {thumbnail != null && (
           <Box
+            className="feature-tile-thumbnail-container"
             sx={
               thumbnailLayout === "overlay"
                 ? {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "flex-end",
+                    // A lone preview holds the tile's right edge at every
+                    // width — even a phone-width tile has room for it beside
+                    // the count, so it never needs to stack.
                     flex: "1 0 200px",
                     pr: 2,
-                    position: "relative",
+                    position: "absolute",
+                    right: 20,
+                    top: 20,
                     "& > .MuiBox-root": {
-                      width: 140,
+                      width: { xs: 120, sm: 140 },
+                      // Keep the preview positioned: this rule outranks its
+                      // own `position`, and a static preview would let
+                      // anything it places absolutely — a fallback icon, say —
+                      // escape its frame and land on the card.
                       position: "absolute",
-                      right: 20,
+                      right: 0,
                       top: 0,
                     },
                   }
                 : {
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "flex-end",
-                    flex: "0 1 auto",
+                    justifyContent: { xs: "flex-start", sm: "flex-end" },
+                    // The flow slot's previews are absolute from sm up, which
+                    // makes the wrap and gap inert there; below sm they are in
+                    // normal flow and wrap onto as many rows as they need.
+                    flexWrap: "wrap",
+                    gap: 1,
+                    flex: { xs: "0 0 auto", sm: "1 1 auto" },
                     minWidth: 0,
+                    pl: { xs: 2, sm: 0 },
                     pr: 2,
                     pt: 2,
                   }
