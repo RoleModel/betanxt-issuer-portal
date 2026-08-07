@@ -51,16 +51,24 @@ interface PieceManifest {
   readonly pieces: readonly { readonly file: string; readonly label: string }[];
 }
 
+const isManifestPiece = (
+  value: unknown
+): value is { file: string; label: string } =>
+  typeof value === "object" &&
+  value !== null &&
+  "file" in value &&
+  typeof value.file === "string" &&
+  "label" in value &&
+  typeof value.label === "string";
+
 const isPieceManifest = (value: unknown): value is PieceManifest => {
-  if (typeof value !== "object" || value === null) return false;
-  const { pieces } = value as { pieces?: unknown };
+  if (typeof value !== "object" || value === null || !("pieces" in value)) {
+    return false;
+  }
+  const { pieces } = value;
   return (
     Array.isArray(pieces) &&
-    pieces.every((piece) => {
-      if (typeof piece !== "object" || piece === null) return false;
-      const { file, label } = piece as { file?: unknown; label?: unknown };
-      return typeof file === "string" && typeof label === "string";
-    })
+    pieces.every((piece: unknown) => isManifestPiece(piece))
   );
 };
 
