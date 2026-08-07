@@ -168,7 +168,7 @@ interface DocumentViewerProps {
 const Transition = React.forwardRef(
   (
     props: TransitionProps & {
-      readonly children: React.ReactElement<unknown>;
+      readonly children: React.ReactElement;
     },
     ref: React.Ref<unknown>
   ) => {

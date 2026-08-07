@@ -36,7 +36,6 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const fetchFeatureFlags = async (
   ticker: string | null
 ): Promise<FeatureFlags> => {
-  // eslint-disable-next-line compat/compat -- This client hook runs only in browsers supported by Next.js.
   const response = await fetch("/api/feature-flags", {
     headers:
       ticker !== null && ticker.length > 0

@@ -16,7 +16,7 @@ import { useVotingTabulation } from "@/hooks/use-voting-tabulation";
 
 // Keys match the literal column headers a proxy-agenda spreadsheet upload
 // uses, not code identifiers — they can't be renamed to camelCase.
-/* eslint-disable @typescript-eslint/naming-convention */
+
 interface ExcelRow {
   "Proposal Number"?: string | number;
   Number?: string | number;
@@ -30,7 +30,6 @@ interface ExcelRow {
   Director?: string;
   Recommendation?: string;
 }
-/* eslint-enable @typescript-eslint/naming-convention */
 
 interface ParsedProposal {
   proposalNumber: number;

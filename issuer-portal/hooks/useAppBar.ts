@@ -135,20 +135,18 @@ const hasCsrfToken = (value: unknown): value is { csrfToken: string } =>
   typeof value.csrfToken === "string";
 
 const requestSignOut = async (): Promise<void> => {
-  // eslint-disable-next-line compat/compat -- Opera Mini is not a target; fetch is available in every browser this app supports.
   const csrfResponse = await fetch("/api/auth/csrf");
   if (!csrfResponse.ok) {
     throw new Error(`Request failed: ${csrfResponse.status}`);
   }
   const payload: unknown = await csrfResponse.json();
   const csrfToken = hasCsrfToken(payload) ? payload.csrfToken : "";
-  /* eslint-disable compat/compat -- Opera Mini is not a target; fetch/URLSearchParams are available in every supported browser. */
+
   await fetch("/api/auth/signout", {
     body: new URLSearchParams({ csrfToken }),
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     method: "POST",
   });
-  /* eslint-enable compat/compat */
 };
 
 // The internal developer account (bypass/test login). The dev overlay toggle is

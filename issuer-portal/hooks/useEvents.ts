@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-return */
 /* eslint-disable consistent-return */
-/* eslint-disable compat/compat */
+
 /* eslint-disable no-plusplus */
 /* eslint-disable sonarjs/no-inconsistent-returns */
 /* eslint-disable unicorn/no-declarations-before-early-exit */

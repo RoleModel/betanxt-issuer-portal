@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/no-top-level-assignment-in-function */
-/* eslint-disable compat/compat */
+
 /* eslint-disable func-style -- Next.js route handlers must be exported function declarations named GET/POST/etc. */
-/* eslint-disable @typescript-eslint/naming-convention -- Next.js requires the `GET` handler name; module constants use SCREAMING_CASE. */
+
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";

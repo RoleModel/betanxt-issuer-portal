@@ -4,7 +4,7 @@
 /* eslint-disable unicorn/no-for-each */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable unused-imports/no-unused-vars */
-/* eslint-disable @typescript-eslint/naming-convention */
+
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable sonarjs/expression-complexity */
 /* eslint-disable unicorn/no-computed-property-existence-check */
@@ -13,7 +13,7 @@
 /* eslint-disable unicorn/no-unused-properties */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 /* eslint-disable unicorn/try-complexity */
-/* eslint-disable compat/compat */
+
 /* eslint-disable promise/avoid-new */
 /* eslint-disable @typescript-eslint/member-ordering */
 import { createReadStream } from "node:fs";
