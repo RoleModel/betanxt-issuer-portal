@@ -98,11 +98,11 @@ async function splitClient(ticker: string): Promise<"split" | "skipped"> {
     return "skipped";
   }
 
-  const packageDoc = await PDFDocument.load(fs.readFileSync(packagePath));
+  const packageDocument = await PDFDocument.load(fs.readFileSync(packagePath));
   const overridePieces = REAL_PACKAGE_PIECES[ticker];
   if (
     overridePieces === undefined &&
-    packageDoc.getPageCount() !== GENERATED_PAGE_COUNT
+    packageDocument.getPageCount() !== GENERATED_PAGE_COUNT
   ) {
     return "skipped";
   }
@@ -112,18 +112,18 @@ async function splitClient(ticker: string): Promise<"split" | "skipped"> {
 
   const manifest: ManifestPiece[] = [];
   for (const piece of overridePieces ?? PIECES) {
-    const pieceDoc = await PDFDocument.create();
+    const pieceDocument = await PDFDocument.create();
     const pageIndexes = Array.from(
       { length: piece.lastPage - piece.firstPage + 1 },
       (unused, offset) => piece.firstPage + offset
     );
-    const pages = await pieceDoc.copyPages(packageDoc, pageIndexes);
+    const pages = await pieceDocument.copyPages(packageDocument, pageIndexes);
     for (const page of pages) {
-      pieceDoc.addPage(page);
+      pieceDocument.addPage(page);
     }
     fs.writeFileSync(
       path.join(pieceDir, piece.file),
-      await pieceDoc.save({ useObjectStreams: true })
+      await pieceDocument.save({ useObjectStreams: true })
     );
     manifest.push({ file: piece.file, label: piece.label });
   }
@@ -140,7 +140,9 @@ async function main(): Promise<void> {
   let skipped = 0;
 
   for (const entry of fs.readdirSync(outRoot, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
+    if (!entry.isDirectory()) {
+      continue;
+    }
     const result = await splitClient(entry.name);
     if (result === "split") {
       split++;

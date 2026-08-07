@@ -9,11 +9,15 @@ import {
   Container,
   Grid,
   TextField,
+  Typography,
 } from "@mui/material";
 import { BNTypographyPair } from "@rolemodel/betanxt-design-system/components/BNTypographyPair";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
+import PasswordChangeSection, {
+  isSecurePassword,
+} from "@/components/Profile/PasswordChangeSection";
 import ProfilePhotoModal from "@/components/Profile/ProfilePhotoModal";
 import EditAvatarButton from "@/components/ui/EditAvatarButton";
 
@@ -22,6 +26,8 @@ const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [changePassword, setChangePassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -63,10 +69,28 @@ const ProfilePage = () => {
       setFormData((prev) => ({ ...prev, [field]: event.target.value }));
     };
 
+  // The legacy portal's confirmed-password gate: while a password change is
+  // in progress, Save waits for a rule-satisfying password typed twice.
+  const passwordBlocksSave =
+    isEditing &&
+    changePassword &&
+    (!isSecurePassword(formData.password) ||
+      confirmPassword !== formData.password);
+
+  const handleChangePasswordToggle = (change: boolean) => {
+    setChangePassword(change);
+    if (!change) {
+      setFormData((prev) => ({ ...prev, password: "" }));
+      setConfirmPassword("");
+    }
+  };
+
   const handleToggleEdit = () => {
     if (isEditing) {
       // Save logic would go here - in a real app this would call an API
       // For now, just toggle back to view mode
+      setChangePassword(false);
+      setConfirmPassword("");
     }
     setIsEditing(!isEditing);
   };
@@ -82,6 +106,8 @@ const ProfilePage = () => {
         password: "",
       });
     }
+    setChangePassword(false);
+    setConfirmPassword("");
     setIsEditing(false);
   };
 
@@ -190,8 +216,8 @@ const ProfilePage = () => {
                 />
               )}
             </Grid>
-            <Grid size={{ sm: 12, md: 6 }}>
-              {!isEditing ? (
+            {!isEditing && (
+              <Grid size={{ sm: 12, md: 6 }}>
                 <BNTypographyPair
                   primary={{
                     text: "Password",
@@ -203,20 +229,29 @@ const ProfilePage = () => {
                     variant: "body2",
                   }}
                 />
-              ) : (
-                <TextField
-                  label="Password"
-                  value={formData.password}
-                  onChange={handleInputChange("password")}
-                  fullWidth
-                  type="password"
-                  autoComplete="new-password"
-                  margin="dense"
-                  disabled={!isEditing}
-                  placeholder={isEditing ? "Enter new password" : "••••••••"}
+              </Grid>
+            )}
+            {isEditing && (
+              <Grid size={12}>
+                <PasswordChangeSection
+                  changePassword={changePassword}
+                  onChangePasswordToggle={handleChangePasswordToggle}
+                  password={formData.password}
+                  onPasswordChange={(password) => {
+                    setFormData((prev) => ({ ...prev, password }));
+                  }}
+                  confirmPassword={confirmPassword}
+                  onConfirmPasswordChange={setConfirmPassword}
                 />
-              )}
-            </Grid>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 1 }}
+                >
+                  Profile changes take effect the next time you sign in.
+                </Typography>
+              </Grid>
+            )}
           </Grid>
         </CardContent>
         <CardActions sx={{ gap: 1, p: 2 }}>
@@ -231,6 +266,7 @@ const ProfilePage = () => {
             variant="contained"
             color={isEditing ? "success" : "primary"}
             onClick={handleToggleEdit}
+            disabled={passwordBlocksSave}
           >
             {isEditing ? "Save Changes" : "Edit Profile"}
           </Button>

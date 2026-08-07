@@ -28,7 +28,7 @@ const previewThumbnails: SpecSection = {
     "Requirements for clickable thumbnail previews on the Primary Mailing Summary (Full Set, NAA, Electronic) so a client can see exactly what went out. Thumbnails are pulled from documents the operations team stores in the database — nothing is uploaded from the app.",
   background: [
     "The Mailing tab's Primary Mailing Summary shows three figures — Full Set, NAA, and Electronic. NAA and Electronic each carry exactly one small thumbnail of the document that figure counts, in the space to the right of the tile.",
-    "Full Set is different: it is a package of split pieces — typically 3–5, e.g. proxy card, proxy statement, annual report, 10-K — and which pieces it contains varies by event. Its tile therefore carries a grid of thumbnails, one per piece, that sizes to however many pieces the package holds. Pieces come from the meeting's documents in the database, falling back to the client's split static package.",
+    "Full Set is different: it is a package of split pieces — typically 3–5, e.g. proxy card, proxy statement, annual report, 10-K — and which pieces it contains varies by event. Its tile shows one full-size, labelled thumbnail per piece, and the summary grid itself reflows around the piece count so nothing shrinks. In production the pieces are the mailing materials the operations team stores in the database; the prototype stands that in with each client's split package manifest.",
     "The operations team stores mailing materials directly in the database, so the upload options previously planned for the primary and additional mailing sections are removed. Full Set applies only to the primary mailing job.",
     "An additional (follow-up) mailing job is its own row, and can mail more than one document — a supplement usually rides with a notice or card. A row with several documents shows its first thumbnail with a count badge and expands, mirroring the tabulation table's expandable rows, to a labelled thumbnail per document.",
     "Clicking any thumbnail opens the existing document viewer full-screen: the PDF viewer for printed pieces, the website (iframe) view for the Electronic email.",
@@ -37,14 +37,14 @@ const previewThumbnails: SpecSection = {
     {
       question: "Which figures get a thumbnail, and what each thumbnail shows.",
       answer: [
-        "NAA and Electronic always show exactly one thumbnail — the first page of the NAA PDF, and a scaled preview of the rendered email. Full Set shows one thumbnail per split piece directly on its tile, so the grid is dynamic on what the event mailed.",
+        "NAA and Electronic always show exactly one thumbnail — the first page of the NAA PDF, and a scaled preview of the rendered email. Full Set shows one labelled thumbnail per split piece directly on its tile, and the summary grid reflows so the tile grows with the piece count.",
       ],
       requirementIds: ["MTP-01", "MTP-02", "MTP-03", "MTP-07"],
     },
     {
       question: "Where the documents behind the thumbnails come from.",
       answer: [
-        "The database. The operations team stores mailing materials there, so thumbnails render from stored documents and no upload option appears on the primary or additional mailing sections. For clients without stored pieces, the split static package stands in.",
+        "The database — the operations team stores mailing materials there, so no upload option appears on the primary or additional mailing sections. The prototype stands the database in with each client's split package manifest.",
       ],
       requirementIds: ["MTP-07", "MTP-08"],
     },
@@ -200,18 +200,17 @@ const previewThumbnails: SpecSection = {
       ],
       title: "Full Set shows a dynamic grid of piece thumbnails",
       statement:
-        "The Full Set tile carries a grid of thumbnails, one per piece of the split package, wrapping fluidly so the grid sizes to whatever the package holds. Pieces come from the meeting's documents in the database, then the client's split static package (full-set/manifest.json), then the merged package as a single thumbnail.",
+        "The Full Set tile shows one full-size, labelled thumbnail per piece of the split package, and the Primary Mailing Summary grid reflows around the piece count: a single piece shares the row evenly with NAA and Electronic, two or three pieces give Full Set half the row, and four or more give it the whole row. Pieces come from the client's split package manifest — the prototype's stand-in for the mailing-materials records the operations team stores in the database — falling back to the merged package as a single thumbnail.",
       rationale:
-        "A full set is a variable package — typically 3–5 pieces depending on the event — so a fixed icon layout cannot represent it; the grid must size to what was actually mailed. Full Set applies only to the primary mailing job.",
+        "A full set is a variable package — typically 3–5 pieces depending on the event — so a fixed layout cannot represent it; the card itself must size to what was actually mailed, without shrinking the thumbnails. Full Set applies only to the primary mailing job.",
       evidence: [
         "components/Meeting/MailingPreviewTiles.tsx",
         "scripts/split-full-set-pdfs.ts",
       ],
       acceptance: [
-        "Given a meeting whose database documents include a proxy card, proxy statement, and annual report, when the tile renders, then those three pieces appear as thumbnails in mailing order, each named in its tooltip.",
-        "Given a client with a split 4-piece static package and no stored documents, when the tile renders, then all four pieces appear.",
-        "Given WEN, whose real filing splits into notice, proxy statement, and Form 10-K, when the tile renders, then exactly those three pieces appear.",
-        "Given a client with no stored pieces and no split package, when the tile renders, then the merged package appears as a single thumbnail.",
+        "Given WEN, whose real filing splits into notice, proxy statement, and Form 10-K, when the tile renders, then exactly those three labelled pieces appear and the Full Set tile takes half the row.",
+        "Given a client with a split 4-piece package, when the tile renders, then all four pieces appear at full thumbnail size and the Full Set tile takes the whole row.",
+        "Given a client with no split package, when the tile renders, then the merged package appears as a single thumbnail and the three tiles share the row evenly.",
         "Given a piece thumbnail, when a user clicks it, then that piece opens full-screen in the PDF viewer.",
       ],
     },
@@ -270,8 +269,8 @@ const previewThumbnails: SpecSection = {
         [
           "Full Set",
           "One per piece (typically 3–5)",
-          "Dynamic grid on the tile, one thumbnail per piece",
-          "Meeting documents in the database → split pieces in /mock-mailings/{TICKER}/full-set/ → merged full-set.pdf",
+          "Labelled thumbnails on a tile that grows with the piece count",
+          "Split pieces in /mock-mailings/{TICKER}/full-set/ (stand-in for DB mailing materials) → merged full-set.pdf",
         ],
         [
           "NAA",

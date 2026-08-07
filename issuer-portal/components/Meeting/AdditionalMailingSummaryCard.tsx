@@ -484,7 +484,7 @@ const AdditionalMailingSummaryCard: React.FC<
                           {/* Expanded detail row — one labelled thumbnail per
                               document in the job, like the tabulation table's
                               expandable rows. */}
-                          {expanded && (
+                          {expanded ? (
                             <TableRow>
                               <TableCell
                                 colSpan={5}
@@ -529,7 +529,7 @@ const AdditionalMailingSummaryCard: React.FC<
                                 </Box>
                               </TableCell>
                             </TableRow>
-                          )}
+                          ) : null}
                         </React.Fragment>
                       );
                     })}
