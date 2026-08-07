@@ -1,7 +1,7 @@
 "use client";
 
 import { MailOutlineOutlined } from "@mui/icons-material";
-import { Box, Skeleton, Typography } from "@mui/material";
+import { Box, Skeleton } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useTheme } from "@mui/material/styles";
 import dynamic from "next/dynamic";
@@ -25,8 +25,11 @@ const DocumentViewer = dynamic(
 const apiBase =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001/api";
 
-/** Width, in px, of every preview thumbnail. */
+/** Width, in px, of the single NAA / Electronic preview thumbnail. */
 const thumbnailWidth = 60;
+
+/** Render width, in px, of each piece thumbnail in the Full Set fan. */
+const pieceThumbnailWidth = 40;
 
 interface ActivePreview {
   readonly title: string;
@@ -176,10 +179,9 @@ interface MailingPreviewTilesProps {
  * The three Primary Mailing Summary tiles (Full Set, NAA, Electronic). NAA and
  * Electronic each carry exactly one clickable thumbnail of what was mailed.
  * Full Set is a package of pieces — typically 3–5, varying by event — so its
- * tile shows one labelled thumbnail per piece, and the summary grid itself
- * reflows around the piece count: an even third for a single piece, half the
- * row for two or three, the full row for four or more. Clicking any thumbnail
- * opens the document viewer for a full-size preview.
+ * tile fans one thumbnail per piece, and the tile widens to over half the row
+ * once the package holds more than two pieces. Clicking any thumbnail opens
+ * the document viewer for a full-size preview.
  */
 const MailingPreviewTiles = ({
   loading,
@@ -235,13 +237,6 @@ const MailingPreviewTiles = ({
     [pieceManifest, ticker, fullSetUrl]
   );
 
-  // The summary grid reflows around the Full Set piece count so thumbnails
-  // keep their full size: one piece shares the row evenly, two or three give
-  // Full Set half the row, four or more give it the whole row.
-  const pieceCount = fullSetItems.length;
-  const fullSetSpan = pieceCount >= 4 ? 12 : pieceCount >= 2 ? 6 : 4;
-  const otherSpan = pieceCount >= 4 ? 6 : pieceCount >= 2 ? 3 : 4;
-
   // Every client-identifying field must be overridden here — the preview
   // route's fixture defaults are Woodward's real notice copy, so any field
   // left unset would leak Woodward's legal name, proxy links, and contact
@@ -279,51 +274,52 @@ const MailingPreviewTiles = ({
     key: string;
     subtitle: string;
     value: number | null | undefined;
-    span: number;
     thumbnail: React.ReactNode;
   }[] = [
     {
       key: "full-set",
       subtitle: "Full Set",
       value: fullSetPositions,
-      span: fullSetSpan,
       thumbnail: (
-        // One labelled thumbnail per piece in the package, at full size —
-        // the tile's grid span above makes room for however many there are.
+        // One thumbnail per piece, fanned right-to-left in a fixed rhythm —
+        // each piece sits 104px further left, so the stack grows with the
+        // piece count while the tile's grid span makes room for it.
         <Box
           sx={{
             display: "flex",
             flexWrap: "wrap",
             justifyContent: "flex-end",
-            gap: 1.5,
+            gap: 0.75,
+            maxWidth: (pieceThumbnailWidth + 6) * 3,
+            zIndex: 5,
           }}
         >
-          {fullSetItems.map((item) => (
+          {fullSetItems.map((item, index) => (
             <Box
               key={item.key}
               sx={{
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
-                gap: 0.5,
-                width: 76,
+                justifyContent: "flex-end",
+                flex: "1 0 230px",
+                pr: 2,
+                position: "relative",
+                "& > .MuiBox-root": {
+                  width: 110,
+                  height: "fit-content",
+                  position: "absolute",
+                  right: `${index * 104}px`,
+                  top: 0,
+                },
               }}
             >
               <DocumentThumbnail
                 filePath={item.fileUrl}
-                width={thumbnailWidth}
+                width={pieceThumbnailWidth}
                 onClick={() => {
                   openPdf(`Full Set — ${item.label}`, item.fileUrl);
                 }}
               />
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                align="center"
-                sx={{ lineHeight: 1.2 }}
-              >
-                {item.label}
-              </Typography>
             </Box>
           ))}
         </Box>
@@ -333,7 +329,6 @@ const MailingPreviewTiles = ({
       key: "naa",
       subtitle: "NAA",
       value: naaPositions,
-      span: otherSpan,
       thumbnail: (
         <DocumentThumbnail
           filePath={naaUrl}
@@ -348,7 +343,6 @@ const MailingPreviewTiles = ({
       key: "electronic",
       subtitle: "Electronic",
       value: electronicPositions,
-      span: otherSpan,
       thumbnail: (
         <EmailThumbnail
           pngUrl={electronicPngUrl}
@@ -367,21 +361,26 @@ const MailingPreviewTiles = ({
   return (
     <>
       <Grid container spacing={2}>
-        {tiles.map((tile) => (
-          <Grid key={tile.key} size={{ xs: 12, md: tile.span }}>
-            {loading ? (
-              <Skeleton variant="rounded" height={80} />
-            ) : (
-              <FeatureTile
-                height="auto"
-                variant="base"
-                title={formatNumber(tile.value)}
-                subtitle={tile.subtitle}
-                thumbnail={tile.thumbnail}
-              />
-            )}
-          </Grid>
-        ))}
+        {tiles.map((tile) => {
+          const isFullSet = tile.key === "full-set";
+          const mdSize = isFullSet && fullSetItems.length > 2 ? 5.25 : 3.35;
+
+          return (
+            <Grid key={tile.key} size={{ xs: 12, md: mdSize }}>
+              {loading ? (
+                <Skeleton variant="rounded" height={80} />
+              ) : (
+                <FeatureTile
+                  height="auto"
+                  variant="base"
+                  title={formatNumber(tile.value)}
+                  subtitle={tile.subtitle}
+                  thumbnail={tile.thumbnail}
+                />
+              )}
+            </Grid>
+          );
+        })}
       </Grid>
 
       <DocumentViewer

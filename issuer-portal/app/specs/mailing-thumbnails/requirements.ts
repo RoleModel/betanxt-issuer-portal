@@ -200,7 +200,7 @@ const previewThumbnails: SpecSection = {
       ],
       title: "Full Set shows a dynamic grid of piece thumbnails",
       statement:
-        "The Full Set tile shows one full-size, labelled thumbnail per piece of the split package, and the Primary Mailing Summary grid reflows around the piece count: a single piece shares the row evenly with NAA and Electronic, two or three pieces give Full Set half the row, and four or more give it the whole row. Pieces come from the client's split package manifest — the prototype's stand-in for the mailing-materials records the operations team stores in the database — falling back to the merged package as a single thumbnail.",
+        "The Full Set tile fans one thumbnail per piece of the split package, each fanned a fixed step further left so the stack grows with the piece count, and the summary grid gives the Full Set tile over half the row once the package holds more than two pieces. Pieces come from the client's split package manifest — the prototype's stand-in for the mailing-materials records the operations team stores in the database — falling back to the merged package as a single thumbnail.",
       rationale:
         "A full set is a variable package — typically 3–5 pieces depending on the event — so a fixed layout cannot represent it; the card itself must size to what was actually mailed, without shrinking the thumbnails. Full Set applies only to the primary mailing job.",
       evidence: [
@@ -208,8 +208,8 @@ const previewThumbnails: SpecSection = {
         "scripts/split-full-set-pdfs.ts",
       ],
       acceptance: [
-        "Given WEN, whose real filing splits into letter, notice, proxy statement, annual review, and Form 10-K, when the tile renders, then all five labelled pieces appear at full thumbnail size and the Full Set tile takes the whole row.",
-        "Given a client with a split 2- or 3-piece package, when the tile renders, then the Full Set tile takes half the row with NAA and Electronic beside it.",
+        "Given WEN, whose real filing splits into letter, notice, proxy statement, annual review, and Form 10-K, when the tile renders, then all five pieces fan across the widened Full Set tile.",
+        "Given a client with a package of two pieces or fewer, when the tile renders, then the three tiles share the row evenly.",
         "Given a client with no split package, when the tile renders, then the merged package appears as a single thumbnail and the three tiles share the row evenly.",
         "Given a piece thumbnail, when a user clicks it, then that piece opens full-screen in the PDF viewer.",
       ],
