@@ -12,8 +12,8 @@ import {
 } from "@mui/material";
 import React, { useRef } from "react";
 
-import GlossaryText from "@/components/ui/GlossaryText";
 import { getPhaseColor } from "@/components/mui-styling/theme";
+import GlossaryText from "@/components/ui/GlossaryText";
 import {
   calculateDaysUntil,
   formatDaysUntil,
@@ -161,9 +161,9 @@ const KeyDatesCard: React.FC<KeyDatesCardProps> = ({
     transformedKeyDates.length > 0 ? transformedKeyDates : meetingKeyDates;
 
   return (
-    <Card>
+    <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <CardHeader title={<Typography variant="h3">Key Dates</Typography>} />
-      <CardContent sx={{ pt: 0 }}>
+      <CardContent sx={{ pt: 0, flex: 1 }}>
         <Box
           component="ul"
           ref={scrollContainerRef}

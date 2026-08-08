@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  Box,
   Container,
   LinearProgress,
   Paper,
+  Stack,
   Tab,
   Tabs,
   ToggleButtonGroup,
@@ -51,8 +51,15 @@ export const MeetingNavigationBar = ({
           }}
         />
       ) : null}
-      <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 }, py: 0 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Container
+        maxWidth="xl"
+        sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 1, sm: 0 } }}
+      >
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "start", sm: "center" }}
+          spacing={2}
+        >
           <Tabs
             value={activeTab}
             variant="scrollable"
@@ -66,6 +73,7 @@ export const MeetingNavigationBar = ({
               transition: "opacity 0.2s",
               flex: 1,
               minWidth: 0,
+              width: "100%",
             }}
           >
             {navigationTabs.map((tab) => {
@@ -112,39 +120,51 @@ export const MeetingNavigationBar = ({
               );
             })}
           </Tabs>
-          <Typography
-            variant="overline"
-            sx={{ color: "text.secondary", flexShrink: 0 }}
-          >
-            Display:
-          </Typography>
-          <ToggleButtonGroup
-            exclusive
-            aria-label="Tabulation display format"
-            size="small"
-            value={displayMode}
-            onChange={(event, nextDisplayMode: string | null) => {
-              void event;
-              if (
-                nextDisplayMode === "numbers" ||
-                nextDisplayMode === "percentages"
-              ) {
-                setDisplayMode(nextDisplayMode);
-              }
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="flex-end"
+            spacing={1}
+            sx={{
+              width: { xs: "100%", sm: "auto" },
+              px: { xs: 1, sm: 2, md: 0 },
+              pb: { xs: 1, sm: 0 },
             }}
-            sx={{ flexShrink: 0 }}
           >
-            <DisplayToggleButton
-              value="percentages"
-              aria-label="View as Percentages"
+            <Typography
+              variant="overline"
+              sx={{ color: "text.secondary", flexShrink: 0 }}
             >
-              Percentage
-            </DisplayToggleButton>
-            <DisplayToggleButton value="numbers" aria-label="View as Numbers">
-              Count
-            </DisplayToggleButton>
-          </ToggleButtonGroup>
-        </Box>
+              Display:
+            </Typography>
+            <ToggleButtonGroup
+              exclusive
+              aria-label="Tabulation display format"
+              size="small"
+              value={displayMode}
+              onChange={(event, nextDisplayMode: string | null) => {
+                void event;
+                if (
+                  nextDisplayMode === "numbers" ||
+                  nextDisplayMode === "percentages"
+                ) {
+                  setDisplayMode(nextDisplayMode);
+                }
+              }}
+              sx={{ flexShrink: 0 }}
+            >
+              <DisplayToggleButton
+                value="percentages"
+                aria-label="View as Percentages"
+              >
+                Percentage
+              </DisplayToggleButton>
+              <DisplayToggleButton value="numbers" aria-label="View as Numbers">
+                Count
+              </DisplayToggleButton>
+            </ToggleButtonGroup>
+          </Stack>
+        </Stack>
       </Container>
     </Paper>
   );

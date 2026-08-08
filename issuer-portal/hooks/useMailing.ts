@@ -2,8 +2,8 @@
 
 import { useCallback, useState } from "react";
 
-import type { components } from "@/domain-models/generated-schema";
 import { buildApiClient } from "@/domain-models/apiClient";
+import type { components } from "@/domain-models/generated-schema";
 
 type MailingType = components["schemas"]["Mailing"];
 

@@ -46,12 +46,12 @@ import { typography as baseTypography } from "@rolemodel/betanxt-design-system/t
 import betanxtTheme from "@rolemodel/betanxt-design-system/themes/betanxtTheme";
 import { createClientThemeOptions } from "@rolemodel/client-theming/theme";
 
-import { getBrandConfigByTicker } from "@/utils/brandConfig";
 import {
   createBrandPaletteColor,
   createDarkThemeColors,
   getMostLegibleText,
 } from "@/utils/brand-theme-colors";
+import { getBrandConfigByTicker } from "@/utils/brandConfig";
 import { clientBranding } from "@/utils/client-branding";
 import { generateChartPalette } from "@/utils/vote-chart-colors";
 

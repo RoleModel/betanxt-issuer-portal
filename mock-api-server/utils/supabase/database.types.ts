@@ -504,7 +504,7 @@ export type Database = {
           solicitor_email: string | null;
           status: string | null;
           tabulation_distribution: string | null;
-          tabulation_released: boolean;
+          tabulation_released: boolean | null;
           ticker: string | null;
           title: string | null;
           total_shares_outstanding: string | null;
@@ -544,7 +544,7 @@ export type Database = {
           solicitor_email?: string | null;
           status?: string | null;
           tabulation_distribution?: string | null;
-          tabulation_released?: boolean;
+          tabulation_released?: boolean | null;
           ticker?: string | null;
           title?: string | null;
           total_shares_outstanding?: string | null;
@@ -584,7 +584,7 @@ export type Database = {
           solicitor_email?: string | null;
           status?: string | null;
           tabulation_distribution?: string | null;
-          tabulation_released?: boolean;
+          tabulation_released?: boolean | null;
           ticker?: string | null;
           title?: string | null;
           total_shares_outstanding?: string | null;

@@ -101,5 +101,9 @@
   },
   "engines": {
     "node": "^24.0.0"
-  }
+  },
+  "browserslist": [
+    "defaults",
+    "not op_mini all"
+  ]
 }
