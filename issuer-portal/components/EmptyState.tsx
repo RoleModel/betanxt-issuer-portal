@@ -26,7 +26,7 @@ export const EmptyState = ({
   children,
 }: EmptyStateProps) => {
   return (
-    <Box sx={{ p: 1, width: "100%", height: "100%" }}>
+    <Box sx={{ width: "100%", height: "100%" }}>
       <Paper
         elevation={0}
         sx={{

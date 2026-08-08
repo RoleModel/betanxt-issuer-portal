@@ -82,7 +82,7 @@ const QuorumGaugeCard = ({
       />
       <CardContent sx={tabulationCardContentStartStyles}>
         {!isReleased ? (
-          <TabulationUnavailableEmptyState height={230} minHeight={150} />
+          <TabulationUnavailableEmptyState height="100%" minHeight={150} />
         ) : loading || !model ? (
           <Typography color="text.secondary">Loading quorum data...</Typography>
         ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import TimerClockIcon from "@rolemodel/betanxt-design-system/components/icons/brand/TimerClockIcon";
+import PieChart2Icon from "@rolemodel/betanxt-design-system/components/icons/brand/PieChart2Icon";
 
 import EmptyState from "@/components/EmptyState";
 
@@ -27,7 +27,7 @@ export const TabulationUnavailableEmptyState = ({
 }: TabulationUnavailableEmptyStateProps) => {
   return (
     <EmptyState
-      icon={<TimerClockIcon accentColor="var(--mui-palette-primary-main)" />}
+      icon={<PieChart2Icon accentColor="var(--mui-palette-primary-main)" />}
       minHeight={minHeight}
       height={height ?? "100%"}
       title={TabulationUnavailableMessage}

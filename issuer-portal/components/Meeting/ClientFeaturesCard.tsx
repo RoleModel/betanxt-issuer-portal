@@ -10,7 +10,7 @@ import {
   Stack,
 } from "@mui/material";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSWRConfig } from "swr";
 
 import { useClient } from "@/contexts/ClientContext";
@@ -68,45 +68,70 @@ export const ClientFeaturesCard = ({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const handleChipClick = async (feature: ClientFeatureKey): Promise<void> => {
-    if (saving) {
+  /**
+   * The set the user has asked for, which is not always the set on screen yet.
+   *
+   * @remarks
+   * Held in a ref so that clicking several chips in a row composes: reading the
+   * rendered value instead would let two clicks in the same frame both start
+   * from the same base, and the second would undo the first.
+   */
+  const desiredFeaturesRef = useRef<ClientFeatureKey[] | null>(null);
+  const savingRef = useRef(false);
+
+  /**
+   * Writes the latest requested set, coalescing anything asked for while a
+   * write is in flight.
+   *
+   * @remarks
+   * This used to return early whenever a save was running, which silently
+   * dropped every click after the first — enabling four features saved one and
+   * discarded three, with nothing to say so. Now a click always registers, and
+   * a write already underway picks up whatever arrived while it ran.
+   */
+  const persistFeatures = async (): Promise<void> => {
+    if (savingRef.current) {
       return;
     }
 
-    const previousFeatures = enabledFeatures;
-    const enabledFeatureSet = new Set(previousFeatures);
-    const nextFeatures = enabledFeatureSet.has(feature)
-      ? previousFeatures.filter((enabledFeature) => enabledFeature !== feature)
-      : [...previousFeatures, feature];
-
-    setPendingFeatures(nextFeatures);
+    savingRef.current = true;
     setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
 
     try {
       const apiClient = await buildApiClient();
-      const { response } = await apiClient.PUT("/clients/{ticker}", {
-        params: { path: { ticker: clientTicker } },
-        body: { enabledFeatures: nextFeatures },
-      });
 
-      if (response.ok !== true) {
-        setSaveError("Failed to save feature settings");
-        setPendingFeatures(null);
-        setSaving(false);
-        return;
+      while (desiredFeaturesRef.current !== null) {
+        const nextFeatures = desiredFeaturesRef.current;
+        desiredFeaturesRef.current = null;
+
+        const { response } = await apiClient.PUT("/clients/{ticker}", {
+          params: { path: { ticker: clientTicker } },
+          body: { enabledFeatures: nextFeatures },
+        });
+
+        if (response.ok !== true) {
+          setSaveError("Failed to save feature settings");
+          setPendingFeatures(null);
+          return;
+        }
       }
 
       // Refresh the client list so ticker-routed pages use the persisted
       // selection rather than the active global client from Edit Event.
-      void mutate(
+      await mutate(
         (key) => Array.isArray(key) && key[0] === "/clients",
         undefined,
         {
           revalidate: true,
         }
       );
+
+      // The optimistic set deliberately stays. Clearing it here hands the
+      // chips back to `savedFeatures`, and the revalidation above has not
+      // necessarily reached `availableClients` yet — so every chip snapped
+      // straight back to its old state the moment it saved.
       setSaveSuccess(true);
       setTimeout(() => {
         setSaveSuccess(false);
@@ -114,9 +139,21 @@ export const ClientFeaturesCard = ({
     } catch {
       setSaveError("Failed to save feature settings");
       setPendingFeatures(null);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
+  };
 
-    setSaving(false);
+  const handleChipClick = (feature: ClientFeatureKey): void => {
+    const base = desiredFeaturesRef.current ?? enabledFeatures;
+    const nextFeatures = base.includes(feature)
+      ? base.filter((enabledFeature) => enabledFeature !== feature)
+      : [...base, feature];
+
+    desiredFeaturesRef.current = nextFeatures;
+    setPendingFeatures(nextFeatures);
+    void persistFeatures();
   };
 
   if (!isCSM) {
