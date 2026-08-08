@@ -344,7 +344,7 @@ const ReportingPage = () => {
   const { points: quorumTimelinePoints, milestones: quorumTimelineMilestones } =
     useQuorumTimeline(quorumTimelineInput);
 
-  if (error !== null) {
+  if (error !== undefined) {
     return (
       <Container component="main" maxWidth="xl" sx={{ p: 3 }}>
         <Alert severity="error">{String(error)}</Alert>
