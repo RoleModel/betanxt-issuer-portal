@@ -12,13 +12,26 @@ import { useTheme } from "@mui/material/styles";
 import Link from "next/link";
 import React from "react";
 
-import { featureTileThumbnailWidth } from "@/components/featureTileMetrics";
 import GlossaryText from "@/components/ui/GlossaryText";
 
 interface FeatureTileProps {
   readonly title: string;
   readonly subtitle?: string;
   readonly description?: string | React.ReactNode;
+  /**
+   * Rendered as a second item of the tile's content row, beside the column
+   * holding the icon, title, subtitle and description.
+   *
+   * @remarks
+   * The tile styles none of it. It is a bare flex item, so a child sizes,
+   * positions and insets itself — the tile's card is the positioned ancestor,
+   * so a child is free to go absolute against it — and decides for itself
+   * whether it stays beside the text column or takes a line of its own by
+   * asking for a full basis. Anything the tile imposed here would be a guess
+   * about content it does not own, and the guess used to be wrong: a rule
+   * reaching into the child to fix its width meant the same preview was
+   * measured in three places at once.
+   */
   readonly children?: React.ReactNode;
   readonly actionText?: string;
   readonly icon?: React.ReactNode;
@@ -33,21 +46,6 @@ interface FeatureTileProps {
   readonly height?: string;
   readonly sx?: SxProps;
   readonly brandFont?: boolean;
-  /**
-   * Optional preview rendered to the right of the tile content. Used on the
-   * Mailing tab to show a thumbnail of exactly what went out (the generated
-   * Full Set / NAA PDF, or the Electronic email). The node owns its own click
-   * behaviour, so the caller decides what a click opens.
-   */
-  readonly thumbnail?: React.ReactNode;
-  /**
-   * How the thumbnail slot is laid out. "overlay" (the default) absolutely
-   * positions a single preview at a fixed width on the tile's right edge.
-   * "flow" keeps the slot in the flex flow at its natural size, so a
-   * container of several thumbnails can wrap without covering the tile's
-   * title and value.
-   */
-  readonly thumbnailLayout?: "overlay" | "flow";
   /**
    * Draws the tile's left edge in a palette colour, to mark it out from the
    * tiles beside it without filling it.
@@ -205,8 +203,6 @@ export const FeatureTile = ({
   href,
   sx,
   brandFont = false,
-  thumbnail,
-  thumbnailLayout = "overlay",
   accent,
   children,
 }: FeatureTileProps) => {
@@ -270,20 +266,20 @@ export const FeatureTile = ({
         className="feature-tile-content"
         sx={{
           display: "flex",
-          // A single preview stays beside the title at every width. Only the
-          // flow slot, which may hold several previews, drops beneath it on a
-          // narrow tile — there is no room to line them up next to the title.
-          flexDirection:
-            thumbnailLayout === "flow" ? { xs: "column", sm: "row" } : "row",
+          flexDirection: "row",
           alignItems: "stretch",
+          // Wraps so a child that asks for a full basis takes a line of its
+          // own beneath the text column. Whether it does is the child's call —
+          // the tile only leaves the option open. With no children there is a
+          // single item on the row and nothing to wrap.
+          flexWrap: "wrap",
           flexGrow: 1,
           minWidth: 0,
-          pb: thumbnail != null ? 2 : 0,
         }}
       >
         <Box
           sx={{
-            flexGrow: 1,
+            // flexGrow: 1,
             minWidth: 0,
             p: 2,
             pt: 3,
@@ -291,7 +287,7 @@ export const FeatureTile = ({
             flexDirection: "column",
             justifyContent: "flex-end",
             gap: 0.25,
-            zIndex: 0,
+            zIndex: 4,
           }}
         >
           {icon != null && (
@@ -335,10 +331,12 @@ export const FeatureTile = ({
                   : "var(--font-roboto-condensed)",
                 fontWeight: 500,
                 color: variantColors.color,
+                display: "inline",
               },
               (muiTheme) =>
                 muiTheme.applyStyles("dark", {
                   color: variantColors.colorDark,
+                  backgroundColor: variantColors.backgroundDark,
                 }),
             ]}
           >
@@ -390,56 +388,8 @@ export const FeatureTile = ({
             </Typography>
           ) : null}
         </Box>
-        {thumbnail != null && (
-          <Box
-            className="feature-tile-thumbnail-container"
-            sx={
-              thumbnailLayout === "overlay"
-                ? {
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    // A lone preview holds the tile's right edge at every
-                    // width — even a phone-width tile has room for it beside
-                    // the count, so it never needs to stack.
-                    flex: "1 0 200px",
-                    pr: 2,
-                    position: "absolute",
-                    right: 20,
-                    top: 20,
-                    "& > .MuiBox-root": {
-                      width: featureTileThumbnailWidth,
-                      // Keep the preview positioned: this rule outranks its
-                      // own `position`, and a static preview would let
-                      // anything it places absolutely — a fallback icon, say —
-                      // escape its frame and land on the card.
-                      position: "absolute",
-                      right: 0,
-                      top: 0,
-                    },
-                  }
-                : {
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: { xs: "flex-start", sm: "flex-end" },
-                    // The flow slot's previews are absolute from sm up, which
-                    // makes the wrap and gap inert there; below sm they are in
-                    // normal flow and wrap onto as many rows as they need.
-                    flexWrap: "wrap",
-                    gap: 1,
-                    flex: { xs: "0 0 auto", sm: "1 1 auto" },
-                    minWidth: 0,
-                    pl: { xs: 2, sm: 0 },
-                    pr: 2,
-                    pt: 2,
-                  }
-            }
-          >
-            {thumbnail}
-          </Box>
-        )}
+        {children}
       </Box>
-      {children}
     </Card>
   );
 

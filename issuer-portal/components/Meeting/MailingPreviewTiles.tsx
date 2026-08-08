@@ -4,25 +4,22 @@
 import Box from "@mui/material/Box";
 import Skeleton from "@mui/material/Skeleton";
 import { useTheme } from "@mui/material/styles";
-
 // third-party
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
 
 // project imports
 import FeatureTile from "@/components/FeatureTile";
 
 import EmailPreview from "./mailingPreviews/EmailPreview";
-import PiecePreview from "./mailingPreviews/PiecePreview";
 import {
-  fanRise,
-  fanStep,
-  fanTop,
-  previewWidth,
+  fanPiecePosition,
+  singlePreviewPosition,
   tileGap,
   tileMetrics,
 } from "./mailingPreviews/layout";
+import PiecePreview from "./mailingPreviews/PiecePreview";
 import { useMailingPreviews } from "./mailingPreviews/useMailingPreviews";
 
 // DocumentViewer is a large, modal-only component (pdf-lib, signature/upload
@@ -30,7 +27,9 @@ import { useMailingPreviews } from "./mailingPreviews/useMailingPreviews";
 // tile page's initial bundle.
 const DocumentViewer = dynamic(
   async () => await import("@/components/Documents/DocumentViewer"),
-  { ssr: false }
+  {
+    ssr: false,
+  }
 );
 
 /** The notice both the printed NAA and the Electronic email carry. */
@@ -113,27 +112,7 @@ const MailingPreviewTiles = ({
       thumbnail: (
         <>
           {fullSetPieces.map((piece, index) => (
-            <Box
-              key={piece.key}
-              className="feature-tile-thumbnail"
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                zIndex: 0,
-                // From sm up the pieces fan along the tile's right edge, each
-                // overlapping and stepping down from the one before it. Below
-                // sm the tile is too narrow to spread them — the tail of the
-                // fan lands outside the card — so they leave the overlay and
-                // stack below the count and label as a wrapping row instead.
-                flex: { xs: "0 0 auto", sm: "1 0 50%" },
-                pr: { sm: 2 },
-                position: { xs: "relative", sm: "absolute" },
-                right: { sm: `${index * fanStep}px` },
-                top: { sm: `${fanTop + index * fanRise}px` },
-                "& > .MuiBox-root": { width: previewWidth },
-              }}
-            >
+            <Box key={piece.key} sx={fanPiecePosition(index)}>
               <PiecePreview
                 label={piece.label}
                 fileUrl={piece.fileUrl}
@@ -152,13 +131,15 @@ const MailingPreviewTiles = ({
       value: naaPositions,
       accent: undefined,
       thumbnail: (
-        <PiecePreview
-          label={NOTICE_LABEL}
-          fileUrl={naaUrl}
-          onClick={() => {
-            openPdf(`NAA — ${NOTICE_LABEL}`, naaUrl);
-          }}
-        />
+        <Box sx={singlePreviewPosition}>
+          <PiecePreview
+            label={NOTICE_LABEL}
+            fileUrl={naaUrl}
+            onClick={() => {
+              openPdf(`NAA — ${NOTICE_LABEL}`, naaUrl);
+            }}
+          />
+        </Box>
       ),
     },
     {
@@ -167,17 +148,19 @@ const MailingPreviewTiles = ({
       value: electronicPositions,
       accent: undefined,
       thumbnail: (
-        <EmailPreview
-          label={NOTICE_LABEL}
-          pngUrl={electronicPngUrl}
-          onClick={() => {
-            setActivePreview({
-              title: `Electronic — ${NOTICE_LABEL}`,
-              fileUrl: electronicUrl,
-              isWebsite: true,
-            });
-          }}
-        />
+        <Box sx={singlePreviewPosition}>
+          <EmailPreview
+            label={NOTICE_LABEL}
+            pngUrl={electronicPngUrl}
+            onClick={() => {
+              setActivePreview({
+                title: `Electronic — ${NOTICE_LABEL}`,
+                fileUrl: electronicUrl,
+                isWebsite: true,
+              });
+            }}
+          />
+        </Box>
       ),
     },
   ];
@@ -226,9 +209,9 @@ const MailingPreviewTiles = ({
                   accent={tile.accent}
                   title={formatNumber(tile.value)}
                   subtitle={tile.subtitle}
-                  thumbnail={tile.thumbnail}
-                  thumbnailLayout={isFullSet ? "flow" : "overlay"}
-                />
+                >
+                  {tile.thumbnail}
+                </FeatureTile>
               )}
             </Box>
           );

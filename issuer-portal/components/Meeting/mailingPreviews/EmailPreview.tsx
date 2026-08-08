@@ -3,12 +3,14 @@ import { MailOutlineOutlined } from "@mui/icons-material";
 import Box from "@mui/material/Box";
 import { styled } from "@mui/material/styles";
 
+import { previewWidth } from "./layout";
 // project imports
 import PreviewLabel from "./PreviewLabel";
-import { previewWidth } from "./layout";
 
 // ==============================|| EMAIL PREVIEW — STYLE ||============================== //
 
+// Positioned by the caller, exactly like PiecePreview, so the Electronic and
+// NAA previews sit at the same inset on their tiles.
 const PreviewRoot = styled(Box)(({ theme }) => ({
   position: "relative",
   aspectRatio: "8.5 / 11",
@@ -58,7 +60,11 @@ interface EmailPreviewProps {
  * cover, so the reader sees what actually went out rather than a generic icon.
  */
 const EmailPreview = ({ pngUrl, label, onClick }: EmailPreviewProps) => (
-  <PreviewRoot onClick={onClick} sx={{ width: previewWidth }}>
+  <PreviewRoot
+    className="email-preview"
+    onClick={onClick}
+    sx={{ width: previewWidth }}
+  >
     <FallbackIcon>
       <MailOutlineOutlined fontSize="small" />
     </FallbackIcon>

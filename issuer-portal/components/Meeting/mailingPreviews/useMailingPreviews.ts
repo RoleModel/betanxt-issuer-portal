@@ -28,13 +28,15 @@ interface PieceManifest {
 
 const isManifestPiece = (
   value: unknown
-): value is { file: string; label: string } =>
-  typeof value === "object" &&
-  value !== null &&
-  "file" in value &&
-  typeof value.file === "string" &&
-  "label" in value &&
-  typeof value.label === "string";
+): value is { file: string; label: string } => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  if (!("file" in value) || typeof value.file !== "string") {
+    return false;
+  }
+  return "label" in value && typeof value.label === "string";
+};
 
 const isPieceManifest = (value: unknown): value is PieceManifest => {
   if (typeof value !== "object" || value === null || !("pieces" in value)) {
@@ -104,6 +106,9 @@ export const useMailingPreviews = (
 
   return useMemo(() => {
     const company = brand?.companyName ?? ticker;
+    // A real boolean: `brand` widens to `any` through brandConfigs, and the
+    // spread below has to be a logical one rather than a ternary.
+    const hasBrand = brand !== undefined;
 
     const fromManifest = (pieceManifest?.pieces ?? []).map((piece) => ({
       key: piece.file,
@@ -126,7 +131,7 @@ export const useMailingPreviews = (
     // route's fixture defaults are Woodward's real notice copy, so any field
     // left unset would leak Woodward's legal name, proxy links, and contact
     // emails into another client's preview.
-    const electronicUrl = `${apiBase}/emails/preview?${new URLSearchParams({
+    const query = new URLSearchParams({
       template: "mailing-electronic-notice",
       format: "html",
       company,
@@ -135,11 +140,12 @@ export const useMailingPreviews = (
       proxyPushUrl: `https://www.proxypush.com/${ticker}`,
       proxyPushLabel: `www.proxypush.com/${ticker}`,
       voteSiteUrl: `https://www.proxydocs.com/${ticker}`,
-      ...(brand && {
+      ...(hasBrand && {
         printedContactEmail: `investor.relations@${brand.domain}`,
         questionsContactEmail: `proxyvoting@${brand.domain}`,
       }),
-    }).toString()}`;
+    });
+    const electronicUrl = `${apiBase}/emails/preview?${query.toString()}`;
 
     return {
       fullSetPieces,

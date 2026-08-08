@@ -47,7 +47,13 @@ interface PreviewLabelProps {
  * cover template — so the caption is what identifies them.
  */
 const PreviewLabel = ({ label }: PreviewLabelProps) => (
-  <LabelChip>{label}</LabelChip>
+  <LabelChip
+    sx={{
+      display: { xs: "none", sm: "block" },
+    }}
+  >
+    {label}
+  </LabelChip>
 );
 
 export default PreviewLabel;

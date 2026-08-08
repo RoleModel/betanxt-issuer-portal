@@ -5,15 +5,27 @@ import { styled } from "@mui/material/styles";
 // project imports
 import DocumentThumbnail from "@/components/Documents/DocumentThumbnail";
 
-import { thumbnailRenderWidth } from "./layout";
+import { previewWidth, thumbnailRenderWidth } from "./layout";
 import PreviewLabel from "./PreviewLabel";
 
 // =====|| PIECE PREVIEW — STYLE ||============================== //
 
-// Positions the caption against the page rather than the tile.
+/**
+ * Sizes the preview and anchors its caption to the page rather than the tile.
+ *
+ * @remarks
+ * `relative`, not `absolute`: the caller decides where a preview sits — a fan
+ * piece is stepped by its index, a lone one is inset from the corner — and
+ * this only has to be the caption's containing block. Absolute here also made
+ * `width: 100%` resolve against the tile's card instead of the preview, which
+ * stretched the page to the full width of the tile.
+ */
 const PreviewRoot = styled(Box)({
   position: "relative",
-  width: "100%",
+  // The thumbnail rasterises at a fixed pixel width so the canvas is sharp;
+  // this makes what it *displays* follow the preview instead, which is what
+  // narrows the fan on a phone. Styling its own child, not a caller's.
+  "& > .MuiBox-root": { width: "100%" },
 });
 
 interface PiecePreviewProps {
@@ -26,7 +38,7 @@ interface PiecePreviewProps {
 
 /** A captioned preview of one printed piece — a Full Set piece, or the NAA. */
 const PiecePreview = ({ label, fileUrl, onClick }: PiecePreviewProps) => (
-  <PreviewRoot>
+  <PreviewRoot className="mailing-preview" sx={{ width: previewWidth }}>
     <DocumentThumbnail
       filePath={fileUrl}
       width={thumbnailRenderWidth}
