@@ -1,4 +1,5 @@
 import { supabase } from "@/utils/supabase/client";
+import { asArray } from "@/utils/typeUtils";
 
 /**
  * Comprehensive database validation - validates every column in every table
@@ -41,6 +42,11 @@ type ValidationResultsMap = Record<
   TableValidationSummary | { error: string }
 >;
 
+const getTableRows = <T>(
+  result: TableValidationSummary | { error: string } | undefined
+): T[] =>
+  result !== undefined && "data" in result ? asArray<T>(result.data) : [];
+
 // Minimal structural interfaces (original richer forms were removed during cleanup).
 // Retain only fields accessed later in the script.
 interface Phase {
@@ -80,7 +86,7 @@ interface Proposal {
 }
 
 // Define table schemas with column validation rules
-const TABLE_SCHEMAS: Record<string, TableSchema> = {
+const TABLE_SCHEMAS: Partial<Record<string, TableSchema>> = {
   account: {
     required: ["id", "account", "name"],
     optional: ["primary_contact", "created_at", "users", "meeting"],
@@ -508,19 +514,29 @@ const VALIDATED_TABLE_NAMES = [
 ] as const;
 
 // Validation functions
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+const isValidEmail = (email: string): boolean => {
+  if (email.includes(" ")) {
+    return false;
+  }
+  const atIndex = email.indexOf("@");
+  if (atIndex <= 0 || atIndex !== email.lastIndexOf("@")) {
+    return false;
+  }
+  const domain = email.slice(atIndex + 1);
+  const dotIndex = domain.indexOf(".");
+  return dotIndex > 0 && dotIndex < domain.length - 1;
 };
 
-const validateUrl = (url: string): boolean => URL.canParse(url);
+const isValidUrl = (url: string): boolean => URL.canParse(url);
 
+/* eslint-disable sonarjs/cognitive-complexity, complexity -- type-dispatch switch over FieldType; deferred architectural refactor (out of scope for this cleanup pass) */
 const validateType = (
   value: unknown,
   type: FieldType
 ): { valid: boolean; error?: string } => {
   if (value === null || value === undefined) {
-    return { valid: true }; // NULL values are handled separately
+    // NULL values are handled separately
+    return { valid: true };
   }
 
   switch (type) {
@@ -531,7 +547,7 @@ const validateType = (
       break;
     }
     case "number": {
-      if (typeof value !== "number" || isNaN(value)) {
+      if (typeof value !== "number" || Number.isNaN(value)) {
         return { valid: false, error: `Expected number, got ${typeof value}` };
       }
       break;
@@ -543,25 +559,25 @@ const validateType = (
       break;
     }
     case "email": {
-      if (typeof value !== "string" || !validateEmail(value)) {
+      if (typeof value !== "string" || !isValidEmail(value)) {
         return { valid: false, error: `Invalid email format` };
       }
       break;
     }
     case "url": {
-      if (typeof value !== "string" || !validateUrl(value)) {
+      if (typeof value !== "string" || !isValidUrl(value)) {
         return { valid: false, error: `Invalid URL format` };
       }
       break;
     }
     case "date": {
-      if (typeof value !== "string" || isNaN(Date.parse(value))) {
+      if (typeof value !== "string" || Number.isNaN(Date.parse(value))) {
         return { valid: false, error: `Invalid date format` };
       }
       break;
     }
     case "timestamp": {
-      if (typeof value !== "string" || isNaN(Date.parse(value))) {
+      if (typeof value !== "string" || Number.isNaN(Date.parse(value))) {
         return { valid: false, error: `Invalid timestamp format` };
       }
       break;
@@ -573,7 +589,7 @@ const validateType = (
           error: `Expected decimal (number or string), got ${typeof value}`,
         };
       }
-      if (typeof value === "string" && Number.isNaN(Number.parseFloat(value))) {
+      if (typeof value === "string" && Number.isNaN(Number(value))) {
         return { valid: false, error: `Invalid decimal format` };
       }
       break;
@@ -603,9 +619,69 @@ const validateType = (
       }
       break;
     }
+    default: {
+      break;
+    }
   }
 
   return { valid: true };
+};
+/* eslint-enable sonarjs/cognitive-complexity, complexity */
+
+type ColumnStats = Record<
+  string,
+  { nullCount: number; totalCount: number; typeErrors: number }
+>;
+
+const isEmptyValue = (value: unknown): boolean =>
+  ([null, undefined, ""] as unknown[]).includes(value);
+
+interface FieldValidationContext {
+  row: Record<string, unknown>;
+  field: string;
+  schema: TableSchema;
+  columnStats: ColumnStats;
+  errors: string[];
+  index: number;
+}
+
+const validateRequiredField = (context: FieldValidationContext): void => {
+  const { row, field, schema, columnStats, errors, index } = context;
+  columnStats[field].totalCount += 1;
+
+  if (isEmptyValue(row[field])) {
+    columnStats[field].nullCount += 1;
+    errors.push(
+      `Row ${index + 1}: Required field '${field}' is missing or empty`
+    );
+    return;
+  }
+
+  const typeValidation = validateType(row[field], schema.types[field]);
+  if (!typeValidation.valid) {
+    columnStats[field].typeErrors += 1;
+    errors.push(`Row ${index + 1}: Field '${field}' ${typeValidation.error}`);
+  }
+};
+
+const validateOptionalField = (context: FieldValidationContext): void => {
+  const { row, field, schema, columnStats, errors, index } = context;
+  if (row[field] === undefined) {
+    return;
+  }
+
+  columnStats[field].totalCount += 1;
+
+  if (row[field] === null) {
+    columnStats[field].nullCount += 1;
+    return;
+  }
+
+  const typeValidation = validateType(row[field], schema.types[field]);
+  if (!typeValidation.valid) {
+    columnStats[field].typeErrors += 1;
+    errors.push(`Row ${index + 1}: Field '${field}' ${typeValidation.error}`);
+  }
 };
 
 const validateTableData = (
@@ -615,13 +691,10 @@ const validateTableData = (
   valid: boolean;
   errors: string[];
   warnings: string[];
-  columnStats: Record<
-    string,
-    { nullCount: number; totalCount: number; typeErrors: number }
-  >;
+  columnStats: ColumnStats;
 } => {
   const schema = TABLE_SCHEMAS[tableName];
-  if (!schema) {
+  if (schema === undefined) {
     return {
       valid: false,
       errors: [`No schema defined for table ${tableName}`],
@@ -632,10 +705,7 @@ const validateTableData = (
 
   const errors: string[] = [];
   const warnings: string[] = [];
-  const columnStats: Record<
-    string,
-    { nullCount: number; totalCount: number; typeErrors: number }
-  > = {};
+  const columnStats: ColumnStats = {};
 
   // Initialize column stats
   const allColumns = [...schema.required, ...schema.optional];
@@ -644,50 +714,12 @@ const validateTableData = (
   }
 
   for (const [index, row] of data.entries()) {
-    // Check required fields
     for (const field of schema.required) {
-      columnStats[field].totalCount++;
-
-      if (
-        row[field] === null ||
-        row[field] === undefined ||
-        row[field] === ""
-      ) {
-        columnStats[field].nullCount++;
-        errors.push(
-          `Row ${index + 1}: Required field '${field}' is missing or empty`
-        );
-      } else {
-        // Validate type
-        const typeValidation = validateType(row[field], schema.types[field]);
-        if (!typeValidation.valid) {
-          columnStats[field].typeErrors++;
-          errors.push(
-            `Row ${index + 1}: Field '${field}' ${typeValidation.error}`
-          );
-        }
-      }
+      validateRequiredField({ row, field, schema, columnStats, errors, index });
     }
 
-    // Check optional fields (type validation only)
     for (const field of schema.optional) {
-      if (row[field] === undefined) {
-        continue;
-      }
-
-      columnStats[field].totalCount++;
-
-      if (row[field] === null || row[field] === undefined) {
-        columnStats[field].nullCount++;
-      } else {
-        const typeValidation = validateType(row[field], schema.types[field]);
-        if (!typeValidation.valid) {
-          columnStats[field].typeErrors++;
-          errors.push(
-            `Row ${index + 1}: Field '${field}' ${typeValidation.error}`
-          );
-        }
-      }
+      validateOptionalField({ row, field, schema, columnStats, errors, index });
     }
 
     // Check for unexpected fields
@@ -706,11 +738,24 @@ const validateTableData = (
   };
 };
 
-async function validateSeedData() {
-  if (!supabase) {
-    process.exit(1);
+const groupTasksByPhaseNumber = (tasks: Task[]): Map<number, Task[]> => {
+  const result = new Map<number, Task[]>();
+  for (const task of tasks) {
+    if (task.phase_number === undefined) {
+      continue;
+    }
+    const existing = result.get(task.phase_number);
+    if (existing) {
+      existing.push(task);
+    } else {
+      result.set(task.phase_number, [task]);
+    }
   }
+  return result;
+};
 
+/* eslint-disable sonarjs/cognitive-complexity, complexity, unicorn/try-complexity -- deferred architectural refactor (out of scope for this cleanup pass) */
+const validateSeedData = async () => {
   const validationResults: ValidationResultsMap = {};
   let totalErrors = 0;
   let totalWarnings = 0;
@@ -720,19 +765,21 @@ async function validateSeedData() {
     // Object.entries so `supabase.from` receives a known table name instead of
     // a widened `string`.
     for (const tableName of VALIDATED_TABLE_NAMES) {
+      // eslint-disable-next-line no-await-in-loop -- sequential per-table validation is intentional here
       const { data, error } = await supabase.from(tableName).select("*");
 
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- `Database` is excluded from typed linting (see eslint.config.mjs), so `error`'s type resolves to `any` here; tsc has no issue
       if (error) {
         validationResults[tableName] = { error: error.message };
-        totalErrors++;
+        totalErrors += 1;
         continue;
       }
 
-      const validation = validateTableData(tableName, data || []);
+      const validation = validateTableData(tableName, data ?? []);
       validationResults[tableName] = {
         recordCount: data?.length ?? 0,
         validation,
-        data: data || [],
+        data: data ?? [],
       };
 
       totalErrors += validation.errors.length;
@@ -749,31 +796,11 @@ async function validateSeedData() {
         );
       }
 
-      // Show column statistics
-      for (const stats of Object.values(validation.columnStats)) {
-        const _nullPercent =
-          stats.totalCount > 0
-            ? ((stats.nullCount / stats.totalCount) * 100).toFixed(1)
-            : "0.0";
-        const _errorPercent =
-          stats.totalCount > 0
-            ? ((stats.typeErrors / stats.totalCount) * 100).toFixed(1)
-            : "0.0";
-
-        // Determine status (not currently output; retained for potential future use)
-        const _status =
-          stats.typeErrors > 0
-            ? "❌"
-            : stats.nullCount > stats.totalCount * 0.5
-              ? "⚠️"
-              : "✅";
-      }
-
       // Show first few errors if any
       if (validation.errors.length > 0) {
         console.log("   First 5 errors:");
-        for (const error of validation.errors.slice(0, 5)) {
-          console.log(`     - ${error}`);
+        for (const errorMessage of validation.errors.slice(0, 5)) {
+          console.log(`     - ${errorMessage}`);
         }
         if (validation.errors.length > 5) {
           console.log(
@@ -785,24 +812,14 @@ async function validateSeedData() {
 
     // Business rule validations
 
-    const meetings =
-      ((validationResults.meeting as TableValidationSummary | undefined)
-        ?.data as Meeting[]) || [];
-    const positions =
-      ((validationResults.position as TableValidationSummary | undefined)
-        ?.data as Position[]) || [];
-    const positionVotes =
-      ((validationResults.position_vote as TableValidationSummary | undefined)
-        ?.data as PositionVote[]) || [];
-    const proposals =
-      ((validationResults.proposal as TableValidationSummary | undefined)
-        ?.data as Proposal[]) || [];
-    const tasks =
-      ((validationResults.task as TableValidationSummary | undefined)
-        ?.data as Task[]) || [];
-    const phases =
-      ((validationResults.phase as TableValidationSummary | undefined)
-        ?.data as Phase[]) || [];
+    const meetings = getTableRows<Meeting>(validationResults.meeting);
+    const positions = getTableRows<Position>(validationResults.position);
+    const positionVotes = getTableRows<PositionVote>(
+      validationResults.position_vote
+    );
+    const proposals = getTableRows<Proposal>(validationResults.proposal);
+    const tasks = getTableRows<Task>(validationResults.task);
+    const phases = getTableRows<Phase>(validationResults.phase);
 
     // Rule 1: Every meeting should have positions
     if (meetings.length > 0 && positions.length > 0) {
@@ -818,7 +835,7 @@ async function validateSeedData() {
         console.log(
           `⚠️  Business Rule 1: ${meetingsWithoutPositions.length} meetings without positions`
         );
-        totalWarnings++;
+        totalWarnings += 1;
       }
     }
 
@@ -840,7 +857,7 @@ async function validateSeedData() {
         console.log(
           `⚠️  Business Rule 2: ${votedPositionsWithoutVotes.length} voted positions without votes`
         );
-        totalWarnings++;
+        totalWarnings += 1;
       }
     }
 
@@ -858,7 +875,7 @@ async function validateSeedData() {
         console.log(
           `⚠️  Business Rule 3: ${meetingsWithoutProposals.length} meetings without proposals`
         );
-        totalWarnings++;
+        totalWarnings += 1;
       }
     }
 
@@ -876,7 +893,7 @@ async function validateSeedData() {
         console.log(
           `⚠️  Business Rule 4: ${meetingsWithoutPhases.length} meetings without phases`
         );
-        totalWarnings++;
+        totalWarnings += 1;
       }
     }
 
@@ -894,14 +911,14 @@ async function validateSeedData() {
         console.log(
           `⚠️  Business Rule 5: ${phasesWithoutTasks.length} phases without tasks`
         );
-        totalWarnings++;
+        totalWarnings += 1;
       }
     }
 
     // Rule 6: Task-Phase Assignment Validation
 
     // Define expected tasks by phase number (from seed.ts)
-    const EXPECTED_TASKS_BY_PHASE: Record<number, string[]> = {
+    const EXPECTED_TASKS_BY_PHASE: Partial<Record<number, string[]>> = {
       1: [
         "DTCC authorization",
         "Plan File Request form",
@@ -993,39 +1010,36 @@ async function validateSeedData() {
 
     if (tasks.length > 0 && phases.length > 0) {
       // Create phase lookup map
-      const phaseById: Record<string, Phase> = phases.reduce<
-        Record<string, Phase>
-      >((accumulator, p) => {
-        accumulator[p.id] = p;
-        return accumulator;
-      }, {});
+      const phaseById: Partial<Record<string, Phase>> = {};
+      for (const phase of phases) {
+        phaseById[phase.id] = phase;
+      }
 
       // Validate each task
       for (const task of tasks) {
         const phase = phaseById[task.phase_id];
 
-        if (!phase) {
-          taskPhaseErrors++;
+        if (phase === undefined) {
+          taskPhaseErrors += 1;
           continue;
         }
 
         if (phase.order_index > 0 && task.phase_number !== phase.order_index) {
-          taskPhaseErrors++;
+          taskPhaseErrors += 1;
         }
 
         if (task.meeting_id !== phase.meeting_id) {
-          taskPhaseErrors++;
+          taskPhaseErrors += 1;
         }
 
-        if (task.phase_number && EXPECTED_TASKS_BY_PHASE[task.phase_number]) {
+        if (task.phase_number !== undefined) {
           const expectedTasks = EXPECTED_TASKS_BY_PHASE[task.phase_number];
-          if (!expectedTasks.includes(task.title)) {
-            taskPhaseWarnings++;
+          if (
+            expectedTasks !== undefined &&
+            !expectedTasks.includes(task.title)
+          ) {
+            taskPhaseWarnings += 1;
           }
-        }
-
-        if (!phaseById[task.phase_id]) {
-          taskPhaseErrors++;
         }
       }
 
@@ -1040,44 +1054,36 @@ async function validateSeedData() {
           );
 
           if (!actualPhase) {
-            taskPhaseErrors++;
+            taskPhaseErrors += 1;
           } else if (actualPhase.name !== expectedPhase.name) {
-            taskPhaseWarnings++;
+            taskPhaseWarnings += 1;
           }
         }
 
         // Unexpected phases
         for (const phase of meetingPhases) {
-          const expectedPhase = EXPECTED_PHASE_STRUCTURE.find(
+          const hasExpectedPhase = EXPECTED_PHASE_STRUCTURE.some(
             (ep) => Math.abs(phase.order_index - ep.orderIndex) < 0.01
           );
-          if (!expectedPhase) {
-            taskPhaseWarnings++;
+          if (!hasExpectedPhase) {
+            taskPhaseWarnings += 1;
           }
         }
 
         // Task distribution per phase
         const meetingTasks = tasks.filter((t) => t.meeting_id === meetingId);
-        const tasksByPhaseNumber = new Map<number, Task[]>();
+        const tasksByPhaseNumber = groupTasksByPhaseNumber(meetingTasks);
 
-        for (const task of meetingTasks) {
-          if (!task.phase_number) {
-            continue;
-          }
-
-          if (!tasksByPhaseNumber.has(task.phase_number)) {
-            tasksByPhaseNumber.set(task.phase_number, []);
-          }
-          tasksByPhaseNumber.get(task.phase_number)!.push(task);
-        }
-
-        for (const [phaseNumber_, expectedTasks] of Object.entries(
+        for (const [phaseNumberKey, expectedTasks] of Object.entries(
           EXPECTED_TASKS_BY_PHASE
         )) {
-          const phaseNumber = parseInt(phaseNumber_, 10);
-          const actualTasks = tasksByPhaseNumber.get(phaseNumber) || [];
-          if (actualTasks.length !== expectedTasks.length) {
-            taskPhaseWarnings++;
+          const phaseNumber = Number(phaseNumberKey);
+          const actualTasks = tasksByPhaseNumber.get(phaseNumber) ?? [];
+          if (
+            expectedTasks !== undefined &&
+            actualTasks.length !== expectedTasks.length
+          ) {
+            taskPhaseWarnings += 1;
           }
         }
       }
@@ -1094,7 +1100,7 @@ async function validateSeedData() {
 
       // Additional task validation statistics
       const tasksWithValidPhaseId = tasks.filter(
-        (t) => phaseById[t.phase_id]
+        (t) => phaseById[t.phase_id] !== undefined
       ).length;
       const tasksWithMatchingMeetingId = tasks.filter((t) => {
         const phase = phaseById[t.phase_id];
@@ -1123,24 +1129,22 @@ async function validateSeedData() {
           `   • Phases with no tasks: ${unusedPhases.length}/${phases.length}`
         );
         if (unusedPhases.length <= 5) {
-          console.log(
-            `     Unused: ${unusedPhases.map((p) => `${p.name} (${p.meeting_id})`).join(", ")}`
+          const unusedPhaseLabels = unusedPhases.map(
+            (p) => `${p.name} (${p.meeting_id})`
           );
+          console.log(`     Unused: ${unusedPhaseLabels.join(", ")}`);
         }
       }
     }
 
     // Final Summary
 
-    // Aggregate record count (kept for potential future metrics)
-    let _totalRecords = 0;
     console.log("\n📊 Summary by Table:");
     for (const [tableName, result] of Object.entries(validationResults)) {
       if (!("recordCount" in result)) {
         continue;
       }
 
-      _totalRecords += result.recordCount;
       const status = result.validation.valid ? "✅" : "❌";
       console.log(`   ${status} ${tableName}: ${result.recordCount} records`);
     }
@@ -1183,10 +1187,17 @@ async function validateSeedData() {
   } catch {
     process.exit(1);
   }
-}
+};
+/* eslint-enable sonarjs/cognitive-complexity, complexity, unicorn/try-complexity */
 
 // Run validation
-validateSeedData().catch((error) => {
-  console.error("Validation failed:", error);
-  process.exit(1);
-});
+const runValidation = async (): Promise<void> => {
+  try {
+    await validateSeedData();
+  } catch (error: unknown) {
+    console.error("Validation failed:", error);
+    process.exit(1);
+  }
+};
+
+void runValidation();

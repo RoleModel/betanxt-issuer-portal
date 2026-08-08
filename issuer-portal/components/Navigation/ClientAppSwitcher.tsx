@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 "use client";
 
 import { ArrowDropDownOutlined } from "@mui/icons-material";

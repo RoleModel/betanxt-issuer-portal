@@ -4,7 +4,23 @@
  * @module theme
  */
 
-export { CONTRAST_THRESHOLD, contrastText } from "./contrast.js";
+export {
+  DARK_THEME_SURFACE_COLOR,
+  createBrandPaletteColor,
+  createDarkThemeColors,
+} from "./brandPalette.js";
+export type {
+  BrandColorScheme,
+  BrandPaletteColor,
+  BrandThemeColors,
+} from "./brandPalette.js";
+export {
+  CONTRAST_THRESHOLD,
+  contrastText,
+  getMostLegibleText,
+} from "./contrast.js";
+export type { ClientChartColor, ClientChartPalette } from "./chartPalette.js";
+export { createClientChartPalette } from "./chartPalette.js";
 export type { BrandColors, ClientThemeInput } from "./createClientTheme.js";
 export {
   resolveBrandColors,

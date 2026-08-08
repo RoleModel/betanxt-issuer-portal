@@ -134,6 +134,23 @@ The theme adds a `tertiary` palette color and `<Button color="tertiary" />`. The
 import "@rolemodel/client-theming/theme";
 ```
 
+#### Generate restrained chart colors
+
+`createClientTheme` exposes the same palette at `theme.palette.chart`, and `createClientChartPalette` is available when you only need the colors. The approved primary and secondary colors are reserved for ownership/source series; vote outcomes use stable semantic colors so their meaning remains consistent across clients.
+
+```ts
+import { createClientChartPalette } from "@rolemodel/client-theming/theme";
+
+const chartColors = createClientChartPalette({
+  primaryColor: "#e52823",
+  secondaryColor: "#1b215a",
+});
+
+chartColors.registered.main; // client primary
+chartColors.beneficial.main; // client secondary
+chartColors.for.main; // stable semantic outcome color
+```
+
 ### 2. Fetch a brand from Brandfetch (server-side)
 
 ```ts

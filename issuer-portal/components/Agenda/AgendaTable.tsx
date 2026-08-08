@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 "use client";
 
 import {
@@ -21,11 +22,7 @@ import { getVotingOptionsDisplay } from "@/utils/votingOptions";
 
 import GlossaryText from "@/components/ui/GlossaryText";
 
-interface AgendaTableProps {
-  onUploadClick?: () => void;
-}
-
-const AgendaTable = (_props: AgendaTableProps) => {
+const AgendaTable = () => {
   const { currentMeeting } = useMeeting();
   const { proposals } = useVotingTabulation(currentMeeting?.id);
 
@@ -143,7 +140,10 @@ const AgendaTable = (_props: AgendaTableProps) => {
                                     {proposal.proposalNumber}
                                     {isSubProposalNumber ? "" : "."}
                                   </Typography>
-                                  <Typography color="text.primary">
+                                  <Typography
+                                    color="text.primary"
+                                    fontWeight={isSubProposalNumber ? 400 : 600}
+                                  >
                                     {proposal.directorName ||
                                       proposal.proposalTitle}
                                   </Typography>

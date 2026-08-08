@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import { parseLocalDate } from "@/utils/dateUtils";
 
 export type MailingStatus =

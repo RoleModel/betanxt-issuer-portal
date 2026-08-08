@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 
 import { useMeeting } from "@/contexts/MeetingContext";
+import { asParamString } from "@/utils/typeUtils";
 
 // Dynamically load layout & tracker to reduce initial JS bundle
 const Phase1Layout = dynamic(
@@ -18,22 +19,24 @@ const TabulationTracker = dynamic(
 
 const PhasePage = () => {
   const params = useParams();
-  const meetingId = params.meetingId as string;
-  const phase = params.phase as string;
+  const meetingId = asParamString(params.meetingId);
+  const phase = asParamString(params.phase);
   const { getMeetingById } = useMeeting();
   const meeting = getMeetingById(meetingId);
 
-  const meetingForPhase = meeting
-    ? {
-        ...meeting,
-        client: meeting.client
-          ? {
-              ...meeting.client,
-              isActive: meeting.client.isActive ?? true,
-            }
-          : meeting.client,
-      }
-    : meeting;
+  const meetingForPhase =
+    meeting === undefined
+      ? meeting
+      : {
+          ...meeting,
+          client:
+            meeting.client === undefined
+              ? meeting.client
+              : {
+                  ...meeting.client,
+                  isActive: meeting.client.isActive ?? true,
+                },
+        };
 
   return (
     <Container component="main" maxWidth="xl" data-testid="meeting-dashboard">

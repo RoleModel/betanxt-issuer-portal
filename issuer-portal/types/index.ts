@@ -12,6 +12,6 @@ export {
   asRecord,
   asString,
   asNumber,
-  getStr,
-  getNum,
+  getString,
+  getNumber,
 } from "../utils/typeUtils";

@@ -1,8 +1,6 @@
 /* eslint-disable import-x/order */
 "use client";
 
-/* eslint-disable @typescript-eslint/naming-convention -- MUI theme object order and CSS-variable palette keys are semantic. */
-
 import type {
   PaletteColor,
   PaletteColorOptions,

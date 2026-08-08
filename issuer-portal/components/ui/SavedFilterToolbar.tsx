@@ -67,7 +67,7 @@ const StyledTextField = styled(TextField)<{
 
 const StyledToolbarButton = styled(
   // ToolbarButton's public type is wider than what `styled()` accepts here.
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+
   ToolbarButton as React.ComponentType<ToolbarButtonProps>
 )<{
   ownerState: OwnerState;

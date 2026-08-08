@@ -9,17 +9,18 @@ interface ApiResponse<T> {
   };
 }
 
-// Manual type definition for tabulation_report based on database schema
+// Manual type definition for tabulation_report based on database schema.
+// The six fields below are all JSONB columns.
 interface TabulationReportRow {
   id: string;
   meeting_id: string;
   set_keys: string[];
-  broker_voting: unknown; // JSONB
-  share_range_performance: unknown; // JSONB
-  non_dtc_vote_status: unknown; // JSONB
-  dtc_vote_status: unknown; // JSONB
-  vote_distribution: unknown; // JSONB
-  positions_voted: unknown; // JSONB
+  broker_voting: unknown;
+  share_range_performance: unknown;
+  non_dtc_vote_status: unknown;
+  dtc_vote_status: unknown;
+  vote_distribution: unknown;
+  positions_voted: unknown;
   last_calculated_at: string;
   created_at: string;
   updated_at: string;
@@ -96,7 +97,7 @@ export interface TabulationReport {
   updatedAt: string;
 }
 
-const CSV_POSITION_TOTALS_BY_MEETING_ID: Record<string, number> = {
+const CSV_POSITION_TOTALS_BY_MEETING_ID: Partial<Record<string, number>> = {
   "wen-annual-meeting-2025": 17_950,
   "wen-annual-meeting-2026": 5677,
   "payc-annual-meeting-2025": 3522,
@@ -136,42 +137,43 @@ const emptyVoteDistribution: VoteDistribution = {
 };
 
 // Helper to parse JSONB string fields (Supabase returns some JSONB as strings)
-function parseJsonField<T>(field: unknown, fallback: T): T {
+const parseJsonField = <T>(field: unknown, fallback: T): T => {
   if (typeof field === "string") {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- parsing an arbitrary JSONB column; the caller-supplied fallback documents the expected shape
       return JSON.parse(field) as T;
     } catch {
       return fallback;
     }
   }
-  if (field && typeof field === "object") {
+  if (field !== null && typeof field === "object") {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see the note above
     return field as T;
   }
   return fallback;
-}
+};
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
-}
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
 
-function toFiniteNumber(value: unknown): number {
+const toFiniteNumber = (value: unknown): number => {
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
-}
+};
 
-function toIsoString(value: string): string {
+const toIsoString = (value: string): string => {
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? value : parsed.toISOString();
-}
+};
 
-function normalizeBrokerVotingEntries(
+const normalizeBrokerVotingEntries = (
   rawEntries: unknown[]
-): BrokerVotingEntry[] {
-  return rawEntries.reduce<BrokerVotingEntry[]>((entries, entry) => {
+): BrokerVotingEntry[] => {
+  const entries: BrokerVotingEntry[] = [];
+  for (const entry of rawEntries) {
     if (!isRecord(entry)) {
-      return entries;
+      continue;
     }
-
     const broker = typeof entry.broker === "string" ? entry.broker : "Unknown";
     entries.push({
       broker,
@@ -179,10 +181,9 @@ function normalizeBrokerVotingEntries(
       sharesAgainst: toFiniteNumber(entry.sharesAgainst ?? entry.against),
       sharesAbstain: toFiniteNumber(entry.sharesAbstain ?? entry.abstain),
     });
-
-    return entries;
-  }, []);
-}
+  }
+  return entries;
+};
 
 /**
  * Preserve the per-proposal keying stored in the broker_voting JSONB column
@@ -190,7 +191,7 @@ function normalizeBrokerVotingEntries(
  * list onto the meeting's proposals. Legacy flat arrays are exposed under a
  * single "proposal1" key.
  */
-function normalizeBrokerVoting(field: unknown): BrokerVotingByProposal {
+const normalizeBrokerVoting = (field: unknown): BrokerVotingByProposal => {
   const parsed = parseJsonField<unknown>(field, {});
 
   if (Array.isArray(parsed)) {
@@ -202,45 +203,39 @@ function normalizeBrokerVoting(field: unknown): BrokerVotingByProposal {
     return {};
   }
 
-  return Object.entries(parsed).reduce<BrokerVotingByProposal>(
-    (result, [proposalKey, value]) => {
-      if (!Array.isArray(value)) {
-        return result;
-      }
-
-      const entries = normalizeBrokerVotingEntries(value);
-      if (entries.length > 0) {
-        result[proposalKey] = entries;
-      }
-
-      return result;
-    },
-    {}
-  );
-}
-
-function normalizeShareRangePerformance(
-  field: unknown
-): ShareRangePerformanceEntry[] {
-  return parseJsonField<unknown[]>(field, []).reduce<
-    ShareRangePerformanceEntry[]
-  >((ranges, entry) => {
-    if (!isRecord(entry)) {
-      return ranges;
+  const result: BrokerVotingByProposal = {};
+  for (const [proposalKey, value] of Object.entries(parsed)) {
+    if (!Array.isArray(value)) {
+      continue;
     }
+    const entries = normalizeBrokerVotingEntries(value);
+    if (entries.length > 0) {
+      result[proposalKey] = entries;
+    }
+  }
+  return result;
+};
 
+const normalizeShareRangePerformance = (
+  field: unknown
+): ShareRangePerformanceEntry[] => {
+  const ranges: ShareRangePerformanceEntry[] = [];
+  const entries = parseJsonField<unknown[]>(field, []);
+  for (const entry of entries) {
+    if (!isRecord(entry)) {
+      continue;
+    }
     ranges.push({
       rangeLabel: typeof entry.rangeLabel === "string" ? entry.rangeLabel : "",
       positionCount: toFiniteNumber(entry.positionCount),
       totalShares: toFiniteNumber(entry.totalShares),
       percentVoted: toFiniteNumber(entry.percentVoted),
     });
+  }
+  return ranges;
+};
 
-    return ranges;
-  }, []);
-}
-
-function normalizeNonDtcVoteStatus(field: unknown): NonDtcVoteStatus {
+const normalizeNonDtcVoteStatus = (field: unknown): NonDtcVoteStatus => {
   const status = parseJsonField<Partial<NonDtcVoteStatus>>(
     field,
     emptyNonDtcVoteStatus
@@ -260,9 +255,9 @@ function normalizeNonDtcVoteStatus(field: unknown): NonDtcVoteStatus {
     grandTotalShareholders: toFiniteNumber(status.grandTotalShareholders),
     grandTotalShares: toFiniteNumber(status.grandTotalShares),
   };
-}
+};
 
-function normalizeDtcVoteStatus(field: unknown): DtcVoteStatus {
+const normalizeDtcVoteStatus = (field: unknown): DtcVoteStatus => {
   const status = parseJsonField<Partial<DtcVoteStatus>>(
     field,
     emptyDtcVoteStatus
@@ -276,9 +271,9 @@ function normalizeDtcVoteStatus(field: unknown): DtcVoteStatus {
     grandTotalShareholders: toFiniteNumber(status.grandTotalShareholders),
     grandTotalShares: toFiniteNumber(status.grandTotalShares),
   };
-}
+};
 
-function normalizeVoteDistribution(field: unknown): VoteDistribution {
+const normalizeVoteDistribution = (field: unknown): VoteDistribution => {
   const distribution = parseJsonField<Partial<VoteDistribution>>(
     field,
     emptyVoteDistribution
@@ -290,9 +285,9 @@ function normalizeVoteDistribution(field: unknown): VoteDistribution {
     nonDtcVotedShares: toFiniteNumber(distribution.nonDtcVotedShares),
     nonDtcUnvotedShares: toFiniteNumber(distribution.nonDtcUnvotedShares),
   };
-}
+};
 
-function normalizePositionsVoted(field: unknown): PositionsVoted {
+const normalizePositionsVoted = (field: unknown): PositionsVoted => {
   const positionsVoted = parseJsonField<Partial<PositionsVoted>>(field, {
     voted: 0,
     unvoted: 0,
@@ -306,29 +301,35 @@ function normalizePositionsVoted(field: unknown): PositionsVoted {
     totalShares: toFiniteNumber(positionsVoted.totalShares),
     votedShares: toFiniteNumber(positionsVoted.votedShares),
   };
-}
+};
 
-function normalizeReportTotals(report: TabulationReport): TabulationReport {
+const normalizeReportTotals = (report: TabulationReport): TabulationReport => {
   const expectedPositionTotal =
     CSV_POSITION_TOTALS_BY_MEETING_ID[report.meetingId];
   const statusTotalShares =
     report.nonDtcVoteStatus.grandTotalShares +
     report.dtcVoteStatus.grandTotalShares;
+  const distributedVotedShares =
+    report.voteDistribution.dtcVotedShares +
+    report.voteDistribution.nonDtcVotedShares;
 
   const normalizedReport = {
     ...report,
     positionsVoted: {
       ...report.positionsVoted,
-      totalShares: statusTotalShares || report.positionsVoted.totalShares,
+      totalShares:
+        statusTotalShares === 0
+          ? report.positionsVoted.totalShares
+          : statusTotalShares,
       votedShares:
-        report.voteDistribution.dtcVotedShares +
-          report.voteDistribution.nonDtcVotedShares ||
-        report.positionsVoted.votedShares,
+        distributedVotedShares === 0
+          ? report.positionsVoted.votedShares
+          : distributedVotedShares,
     },
   };
 
   if (
-    expectedPositionTotal &&
+    expectedPositionTotal !== undefined &&
     expectedPositionTotal > report.positionsVoted.voted
   ) {
     normalizedReport.positionsVoted.unvoted =
@@ -363,16 +364,16 @@ function normalizeReportTotals(report: TabulationReport): TabulationReport {
   );
 
   return normalizedReport;
-}
+};
 
 // Transform snake_case database fields to camelCase API fields
-function transformTabulationReport(
+const transformTabulationReport = (
   databaseReport: TabulationReportRow
-): TabulationReport {
-  return normalizeReportTotals({
+): TabulationReport =>
+  normalizeReportTotals({
     id: databaseReport.id,
     meetingId: databaseReport.meeting_id,
-    setKeys: databaseReport.set_keys || [],
+    setKeys: databaseReport.set_keys.length > 0 ? databaseReport.set_keys : [],
     brokerVoting: normalizeBrokerVoting(databaseReport.broker_voting),
     shareRangePerformance: normalizeShareRangePerformance(
       databaseReport.share_range_performance
@@ -389,7 +390,6 @@ function transformTabulationReport(
     createdAt: toIsoString(databaseReport.created_at),
     updatedAt: toIsoString(databaseReport.updated_at),
   });
-}
 
 /**
  * After a position update, recalculate and persist the live voted-share totals
@@ -397,9 +397,9 @@ function transformTabulationReport(
  * Uses meeting.total_shares_outstanding as the authoritative grand total so that
  * CSM edits to that field are respected even when individual position.shares differ.
  */
-export async function refreshTabulationReportFromPositions(
+export const refreshTabulationReportFromPositions = async (
   meetingId: string
-): Promise<void> {
+): Promise<void> => {
   const [
     { data: positions, error: posError },
     { data: meeting },
@@ -423,7 +423,7 @@ export async function refreshTabulationReportFromPositions(
       .single(),
   ]);
 
-  if (posError || !positions || !report) {
+  if (posError !== null || positions === null || report === null) {
     return;
   }
 
@@ -441,7 +441,8 @@ export async function refreshTabulationReportFromPositions(
     0
   );
   const grandTotal =
-    meeting?.total_shares_outstanding == null
+    meeting?.total_shares_outstanding === null ||
+    meeting?.total_shares_outstanding === undefined
       ? positionSharesSum
       : Number(meeting.total_shares_outstanding);
   const unvotedShares = Math.max(grandTotal - votedShares, 0);
@@ -487,7 +488,7 @@ export async function refreshTabulationReportFromPositions(
       vote_distribution: JSON.stringify(updatedVoteDistribution),
     })
     .eq("meeting_id", meetingId);
-}
+};
 
 /**
  * When CSM edits totalSharesOutstanding on the meeting, push that value into the
@@ -495,10 +496,10 @@ export async function refreshTabulationReportFromPositions(
  * Always reads live voted shares from the position table so stale cache can't
  * corrupt the reported voted count.
  */
-export async function syncTabulationReportTotalShares(
+export const syncTabulationReportTotalShares = async (
   meetingId: string,
   totalSharesOutstanding: number
-): Promise<void> {
+): Promise<void> => {
   const [{ data: positions }, { data: report }] = await Promise.all([
     supabase
       .from("position")
@@ -513,7 +514,7 @@ export async function syncTabulationReportTotalShares(
       .single(),
   ]);
 
-  if (!report) {
+  if (report === null) {
     return;
   }
 
@@ -561,47 +562,51 @@ export async function syncTabulationReportTotalShares(
       vote_distribution: JSON.stringify(updatedVoteDistribution),
     })
     .eq("meeting_id", meetingId);
-}
+};
 
-export async function getTabulationReport(
+export const getTabulationReport = async (
   meetingId: string
-): Promise<ApiResponse<TabulationReport>> {
+): Promise<ApiResponse<TabulationReport>> => {
+  let outcome: {
+    data: unknown;
+    error: { message: string; code?: string } | null;
+  };
   try {
-    const { data, error } = await supabase
+    outcome = await supabase
       .from("tabulation_report")
       .select("*")
       .eq("meeting_id", meetingId)
       .single();
-
-    if (error) {
-      if (error.code === "PGRST116") {
-        // No rows returned
-        return {
-          error: {
-            message: `No tabulation report found for meeting ${meetingId}`,
-            statusCode: 404,
-          },
-        };
-      }
-      return {
-        error: {
-          message: error.message ?? "Failed to fetch tabulation report",
-          statusCode: 500,
-        },
-      };
-    }
-
-    return {
-      data: transformTabulationReport(data as TabulationReportRow),
-    };
-  } catch (error) {
+  } catch (caughtError) {
     return {
       error: {
-        message: Error.isError(error)
-          ? error.message
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- Error.isError's lib type resolves oddly here; tsc has no issue
+        message: Error.isError(caughtError)
+          ? caughtError.message
           : "Failed to fetch tabulation report",
         statusCode: 500,
       },
     };
   }
-}
+
+  if (outcome.error !== null) {
+    if (outcome.error.code === "PGRST116") {
+      return {
+        error: {
+          message: `No tabulation report found for meeting ${meetingId}`,
+          statusCode: 404,
+        },
+      };
+    }
+    return {
+      error: { message: outcome.error.message, statusCode: 500 },
+    };
+  }
+
+  // `tabulation_report` has no generated Database Row type reconciled with
+  // the hand-written TabulationReportRow shape yet; this is the one
+  // sanctioned boundary cast until that's done.
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+  const typedReport = outcome.data as TabulationReportRow;
+  return { data: transformTabulationReport(typedReport) };
+};

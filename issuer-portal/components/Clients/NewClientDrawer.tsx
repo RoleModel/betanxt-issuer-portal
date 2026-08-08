@@ -619,7 +619,7 @@ const ClientInfoStep = ({ clientForm, setClientForm }: ClientInfoStepProps) => {
 interface BrandingStepProps {
   readonly brandingForm: BrandingForm;
   readonly setBrandingForm: React.Dispatch<React.SetStateAction<BrandingForm>>;
-  readonly logoInputRef: React.RefObject<HTMLInputElement>;
+  readonly logoInputRef: React.RefObject<HTMLInputElement | null>;
   readonly onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -678,7 +678,9 @@ const BrandingStep = ({
             variant="outlined"
             size="small"
             startIcon={<UploadFile />}
-            onClick={() => logoInputRef.current?.click()}
+            onClick={() => {
+              logoInputRef.current?.click();
+            }}
           >
             {brandingForm.logoFile ? "Change Logo" : "Upload Logo"}
           </Button>

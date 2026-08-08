@@ -16,7 +16,6 @@ import {
   type ComponentProps,
   type ReactElement,
   Suspense,
-  useMemo,
   useState,
 } from "react";
 
@@ -39,6 +38,7 @@ import {
   mailingDistributionShortLabel,
   parseLocalDate,
 } from "@/utils/dateUtils";
+import { asParamString } from "@/utils/typeUtils";
 
 const ChartSkeleton = () => (
   <Skeleton
@@ -54,271 +54,6 @@ interface PositionsVotedBuckets {
   registered: { voted: number; notVoted: number };
   beneficial: { voted: number; notVoted: number };
 }
-
-/**
- * Client-level reporting page. The historical summary tables (event summary,
- * year-over-year, quorum performance) are followed by a per-event Analytics
- * section added in 002-tabulation-enhancements: quorum timeline, broker
- * voting, voting performance, positions voted, participation by year, and
- * the geographic heat map.
- *
- * An event selector scopes the Analytics charts; it defaults to the first
- * available meeting until the user picks one. The quorum timeline derives its
- * milestones from the meeting and threads the selected meeting's quorum
- * requirement into the threshold line.
- */
-const ReportingPage = () => {
-  const params = useParams();
-  const clientTicker = params.clientTicker as string;
-
-  const { data: reportingData, loading, error } = useReporting(clientTicker);
-  const { isEnabled } = useClientFeatures();
-  const hasNoboFeature = isEnabled("nobo");
-  const [selectedMeetingId, setSelectedMeetingId] = useState("");
-
-  const mappedEventSummary = reportingData?.mappedEventSummary ?? [];
-  const mappedYearOverYear = reportingData?.mappedYearOverYear ?? [];
-  const mappedProposalPerformanceData =
-    reportingData?.mappedProposalPerformanceData ?? [];
-  const availableMeetings = useMemo(
-    () => reportingData?.availableMeetings ?? [],
-    [reportingData]
-  );
-  const positions = useMemo(
-    () => reportingData?.positions ?? [],
-    [reportingData]
-  );
-  const proposals = useMemo(
-    () => reportingData?.proposals ?? [],
-    [reportingData]
-  );
-
-  const effectiveMeetingId =
-    selectedMeetingId || availableMeetings[0]?.id || "";
-  const selectedMeeting = useMemo(
-    () =>
-      reportingData?.meetings.find((m) => m.id === effectiveMeetingId) ?? null,
-    [reportingData, effectiveMeetingId]
-  );
-
-  // Mirrors the event selector's option label so each analytics card can show
-  // which meeting it is scoped to in its subheader.
-  const selectedMeetingLabel = useMemo(() => {
-    const meeting = availableMeetings.find((m) => m.id === effectiveMeetingId);
-    if (!meeting) return "";
-    return meeting.year ? `${meeting.title} - ${meeting.year}` : meeting.title;
-  }, [availableMeetings, effectiveMeetingId]);
-
-  const { brokerVotingByProposal, loading: reportsLoading } = useReports(
-    effectiveMeetingId || undefined
-  );
-
-  const brokerChartProposals = useMemo(
-    () =>
-      proposals
-        .flatMap((proposal) =>
-          proposal.meetingId === effectiveMeetingId
-            ? [
-                {
-                  id: proposal.id ?? "",
-                  proposalNumber: String(proposal.proposalNumber ?? ""),
-                  proposalTitle: proposal.proposalTitle ?? "",
-                },
-              ]
-            : []
-        )
-        .sort((a, b) => Number(a.proposalNumber) - Number(b.proposalNumber)),
-    [proposals, effectiveMeetingId]
-  );
-
-  const positionsVotedBySet = useMemo(() => {
-    const record: Record<string, PositionsVotedBuckets> = {};
-
-    for (const position of positions) {
-      if (position.meetingId !== effectiveMeetingId) continue;
-
-      const key = position.setKey || "All Positions";
-      if (!record[key]) {
-        record[key] = {
-          registered: { voted: 0, notVoted: 0 },
-          beneficial: { voted: 0, notVoted: 0 },
-        };
-      }
-
-      const bucket =
-        position.accountType === "Non-DTC"
-          ? record[key].registered
-          : record[key].beneficial;
-
-      if (position.voteStatus === "Voted") {
-        bucket.voted += 1;
-      } else {
-        bucket.notVoted += 1;
-      }
-    }
-
-    return record;
-  }, [positions, effectiveMeetingId]);
-
-  const positionsVotedSetKeys = useMemo(
-    () => Object.keys(positionsVotedBySet),
-    [positionsVotedBySet]
-  );
-
-  const participationChartData = useMemo(() => {
-    const quorumData = reportingData?.quorumData ?? [];
-    const eventSummary = reportingData?.mappedEventSummary ?? [];
-
-    return {
-      meetings: quorumData.flatMap((quorum) => {
-        const summary = eventSummary.find(
-          (event) => event.meetingId === quorum.meetingId
-        );
-        const meetingYear = summary?.meetingYear ?? 0;
-        if (meetingYear <= 0) return [];
-        return [
-          {
-            event: quorum.meetingTitle,
-            participationRate: quorum.participationRate,
-            meetingYear,
-          },
-        ];
-      }),
-    };
-  }, [reportingData]);
-
-  const quorumTimelineInput = useMemo(() => {
-    const meetingDate = selectedMeeting?.meetingDate
-      ? parseLocalDate(selectedMeeting.meetingDate)
-      : null;
-    const distribution = classifyMailingDistribution(
-      selectedMeeting?.distributionType
-    );
-    const mailDate =
-      meetingDate && distribution
-        ? computeRecommendedMailByDate(meetingDate, distribution).date
-        : (selectedMeeting?.mailingDate ?? null);
-    const endDate = meetingDate ?? selectedMeeting?.cutoffDate ?? null;
-    const milestones = [];
-
-    if (mailDate) {
-      milestones.push({
-        date: mailDate,
-        kind: "mail" as const,
-        label: distribution
-          ? `Mail Date · ${mailingDistributionShortLabel(distribution)}`
-          : "Mail Date",
-      });
-    }
-
-    if (endDate) {
-      milestones.push({
-        date: endDate,
-        kind: "deadline" as const,
-        label: "Meeting Date",
-      });
-    }
-
-    return {
-      endDate,
-      milestones,
-      startDate: mailDate,
-      totalOutstandingShares: Number(
-        selectedMeeting?.totalSharesOutstanding ?? 0
-      ),
-      votes: positions.flatMap((position) =>
-        position.meetingId === effectiveMeetingId &&
-        position.voteStatus === "Voted" &&
-        Boolean(position.dateVoted)
-          ? [
-              {
-                date: parseLocalDate((position.dateVoted ?? "").slice(0, 10)),
-                shares: Number(position.sharesVoted ?? 0),
-              },
-            ]
-          : []
-      ),
-    };
-  }, [effectiveMeetingId, positions, selectedMeeting]);
-
-  const { points: quorumTimelinePoints, milestones: quorumTimelineMilestones } =
-    useQuorumTimeline(quorumTimelineInput);
-
-  if (error) {
-    return (
-      <Container component="main" maxWidth="xl" sx={{ p: 3 }}>
-        <Alert severity="error">{String(error)}</Alert>
-      </Container>
-    );
-  }
-
-  return (
-    <Container component="main" maxWidth="xl" sx={{ p: { xs: 1, md: 3 } }}>
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <Suspense fallback={<ChartSkeleton />}>
-            <EventSummaryTable
-              data={mappedEventSummary}
-              clientTicker={clientTicker}
-              loading={loading}
-            />
-          </Suspense>
-        </Grid>
-
-        <Grid size={{ xs: 12, lg: 6 }}>
-          <Suspense fallback={<ChartSkeleton />}>
-            <Card>
-              <CardHeader
-                title="Year Over Year Registered vs Beneficial Performance"
-                subheader="Participation broken down by registered vs beneficial YOY by shares"
-              />
-              <CardContent>
-                <YearOverYearChart
-                  data={mappedYearOverYear}
-                  loading={loading}
-                />
-              </CardContent>
-            </Card>
-          </Suspense>
-        </Grid>
-
-        <Grid size={{ xs: 12, lg: 6 }}>
-          <QuorumTimelineChart
-            points={quorumTimelinePoints}
-            milestones={quorumTimelineMilestones}
-            quorumRequirementPercent={
-              selectedMeeting?.quorumRequirement ?? null
-            }
-            loading={loading}
-            events={availableMeetings.map((meeting) => ({
-              id: meeting.id,
-              label: meeting.year
-                ? `${meeting.title} - ${meeting.year}`
-                : meeting.title,
-            }))}
-            selectedEventId={effectiveMeetingId}
-            onEventChange={setSelectedMeetingId}
-            subheader={selectedMeetingLabel || undefined}
-          />
-        </Grid>
-        {hasNoboFeature ? (
-          <ReportingAnalyticsSection
-            effectiveMeetingId={effectiveMeetingId}
-            brokerChartProposals={brokerChartProposals}
-            brokerVotingByProposal={brokerVotingByProposal}
-            loading={loading}
-            reportsLoading={reportsLoading}
-            selectedMeetingLabel={selectedMeetingLabel}
-            positionsVotedSetKeys={positionsVotedSetKeys}
-            positionsVotedBySet={positionsVotedBySet}
-            participationChartData={participationChartData}
-            mappedProposalPerformanceData={mappedProposalPerformanceData}
-          />
-        ) : null}
-      </Grid>
-    </Container>
-  );
-};
 
 interface ReportingAnalyticsSectionProps {
   readonly effectiveMeetingId: string;
@@ -432,5 +167,260 @@ const ReportingAnalyticsSection = ({
     </Grid>
   </>
 );
+
+/**
+ * Client-level reporting page. The historical summary tables (event summary,
+ * year-over-year, quorum performance) are followed by a per-event Analytics
+ * section added in 002-tabulation-enhancements: quorum timeline, broker
+ * voting, voting performance, positions voted, participation by year, and
+ * the geographic heat map.
+ *
+ * An event selector scopes the Analytics charts; it defaults to the first
+ * available meeting until the user picks one. The quorum timeline derives its
+ * milestones from the meeting and threads the selected meeting's quorum
+ * requirement into the threshold line.
+ */
+const ReportingPage = () => {
+  const params = useParams();
+  const clientTicker = asParamString(params.clientTicker);
+
+  const { data: reportingData, loading, error } = useReporting(clientTicker);
+  const { isEnabled } = useClientFeatures();
+  const hasNoboFeature = isEnabled("nobo");
+  const [selectedMeetingId, setSelectedMeetingId] = useState("");
+
+  const mappedEventSummary = reportingData?.mappedEventSummary ?? [];
+  const mappedYearOverYear = reportingData?.mappedYearOverYear ?? [];
+  const mappedProposalPerformanceData =
+    reportingData?.mappedProposalPerformanceData ?? [];
+  // No useMemo below: the React Compiler already caches these.
+  const availableMeetings = reportingData?.availableMeetings ?? [];
+  const positions = reportingData?.positions ?? [];
+  const proposals = reportingData?.proposals ?? [];
+
+  const effectiveMeetingId =
+    selectedMeetingId !== ""
+      ? selectedMeetingId
+      : (availableMeetings[0]?.id ?? "");
+  const selectedMeeting =
+    reportingData?.meetings.find((m) => m.id === effectiveMeetingId) ?? null;
+
+  // Mirrors the event selector's option label so each analytics card can show
+  // which meeting it is scoped to in its subheader.
+  const selectedMeetingEntry = availableMeetings.find(
+    (m) => m.id === effectiveMeetingId
+  );
+  const selectedMeetingLabel =
+    selectedMeetingEntry === undefined
+      ? ""
+      : selectedMeetingEntry.year !== null
+        ? `${selectedMeetingEntry.title} - ${selectedMeetingEntry.year}`
+        : selectedMeetingEntry.title;
+
+  const { brokerVotingByProposal, loading: reportsLoading } = useReports(
+    effectiveMeetingId === "" ? undefined : effectiveMeetingId
+  );
+
+  const brokerChartProposals = proposals
+    .flatMap((proposal) =>
+      proposal.meetingId === effectiveMeetingId
+        ? [
+            {
+              id: proposal.id ?? "",
+              proposalNumber: String(proposal.proposalNumber ?? ""),
+              proposalTitle: proposal.proposalTitle ?? "",
+            },
+          ]
+        : []
+    )
+    .sort((a, b) => Number(a.proposalNumber) - Number(b.proposalNumber));
+
+  const positionsVotedBySet: Record<string, PositionsVotedBuckets> = {};
+  for (const position of positions) {
+    if (position.meetingId !== effectiveMeetingId) continue;
+
+    const key =
+      position.setKey !== null &&
+      position.setKey !== undefined &&
+      position.setKey !== ""
+        ? position.setKey
+        : "All Positions";
+    if (!(key in positionsVotedBySet)) {
+      positionsVotedBySet[key] = {
+        registered: { voted: 0, notVoted: 0 },
+        beneficial: { voted: 0, notVoted: 0 },
+      };
+    }
+
+    const bucket =
+      position.accountType === "Non-DTC"
+        ? positionsVotedBySet[key].registered
+        : positionsVotedBySet[key].beneficial;
+
+    if (position.voteStatus === "Voted") {
+      bucket.voted += 1;
+    } else {
+      bucket.notVoted += 1;
+    }
+  }
+
+  const positionsVotedSetKeys = Object.keys(positionsVotedBySet);
+
+  const quorumData = reportingData?.quorumData ?? [];
+  const eventSummaryForParticipation = reportingData?.mappedEventSummary ?? [];
+  const participationChartData = {
+    meetings: quorumData.flatMap((quorum) => {
+      const summary = eventSummaryForParticipation.find(
+        (event) => event.meetingId === quorum.meetingId
+      );
+      const meetingYear = summary?.meetingYear ?? 0;
+      if (meetingYear <= 0) return [];
+      return [
+        {
+          event: quorum.meetingTitle,
+          participationRate: quorum.participationRate,
+          meetingYear,
+        },
+      ];
+    }),
+  };
+
+  const quorumMeetingDate =
+    selectedMeeting?.meetingDate !== undefined &&
+    selectedMeeting.meetingDate !== ""
+      ? parseLocalDate(selectedMeeting.meetingDate)
+      : null;
+  const quorumDistribution = classifyMailingDistribution(
+    selectedMeeting?.distributionType
+  );
+  const quorumMailDate =
+    quorumMeetingDate !== null && quorumDistribution !== null
+      ? computeRecommendedMailByDate(quorumMeetingDate, quorumDistribution).date
+      : (selectedMeeting?.mailingDate ?? null);
+  const quorumEndDate =
+    quorumMeetingDate ?? selectedMeeting?.cutoffDate ?? null;
+  const quorumMilestones = [];
+
+  if (quorumMailDate !== null) {
+    quorumMilestones.push({
+      date: quorumMailDate,
+      kind: "mail" as const,
+      label:
+        quorumDistribution === null
+          ? "Mail Date"
+          : `Mail Date · ${mailingDistributionShortLabel(quorumDistribution)}`,
+    });
+  }
+
+  if (quorumEndDate !== null) {
+    quorumMilestones.push({
+      date: quorumEndDate,
+      kind: "deadline" as const,
+      label: "Meeting Date",
+    });
+  }
+
+  const quorumTimelineInput = {
+    endDate: quorumEndDate,
+    milestones: quorumMilestones,
+    startDate: quorumMailDate,
+    totalOutstandingShares: Number(
+      selectedMeeting?.totalSharesOutstanding ?? 0
+    ),
+    votes: positions.flatMap((position) =>
+      position.meetingId === effectiveMeetingId &&
+      position.voteStatus === "Voted" &&
+      Boolean(position.dateVoted)
+        ? [
+            {
+              date: parseLocalDate((position.dateVoted ?? "").slice(0, 10)),
+              shares: Number(position.sharesVoted ?? 0),
+            },
+          ]
+        : []
+    ),
+  };
+
+  const { points: quorumTimelinePoints, milestones: quorumTimelineMilestones } =
+    useQuorumTimeline(quorumTimelineInput);
+
+  if (error !== undefined) {
+    return (
+      <Container component="main" maxWidth="xl" sx={{ p: 3 }}>
+        <Alert severity="error">{String(error)}</Alert>
+      </Container>
+    );
+  }
+
+  return (
+    <Container component="main" maxWidth="xl" sx={{ p: { xs: 1, md: 3 } }}>
+      <Grid container spacing={3}>
+        <Grid size={12}>
+          <Suspense fallback={<ChartSkeleton />}>
+            <EventSummaryTable
+              data={mappedEventSummary}
+              clientTicker={clientTicker}
+              loading={loading}
+            />
+          </Suspense>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Suspense fallback={<ChartSkeleton />}>
+            <Card>
+              <CardHeader
+                title="Year Over Year Registered vs Beneficial Performance"
+                subheader="Participation broken down by registered vs beneficial YOY by shares"
+              />
+              <CardContent>
+                <YearOverYearChart
+                  data={mappedYearOverYear}
+                  loading={loading}
+                />
+              </CardContent>
+            </Card>
+          </Suspense>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <QuorumTimelineChart
+            points={quorumTimelinePoints}
+            milestones={quorumTimelineMilestones}
+            quorumRequirementPercent={
+              selectedMeeting?.quorumRequirement ?? null
+            }
+            loading={loading}
+            events={availableMeetings.map((meeting) => ({
+              id: meeting.id,
+              label:
+                meeting.year !== null
+                  ? `${meeting.title} - ${meeting.year}`
+                  : meeting.title,
+            }))}
+            selectedEventId={effectiveMeetingId}
+            onEventChange={setSelectedMeetingId}
+            subheader={
+              selectedMeetingLabel === "" ? undefined : selectedMeetingLabel
+            }
+          />
+        </Grid>
+        {hasNoboFeature === true ? (
+          <ReportingAnalyticsSection
+            effectiveMeetingId={effectiveMeetingId}
+            brokerChartProposals={brokerChartProposals}
+            brokerVotingByProposal={brokerVotingByProposal}
+            loading={loading}
+            reportsLoading={reportsLoading}
+            selectedMeetingLabel={selectedMeetingLabel}
+            positionsVotedSetKeys={positionsVotedSetKeys}
+            positionsVotedBySet={positionsVotedBySet}
+            participationChartData={participationChartData}
+            mappedProposalPerformanceData={mappedProposalPerformanceData}
+          />
+        ) : null}
+      </Grid>
+    </Container>
+  );
+};
 
 export default ReportingPage;

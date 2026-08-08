@@ -9,7 +9,7 @@ import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { calculateDaysUntil } from "@/utils/dateUtils";
 import { formatTabulationMetric } from "@/utils/tabulation-display";
 
-import type { TabulationTrackerProps } from "./tabulation-tracker/useTabulationTrackerData";
+import type { TabulationTrackerProperties } from "./tabulation-tracker/useTabulationTrackerData";
 
 import { HistoricalShareCard } from "./tabulation-tracker/HistoricalShareCard";
 import {
@@ -18,7 +18,7 @@ import {
 } from "./tabulation-tracker/useTabulationTrackerData";
 import { VoteProgressBar } from "./tabulation-tracker/VoteProgressBar";
 
-const TabulationTracker = (props: TabulationTrackerProps) => {
+const TabulationTracker = (props: TabulationTrackerProperties) => {
   const {
     currentMeeting,
     currentMeetingId,

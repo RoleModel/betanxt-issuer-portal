@@ -71,6 +71,34 @@ const relaxConventionRules = (config) => {
     isChanged = true;
   }
 
+  // The preset allows only camelCase/PascalCase/snake_case for every
+  // identifier. Two of its consequences are pure churn here: module-level
+  // constants are written SCREAMING_SNAKE throughout the codebase, and unused
+  // callback parameters are prefixed with an underscore because that is what
+  // `no-unused-vars` looks for. Quoted properties are exempted outright — a
+  // key like "/accounts/{accountId}" cannot follow an identifier convention.
+  if ("@typescript-eslint/naming-convention" in rules) {
+    rules["@typescript-eslint/naming-convention"] = [
+      "warn",
+      {
+        format: ["camelCase", "PascalCase", "snake_case", "UPPER_CASE"],
+        leadingUnderscore: "allow",
+        selector: "default",
+      },
+      {
+        format: null,
+        modifiers: ["requiresQuotes"],
+        selector: [
+          "classProperty",
+          "enumMember",
+          "objectLiteralProperty",
+          "typeProperty",
+        ],
+      },
+    ];
+    isChanged = true;
+  }
+
   if ("sort-keys" in rules) {
     rules["sort-keys"] = "off";
     isChanged = true;
@@ -118,8 +146,18 @@ export default [
       "**/types/api.ts",
       "**/utils/supabase/database.types.ts",
       "**/domain-models/generated-schema.ts",
+      "**/domain-models/api/generated.ts",
       "**/source-manifest.generated.ts",
     ],
+  },
+  {
+    // eslint-plugin-compat falls back to browserslist's `defaults`, which still
+    // includes Opera Mini — a browser with no `fetch`, no `Promise` and no
+    // `URL`. Every compat warning in this codebase was that one browser, and
+    // the portal does not support it. Set here rather than as a `browserslist`
+    // key in package.json so the linter's target list does not also become
+    // Next.js's compile target.
+    settings: { browsers: ["defaults", "not op_mini all"] },
   },
   ...core.map(warningOnly).map(relaxConventionRules),
   relaxConventionRules(
