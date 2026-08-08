@@ -116,6 +116,7 @@ function meetingToEventRow(meeting: Record<string, unknown>): EventRow | null {
     exchange,
     quorumRequirement,
     tabulationReleased: isTabulationReleased,
+    meetingDateIso: meetingDate,
   };
 }
 

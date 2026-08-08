@@ -66,6 +66,7 @@ const BNAppBarClientMemo = (props: BNAppBarWrapperProps) => {
     isCSM,
     isInClientContext,
     tabs,
+    tabulationApprovalCount,
     selectedTabValue,
     shouldHideTabs,
     handleTabChange,
@@ -128,6 +129,43 @@ const BNAppBarClientMemo = (props: BNAppBarWrapperProps) => {
     return CSMLogo;
   }, [showCSMBrandLogo]);
 
+  /**
+   * Tabs, with the Events tab badged when a CSM has releases waiting.
+   *
+   * @remarks
+   * BNAppBar types a tab's `label` as a string, but it spreads the whole tab
+   * object into MUI's `Tab` last of all, and `TabProps["label"]` is a
+   * ReactNode — so a real Badge renders. The cast is to that narrower
+   * published type, not away from the runtime one.
+   *
+   * The `aria-label` has to travel with it: BNAppBar builds its own from
+   * `Navigate to ${tab.label}`, which stringifies an element to
+   * "[object Object]". Being spread last, ours wins.
+   */
+  const badgedTabs = useMemo(() => {
+    if (tabulationApprovalCount === 0) {
+      return tabs;
+    }
+
+    return tabs.map((tab) =>
+      tab.value === "events"
+        ? {
+            ...tab,
+            "aria-label": `Navigate to Events, ${String(tabulationApprovalCount)} awaiting tabulation release`,
+            label: (
+              <Badge
+                badgeContent={tabulationApprovalCount}
+                color="error"
+                sx={{ "& .MuiBadge-badge": { right: -10, top: 2 } }}
+              >
+                {tab.label}
+              </Badge>
+            ),
+          }
+        : tab
+    );
+  }, [tabs, tabulationApprovalCount]);
+
   const appBarProps = {
     slots: {
       logoImg:
@@ -138,7 +176,7 @@ const BNAppBarClientMemo = (props: BNAppBarWrapperProps) => {
     },
     slotProps: showCSMBrandLogo ? undefined : logoSlotProps,
     color: "secondary" as const,
-    tabs: shouldHideTabs ? [] : tabs,
+    tabs: shouldHideTabs ? [] : (badgedTabs as typeof tabs),
     avatar,
     menuItems,
     // Cast: MUI Tabs accepts `false` for "no selection" but BNAppBar types it as `string`.

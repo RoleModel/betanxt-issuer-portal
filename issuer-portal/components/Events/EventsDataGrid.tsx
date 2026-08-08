@@ -14,6 +14,7 @@ import { createEventsDataGridColumns } from "./eventsDataGridColumns";
 import { EventsGridToolbar } from "./EventsGridToolbar";
 import { useEventsFilterModel } from "./useEventsFilterModel";
 import { useTabulationRelease } from "./useTabulationRelease";
+import { tabulationReleaseState } from "@/utils/eventData";
 
 // The grid renders only on the client; this defers it until after hydration
 // rather than rendering a server pass the grid would immediately discard.
@@ -36,8 +37,6 @@ interface EventsDataGridProps {
     meetingIds: readonly string[],
     released: boolean
   ) => void;
-  /** Refetches the events list once a batch has settled. */
-  readonly onRefresh: () => void;
 }
 
 export const EventsDataGrid = ({
@@ -47,7 +46,6 @@ export const EventsDataGrid = ({
   emptyMessage,
   events,
   loading,
-  onRefresh,
   onTabulationReleased,
 }: EventsDataGridProps) => {
   const apiRef = useGridApiRef();
@@ -89,10 +87,9 @@ export const EventsDataGrid = ({
           type: "include",
           ids: new Set(),
         });
-        onRefresh();
       });
     },
-    [apiRef, onRefresh, setTabulationReleased]
+    [apiRef, setTabulationReleased]
   );
 
   const handleRowTabulationChange = useCallback(
@@ -104,9 +101,22 @@ export const EventsDataGrid = ({
 
   const handleBulkRelease = useCallback(
     (meetingIds: readonly string[]) => {
-      runRelease(meetingIds, true);
+      // A selection can include meetings whose window has not opened. Their
+      // own chip refuses the change, so the batch has to as well — otherwise
+      // multi-select becomes a way around the rule.
+      const now = new Date();
+      const releasable = meetingIds.filter((meetingId) => {
+        const row = events.find((event) => event.meetingId === meetingId);
+        return (
+          row !== undefined && tabulationReleaseState(row, now) !== "tooEarly"
+        );
+      });
+
+      if (releasable.length > 0) {
+        runRelease(releasable, true);
+      }
     },
-    [runRelease]
+    [events, runRelease]
   );
 
   const columns = createEventsDataGridColumns({

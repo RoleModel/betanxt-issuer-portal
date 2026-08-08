@@ -19,14 +19,17 @@ import { useId, useState } from "react";
 
 import type { EventRow } from "@/utils/eventData";
 
+import { tabulationReleaseState } from "@/utils/eventData";
+
 import { CustomTooltip } from "@/components/ui/CustomToolTip";
 import { getMeetingUrl } from "@/utils/eventData";
 
 import { AT_RISK_LABEL } from "./eventRiskStatus";
 import {
-  TABULATION_NOT_RELEASED_LABEL,
+  TABULATION_READY_LABEL,
   TABULATION_RELEASED_LABEL,
-  getTabulationStatusLabel,
+  TABULATION_STATE_PRESENTATION,
+  tabulationTooEarlyReason,
 } from "./eventTabulationStatus";
 
 /** Event name over its type, linking through to the meeting dashboard. */
@@ -86,7 +89,12 @@ export const EventTabulationStatusCell = ({
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
   const menuId = useId();
   const open = anchorElement !== null;
-  const label = getTabulationStatusLabel(event);
+  const releaseState = tabulationReleaseState(event, new Date());
+  const { label, color } = TABULATION_STATE_PRESENTATION[releaseState];
+  // Releasing a meeting that is still weeks out would publish a tabulation of
+  // a vote that has barely started, so the control is inert until the window
+  // opens rather than merely discouraged.
+  const isTooEarly = releaseState === "tooEarly";
 
   const closeMenu = () => {
     setAnchorElement(null);
@@ -100,13 +108,22 @@ export const EventTabulationStatusCell = ({
   };
 
   if (!editable) {
+    return <Chip color={color} label={label} size="small" variant="outlined" />;
+  }
+
+  if (isTooEarly) {
     return (
-      <Chip
-        color={event.tabulationReleased ? "success" : "default"}
-        label={label}
-        size="small"
-        variant="outlined"
-      />
+      <CustomTooltip title={tabulationTooEarlyReason(event)}>
+        <span>
+          <Chip
+            color={color}
+            disabled
+            label={label}
+            size="small"
+            variant="outlined"
+          />
+        </span>
+      </CustomTooltip>
     );
   }
 
@@ -118,8 +135,8 @@ export const EventTabulationStatusCell = ({
         aria-haspopup="menu"
         aria-label={`Tabulation ${label} for ${event.event}. Change`}
         clickable
-        color={event.tabulationReleased ? "success" : "default"}
-        disabled={pending}
+        color={color}
+        disabled={pending || isTooEarly}
         label={
           <Stack alignItems="center" direction="row" spacing={0.25}>
             <span>{label}</span>
@@ -158,7 +175,7 @@ export const EventTabulationStatusCell = ({
           }}
           selected={!event.tabulationReleased}
         >
-          {TABULATION_NOT_RELEASED_LABEL}
+          {TABULATION_READY_LABEL}
         </MenuItem>
       </Menu>
     </>

@@ -20,6 +20,7 @@ import { useNotificationsSafe } from "@/contexts/NotificationContext";
 import { buildApiClient } from "@/domain-models/apiClient";
 import { useClients } from "@/hooks/useClients";
 import { useEvents } from "@/hooks/useEvents";
+import { countTabulationApprovals } from "@/utils/eventData";
 import { getBrandConfigByTicker, getBrandLogoPath } from "@/utils/brandConfig";
 import { computeClientLogoSrc } from "@/utils/client-branding";
 import { isDevOverlayEnabled } from "@/utils/developmentOverlay";
@@ -179,6 +180,12 @@ interface UseAppBarResult {
 
   // Navigation
   tabs: { label: string; value: string; href: string }[];
+  /**
+   * Events waiting on a CSM to release their tabulation, for the Events tab's
+   * badge. Zero for anyone who cannot release, so nothing is shown to a user
+   * who could not act on it.
+   */
+  tabulationApprovalCount: number;
   selectedTabValue: string | false;
   shouldHideTabs: boolean;
   handleTabChange: (event: SyntheticEvent, newValue: string) => void;
@@ -344,6 +351,13 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
 
   // --- Navigation ---
   const { events } = useEvents();
+
+  // Events waiting on this CSM to release their tabulation. Only a CSM can
+  // release, so nobody else is shown a count they could not act on.
+  const tabulationApprovalCount = useMemo(
+    () => (isCSM ? countTabulationApprovals(events, new Date()) : 0),
+    [isCSM, events]
+  );
 
   const urlTicker = useMemo(() => {
     const match = tickerPrefixRegex.exec(pathname);
@@ -808,6 +822,7 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
     selectedTabValue,
     shouldHideTabs,
     tabs,
+    tabulationApprovalCount,
     unreadCount,
   };
 };

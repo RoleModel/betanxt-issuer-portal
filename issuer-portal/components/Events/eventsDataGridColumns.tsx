@@ -27,8 +27,7 @@ import {
   parseEventDate,
 } from "./eventRiskStatus";
 import {
-  TABULATION_NOT_RELEASED_LABEL,
-  TABULATION_RELEASED_LABEL,
+  TABULATION_STATUS_OPTIONS,
   getTabulationStatusLabel,
 } from "./eventTabulationStatus";
 
@@ -173,9 +172,9 @@ export const createEventsDataGridColumns = ({
     type: "singleSelect",
     valueGetter: (value: unknown, row: EventRow) => {
       void value;
-      return getTabulationStatusLabel(row);
+      return getTabulationStatusLabel(row, new Date());
     },
-    valueOptions: [TABULATION_RELEASED_LABEL, TABULATION_NOT_RELEASED_LABEL],
+    valueOptions: [...TABULATION_STATUS_OPTIONS],
   },
   {
     align: "right",

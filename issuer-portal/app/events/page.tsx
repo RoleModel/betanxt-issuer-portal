@@ -79,9 +79,6 @@ const EventsPage = () => {
               emptyMessage={emptyMessage}
               events={events}
               loading={loading}
-              onRefresh={() => {
-                void revalidate();
-              }}
               onTabulationReleased={applyTabulationReleased}
             />
           </Box>
