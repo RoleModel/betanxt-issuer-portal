@@ -2,7 +2,7 @@
 
 import type { ProposalVoting } from "@/types/phases";
 
-import SharesVotedChart from "@/components/Meeting/SharesVotedChart";
+import SharesVotedChart from "@/components/Charts/SharesVoted/SharesVotedChart";
 
 interface SharesVotedCardProps {
   readonly meetingId: string;

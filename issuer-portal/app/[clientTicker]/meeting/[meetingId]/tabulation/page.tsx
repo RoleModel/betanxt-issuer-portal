@@ -3,11 +3,11 @@
 import { Container } from "@mui/material";
 import Grid from "@mui/material/Grid";
 
-import QuorumGaugeCard from "@/components/Meeting/QuorumGaugeCard";
+import QuorumGaugeCard from "@/components/Charts/QuorumGauge/QuorumGaugeCard";
 import ProposalDetailsCard from "@/components/Tabulation/ProposalDetailsCard";
 import { TabulationDistributionDrawer } from "@/components/Tabulation/TabulationDistributionDrawer";
 import TabulationReportCard from "@/components/Tabulation/TabulationReportCard";
-import VoteMatrixChartCard from "@/components/Tabulation/VoteMatrixChartCard";
+import VoteMatrixChartCard from "@/components/Charts/VoteMatrix/VoteMatrixChartCard";
 import { useMeeting } from "@/contexts/MeetingContext";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useTabulationInsights } from "@/hooks/useTabulationInsights";

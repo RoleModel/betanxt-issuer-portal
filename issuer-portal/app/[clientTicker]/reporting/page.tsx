@@ -19,16 +19,16 @@ import {
   useState,
 } from "react";
 
-import BrokerVotingChart from "@/components/Reporting/BrokerVotingChart";
+import BrokerVotingChart from "@/components/Charts/BrokerVoting/BrokerVotingChart";
 import EventSummaryTable from "@/components/Reporting/EventSummaryTable";
-import { GeoHeatmapCard } from "@/components/Reporting/GeoHeatmapCard";
-import ParticipationChart from "@/components/Reporting/ParticipationChart";
-import PositionsVotedChart from "@/components/Reporting/PositionsVotedChart";
+import { GeoHeatmapCard } from "@/components/Charts/GeoHeatmap/GeoHeatmapCard";
+import ParticipationChart from "@/components/Charts/Participation/ParticipationChart";
+import PositionsVotedChart from "@/components/Charts/PositionsVoted/PositionsVotedChart";
 import ProposalPerformanceTable from "@/components/Reporting/ProposalPerformanceTable";
-import { QuorumTimelineChart } from "@/components/Reporting/QuorumTimelineChart/QuorumTimelineChart";
-import { useQuorumTimeline } from "@/components/Reporting/QuorumTimelineChart/useQuorumTimeline";
-import VotingPerformanceChart from "@/components/Reporting/VotingPerformanceChart";
-import YearOverYearChart from "@/components/Reporting/YearOverYearChart";
+import { QuorumTimelineChart } from "@/components/Charts/QuorumTimeline/QuorumTimelineChart";
+import { useQuorumTimeline } from "@/components/Charts/QuorumTimeline/useQuorumTimeline";
+import VotingPerformanceChart from "@/components/Charts/VotingPerformance/VotingPerformanceChart";
+import YearOverYearChart from "@/components/Charts/YearOverYear/YearOverYearChart";
 import { useClientFeatures } from "@/hooks/useClientFeatures";
 import { useReporting } from "@/hooks/useReporting";
 import { useReports } from "@/hooks/useReports";

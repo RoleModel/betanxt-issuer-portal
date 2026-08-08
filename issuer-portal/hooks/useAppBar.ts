@@ -754,6 +754,19 @@ export const useAppBar = (parameters: UseAppBarParameters): UseAppBarResult => {
             },
           ]
         : []),
+      // Internal requirements pages. Gated on the Dev User alone rather than
+      // also on the overlay flag: the specs are readable in any build, and only
+      // their source-download button depends on the overlay being on.
+      ...(isDevelopmentUser
+        ? [
+            {
+              label: "Specifications",
+              onClick: () => {
+                router.push("/specs/ui-enhancements");
+              },
+            },
+          ]
+        : []),
       {
         label: "Logout",
         onClick: () => {
